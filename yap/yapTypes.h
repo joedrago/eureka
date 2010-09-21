@@ -1,7 +1,11 @@
 #ifndef YAPTYPES_H
 #define YAPTYPES_H
 
+#ifdef PLATFORM_LINUX
+#define yInline inline
+#else
 #define yInline __forceinline
+#endif
 
 typedef int	yS32;
 typedef unsigned int yU32;

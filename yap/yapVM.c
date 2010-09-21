@@ -53,7 +53,7 @@ void yapFunctionDestroy(yapFunction *func)
 
 void yapUnitDestroy(yapUnit *p)
 {
-    yapArrayDestroy(&p->funcs, yapFunctionDestroy);
+    yapArrayDestroy(&p->funcs, (yapDestroyCB)yapFunctionDestroy);
     yapFree(p->code);
     yapFree(p);
 }
@@ -101,10 +101,10 @@ void yapVMClearError(yapVM *vm)
 void yapVMDestroy(yapVM *vm)
 {
     yapVMClearError(vm);
-    yapArrayDestroy(&vm->units, yapUnitDestroy);
+    yapArrayDestroy(&vm->units, (yapDestroyCB)yapUnitDestroy);
     yapArrayDestroy(&vm->funcs, NULL); // Shallow destroy, as units own funcs
     yapArrayDestroy(&vm->frames, yapFree);
-    yapArrayDestroy(&vm->stack, yapValueFree);
+    yapArrayDestroy(&vm->stack, (yapDestroyCB)yapValueFree);
     yapFree(vm);
 }
 
