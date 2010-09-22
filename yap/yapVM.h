@@ -53,8 +53,11 @@ typedef struct yapFrame
 {
     yapFunction *func;
     yapOp *ip;               // Instruction Pointer
-    ySize stackPushes;       // Count of value stack pushes during this frame
+    yS32   bp;               // Base pointer (prev. stack depth minus arg count)
+    yapArray ret;            // Contains returned values from the most recent RET
 } yapFrame;
+
+void yapFrameFree(yapFrame *frame);
 
 // ---------------------------------------------------------------------------
 
@@ -75,7 +78,6 @@ typedef struct yapValue
 void yapValueClear(yapValue *p);
 void yapValueFree(yapValue *p);
 
-
 // ---------------------------------------------------------------------------
 
 typedef struct yapVM
@@ -90,7 +92,7 @@ typedef struct yapVM
 yapVM * yapVMCreate(void);
 void yapVMLink(yapVM *vm, yapUnit *unit);
 void yapVMDestroy(yapVM *vm);
-void yapVMCall(yapVM *vm, const char *funcName);
+void yapVMCall(yapVM *vm, const char *funcName, int numArgs);
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
 void yapVMClearError(yapVM *vm);

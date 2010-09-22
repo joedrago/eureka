@@ -1,10 +1,10 @@
 #ifndef YAPTYPES_H
 #define YAPTYPES_H
 
-#ifdef PLATFORM_LINUX
-#define yInline inline
-#else
+#ifdef PLATFORM_WIN32
 #define yInline __forceinline
+#else
+#define yInline inline
 #endif
 
 typedef int	yS32;
@@ -45,6 +45,7 @@ typedef struct yapArray
 void yapArrayPush(yapArray *p, void *v);
 void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);
+yU32 yapArrayCount(yapArray *p);
 
 #define yapArrayClear(ARRAY) ARRAY->count = 0
 

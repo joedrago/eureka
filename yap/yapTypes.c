@@ -27,6 +27,11 @@ void * yapArrayTop(yapArray *p)
     return p->data[p->count-1];
 }
 
+yU32 yapArrayCount(yapArray *p)
+{
+    return p->count;
+}
+
 void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
 {
     int i;

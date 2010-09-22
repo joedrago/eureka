@@ -22,8 +22,14 @@ yapUnit * yapUnitCompile(const char *text)
         unit->code[2].operand = 1;
 
         unit->code[3].opcode  = YOP_CALL;
-        unit->code[4].opcode  = YOP_RET;
-        unit->code[2].operand = 1;
+        unit->code[4].opcode  = YOP_PUSHKI;
+        unit->code[4].operand = 2;
+        unit->code[5].opcode  = YOP_PUSHKI;
+        unit->code[5].operand = 2;
+        unit->code[6].opcode  = YOP_PUSHKI;
+        unit->code[6].operand = 2;
+        unit->code[7].opcode  = YOP_RET;
+        unit->code[7].operand = 1;
     }
 
     {
@@ -103,7 +109,7 @@ void yapVMDestroy(yapVM *vm)
     yapVMClearError(vm);
     yapArrayDestroy(&vm->units, (yapDestroyCB)yapUnitDestroy);
     yapArrayDestroy(&vm->funcs, NULL); // Shallow destroy, as units own funcs
-    yapArrayDestroy(&vm->frames, yapFree);
+    yapArrayDestroy(&vm->frames, yapFrameFree);
     yapArrayDestroy(&vm->stack, (yapDestroyCB)yapValueFree);
     yapFree(vm);
 }
@@ -160,7 +166,7 @@ static yapFunction * yapVMFindFunction(yapVM *vm, const char *funcName)
     return NULL;
 }
 
-yapFrame * yapVMPushFrame(yapVM *vm, const char *funcName)
+yapFrame * yapVMPushFrame(yapVM *vm, const char *funcName, int numArgs)
 {
     yapFrame *frame;
     yapFunction *func = yapVMFindFunction(vm, funcName);
@@ -173,8 +179,15 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *funcName)
     frame = yapAlloc(sizeof(*frame));
     frame->func = func;
     frame->ip   = &func->unit->code[func->pc];
+    frame->bp   = vm->stack.count - numArgs;
     yapArrayPush(&vm->frames, frame);
     return frame;
+}
+
+void yapFrameFree(yapFrame *frame)
+{
+    yapArrayDestroy(&frame->ret, yapValueFree);
+    yapFree(frame);
 }
 
 #define YOP_UNIMPLEMENTED(OP) case OP: printf("NYI: " #OP "\n"); break
@@ -212,7 +225,6 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapAlloc(sizeof(*value));
                 yapValueSetInt(value, operand); // TODO: ADDRESS INTO KI TABLE
                 yapArrayPush(&vm->stack, value);
-                frame->stackPushes++;
             }
             break;
 
@@ -236,7 +248,7 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_CALL:
             {
-                frame = yapVMPushFrame(vm, "call");
+                frame = yapVMPushFrame(vm, "call", operand);
                 if(frame)
                     calledFunc = yTrue;
                 else
@@ -246,25 +258,35 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_RET:
             {
+                int i;
+                int prevBP = frame->bp; // Stash for future value stack popping
+
                 yapArrayPop(&vm->frames); // Removes 'frame' from top of stack
+                yapFrameFree(frame);
+                frame = yapArrayTop(&vm->frames);
+                if(frame)
+                {
+                    // Stash return values in frame
+                    for(i=0; i<operand;i++)
+                    {
+                        int stackIndex = (vm->stack.count - operand) + i;
+                        // Reuse struct instead of copy -- it is about to be popped                                        
+                        yapArrayPush(&frame->ret, vm->stack.data[stackIndex]);
+                        vm->stack.data[stackIndex] = NULL;
+                    }
+                }
+                else
+                {
+                    // Throw away return values and bail out of loop
+                    continueLooping = yFalse;
+                }
 
-                // TODO: Figure out how to take X returned args and stash them
-                //       somewhere for usage (perhaps another value array that
-                //       stores the temporary args and ret values for stack
-                //       cleanliness? It would have to be a per-frame array,
-                //       as passed-in args need to persist through child calls.
-
-                while(frame->stackPushes)
+                // Clear out value stack of argument cruft
+                while(vm->stack.count > prevBP)
                 {
                     yapValue *value = yapArrayPop(&vm->stack);
-                    yapValueFree(value);
-                    frame->stackPushes--;
-                }
-                yapFree(frame);
-                frame = yapArrayTop(&vm->frames);
-                if(!frame)
-                {
-                    continueLooping = yFalse;
+                    if(value)
+                        yapValueFree(value);
                 }
             };
             break;
@@ -280,9 +302,9 @@ void yapVMLoop(yapVM *vm)
     }
 }
 
-void yapVMCall(yapVM *vm, const char *funcName)
+void yapVMCall(yapVM *vm, const char *funcName, int numArgs)
 {
-    yapFrame *frame = yapVMPushFrame(vm, funcName);
+    yapFrame *frame = yapVMPushFrame(vm, funcName, numArgs);
     if(!frame)
         return;
 
