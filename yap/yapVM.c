@@ -6,80 +6,52 @@
 
 #define MAX_ERROR_LENGTH 1023
 
-yapUnit * yapUnitCompile(const char *text)
+int yapCompile(const char *text, yapArray *outBlocks)
 {
-    yapUnit *unit = yapAlloc(sizeof(*unit));
+    yapBlock *block;
 
     // Someday this'll actually compile stuff!
 
-    {
-        unit->code = yapAlloc(sizeof(*unit->code) * 8);
-        unit->code[0].opcode  = YOP_PUSHKI;
-        unit->code[0].operand = 2;
-        unit->code[1].opcode  = YOP_ADDKI;
-        unit->code[1].operand = 2;
-        unit->code[2].opcode  = YOP_RET;
-        unit->code[2].operand = 1;
+    block = yapAlloc(sizeof(*block));
+    block->ops = yapAlloc(sizeof(*block->ops) * 4);
+    block->ops[0].opcode  = YOP_PUSHKI;
+    block->ops[0].operand = 2;
+    block->ops[1].opcode  = YOP_ADDKI;
+    block->ops[1].operand = 2;
+    block->ops[2].opcode  = YOP_RET;
+    block->ops[2].operand = 1;
+    block->name = yapStrdup("call");
+    yapArrayPush(outBlocks, block);
 
-        unit->code[3].opcode  = YOP_CALL;
-        unit->code[4].opcode  = YOP_PUSHKI;
-        unit->code[4].operand = 2;
-        unit->code[5].opcode  = YOP_PUSHKI;
-        unit->code[5].operand = 2;
-        unit->code[6].opcode  = YOP_PUSHKI;
-        unit->code[6].operand = 2;
-        unit->code[7].opcode  = YOP_RET;
-        unit->code[7].operand = 1;
-    }
+    block = yapAlloc(sizeof(*block));
+    block->ops = yapAlloc(sizeof(*block->ops) * 6);
+    block->ops[0].opcode  = YOP_CALL;
+    block->ops[1].opcode  = YOP_PUSHKI;
+    block->ops[1].operand = 2;
+    block->ops[2].opcode  = YOP_PUSHKI;
+    block->ops[2].operand = 2;
+    block->ops[3].opcode  = YOP_PUSHKI;
+    block->ops[3].operand = 2;
+    block->ops[4].opcode  = YOP_RET;
+    block->ops[4].operand = 1;
+    block->name = yapStrdup("main");
+    yapArrayPush(outBlocks, block);
 
-    {
-        yapFunction *func = yapAlloc(sizeof(*func));
-        func->name = yapStrdup("call");
-        func->unit = unit;
-        func->pc   = 0;
-        yapArrayPush(&unit->funcs, func);
-    }
-
-    {
-        yapFunction *func = yapAlloc(sizeof(*func));
-        func->name = yapStrdup("main");
-        func->unit = unit;
-        func->pc   = 3;
-        yapArrayPush(&unit->funcs, func);
-    }
-
-    return unit;
+    return 2;
 }
 
-void yapFunctionDestroy(yapFunction *func)
+void yapBlockDestroy(yapBlock *block)
 {
-    yapFree(func->name);
-    yapFree(func);
-}
-
-void yapUnitDestroy(yapUnit *p)
-{
-    yapArrayDestroy(&p->funcs, (yapDestroyCB)yapFunctionDestroy);
-    yapFree(p->code);
-    yapFree(p);
+    yapFree(block->ops);
+    yapFree(block->name);
+    yapFree(block);
 }
 
 yapVM * yapVMCreate(void)
 {
     yapVM *vm = yapAlloc(sizeof(*vm));
-    yapUnit *unit = yapUnitCompile("wooo"); // TODO: replace
-    yapVMLink(vm, unit);
+    yapCompile("wooo", &vm->blocks);
     return vm;
-}
-
-void yapVMLink(yapVM *vm, yapUnit *unit)
-{
-    int i;
-    for(i=0; i<unit->funcs.count; i++)
-    {
-        yapArrayPush(&vm->funcs, unit->funcs.data[i]);
-    }
-    yapArrayPush(&vm->units, unit);
 }
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...)
@@ -107,9 +79,8 @@ void yapVMClearError(yapVM *vm)
 void yapVMDestroy(yapVM *vm)
 {
     yapVMClearError(vm);
-    yapArrayDestroy(&vm->units, (yapDestroyCB)yapUnitDestroy);
-    yapArrayDestroy(&vm->funcs, NULL); // Shallow destroy, as units own funcs
-    yapArrayDestroy(&vm->frames, yapFrameFree);
+    yapArrayDestroy(&vm->blocks, (yapDestroyCB)yapBlockDestroy);
+    yapArrayDestroy(&vm->frames, (yapDestroyCB)yapFrameFree);
     yapArrayDestroy(&vm->stack, (yapDestroyCB)yapValueFree);
     yapFree(vm);
 }
@@ -154,39 +125,39 @@ yInline void yapValueSetInt(yapValue *p, int v)
     p->intValue = v;
 }
 
-static yapFunction * yapVMFindFunction(yapVM *vm, const char *funcName)
+static yapBlock * yapVMFindBlock(yapVM *vm, const char *blockName)
 {
     int i;
-    for(i=0; i<vm->funcs.count; i++)
+    for(i=0; i<vm->blocks.count; i++)
     {
-        yapFunction *func = (yapFunction *)(vm->funcs.data[i]);
-        if(!strcmp(func->name, funcName))
-            return func;
+        yapBlock *block = (yapBlock *)(vm->blocks.data[i]);
+        if(!strcmp(block->name, blockName))
+            return block;
     }
     return NULL;
 }
 
-yapFrame * yapVMPushFrame(yapVM *vm, const char *funcName, int numArgs)
+yapFrame * yapVMPushFrame(yapVM *vm, const char *blockName, int numArgs)
 {
     yapFrame *frame;
-    yapFunction *func = yapVMFindFunction(vm, funcName);
-    if(!func)
+    yapBlock *block = yapVMFindBlock(vm, blockName);
+    if(!block)
     {
-        yapVMSetError(vm, "Cannot find function '%s'", funcName);
+        yapVMSetError(vm, "Cannot find blocktion '%s'", blockName);
         return NULL;
     }
 
     frame = yapAlloc(sizeof(*frame));
-    frame->func = func;
-    frame->ip   = &func->unit->code[func->pc];
-    frame->bp   = vm->stack.count - numArgs;
+    frame->block = block;
+    frame->ip = block->ops;
+    frame->bp = vm->stack.count - numArgs;
     yapArrayPush(&vm->frames, frame);
     return frame;
 }
 
 void yapFrameFree(yapFrame *frame)
 {
-    yapArrayDestroy(&frame->ret, yapValueFree);
+    yapArrayDestroy(&frame->ret, (yapDestroyCB)yapValueFree);
     yapFree(frame);
 }
 
@@ -248,7 +219,7 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_CALL:
             {
-                frame = yapVMPushFrame(vm, "call", operand);
+                frame = yapVMPushFrame(vm, "call", operand); // TODO: Get name from top of stack, get var, get block from var
                 if(frame)
                     calledFunc = yTrue;
                 else
@@ -302,9 +273,9 @@ void yapVMLoop(yapVM *vm)
     }
 }
 
-void yapVMCall(yapVM *vm, const char *funcName, int numArgs)
+void yapVMCall(yapVM *vm, const char *blockName, int numArgs)
 {
-    yapFrame *frame = yapVMPushFrame(vm, funcName, numArgs);
+    yapFrame *frame = yapVMPushFrame(vm, blockName, numArgs);
     if(!frame)
         return;
 

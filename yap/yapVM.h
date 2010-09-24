@@ -3,9 +3,9 @@
 
 #include "yapTypes.h"
 
-// In the comments below, X is the operand, and the k tables are owned by translation units.
+// In the comments below, X is the operand, and the k tables are owned by translation blocks.
 
-typedef enum yapOpCode
+typedef enum yapOpBlock
 {
     YOP_NOOP = 0,            // Does nothing
 
@@ -17,7 +17,7 @@ typedef enum yapOpCode
     YOP_RET,                 // Leave current call, returning X items on the stack
 
     YOP_COUNT
-} yapOpCode;
+} yapOpBlock;
 
 typedef struct yapOp
 {
@@ -27,31 +27,20 @@ typedef struct yapOp
 
 // ---------------------------------------------------------------------------
 
-typedef struct yapUnit
-{
-    yapArray funcs;
-    yapOp *code;
-} yapUnit;
-
-yapUnit * yapUnitCompile(const char *text);
-void yapUnitDestroy(yapUnit *p);
-
-// ---------------------------------------------------------------------------
-
-typedef struct yapFunction
+typedef struct yapBlock
 {
     char *name;
-    yapUnit *unit;
-    ySize pc;
-} yapFunction;
+    yapOp *ops;
+} yapBlock;
 
-void yapFunctionDestroy(yapFunction *func);
+int yapCompile(const char *text, yapArray *outBlocks);
+void yapBlockDestroy(yapBlock *func);
 
 // ---------------------------------------------------------------------------
 
 typedef struct yapFrame
 {
-    yapFunction *func;
+    yapBlock *block;
     yapOp *ip;               // Instruction Pointer
     yS32   bp;               // Base pointer (prev. stack depth minus arg count)
     yapArray ret;            // Contains returned values from the most recent RET
@@ -82,15 +71,13 @@ void yapValueFree(yapValue *p);
 
 typedef struct yapVM
 {
-    yapArray units;          // All linked translation units
-    yapArray funcs;          // Combination of funcs from all linked units
+    yapArray blocks;          // All linked translation blocks
     yapArray frames;         // Current stack frames
     yapArray stack;          // Value stack
     char *error;
 } yapVM;
 
 yapVM * yapVMCreate(void);
-void yapVMLink(yapVM *vm, yapUnit *unit);
 void yapVMDestroy(yapVM *vm);
 void yapVMCall(yapVM *vm, const char *funcName, int numArgs);
 
