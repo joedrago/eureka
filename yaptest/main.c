@@ -4,12 +4,20 @@
 
 int main(int argc, char* argv[])
 {
-    yapContext *context = yapContextCreate();
-    yapVMCall(context->vm, "main", 0);
-    if(context->vm->error)
+#ifdef PLATFORM_WIN32
+    //_CrtSetBreakAlloc(84);
+#endif
     {
-        printf("VM Bailed out: %s\n", context->vm->error);
+        yapContext *context = yapContextCreate();
+        yapVMCall(context->vm, "main", 0);
+        if(context->vm->error)
+        {
+            printf("VM Bailed out: %s\n", context->vm->error);
+        }
+        yapContextFree(context);
     }
-    yapContextDestroy(context);
+#ifdef PLATFORM_WIN32
+    _CrtDumpMemoryLeaks();
+#endif
 	return 0;
 }

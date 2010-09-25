@@ -10,6 +10,6 @@ typedef struct yapContext
 } yapContext;
 
 yapContext * yapContextCreate(void);
-void yapContextDestroy(yapContext *context);
+void yapContextFree(yapContext *context);
 
 #endif

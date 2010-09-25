@@ -15,6 +15,10 @@ typedef unsigned short yU16;
 typedef short yS16;
 typedef unsigned char yU8;
 typedef unsigned int ySize;
+typedef int yFlag;
+
+typedef yS16 yOpcode;
+typedef yS16 yOperand;
 
 typedef int yBool;
 #define yTrue 1
@@ -35,6 +39,17 @@ char * yapStrdup(const char *s);
 // ---------------------------------------------------------------------------
 // Dynamic Array macros
 
+typedef struct yap32Array
+{
+    int count;
+    int capacity;
+    yU32 *data;
+} yap32Array;
+
+yOperand yap32ArrayPushUnique(yap32Array *p, yU32 v);
+yOperand yap32ArrayPush(yap32Array *p, yU32 v);
+void yap32ArrayClear(yap32Array *p);
+
 typedef struct yapArray
 {
     int count;
@@ -42,15 +57,14 @@ typedef struct yapArray
     void **data;
 } yapArray;
 
-void yapArrayPush(yapArray *p, void *v);
+yOperand yapArrayPushUniqueString(yapArray *p, const char *s);
+yOperand yapArrayPush(yapArray *p, void *v);
 void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);
 yU32 yapArrayCount(yapArray *p);
 
-#define yapArrayClear(ARRAY) ARRAY->count = 0
-
 typedef void (*yapDestroyCB)(void *p);
-void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
+void yapArrayClear(yapArray *p, yapDestroyCB cb);
 
 // ---------------------------------------------------------------------------
 

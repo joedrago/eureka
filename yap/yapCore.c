@@ -7,8 +7,8 @@ yapContext * yapContextCreate(void)
     return context;
 }
 
-void yapContextDestroy(yapContext *context)
+void yapContextFree(yapContext *context)
 {
-    yapVMDestroy(context->vm);
+    yapVMFree(context->vm);
     yapFree(context);
 }
