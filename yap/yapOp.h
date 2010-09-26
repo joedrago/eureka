@@ -32,4 +32,7 @@ typedef struct yapOp
     yOperand operand;
 } yapOp;
 
+#define yapOpsAlloc(COUNT) ((yapOp*)(yapAlloc(sizeof(yapOp) * COUNT)))
+#define yapOpsFree(OPS) yapFree(OPS)
+
 #endif

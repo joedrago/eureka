@@ -10,6 +10,7 @@ typedef struct yapModule
     yapArray variables;
 } yapModule;
 
-void yapModuleFree(yapModule *module);
+#define yapModuleCreate() ((yapModule*)yapAlloc(sizeof(yapModule)))
+void yapModuleDestroy(yapModule *module);
 
 #endif

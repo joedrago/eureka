@@ -7,6 +7,7 @@ typedef struct yapBlock
     struct yapOp *ops;
 } yapBlock;
 
-void yapBlockFree(yapBlock *block);
+#define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
+void yapBlockDestroy(yapBlock *block);
 
 #endif

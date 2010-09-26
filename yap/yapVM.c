@@ -22,9 +22,9 @@ int yapVMCompile(yapVM *vm, const char *text)
     // Someday this'll actually compile stuff!
 
     // compile main's block
-    block = yapAlloc(sizeof(*block));
+    block = yapBlockCreate();
     // note: block->module is set in the next stanza
-    block->ops = yapAlloc(sizeof(*block->ops) * 7);
+    block->ops = yapOpsAlloc(7);
 
     // call(55)
     block->ops[0].opcode  = YOP_PUSHKI;
@@ -46,23 +46,23 @@ int yapVMCompile(yapVM *vm, const char *text)
     block->ops[6].operand = 1;
     yapArrayPush(&vm->blocks, block);
 
-    // Create main
-    main = yapAlloc(sizeof(*main));
+    // Alloc main
+    main = yapModuleCreate();
     block->module = main;
     main->block = block;
     yapArrayPush(&vm->modules, main);
 
-    // Create the global variable "main"
-    v = yapVariableAlloc("main");
+    // Alloc the global variable "main"
+    v = yapVariableCreate("main");
     v->value = yapValueCreate(vm);
     v->value->type = YVT_MODULE;
     v->value->moduleVal = main;
     yapArrayPush(&vm->globals, v);
 
     // Add a function: int call(int a) -- returns a+2
-    block = yapAlloc(sizeof(*block));
+    block = yapBlockCreate();
     block->module = main;
-    block->ops = yapAlloc(sizeof(*block->ops) * 4);
+    block->ops = yapOpsAlloc(4);
 
     // return arg0 + 2;
     block->ops[0].opcode  = YOP_PUSHARGN;
@@ -74,8 +74,8 @@ int yapVMCompile(yapVM *vm, const char *text)
 
     yapArrayPush(&vm->blocks, block);
 
-    // Create main.call()
-    v = yapVariableAlloc("call");
+    // Alloc main.call()
+    v = yapVariableCreate("call");
     v->value = yapValueCreate(vm);
     v->value->type = YVT_FUNCTION;
     v->value->blockVal = block;
@@ -86,7 +86,7 @@ int yapVMCompile(yapVM *vm, const char *text)
 
 yapVM * yapVMCreate(void)
 {
-    yapVM *vm = yapAlloc(sizeof(*vm));
+    yapVM *vm = yapAlloc(sizeof(yapVM));
     yapVMCompile(vm, "wooo");
     return vm;
 }
@@ -113,17 +113,17 @@ void yapVMClearError(yapVM *vm)
     }
 }
 
-void yapVMFree(yapVM *vm)
+void yapVMDestroy(yapVM *vm)
 {
-    yapArrayClear(&vm->globals, (yapDestroyCB)yapVariableFree);
-    yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameFree);
+    yapArrayClear(&vm->globals, (yapDestroyCB)yapVariableDestroy);
+    yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(&vm->stack, NULL);
-    yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleFree);
+    yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleDestroy);
 
-    yapArrayClear(&vm->blocks, (yapDestroyCB)yapBlockFree);
+    yapArrayClear(&vm->blocks, (yapDestroyCB)yapBlockDestroy);
 
-    yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueFree);
-    yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueFree);
+    yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueDestroy);
+    yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueDestroy);
 
     yapArrayClear(&vm->kStrings, (yapDestroyCB)yapFree);
     yap32ArrayClear(&vm->kInts);
@@ -203,7 +203,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
 
     block = (v->value->type == YVT_MODULE) ? v->value->moduleVal->block : v->value->blockVal;
 
-    frame = yapAlloc(sizeof(*frame));
+    frame = yapFrameCreate();
     frame->block = block;
     frame->ip = block->ops;
     frame->bp = vm->stack.count - numArgs;
@@ -216,7 +216,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
     return frame;
 }
 
-void yapFrameFree(yapFrame *frame)
+void yapFrameDestroy(yapFrame *frame)
 {
     yapArrayClear(&frame->ret,  NULL);
     yapArrayClear(&frame->args, NULL);
@@ -320,7 +320,7 @@ void yapVMLoop(yapVM *vm)
                 int prevBP = frame->bp; // Stash for future value stack popping
 
                 yapArrayPop(&vm->frames); // Removes 'frame' from top of stack
-                yapFrameFree(frame);
+                yapFrameDestroy(frame);
                 frame = yapArrayTop(&vm->frames);
                 if(frame)
                 {

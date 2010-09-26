@@ -1,7 +1,9 @@
 #include "yapBlock.h"
 
-void yapBlockFree(yapBlock *block)
+#include "yapOp.h"
+
+void yapBlockDestroy(yapBlock *block)
 {
-    yapFree(block->ops);
+    yapOpsFree(block->ops);
     yapFree(block);
 }

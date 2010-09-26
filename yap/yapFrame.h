@@ -13,6 +13,7 @@ typedef struct yapFrame
     yapArray ret;                      // Contains returned values from the most recent RET
 } yapFrame;
 
-void yapFrameFree(yapFrame *frame);
+#define yapFrameCreate() ((yapFrame*)yapAlloc(sizeof(yapFrame)))
+void yapFrameDestroy(yapFrame *frame);
 
 #endif

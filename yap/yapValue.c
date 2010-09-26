@@ -40,7 +40,7 @@ void yapValueClear(yapValue *p)
     p->type = YVT_UNKNOWN;
 }
 
-void yapValueFree(yapValue *p)
+void yapValueDestroy(yapValue *p)
 {
     yapValueClear(p);
     yapFree(p);

@@ -3,15 +3,15 @@
 #include "yapTypes.h"
 #include "yapValue.h"
 
-yapVariable *yapVariableAlloc(const char *name)
+yapVariable *yapVariableCreate(const char *name)
 {
-    yapVariable *v = (yapVariable *)yapAlloc(sizeof(*v));
+    yapVariable *v = (yapVariable *)yapAlloc(sizeof(yapVariable));
     v->name = yapStrdup(name);
     v->value = None;
     return v;
 }
 
-void yapVariableFree(yapVariable *v)
+void yapVariableDestroy(yapVariable *v)
 {
     yapFree(v->name);
     yapFree(v);

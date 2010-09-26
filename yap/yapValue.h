@@ -51,8 +51,7 @@ void yapValueSetString(yapValue *p, char *s);
 void yapValueClear(yapValue *p);
 
 void yapValueMark(yapValue *value);    // used by yapVMGC()
-void yapValueFree(yapValue *p);        // only yapVMFree() should -ever- call this
-
+void yapValueDestroy(yapValue *p);        // only yapVMDestroy() should -ever- call this
 
 yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
 yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);

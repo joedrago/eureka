@@ -2,9 +2,9 @@
 
 #include "yapVariable.h"
 
-void yapModuleFree(yapModule *module)
+void yapModuleDestroy(yapModule *module)
 {
     // module->block is owned by vm->blocks
-    yapArrayClear(&module->variables, (yapDestroyCB)yapVariableFree);
+    yapArrayClear(&module->variables, (yapDestroyCB)yapVariableDestroy);
     yapFree(module);
 }

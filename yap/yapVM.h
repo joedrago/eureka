@@ -27,7 +27,7 @@ typedef struct yapVM
 } yapVM;
 
 yapVM * yapVMCreate(void);
-void yapVMFree(yapVM *vm);
+void yapVMDestroy(yapVM *vm);
 
 int yapVMCompile(yapVM *vm, const char *text);
 void yapVMCall(yapVM *vm, const char *name, int numArgs);

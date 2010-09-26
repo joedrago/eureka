@@ -14,7 +14,7 @@ typedef struct yapVariable
     struct yapValue *value;
 } yapVariable;
 
-yapVariable *yapVariableAlloc(const char *name);
-void yapVariableFree(yapVariable *v);
+yapVariable *yapVariableCreate(const char *name);
+void yapVariableDestroy(yapVariable *v);
 
 #endif
