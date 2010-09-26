@@ -3,9 +3,17 @@
 
 #include "yapTypes.h"
 
+// ---------------------------------------------------------------------------
+// Forwards
+
+struct yapVM;
+
+// ---------------------------------------------------------------------------
+
 typedef enum yapValueType
 {
     YVT_UNKNOWN = 0,
+    YVT_NONE,                          // None, aka NULL
 
     YVT_MODULE,
     YVT_FUNCTION,
@@ -15,6 +23,8 @@ typedef enum yapValueType
 
     YVT_COUNT
 } yapValueType;
+
+// ---------------------------------------------------------------------------
 
 typedef struct yapValue
 {
@@ -31,8 +41,6 @@ typedef struct yapValue
     };
 } yapValue;
 
-struct yapVM;
-
 yapValue * yapValueCreate(struct yapVM *vm);
 yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
 
@@ -41,11 +49,22 @@ void yapValueSetKString(yapValue *p, char *s);
 void yapValueSetString(yapValue *p, char *s);
 
 void yapValueClear(yapValue *p);
-void yapValueFree(yapValue *p);
 
-#define yapValueIsCallable(VAL) ((VAL.type == YVT_MODULE) || (VAL.type == YVT_FUNCTION))
+void yapValueMark(yapValue *value);    // used by yapVMGC()
+void yapValueFree(yapValue *p);        // only yapVMFree() should -ever- call this
+
+
+yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
+yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
+
+#define yapValueIsCallable(VAL) ((VAL->type == YVT_MODULE) || (VAL->type == YVT_FUNCTION))
+
+// ---------------------------------------------------------------------------
+// Globals
+
+extern yapValue yapValueNone;
+#define None (&yapValueNone)
 
 // ---------------------------------------------------------------------------
 
 #endif
-

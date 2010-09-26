@@ -1,12 +1,22 @@
 
 project(yap)
 add_library(yap 
+    yapBlock.h
+    yapBlock.c
+    yapContext.h
+    yapContext.c
+    yapFrame.h
+    yapFrame.c
+    yapModule.h
+    yapModule.c
+    yapOp.h
+    yapOp.c
     yapTypes.h
     yapTypes.c
-    yapVM.h
-    yapVM.c
-    yapCore.h
-    yapCore.c
     yapValue.h
     yapValue.c
+    yapVariable.h
+    yapVariable.c
+    yapVM.h
+    yapVM.c
 )

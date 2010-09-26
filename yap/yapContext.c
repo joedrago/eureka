@@ -1,4 +1,6 @@
-#include "yapCore.h"
+#include "yapContext.h"
+
+#include "yapVM.h"
 
 yapContext * yapContextCreate(void)
 {
@@ -11,4 +13,9 @@ void yapContextFree(yapContext *context)
 {
     yapVMFree(context->vm);
     yapFree(context);
+}
+
+const char * yapContextGetError(yapContext *context)
+{
+    return context->vm->error;
 }

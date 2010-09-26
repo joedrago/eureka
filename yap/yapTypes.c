@@ -33,6 +33,22 @@ void yap32ArrayClear(yap32Array *p)
     p->capacity = 0;
 }
 
+void yapArraySquash(yapArray *p)
+{
+    int head = 0;
+    int tail = 0;
+    while(tail < p->count)
+    {
+        if(p->data[tail] != NULL)
+        {
+            p->data[head] = p->data[tail];
+            head++;
+        }
+        tail++;
+    }
+    p->count = head;
+}
+
 yOperand yapArrayPushUniqueString(yapArray *p, const char *s)
 {
     int i;

@@ -1,9 +1,12 @@
 #include "yapValue.h"
+
 #include "yapVM.h"
 
 #include <string.h>
 
 // ---------------------------------------------------------------------------
+
+yapValue yapValueNone = {YVT_NONE};
 
 void yapValueSetInt(yapValue *p, int v)
 {
@@ -30,7 +33,7 @@ void yapValueSetString(yapValue *p, char *s)
 
 void yapValueClear(yapValue *p)
 {
-    if(p->type == YVT_STRING && !p->constant)
+    if(p->type == YVT_STRING && !p->constant && !p->shared)
         yapFree(p->stringVal);
 
     memset(p, 0, sizeof(*p));
@@ -45,7 +48,9 @@ void yapValueFree(yapValue *p)
 
 yapValue * yapValueCreate(struct yapVM *vm)
 {
-    return yapAlloc(sizeof(yapValue));
+    yapValue *value = yapAlloc(sizeof(yapValue));
+    yapArrayPush(&vm->usedValues, value);
+    return value;
 }
 
 yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
@@ -65,12 +70,47 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
         n->intVal = p->intVal;
         break;
     case YVT_STRING:
-        if(n->constant)
-            n->stringVal = p->stringVal;
-        else
-            n->stringVal = yapStrdup(p->stringVal);
+        n->stringVal = p->stringVal;
+        if(!n->constant)
+        {
+            n->shared = yTrue;
+            p->shared = yTrue;
+        }
         break;
     };
     return n;
 }
 
+void yapValueMark(yapValue *value)
+{
+    if(value->type == YVT_NONE)
+        return;
+
+    if(value->used)
+        value->shared = yTrue;
+    else
+        value->used = yTrue;
+
+    // TODO: Arrays and Dicts need to have their subvalues marked recursively
+}
+
+
+yBool yapValueEnsureExistence(yapVM *vm, yapValue *p)
+{
+    if(!p)
+    {
+        yapVMSetError(vm, "Attempting to manipulate NULL value! Are you popping an empty value stack?");
+        return yFalse;
+    }
+    return yTrue;
+}
+
+yBool yapValueConvertToInt(yapVM *vm, yapValue *p)
+{
+    if(!yapValueEnsureExistence(vm, p))
+        return yFalse;
+
+    // TODO: Convert string/float to int, etc
+    p->type = YVT_INT;
+    return yTrue;
+}

@@ -1,4 +1,4 @@
-#include "yapCore.h"
+#include "yapContext.h"
 
 #include <stdio.h>
 
@@ -10,9 +10,9 @@ int main(int argc, char* argv[])
     {
         yapContext *context = yapContextCreate();
         yapVMCall(context->vm, "main", 0);
-        if(context->vm->error)
+        if(yapContextGetError(context))
         {
-            printf("VM Bailed out: %s\n", context->vm->error);
+            printf("VM Bailed out: %s\n", yapContextGetError(context));
         }
         yapContextFree(context);
     }

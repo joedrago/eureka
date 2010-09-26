@@ -1,11 +1,8 @@
 #ifndef YAPTYPES_H
 #define YAPTYPES_H
 
-#ifdef PLATFORM_WIN32
-#define yInline __forceinline
-#else
-#define yInline inline
-#endif
+// ---------------------------------------------------------------------------
+// Core Types
 
 typedef int	yS32;
 typedef unsigned int yU32;
@@ -62,6 +59,7 @@ yOperand yapArrayPush(yapArray *p, void *v);
 void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);
 yU32 yapArrayCount(yapArray *p);
+void yapArraySquash(yapArray *p);  // Removes all NULL entries
 
 typedef void (*yapDestroyCB)(void *p);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);

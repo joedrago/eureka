@@ -1,5 +1,12 @@
 #include "yapVM.h"
 
+#include "yapBlock.h"
+#include "yapFrame.h"
+#include "yapModule.h"
+#include "yapOp.h"
+#include "yapValue.h"
+#include "yapVariable.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -38,7 +45,7 @@ int yapVMCompile(yapVM *vm, const char *text)
     block->ops[6].opcode  = YOP_RET;
     block->ops[6].operand = 1;
     yapArrayPush(&vm->blocks, block);
-    
+
     // Create main
     main = yapAlloc(sizeof(*main));
     block->module = main;
@@ -47,8 +54,9 @@ int yapVMCompile(yapVM *vm, const char *text)
 
     // Create the global variable "main"
     v = yapVariableAlloc("main");
-    v->value.type = YVT_MODULE;
-    v->value.moduleVal = main;
+    v->value = yapValueCreate(vm);
+    v->value->type = YVT_MODULE;
+    v->value->moduleVal = main;
     yapArrayPush(&vm->globals, v);
 
     // Add a function: int call(int a) -- returns a+2
@@ -68,24 +76,12 @@ int yapVMCompile(yapVM *vm, const char *text)
 
     // Create main.call()
     v = yapVariableAlloc("call");
-    v->value.type = YVT_FUNCTION;
-    v->value.blockVal = block;
+    v->value = yapValueCreate(vm);
+    v->value->type = YVT_FUNCTION;
+    v->value->blockVal = block;
     yapArrayPush(&main->variables, v);
 
     return 2;
-}
-
-void yapModuleFree(yapModule *module)
-{
-    // module->block is owned by vm->blocks
-    yapArrayClear(&module->variables, (yapDestroyCB)yapVariableFree);
-    yapFree(module);
-}
-
-void yapBlockFree(yapBlock *block)
-{
-    yapFree(block->ops);
-    yapFree(block);
 }
 
 yapVM * yapVMCreate(void)
@@ -120,49 +116,21 @@ void yapVMClearError(yapVM *vm)
 void yapVMFree(yapVM *vm)
 {
     yapArrayClear(&vm->globals, (yapDestroyCB)yapVariableFree);
-    yapArrayClear(&vm->blocks, (yapDestroyCB)yapBlockFree);
-    yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleFree);
     yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameFree);
-    yapArrayClear(&vm->stack, (yapDestroyCB)yapValueFree);
+    yapArrayClear(&vm->stack, NULL);
+    yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleFree);
+
+    yapArrayClear(&vm->blocks, (yapDestroyCB)yapBlockFree);
+
+    yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueFree);
+    yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueFree);
+
     yapArrayClear(&vm->kStrings, (yapDestroyCB)yapFree);
     yap32ArrayClear(&vm->kInts);
+
     yapVMClearError(vm);
+
     yapFree(vm);
-}
-
-yapVariable *yapVariableAlloc(const char *name)
-{
-    yapVariable *v = (yapVariable *)yapAlloc(sizeof(*v));
-    v->name = yapStrdup(name);
-    v->value.type = YVT_UNKNOWN;
-    return v;
-}
-
-void yapVariableFree(yapVariable *v)
-{
-    yapFree(v->name);
-    yapValueClear(&v->value);
-    yapFree(v);
-}
-
-yInline yBool yapValueEnsureExistence(yapVM *vm, yapValue *p)
-{
-    if(!p)
-    {
-        yapVMSetError(vm, "Attempting to manipulate NULL value! Are you popping an empty value stack?");
-        return yFalse;
-    }
-    return yTrue;
-}
-
-yInline yBool yapValueConvertToInt(yapVM *vm, yapValue *p)
-{
-    if(!yapValueEnsureExistence(vm, p))
-        return yFalse;
-
-    // TODO: Convert string/float to int, etc
-    p->type = YVT_INT;
-    return yTrue;
 }
 
 static yapVariable * yapArrayFindVariableByName(yapArray *a, const char *name)
@@ -233,7 +201,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
         return NULL;
     }
 
-    block = (v->value.type == YVT_MODULE) ? v->value.moduleVal->block : v->value.blockVal;
+    block = (v->value->type == YVT_MODULE) ? v->value->moduleVal->block : v->value->blockVal;
 
     frame = yapAlloc(sizeof(*frame));
     frame->block = block;
@@ -250,8 +218,8 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
 
 void yapFrameFree(yapFrame *frame)
 {
-    yapArrayClear(&frame->ret,  (yapDestroyCB)yapValueFree);
-    yapArrayClear(&frame->args, (yapDestroyCB)yapValueFree);
+    yapArrayClear(&frame->ret,  NULL);
+    yapArrayClear(&frame->args, NULL);
     yapFree(frame);
 }
 
@@ -343,8 +311,6 @@ void yapVMLoop(yapVM *vm)
                     calledFunc = yTrue;
                 else
                     continueLooping = yFalse;
-                if(callName)
-                    yapValueFree(callName);
             };
             break;
 
@@ -375,11 +341,7 @@ void yapVMLoop(yapVM *vm)
 
                 // Clear out value stack of argument cruft
                 while(vm->stack.count > prevBP)
-                {
-                    yapValue *value = yapArrayPop(&vm->stack);
-                    if(value)
-                        yapValueFree(value);
-                }
+                    yapArrayPop(&vm->stack);
             };
             break;
 
@@ -392,6 +354,8 @@ void yapVMLoop(yapVM *vm)
         if(continueLooping && !calledFunc)
             frame->ip++;
     }
+
+    yapVMGC(vm);
 }
 
 void yapVMCall(yapVM *vm, const char *name, int numArgs)
@@ -401,4 +365,68 @@ void yapVMCall(yapVM *vm, const char *name, int numArgs)
         return;
 
     yapVMLoop(vm);
+}
+
+void yapVMGC(struct yapVM *vm)
+{
+    int i, j;
+
+    // -----------------------------------------------------------------------
+    // walk all used values and clear their GC flags
+
+    for(i=0; i<vm->usedValues.count; i++)
+    {
+        yapValue *value = (yapValue *)vm->usedValues.data[i];
+        value->used   = yFalse;
+        value->shared = yFalse;
+    }
+
+    // -----------------------------------------------------------------------
+    // mark all values used by things the VM still cares about
+
+    for(i=0; i<vm->globals.count; i++)
+    {
+        yapVariable *variable = (yapVariable *)vm->globals.data[i];
+        yapValueMark(variable->value);
+    }
+
+    for(i=0; i<vm->frames.count; i++)
+    {
+        yapFrame *frame = (yapFrame *)vm->frames.data[i];
+        for(j=0; j<frame->variables.count; j++)
+        {
+            yapVariable *variable = (yapVariable *)frame->variables.data[j];
+            yapValueMark(variable->value);
+        }
+    }
+
+    for(i=0; i<vm->stack.count; i++)
+    {
+        yapVariable *variable = (yapVariable *)vm->stack.data[i];
+        yapValueMark(variable->value);
+    }
+
+    for(i=0; i<vm->modules.count; i++)
+    {
+        yapModule *module = (yapModule *)vm->stack.data[i];
+        for(j=0; j<module->variables.count; j++)
+        {
+            yapVariable *variable = (yapVariable *)module->variables.data[j];
+            yapValueMark(variable->value);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // sweep!
+
+    for(i=0; i<vm->usedValues.count; i++)
+    {
+        yapValue *value = (yapValue *)vm->usedValues.data[i];
+        if(!value->used)
+        {
+            yapArrayPush(&vm->freeValues, value);
+            vm->usedValues.data[i] = NULL; // for future squashing
+        }
+    }
+    yapArraySquash(&vm->usedValues);
 }
