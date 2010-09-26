@@ -2,6 +2,7 @@
 #define YAPVM_H
 
 #include "yapTypes.h"
+#include "yapValue.h"
 
 // In the comments below, X is the operand, and the k tables are owned by translation blocks.
 
@@ -31,11 +32,9 @@ typedef struct yapOp
 
 // ---------------------------------------------------------------------------
 
-typedef struct yapModule yapModule;
-
 typedef struct yapBlock
 {
-    yapModule *module;
+    struct yapModule *module;
     yapOp *ops;
 } yapBlock;
 
@@ -54,40 +53,6 @@ typedef struct yapFrame
 } yapFrame;
 
 void yapFrameFree(yapFrame *frame);
-
-// ---------------------------------------------------------------------------
-
-typedef enum yapValueType
-{
-    YVT_UNKNOWN = 0,
-
-    YVT_MODULE,
-    YVT_FUNCTION,
-
-    YVT_INT,
-    YVT_STRING,
-
-    YVT_COUNT
-} yapValueType;
-
-typedef struct yapValue
-{
-    yU8 type;
-    union
-    {
-        yS32 intVal;
-        yapModule *moduleVal;
-        yapBlock *blockVal;            // Hurr, Shield Slam
-        char *stringVal;
-    };
-    yFlag constant:1;                  // Pointing at a constant table, do not free
-} yapValue;
-
-void yapValueClear(yapValue *p);
-void yapValueFree(yapValue *p);
-yapValue *yapValueDupe(yapValue *p);
-
-#define yapValueIsCallable(VAL) ((VAL.type == YVT_MODULE) || (VAL.type == YVT_FUNCTION))
 
 // ---------------------------------------------------------------------------
 

@@ -78,7 +78,7 @@ int yapVMCompile(yapVM *vm, const char *text)
 void yapModuleFree(yapModule *module)
 {
     // module->block is owned by vm->blocks
-    yapArrayClear(&module->variables, yapVariableFree);
+    yapArrayClear(&module->variables, (yapDestroyCB)yapVariableFree);
     yapFree(module);
 }
 
@@ -130,47 +130,6 @@ void yapVMFree(yapVM *vm)
     yapFree(vm);
 }
 
-void yapValueClear(yapValue *p)
-{
-    if(p->type == YVT_STRING && !p->constant)
-        yapFree(p->stringVal);
-
-    memset(p, 0, sizeof(*p));
-    p->type = YVT_UNKNOWN;
-}
-
-void yapValueFree(yapValue *p)
-{
-    yapValueClear(p);
-    yapFree(p);
-}
-
-yapValue *yapValueDupe(yapValue *p)
-{
-    yapValue *n = yapAlloc(sizeof(*n));
-    n->type = p->type;
-    n->constant = p->constant;
-    switch(n->type)
-    {
-    case YVT_MODULE:
-        n->moduleVal = p->moduleVal;
-        break;
-    case YVT_FUNCTION:
-        n->blockVal = p->blockVal;
-        break;
-    case YVT_INT:
-        n->intVal = p->intVal;
-        break;
-    case YVT_STRING:
-        if(n->constant)
-            n->stringVal = p->stringVal;
-        else
-            n->stringVal = yapStrdup(p->stringVal);
-        break;
-    };
-    return n;
-}
-
 yapVariable *yapVariableAlloc(const char *name)
 {
     yapVariable *v = (yapVariable *)yapAlloc(sizeof(*v));
@@ -204,29 +163,6 @@ yInline yBool yapValueConvertToInt(yapVM *vm, yapValue *p)
     // TODO: Convert string/float to int, etc
     p->type = YVT_INT;
     return yTrue;
-}
-
-yInline void yapValueSetInt(yapValue *p, int v)
-{
-    yapValueClear(p);
-    p->type = YVT_INT;
-    p->intVal = v;
-}
-
-yInline void yapValueSetConstantString(yapValue *p, char *s)
-{
-    yapValueClear(p);
-    p->type = YVT_STRING;
-    p->stringVal = s;
-    p->constant = yTrue;
-}
-
-yInline void yapValueSetString(yapValue *p, const char *s)
-{
-    yapValueClear(p);
-    p->type = YVT_STRING;
-    p->stringVal = yapStrdup(s);
-    p->constant = yFalse;
 }
 
 static yapVariable * yapArrayFindVariableByName(yapArray *a, const char *name)
@@ -351,7 +287,7 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_PUSHKI:
             {
-                yapValue *value = yapAlloc(sizeof(*value));
+                yapValue *value = yapValueCreate(vm);
                 yapValueSetInt(value, vm->kInts.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
@@ -377,8 +313,8 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_PUSHKS:
             {
-                yapValue *value = yapAlloc(sizeof(*value));
-                yapValueSetConstantString(value, vm->kStrings.data[operand]);
+                yapValue *value = yapValueCreate(vm);
+                yapValueSetKString(value, vm->kStrings.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
@@ -392,7 +328,7 @@ void yapVMLoop(yapVM *vm)
                 }
                 else
                 {
-                    yapValue *value = yapValueDupe((yapValue *)frame->args.data[operand]);
+                    yapValue *value = yapValueClone(vm, (yapValue *)frame->args.data[operand]);
                     yapArrayPush(&vm->stack, value);
                 }
             }

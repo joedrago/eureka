@@ -7,4 +7,6 @@ add_library(yap
     yapVM.c
     yapCore.h
     yapCore.c
+    yapValue.h
+    yapValue.c
 )
