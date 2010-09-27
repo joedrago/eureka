@@ -408,7 +408,7 @@ void yapVMGC(struct yapVM *vm)
 
     for(i=0; i<vm->modules.count; i++)
     {
-        yapModule *module = (yapModule *)vm->stack.data[i];
+        yapModule *module = (yapModule *)vm->modules.data[i];
         for(j=0; j<module->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)module->variables.data[j];
