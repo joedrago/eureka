@@ -18,10 +18,6 @@ typedef struct yapVM
     yapArray usedValues;               // All values used by the system
     yapArray freeValues;               // free list of value objects
 
-    // constants
-    yapArray kStrings;                 // constant string table
-    yap32Array kInts;                  // constant integer table
-
     // error data
     char *error;
 } yapVM;

@@ -21,6 +21,10 @@ int yapVMCompile(yapVM *vm, const char *text)
 
     // Someday this'll actually compile stuff!
 
+    // Alloc main
+    main = yapModuleCreate();
+    yapArrayPush(&vm->modules, main);
+
     // compile main's block
     block = yapBlockCreate();
     // note: block->module is set in the next stanza
@@ -28,29 +32,27 @@ int yapVMCompile(yapVM *vm, const char *text)
 
     // call(55)
     block->ops[0].opcode  = YOP_PUSHKI;
-    block->ops[0].operand = yap32ArrayPushUnique(&vm->kInts, 55);
+    block->ops[0].operand = yap32ArrayPushUnique(&main->kInts, 55);
     block->ops[1].opcode  = YOP_PUSHKS;
-    block->ops[1].operand = yapArrayPushUniqueString(&vm->kStrings, "call");
+    block->ops[1].operand = yapArrayPushUniqueString(&main->kStrings, "call");
     block->ops[2].opcode  = YOP_CALL;
     block->ops[2].operand = 1;
 
     // this kinda does nothing other than illustrate that bp is cleaning the stack well
     block->ops[3].opcode  = YOP_PUSHKI;
-    block->ops[3].operand = yap32ArrayPushUnique(&vm->kInts, 2);
+    block->ops[3].operand = yap32ArrayPushUnique(&main->kInts, 2);
     block->ops[4].opcode  = YOP_PUSHKI;
-    block->ops[4].operand = yap32ArrayPushUnique(&vm->kInts, 2);
+    block->ops[4].operand = yap32ArrayPushUnique(&main->kInts, 2);
     block->ops[5].opcode  = YOP_PUSHKI;
-    block->ops[5].operand = yap32ArrayPushUnique(&vm->kInts, 2);
+    block->ops[5].operand = yap32ArrayPushUnique(&main->kInts, 2);
 
     block->ops[6].opcode  = YOP_RET;
     block->ops[6].operand = 1;
     yapArrayPush(&vm->blocks, block);
 
-    // Alloc main
-    main = yapModuleCreate();
+    // populate main module's data
     block->module = main;
     main->block = block;
-    yapArrayPush(&vm->modules, main);
 
     // Alloc the global variable "main"
     v = yapVariableCreate("main");
@@ -68,7 +70,7 @@ int yapVMCompile(yapVM *vm, const char *text)
     block->ops[0].opcode  = YOP_PUSHARGN;
     block->ops[0].operand = 0;
     block->ops[1].opcode  = YOP_ADDKI;
-    block->ops[1].operand = yap32ArrayPushUnique(&vm->kInts, 2);
+    block->ops[1].operand = yap32ArrayPushUnique(&main->kInts, 2);
     block->ops[2].opcode  = YOP_RET;
     block->ops[2].operand = 1;
 
@@ -125,9 +127,6 @@ void yapVMDestroy(yapVM *vm)
     yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueDestroy);
     yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueDestroy);
 
-    yapArrayClear(&vm->kStrings, (yapDestroyCB)yapFree);
-    yap32ArrayClear(&vm->kInts);
-
     yapVMClearError(vm);
 
     yapFree(vm);
@@ -154,18 +153,14 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
     yapFrame *frame;
     yapVariable *v;
 
-    // Check locals as we walk up the stack
-    for(i=vm->frames.count - 1; i>=0; i--)
-    {
-        frame = (yapFrame *)vm->frames.data[i];
-        v = yapArrayFindVariableByName(&frame->variables, name);
-        if(v) return v;
-    }
-
-    // Next: Check the variables in the module this block is from
     frame = yapArrayTop(&vm->frames);
     if(frame)
     {
+        // Check the local variables
+        v = yapArrayFindVariableByName(&frame->variables, name);
+        if(v) return v;
+
+        // Next: Check the variables in the module this block is from
         module = frame->block->module;
         if(module)
         {
@@ -203,6 +198,8 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
 
     block = (v->value->type == YVT_MODULE) ? v->value->moduleVal->block : v->value->blockVal;
 
+    printf("Function Call: %s(", name);
+
     frame = yapFrameCreate();
     frame->block = block;
     frame->ip = block->ops;
@@ -211,8 +208,17 @@ yapFrame * yapVMPushFrame(yapVM *vm, const char *name, int numArgs)
     {
         yapValue *value = yapArrayPop(&vm->stack);
         yapArrayPush(&frame->args, value);
+
+        if(i) printf(", ");
+        switch(value->type)
+        {
+        case YVT_INT:    printf("%d", value->intVal); break;
+        case YVT_STRING: printf("%s", value->stringVal); break;
+        };
     }
     yapArrayPush(&vm->frames, frame);
+
+    printf(")\n");
     return frame;
 }
 
@@ -256,7 +262,7 @@ void yapVMLoop(yapVM *vm)
         case YOP_PUSHKI:
             {
                 yapValue *value = yapValueCreate(vm);
-                yapValueSetInt(value, vm->kInts.data[operand]);
+                yapValueSetInt(value, frame->block->module->kInts.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
@@ -266,7 +272,7 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapArrayTop(&vm->stack);
                 if(!yapValueConvertToInt(vm, value))
                     break;
-                yapValueSetInt(value, value->intVal + vm->kInts.data[operand]);
+                yapValueSetInt(value, value->intVal + frame->block->module->kInts.data[operand]);
             }
             break;
 
@@ -275,14 +281,14 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapArrayTop(&vm->stack);
                 if(!yapValueConvertToInt(vm, value))
                     break;
-                yapValueSetInt(value, value->intVal - vm->kInts.data[operand]);
+                yapValueSetInt(value, value->intVal - frame->block->module->kInts.data[operand]);
             }
             break;
 
         case YOP_PUSHKS:
             {
                 yapValue *value = yapValueCreate(vm);
-                yapValueSetKString(value, vm->kStrings.data[operand]);
+                yapValueSetKString(value, frame->block->module->kStrings.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
@@ -324,14 +330,29 @@ void yapVMLoop(yapVM *vm)
                 frame = yapArrayTop(&vm->frames);
                 if(frame)
                 {
+                    printf(" * Ret: (");
+
                     // Stash return values in frame
                     for(i=0; i<operand;i++)
                     {
                         int stackIndex = (vm->stack.count - operand) + i;
                         // Reuse struct instead of copy -- it is about to be popped                                        
                         yapArrayPush(&frame->ret, vm->stack.data[stackIndex]);
+
+                        if(i) printf(", ");
+                        {
+                            yapValue *value = (yapValue *)vm->stack.data[stackIndex];
+                            switch(value->type)
+                            {
+                            case YVT_INT:    printf("%d", value->intVal); break;
+                            case YVT_STRING: printf("%s", value->stringVal); break;
+                            };
+                        }
+
                         vm->stack.data[stackIndex] = NULL;
                     }
+
+                    printf(")\n");
                 }
                 else
                 {

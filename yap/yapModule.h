@@ -8,6 +8,10 @@ typedef struct yapModule
 {
     struct yapBlock *block;            // Modules are callable
     yapArray variables;
+
+    // constants
+    yapArray kStrings;                 // constant string table
+    yap32Array kInts;                  // constant integer table
 } yapModule;
 
 #define yapModuleCreate() ((yapModule*)yapAlloc(sizeof(yapModule)))

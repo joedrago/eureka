@@ -10,6 +10,7 @@ typedef struct yapContext
 
 yapContext * yapContextCreate(void);
 void yapContextFree(yapContext *context);
+
 const char * yapContextGetError(yapContext *context);
 
 #endif
