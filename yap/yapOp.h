@@ -8,18 +8,25 @@
 
 enum
 {
-    YOP_NOOP = 0,                      // Does nothing
+    YOP_NOOP = 0,                      // does nothing
 
-    YOP_PUSHKI,                        // Push constant int ki[X] on top of stack
-    YOP_ADDKI,                         // Add constant int ki[X] to top of stack
-    YOP_SUBKI,                         // Subtract constant int ki[X] to top of stack
+    YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
+    YOP_ADD_KI,                        // add constant int ki[X] to top of stack
+    YOP_SUB_KI,                        // subtract constant int ki[X] to top of stack
 
-    YOP_PUSHKS,                        // Push constant string ks[X] on top of stack
+    YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
-    YOP_PUSHARGN,                      // Push argument #X on top of stack
+    YOP_PUSHARGN,                      // push argument #X on top of stack
 
-    YOP_CALL,                          // Calls function named ks[X], using the current frame's stack pushes as args
-    YOP_RET,                           // Leave current call, returning X items on the stack
+    YOP_POP,                           // pop value stack
+
+    YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
+    YOP_RET,                           // leave current call, returning X items on the stack
+
+    YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
+    YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
+    YOP_REFVAL,                        // replace ref at top of stack with its value
+    YOP_SETVAR,                        // pops [v,ref], sets *ref = v
 
     YOP_COUNT
 };

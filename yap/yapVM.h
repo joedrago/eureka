@@ -16,7 +16,7 @@ typedef struct yapVM
 
     // GC data
     yapArray usedValues;               // All values used by the system
-    yapArray freeValues;               // free list of value objects
+    yapArray usedVariables;            // All variables used by the system
 
     // error data
     char *error;
@@ -25,13 +25,14 @@ typedef struct yapVM
 yapVM * yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
-int yapVMCompile(yapVM *vm, const char *text);
-void yapVMCall(yapVM *vm, const char *name, int numArgs);
+struct yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text);
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
 void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
+struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapVariable *ref, int numArgs);
+void yapVMLoop(yapVM *vm);
 
 // ---------------------------------------------------------------------------
 

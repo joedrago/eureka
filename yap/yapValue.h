@@ -21,6 +21,8 @@ typedef enum yapValueType
     YVT_INT,
     YVT_STRING,
 
+    YVT_REF,                           // Variable reference
+
     YVT_COUNT
 } yapValueType;
 
@@ -38,10 +40,13 @@ typedef struct yapValue
         struct yapModule *moduleVal;
         struct yapBlock *blockVal;     // Hurr, Shield Slam
         char *stringVal;
+        struct yapVariable *refVal;
     };
 } yapValue;
 
 yapValue * yapValueCreate(struct yapVM *vm);
+
+void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src);
 yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
 
 void yapValueSetInt(yapValue *p, int v);
@@ -51,7 +56,7 @@ void yapValueSetString(yapValue *p, char *s);
 void yapValueClear(yapValue *p);
 
 void yapValueMark(yapValue *value);    // used by yapVMGC()
-void yapValueDestroy(yapValue *p);        // only yapVMDestroy() should -ever- call this
+void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call this
 
 yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
 yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);

@@ -95,9 +95,9 @@ yU32 yapArrayCount(yapArray *p)
 
 void yapArrayClear(yapArray *p, yapDestroyCB cb)
 {
-    int i;
     if(cb)
     {
+        int i;
         for(i=0; i<p->count; i++)
             cb(p->data[i]);
     }

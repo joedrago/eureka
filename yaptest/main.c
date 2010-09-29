@@ -1,15 +1,16 @@
 #include "yapContext.h"
+#include "yapVM.h"
 
 #include <stdio.h>
 
 int main(int argc, char* argv[])
 {
 #ifdef PLATFORM_WIN32
-    //_CrtSetBreakAlloc(84);
+    // _CrtSetBreakAlloc(101);
 #endif
     {
         yapContext *context = yapContextCreate();
-        yapVMCall(context->vm, "main", 0);
+        yapVMLoadModule(context->vm, "main", "code");
         if(yapContextGetError(context))
         {
             printf("VM Bailed out: %s\n", yapContextGetError(context));

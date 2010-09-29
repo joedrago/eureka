@@ -53,31 +53,38 @@ yapValue * yapValueCreate(struct yapVM *vm)
     return value;
 }
 
+void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
+{
+    dst->type = src->type;
+    dst->constant = src->constant;
+    switch(dst->type)
+    {
+    case YVT_MODULE:
+        dst->moduleVal = src->moduleVal;
+        break;
+    case YVT_FUNCTION:
+        dst->blockVal = src->blockVal;
+        break;
+    case YVT_INT:
+        dst->intVal = src->intVal;
+        break;
+    case YVT_STRING:
+        dst->stringVal = src->stringVal;
+        if(!dst->constant)
+        {
+            dst->shared = yTrue;
+            src->shared = yTrue;
+        }
+        break;
+    default:
+        yapVMSetError(vm, "yapValueCloneData(): cannot clone type %d", dst->type);
+    };
+}
+
 yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
 {
     yapValue *n = yapValueCreate(vm);
-    n->type = p->type;
-    n->constant = p->constant;
-    switch(n->type)
-    {
-    case YVT_MODULE:
-        n->moduleVal = p->moduleVal;
-        break;
-    case YVT_FUNCTION:
-        n->blockVal = p->blockVal;
-        break;
-    case YVT_INT:
-        n->intVal = p->intVal;
-        break;
-    case YVT_STRING:
-        n->stringVal = p->stringVal;
-        if(!n->constant)
-        {
-            n->shared = yTrue;
-            p->shared = yTrue;
-        }
-        break;
-    };
+    yapValueCloneData(vm, n, p);
     return n;
 }
 
