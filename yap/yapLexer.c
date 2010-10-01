@@ -1,5 +1,8 @@
 #include "yapLexer.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #define YYCTYPE char 
 #define YYCURSOR l->cur
 #define YYMARKER l->marker

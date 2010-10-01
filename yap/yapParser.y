@@ -8,7 +8,7 @@
 
 %include {
 #include "yapParser.h"
-#define assert(X)
+#define assert(ignoring_this_function)
 } // end %include
 
 %left UNKNOWN.
@@ -22,6 +22,6 @@
 %left WHILE.
 %left EOF.
 
-input(A) ::= identlist.                       { char *wut = A; printf("identlist1: %s\n", wut); }
-identlist(A) ::= identlist SPACE IDENTIFIER.  { char *wut = A; printf("identlist2: %s\n", wut); }
-identlist(A) ::= IDENTIFIER.                  { char *wut = A; printf("identlist3: %s\n", wut); }
+input ::= identlist.                       { printf("MAKE INPUT\n"); }
+identlist ::= identlist SPACE IDENTIFIER.  { printf("APPEND IDENTIFIER TO EXISTING LIST\n"); }
+identlist ::= IDENTIFIER.                  { printf("MAKE LIST, APPEND IDENTIFIER\n"); }

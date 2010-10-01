@@ -42,6 +42,8 @@ project(yap)
 set(yap_src
     yapBlock.h
     yapBlock.c
+    yapCompiler.h
+    yapCompiler.c
     yapContext.h
     yapContext.c
     yapFrame.h
@@ -52,8 +54,6 @@ set(yap_src
     yapModule.c
     yapOp.h
     yapOp.c
-    yapParser.h
-    yapParser.c
     yapTypes.h
     yapTypes.c
     yapValue.h
@@ -63,7 +63,7 @@ set(yap_src
     yapVM.h
     yapVM.c
 )
-add_lemon_files(yap_src yapTokenizer.y)
+add_lemon_files(yap_src yapParser.y)
 add_re2c_files(yap_src yapLexer.re)
 add_library(yap ${yap_src})
 
