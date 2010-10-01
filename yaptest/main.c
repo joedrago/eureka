@@ -1,7 +1,43 @@
 #include "yapContext.h"
+#include "yapLexer.h"
 #include "yapVM.h"
 
 #include <stdio.h>
+
+void vmTest()
+{
+    yapContext *context = yapContextCreate();
+    yapVMLoadModule(context->vm, "main", "code");
+    if(yapContextGetError(context))
+    {
+        printf("VM Bailed out: %s\n", yapContextGetError(context));
+    }
+    yapContextFree(context);
+}
+
+void lexTest()
+{
+    FILE *f = fopen("test.yap", "rb");
+    if(f)
+    {
+        int size;
+        char *buffer;
+
+        fseek(f, 0, SEEK_END);
+        size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        buffer = (char*)malloc(size+1);
+        fread(buffer, 1, size, f);
+        buffer[size] = 0;
+
+        fclose(f);
+
+        yapParse(buffer);
+
+        free(buffer);
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -9,13 +45,8 @@ int main(int argc, char* argv[])
     // _CrtSetBreakAlloc(101);
 #endif
     {
-        yapContext *context = yapContextCreate();
-        yapVMLoadModule(context->vm, "main", "code");
-        if(yapContextGetError(context))
-        {
-            printf("VM Bailed out: %s\n", yapContextGetError(context));
-        }
-        yapContextFree(context);
+        //vmTest();
+        lexTest();
     }
 #ifdef PLATFORM_WIN32
     _CrtDumpMemoryLeaks();

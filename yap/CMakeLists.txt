@@ -23,7 +23,8 @@ MACRO(add_re2c_files _sources )
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.re.c)
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.re.inc)
+      set(_incd ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
 
       ADD_CUSTOM_COMMAND(
          OUTPUT ${_out}
@@ -45,10 +46,14 @@ set(yap_src
     yapContext.c
     yapFrame.h
     yapFrame.c
+    yapLexer.c
+    yapLexer.h
     yapModule.h
     yapModule.c
     yapOp.h
     yapOp.c
+    yapParser.h
+    yapParser.c
     yapTypes.h
     yapTypes.c
     yapValue.h
