@@ -18,7 +18,7 @@ enum
 
     YOP_PUSHARGN,                      // push argument #X on top of stack
 
-    YOP_POP,                           // pop value stack
+    YOP_POP,                           // pop value stack X times
 
     YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
     YOP_RET,                           // leave current call, returning X items on the stack

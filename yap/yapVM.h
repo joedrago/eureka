@@ -3,6 +3,13 @@
 
 #include "yapTypes.h"
 
+// ---------------------------------------------------------------------------
+// Forwards
+
+struct yapVariable;
+
+// ---------------------------------------------------------------------------
+
 typedef struct yapVM
 {
     // things that can own values

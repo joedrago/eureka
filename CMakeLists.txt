@@ -26,6 +26,7 @@ else()
 
 endif()
 
+add_subdirectory(lemon)
 add_subdirectory(yap)
 add_subdirectory(yaptest)
 

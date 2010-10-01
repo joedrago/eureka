@@ -8,6 +8,7 @@
 #include "yapVariable.h"
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -44,7 +45,7 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     block->ops[x  ].opcode  = YOP_VARREG_KS;
     block->ops[x++].operand = yapArrayPushUniqueString(&main->kStrings, "foo");
     block->ops[x  ].opcode  = YOP_POP;
-    block->ops[x++].operand = 0;
+    block->ops[x++].operand = 1;
     block->ops[x  ].opcode  = YOP_VARREF_KS;
     block->ops[x++].operand = yapArrayPushUniqueString(&main->kStrings, "foo");
     block->ops[x  ].opcode  = YOP_PUSH_KI;
@@ -379,7 +380,11 @@ void yapVMLoop(yapVM *vm)
             break;
 
         case YOP_POP:
-            yapArrayPop(&vm->stack);
+            {
+                int i;
+                for(i=0; i<operand; i++)
+                    yapArrayPop(&vm->stack);
+            }
             break;
 
         case YOP_CALL:

@@ -1,12 +1,32 @@
 
+MACRO(add_lemon_files _sources )
+    FOREACH (_current_FILE ${ARGN})
+      GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
+      GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
+
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
+
+      ADD_CUSTOM_COMMAND(
+         OUTPUT ${_out}
+         COMMAND lemon
+         ARGS
+         ${_in}
+         DEPENDS ${_in}
+      )
+
+      SET(${_sources} ${${_sources}} ${_out})
+   ENDFOREACH (_current_FILE)
+ENDMACRO(add_lemon_files)
+
 project(yap)
-add_library(yap 
+set(yap_src
     yapBlock.h
     yapBlock.c
     yapContext.h
     yapContext.c
     yapFrame.h
     yapFrame.c
+    yapLexer.re.c
     yapModule.h
     yapModule.c
     yapOp.h
@@ -20,3 +40,6 @@ add_library(yap
     yapVM.h
     yapVM.c
 )
+add_lemon_files(yap_src yapTokenizer.y)
+add_library(yap ${yap_src})
+
