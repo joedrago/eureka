@@ -1,5 +1,7 @@
 #include "yapLexer.h"
 
+#include "yapCompiler.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -10,53 +12,60 @@
 
 typedef struct yapLexer
 {
-	const char *text;
-	const char *marker;
-	const char *cur;
-	const char *token;
-	const char *end;
-	int line;
-	int col;
-	yBool error;
+    const char *text;
+    const char *marker;
+    const char *cur;
+    const char *token;
+    const char *end;
+    int line;
+    int col;
+    yBool error;
 } yapLexer;
 
-yToken getNextToken(yapLexer *l)
+int getNextToken(yapLexer *l)
 {
 #include "yapLexer.re.inc"
     return YTT_EOF;
 }
 
-yBool yapLex(void *parser, const char *text, tokenCB cb)
+yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *compiler)
 {
-	int id;
+    int id;
     int token_len;
-	yapLexer l = {0};
+    int tokenMax;
+    yapToken token;
+    yapLexer l = {0};
 
-	l.text   = text;
-	l.end    = l.text + strlen(l.text);
-	l.cur    = l.text;
-	l.token  = l.cur;
+    l.text   = text;
+    l.end    = l.text + strlen(l.text);
+    l.cur    = l.text;
+    l.token  = l.cur;
 
-	while((id = getNextToken(&l)) != YTT_EOF)
-	{
-		if(l.error)
-			break;
+    while(!compiler->error && ((id = getNextToken(&l)) != YTT_EOF))
+    {
+        if(l.error)
+            break;
 
-		token_len = (int)(l.cur - l.token);
-		if(token_len > 0)
-		{
-			char token[1024];
-			if(token_len > 1023)
-				token_len = 1023;
-			strncpy(token, l.token, token_len);
-			token[token_len] = 0;
+        token_len = (int)(l.cur - l.token);
+        if(token_len > 0)
+        {
+            token.text = l.token;
+            token.len = token_len;
 
-            printf("TOKEN %d: %s\n", id, token);
-            cb(parser, id, token);
-		}
+            cb(parser, id, token, compiler);
+        }
 
         l.token = l.cur;
-	}
+    }
 
-	return yTrue;
+    return yTrue;
 }
+
+char *yapTokenToString(yapToken *t)
+{
+    char *str = yapAlloc(t->len+1);
+    memcpy(str, t->text, t->len);
+    str[t->len] = 0;
+    return str;
+}
+

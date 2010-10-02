@@ -5,13 +5,14 @@ MACRO(add_lemon_files _sources )
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
       set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
+      set(_template ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.lt)
 
       ADD_CUSTOM_COMMAND(
          OUTPUT ${_out}
          COMMAND lemon
          ARGS
          ${_in}
-         DEPENDS ${_in}
+         DEPENDS ${_in} ${_template}
       )
 
       SET(${_sources} ${${_sources}} ${_out})

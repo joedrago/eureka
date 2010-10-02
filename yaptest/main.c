@@ -1,8 +1,10 @@
 #include "yapContext.h"
-#include "yapLexer.h"
 #include "yapVM.h"
 
+#include "yapCompiler.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 
 void vmTest()
 {
@@ -33,9 +35,17 @@ void lexTest()
 
         fclose(f);
 
-        yapParse(buffer);
+        {
+            yapCompiler *compiler = yapCompilerCreate();
+            yapCompile(compiler, buffer);
+            yapCompilerDestroy(compiler);
+        }
 
         free(buffer);
+    }
+    else
+    {
+        printf("cant open test.yap\n");
     }
 }
 
