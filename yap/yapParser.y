@@ -28,7 +28,6 @@
 %left LEFTPAREN.
 %left RIGHTPAREN.
 %left WHILE.
-%left EOF.
 
 %syntax_error {
     char temp[32];
@@ -36,7 +35,7 @@
     if(len > 31) len = 31;
     memcpy(temp, TOKEN.text, len);
     temp[len] = 0;
-  printf( "syntax error '%s'\n", temp );
+  printf( "syntax error near '%s'\n", temp );
   compiler->error = yTrue;
 }
 
@@ -44,19 +43,18 @@
 
 file ::= module.
 
-module ::= module NEWLINE.
 module ::= identlist(L).
     {
         compiler->list = L;
     }
 
-identlist(L) ::= identlist(PL) SPACE IDENTIFIER(I).
+identlist(L) ::= identlist(PL) IDENTIFIER(I).
     {
         L = PL;
         yapArrayPush(L, yapTokenToString(&I)); 
     }
 
-identlist(L) ::= IDENTIFIER(I).              
+identlist(L) ::= IDENTIFIER(I).
     {
         L = yapAlloc(sizeof(yapArray)); 
         yapArrayPush(L, yapTokenToString(&I)); 

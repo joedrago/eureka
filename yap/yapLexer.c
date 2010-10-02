@@ -46,13 +46,18 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         if(l.error)
             break;
 
-        token_len = (int)(l.cur - l.token);
-        if(token_len > 0)
+        if((id != YTT_SPACE)
+        && (id != YTT_NEWLINE))
+        && (id != YTT_COMMENT))
         {
-            token.text = l.token;
-            token.len = token_len;
+            token_len = (int)(l.cur - l.token);
+            if(token_len > 0)
+            {
+                token.text = l.token;
+                token.len = token_len;
 
-            cb(parser, id, token, compiler);
+                cb(parser, id, token, compiler);
+            }
         }
 
         l.token = l.cur;
