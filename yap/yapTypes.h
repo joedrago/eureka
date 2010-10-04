@@ -55,6 +55,7 @@ typedef struct yapArray
 } yapArray;
 
 yOperand yapArrayPushUniqueString(yapArray *p, const char *s);
+yOperand yapArrayPushUniqueStringLen(yapArray *p, const char *s, int len);
 yOperand yapArrayPush(yapArray *p, void *v);
 void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);

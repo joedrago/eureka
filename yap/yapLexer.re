@@ -26,8 +26,10 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
 /*!re2c
     "#"            { goto comment; }
+    "="            { return YTT_EQUALS; }
 
     "while"         { return YTT_COMMENT; }
+    "var"           { return YTT_VAR; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }

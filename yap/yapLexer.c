@@ -47,7 +47,6 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
             break;
 
         if((id != YTT_SPACE)
-        && (id != YTT_NEWLINE))
         && (id != YTT_COMMENT))
         {
             token_len = (int)(l.cur - l.token);

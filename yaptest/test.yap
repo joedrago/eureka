@@ -1,2 +1,2 @@
-a b c d
-
+var a = "wut"
+var b = "awesome"

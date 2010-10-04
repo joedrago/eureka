@@ -5,9 +5,26 @@
 
 typedef struct yapCompiler
 {
-    yapArray *list;
+    struct yapModule *module;
     yBool error;
 } yapCompiler;
+
+typedef struct yapNugget
+{
+    struct yapOp *ops;
+    int count;
+} yapNugget;
+
+#define yapNuggetCreate() ((yapNugget*)yapAlloc(sizeof(yapNugget)))
+void yapNuggetGrowOps(yapNugget *nugget, int count);
+void yapNuggetAppendOp(yapNugget *nugget, yOpcode opcode, yOperand operand);
+
+typedef struct yapExpression
+{
+    const char *text;
+} yapExpression;
+
+#define yapExpressionCreate() ((yapExpression*)yapAlloc(sizeof(yapExpression)))
 
 #define yapCompilerCreate() ((yapCompiler*)yapAlloc(sizeof(yapCompiler)))
 void yapCompilerDestroy(yapCompiler *compiler);

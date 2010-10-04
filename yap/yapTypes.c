@@ -63,6 +63,24 @@ yOperand yapArrayPushUniqueString(yapArray *p, const char *s)
     return yapArrayPush(p, yapStrdup(s));
 }
 
+yOperand yapArrayPushUniqueStringLen(yapArray *p, const char *s, int len)
+{
+    char *temp;
+    int i;
+    for(i=0; i<p->count; i++)
+    {
+        const char *v = (const char *)p->data[i];
+        if((strlen(v) == len) && !strncmp(s, v, len))
+        {
+            return (yOperand)i;
+        }
+    }
+    temp = yapAlloc(len+1);
+    memcpy(temp, s, len);
+    temp[len] = 0;
+    return yapArrayPush(p, temp);
+}
+
 yOperand yapArrayPush(yapArray *p, void *v)
 {
     if(p->count == p->capacity)

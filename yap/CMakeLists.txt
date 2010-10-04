@@ -51,10 +51,12 @@ set(yap_src
     yapFrame.c
     yapLexer.c
     yapLexer.h
+    yapLexer.re
     yapModule.h
     yapModule.c
     yapOp.h
     yapOp.c
+    yapParser.y
     yapTypes.h
     yapTypes.c
     yapValue.h
