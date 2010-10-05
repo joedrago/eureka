@@ -17,4 +17,6 @@ typedef struct yapModule
 #define yapModuleCreate() ((yapModule*)yapAlloc(sizeof(yapModule)))
 void yapModuleDestroy(yapModule *module);
 
+void yapModuleDump(yapModule *module);
+
 #endif

@@ -16,23 +16,6 @@ void yapCompilerDestroy(yapCompiler *compiler)
     yapFree(compiler);
 }
 
-void yapNuggetGrowOps(yapNugget *nugget, int count)
-{
-    if(nugget->count)
-        nugget->ops = yapRealloc(nugget->ops, sizeof(yapOp) * (nugget->count+count));
-    else
-        nugget->ops = yapAlloc(sizeof(yapOp) * count);
-    nugget->count += count;
-}
-
-void yapNuggetAppendOp(yapNugget *nugget, yOpcode opcode, yOperand operand)
-{
-    yapOp *op = &nugget->ops[nugget->count];
-    op->opcode  = opcode;
-    op->operand = operand;
-    nugget->count++;
-}
-
 yBool yapCompile(yapCompiler *compiler, const char *text)
 {
     yapToken emptyToken = {0};

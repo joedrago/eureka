@@ -7,6 +7,7 @@
 %name yapParse
 
 %include {
+#include "yapCode.h"
 #include "yapCompiler.h"
 #include "yapLexer.h"
 #include "yapModule.h"
@@ -45,59 +46,76 @@
 	compiler->error = yTrue;
 }
 
-// %type identlist {yapArray*}
+%type module {yapCode*}
 
-module ::= statement_list.
+module(M) ::= statement_list(L).
+    {
+        M = L;
+        yapModuleDump(compiler->module);
+        yapOpsDump(M->ops, M->count);
+    }
 
-statement_list ::= statement_list statement.
-statement_list ::= statement.
+%type statement_list {yapCode*}
 
-%type statement {yapNugget*}
+statement_list(L) ::= statement_list(OL) statement(S).
+    {
+        L = OL;
+        yapCodeAppendCode(L, S);
+    }
 
-statement ::= IDENTIFIER EQUALS expression NEWLINE.
-statement(S) ::= VAR IDENTIFIER EQUALS expression NEWLINE.
-	{
-		// yopExpressionCompile()  -- generates ops into a yapNugget	
+statement_list(L) ::= statement(S).
+    {
+        L = S;
+    }
 
-		S = (yapNugget*)yapAlloc(sizeof(yapNugget));
-		yapNuggetGrowOps(S, 2);
-		yapNuggetAppendOp(S, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, I.text, I.len));
-		yapNuggetAppendOp(S, YOP_POP, 1); // nobody wants it yet
-	}
+%type statement {yapCode*}
+
+statement(S) ::= IDENTIFIER(I) EQUALS expression(E) NEWLINE.
+    {
+        S = yapCodeCreate();
+        yapCodeAppendVarRef(compiler, S, &I);
+        yapCodeAppendExpression(compiler, S, E);
+        yapCodeAppendSetVar(S);
+    }
+
+statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
+    {
+        S = yapCodeCreate();
+        yapCodeAppendVar(compiler, S, &I, yFalse);
+        yapCodeAppendExpression(compiler, S, E);
+        yapCodeAppendSetVar(S);
+    }
 
 statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
-	{
-		S = (yapNugget*)yapAlloc(sizeof(yapNugget));
-		yapNuggetGrowOps(S, 2);
-		yapNuggetAppendOp(S, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, I.text, I.len));
-		yapNuggetAppendOp(S, YOP_POP, 1); // nobody wants it yet
-	}
-	
-statement ::= expression NEWLINE.
-statement ::= NEWLINE.
+    {
+        S = yapCodeCreate();
+        yapCodeAppendVar(compiler, S, &I, yTrue);
+    }
+
+statement(S) ::= expression(E) NEWLINE.
+    {
+        S = yapCodeCreate();
+        yapCodeAppendExpression(compiler, S, E); // calling a function that returns void?
+
+        // TODO: probably need to add something here that cleans out the value stack, or
+        //       pass AppendExpression something that indicates a special CALL with "leave
+        //       nothing on the stack" is added
+    }
+
+statement(S) ::= NEWLINE.
+    {
+        S = yapCodeCreate();
+    }
 
 %type expression {yapExpression*}
 
-expression(E) ::= LITERALSTRING(S).
-	{
-		E = yapExpressionCreate();
-		E->text = yapTokenToString(&S);
-
-		// E = (yapNugget*)yapAlloc(sizeof(yapNugget));
-		// E->ops = yapOpsAlloc(1);
-		// E->ops[0].opcode = YOP_PUSH_KS;
-		// E->ops[0].operand = yapArrayPushUniqueStringLen(&compiler->module->kStrings, S.text, S.len);
-	}
+expression(E) ::= LITERALSTRING(L).
+    {
+        E = yapExpressionCreateLiteralString(&L);
+    }
 
 expression(E) ::= IDENTIFIER(I).
-	{
-		E = yapExpressionCreate();
-		E->text = yapTokenToString(&I);
+    {
+        E = yapExpressionCreateIdentifier(&I);
+    }
 
-		// E = (yapNugget*)yapAlloc(sizeof(yapNugget));
-		// E->ops = yapOpsAlloc(2);
-		// E->ops[0].opcode = YOP_VARREF_KS;
-		// E->ops[0].operand = yapArrayPushUniqueStringLen(&compiler->module->kStrings, I.text, I.len);
-		// E->ops[1].opcode = YOP_REFVAL;
-		// E->ops[1].operand = 0;
-	}

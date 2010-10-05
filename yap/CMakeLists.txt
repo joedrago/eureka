@@ -43,6 +43,8 @@ project(yap)
 set(yap_src
     yapBlock.h
     yapBlock.c
+    yapCode.h
+    yapCode.c
     yapCompiler.h
     yapCompiler.c
     yapContext.h
