@@ -51,7 +51,7 @@
 
 module ::= statement_list(L).
     {
-        compiler->module->block = yapBlockConvertCode(L);
+        compiler->module->block = yapBlockConvertCode(L, compiler->module);
     }
 
 %type statement_list {yapCode*}
@@ -107,6 +107,11 @@ statement(S) ::= NEWLINE.
     }
 
 %type expression {yapExpression*}
+
+expression(E) ::= IDENTIFIER(F) LEFTPAREN RIGHTPAREN.
+    {
+        E = yapExpressionCreateCall(&F);
+    }
 
 expression(E) ::= LITERALSTRING(L).
     {

@@ -34,6 +34,14 @@ yapExpression * yapExpressionCreateNull()
     return e;
 }
 
+yapExpression * yapExpressionCreateCall(struct yapToken *token)
+{
+    yapExpression *e = yapExpressionCreate();
+    e->token = *token;
+    e->type = YEP_CALL;
+    return e;
+}
+
 // ---------------------------------------------------------------------------
 // Code
 
@@ -85,6 +93,13 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
         {
             yapCodeGrow(code, 1);
             yapCodeAppend(code, YOP_PUSHNULL, 0);
+            break;
+        }
+        case YEP_CALL:
+        {
+            yapCodeGrow(code, 2);
+            yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
+            yapCodeAppend(code, YOP_CALL, 0);
             break;
         }
         default:

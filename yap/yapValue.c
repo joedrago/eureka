@@ -59,6 +59,8 @@ void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
     dst->constant = src->constant;
     switch(dst->type)
     {
+    case YVT_NULL:
+        break;
     case YVT_MODULE:
         dst->moduleVal = src->moduleVal;
         break;

@@ -18,6 +18,6 @@ typedef struct yapBlock
 #define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
 void yapBlockDestroy(yapBlock *block);
 
-yapBlock * yapBlockConvertCode(struct yapCode *code);
+yapBlock * yapBlockConvertCode(struct yapCode *code, struct yapModule *owner);
 
 #endif

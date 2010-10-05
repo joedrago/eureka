@@ -9,11 +9,12 @@ void yapBlockDestroy(yapBlock *block)
     yapFree(block);
 }
 
-yapBlock * yapBlockConvertCode(struct yapCode *code)
+yapBlock * yapBlockConvertCode(struct yapCode *code, struct yapModule *owner)
 {
     yapBlock *block = yapBlockCreate();
     block->ops = code->ops;
     block->opcount = code->count;
+    block->module = owner;
     code->ops = NULL;
     code->size = 0;
     code->count = 0;

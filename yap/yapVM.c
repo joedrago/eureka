@@ -1,6 +1,7 @@
 #include "yapVM.h"
 
 #include "yapBlock.h"
+#include "yapCompiler.h"
 #include "yapFrame.h"
 #include "yapModule.h"
 #include "yapOp.h"
@@ -15,6 +16,30 @@
 #define MAX_ERROR_LENGTH 1023
 
 yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
+{
+    yapVariable *moduleRef;
+
+    yapCompiler *compiler = yapCompilerCreate();
+    yapCompile(compiler, text);
+
+    // Alloc the global variable "main"
+    moduleRef = yapVariableCreate(vm, name);
+    moduleRef->value = yapValueCreate(vm);
+    moduleRef->value->type = YVT_MODULE;
+    moduleRef->value->moduleVal = compiler->module;
+    yapArrayPush(&vm->globals, moduleRef);
+
+    compiler->module = NULL;
+    yapCompilerDestroy(compiler);
+
+    // Execute the module's block
+    yapVMPushFrame(vm, moduleRef, 0);
+    yapVMLoop(vm);
+    yapVMGC(vm);
+    return moduleRef->value->moduleVal;
+}
+
+yapModule * yapVMLoadModule2(yapVM *vm, const char *name, const char *text)
 {
     int x;
     yapModule *main;
@@ -251,6 +276,13 @@ void yapVMLoop(yapVM *vm)
         switch(opcode)
         {
         case YOP_NOOP:
+            break;
+
+        case YOP_PUSHNULL:
+            {
+                yapValue *value = yapValueClone(vm, &yapValueNull);
+                yapArrayPush(&vm->stack, value);
+            }
             break;
 
         case YOP_PUSH_KI:

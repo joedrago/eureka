@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void vmTest()
+void vmTest(const char *code)
 {
     yapContext *context = yapContextCreate();
-    yapVMLoadModule(context->vm, "main", "code");
+    yapVMLoadModule(context->vm, "main", code);
     if(yapContextGetError(context))
     {
         printf("VM Bailed out: %s\n", yapContextGetError(context));
@@ -36,9 +36,7 @@ void lexTest()
         fclose(f);
 
         {
-            yapCompiler *compiler = yapCompilerCreate();
-            yapCompile(compiler, buffer);
-            yapCompilerDestroy(compiler);
+            vmTest(buffer);
         }
 
         free(buffer);

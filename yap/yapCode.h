@@ -19,6 +19,7 @@ enum
 
     YEP_IDENTIFIER,
     YEP_LITERALSTRING,
+    YEP_CALL,
 
     YEP_COUNT
 };
@@ -33,6 +34,7 @@ typedef struct yapExpression
 yapExpression * yapExpressionCreateLiteralString(struct yapToken *token);
 yapExpression * yapExpressionCreateIdentifier(struct yapToken *token);
 yapExpression * yapExpressionCreateNull();
+yapExpression * yapExpressionCreateCall(struct yapToken *token);
 
 // ---------------------------------------------------------------------------
 
