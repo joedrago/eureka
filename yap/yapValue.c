@@ -31,6 +31,13 @@ void yapValueSetString(yapValue *p, char *s)
     p->constant = yFalse;
 }
 
+void yapValueSetFunction(yapValue *p, struct yapBlock *block)
+{
+    yapValueClear(p);
+    p->type = YVT_FUNCTION;
+    p->blockVal = block;
+}
+
 void yapValueClear(yapValue *p)
 {
     if(p->type == YVT_STRING && !p->constant && !p->shared)

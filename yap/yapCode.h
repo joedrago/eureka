@@ -50,7 +50,7 @@ void yapCodeDestroy(yapCode *code);
 void yapCodeGrow(yapCode *code, int count);
 void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand);
 
-void yapCodeAppendExpression(struct yapCompiler *compiler, yapCode *code, yapExpression *expr);
+void yapCodeAppendExpression(struct yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount);
 void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yBool popRef);
 void yapCodeAppendVarRef(struct yapCompiler *compiler, yapCode *code, struct yapToken *token);
 void yapCodeAppendSetVar(yapCode *code);

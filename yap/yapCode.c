@@ -72,14 +72,17 @@ void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
     code->count++;
 }
 
-void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression *expr)
+void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount)
 {
+    int offerCount = -1;
+
     switch(expr->type)
     {
         case YEP_LITERALSTRING:
         {
             yapCodeGrow(code, 1);
             yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
+            offerCount = 1;
             break;
         }
         case YEP_IDENTIFIER:
@@ -87,23 +90,43 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
             yapCodeGrow(code, 2);
             yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
             yapCodeAppend(code, YOP_REFVAL, 0);
+            offerCount = 1;
             break;
         }
         case YEP_NULL:
         {
             yapCodeGrow(code, 1);
             yapCodeAppend(code, YOP_PUSHNULL, 0);
+            offerCount = 1;
             break;
         }
         case YEP_CALL:
         {
-            yapCodeGrow(code, 2);
+            yapCodeGrow(code, 3);
             yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
             yapCodeAppend(code, YOP_CALL, 0);
+            yapCodeAppend(code, YOP_KEEP, keepCount);
             break;
         }
         default:
             printf("Unknown expression");
+    }
+
+    if(offerCount != -1)
+    {
+        if(offerCount > keepCount)
+        {
+            yapCodeGrow(code, 1);
+            yapCodeAppend(code, YOP_POP, (yOperand)(offerCount - keepCount));
+        }
+        else if(offerCount < keepCount)
+        {
+            int i;
+            int nulls = keepCount - offerCount;
+            yapCodeGrow(code, nulls);
+            for(i=0; i<nulls; i++)
+                yapCodeAppend(code, YOP_PUSHNULL, 0);
+        }
     }
 }
 

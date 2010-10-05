@@ -11,6 +11,7 @@ enum
     YOP_NOOP = 0,                      // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
+    YOP_PUSHLBLOCK,                    // push reference to local (to module) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
     YOP_ADD_KI,                        // add constant int ki[X] to top of stack
@@ -22,6 +23,7 @@ enum
 
     YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
     YOP_RET,                           // leave current call, returning X items on the stack
+    YOP_KEEP,                          // Pad/trim most recent RET to X args
 
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack

@@ -13,7 +13,6 @@ yapOp *yapOpsMerge(yapOp *dst, int dstCount, yapOp *src, int srcCount)
 void yapOpsDump(yapOp *ops, int count)
 {
     int i = 0;
-    printf("Dumping %d ops:\n", count);
     for(i=0;i<count;i++)
     {
         yapOp *op = &ops[i];
@@ -24,6 +23,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_NOOP)
 
             HURR(YOP_PUSHNULL)
+            HURR(YOP_PUSHLBLOCK)
 
             HURR(YOP_PUSH_KI)
             HURR(YOP_ADD_KI)
@@ -35,6 +35,7 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_CALL)
             HURR(YOP_RET)
+            HURR(YOP_KEEP)
 
             HURR(YOP_VARREG_KS)
             HURR(YOP_VARREF_KS)

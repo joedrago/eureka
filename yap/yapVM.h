@@ -18,14 +18,12 @@ typedef struct yapVM
     yapArray stack;                    // Value stack
     yapArray modules;                  // the VM owns all modules, making cheap vars
 
-    // TODO: modules need to own blocks, for referencing by index and serialization
-
-    // "code"
-    yapArray blocks;                   // the VM owns all blocks, making cheap vars
-
     // GC data
     yapArray usedValues;               // All values used by the system
     yapArray usedVariables;            // All variables used by the system
+
+    // state
+    int lastRet;
 
     // error data
     char *error;

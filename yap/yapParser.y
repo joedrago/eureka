@@ -35,24 +35,26 @@
 %left EOF.
 
 %syntax_error {
-	if(TOKEN.text)
-	{
-	    char temp[32];
-	    int len = strlen(TOKEN.text);
-	    if(len > 31) len = 31;
-	    memcpy(temp, TOKEN.text, len);
-	    temp[len] = 0;
-		printf( "syntax error near '%s'\n", temp );
-	}
-	compiler->error = yTrue;
+    if(TOKEN.text)
+    {
+        char temp[32];
+        int len = strlen(TOKEN.text);
+        if(len > 31) len = 31;
+        memcpy(temp, TOKEN.text, len);
+        temp[len] = 0;
+        printf( "syntax error near '%s'\n", temp );
+    }
+    compiler->error = yTrue;
 }
 
 %type module {yapCode*}
 
 module ::= statement_list(L).
     {
-		yapCodeAppendRet(L, 0);
-        compiler->module->block = yapBlockConvertCode(L, compiler->module);
+        yOperand index;
+        yapCodeAppendRet(L, 0);
+        index = yapBlockConvertCode(L, compiler->module);
+        compiler->module->block = compiler->module->blocks.data[index];
     }
 
 %type statement_list {yapCode*}
@@ -74,7 +76,7 @@ statement(S) ::= IDENTIFIER(I) EQUALS expression(E) NEWLINE.
     {
         S = yapCodeCreate();
         yapCodeAppendVarRef(compiler, S, &I);
-        yapCodeAppendExpression(compiler, S, E);
+        yapCodeAppendExpression(compiler, S, E, 1);
         yapCodeAppendSetVar(S);
     }
 
@@ -82,7 +84,7 @@ statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
     {
         S = yapCodeCreate();
         yapCodeAppendVar(compiler, S, &I, yFalse);
-        yapCodeAppendExpression(compiler, S, E);
+        yapCodeAppendExpression(compiler, S, E, 1);
         yapCodeAppendSetVar(S);
     }
 
@@ -92,19 +94,32 @@ statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
         yapCodeAppendVar(compiler, S, &I, yTrue);
     }
 
+statement(S) ::= RETURN expression(E) NEWLINE.
+    {
+        S = yapCodeCreate();
+        yapCodeAppendExpression(compiler, S, E, 1);
+        yapCodeGrow(S, 1);
+        yapCodeAppend(S, YOP_RET, 1);
+    }
+
 statement(S) ::= expression(E) NEWLINE.
     {
         S = yapCodeCreate();
-        yapCodeAppendExpression(compiler, S, E); // calling a function that returns void?
-
-        // TODO: probably need to add something here that cleans out the value stack, or
-        //       pass AppendExpression something that indicates a special CALL with "leave
-        //       nothing on the stack" is added
+        yapCodeAppendExpression(compiler, S, E, 0);
     }
 
-statement(S) ::= FUNCTION IDENTIFIER LEFTPAREN RIGHTPAREN NEWLINE INDENT statement_list DEDENT.
+statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
     {
+        yOperand index;
+        yapCodeAppendRet(B, 0);
+        index = yapBlockConvertCode(B, compiler->module);
+
         S = yapCodeCreate();
+        yapCodeAppendVar(compiler, S, &I, yFalse);
+        yapCodeGrow(S, 1);
+        yapCodeAppend(S, YOP_PUSHLBLOCK, index);
+        yapCodeAppendSetVar(S);
+        printf("function created. block %d\n", index);
     }
 
 statement(S) ::= NEWLINE.

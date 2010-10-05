@@ -1,6 +1,8 @@
 #ifndef YAPBLOCK_H
 #define YAPBLOCK_H
 
+#include "yapTypes.h"
+
 // ---------------------------------------------------------------------------
 // Forwards
 
@@ -18,6 +20,6 @@ typedef struct yapBlock
 #define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
 void yapBlockDestroy(yapBlock *block);
 
-yapBlock * yapBlockConvertCode(struct yapCode *code, struct yapModule *owner);
+yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner);
 
 #endif
