@@ -25,6 +25,14 @@ yOperand yap32ArrayPush(yap32Array *p, yU32 v)
     return (yOperand)(p->count - 1);
 }
 
+yU32 yap32ArrayPop(yap32Array *p)
+{
+    if(p->count == 0)
+        return -1;
+
+    return p->data[--p->count];
+}
+
 void yap32ArrayClear(yap32Array *p)
 {
     p->count = 0;

@@ -131,7 +131,16 @@ void yapCodeAppendSetVar(yapCode *code)
 
 void yapCodeAppendCode(yapCode *dst, yapCode *src)
 {
+    if(!src->count)
+        return;
+
     yapCodeGrow(dst, src->count);
     memcpy(&dst->ops[dst->count], src->ops, src->count*sizeof(yapOp));
     dst->count += src->count;
+}
+
+void yapCodeAppendRet(yapCode *code, int argcount)
+{
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_RET, argcount);
 }

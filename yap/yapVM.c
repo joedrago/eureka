@@ -17,26 +17,36 @@
 
 yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
 {
+    yapModule *module;
     yapVariable *moduleRef;
 
     yapCompiler *compiler = yapCompilerCreate();
     yapCompile(compiler, text);
+    module = compiler->module;
 
-    // Alloc the global variable "main"
-    moduleRef = yapVariableCreate(vm, name);
-    moduleRef->value = yapValueCreate(vm);
-    moduleRef->value->type = YVT_MODULE;
-    moduleRef->value->moduleVal = compiler->module;
-    yapArrayPush(&vm->globals, moduleRef);
+    if(module->block)
+    {
+        // Alloc the global variable "main"
+        moduleRef = yapVariableCreate(vm, name);
+        moduleRef->value = yapValueCreate(vm);
+        moduleRef->value->type = YVT_MODULE;
+        moduleRef->value->moduleVal = compiler->module;
+        yapArrayPush(&vm->globals, moduleRef);
 
-    compiler->module = NULL;
-    yapCompilerDestroy(compiler);
+        compiler->module = NULL;
+        yapCompilerDestroy(compiler);
 
-    // Execute the module's block
-    yapVMPushFrame(vm, moduleRef, 0);
-    yapVMLoop(vm);
-    yapVMGC(vm);
-    return moduleRef->value->moduleVal;
+        // Execute the module's block
+        yapVMPushFrame(vm, moduleRef, 0);
+        yapVMLoop(vm);
+        yapVMGC(vm);
+    }
+    else
+    {
+        module = NULL;
+    }
+
+    return module;
 }
 
 yapModule * yapVMLoadModule2(yapVM *vm, const char *name, const char *text)

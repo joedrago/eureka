@@ -55,6 +55,7 @@ void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapTok
 void yapCodeAppendVarRef(struct yapCompiler *compiler, yapCode *code, struct yapToken *token);
 void yapCodeAppendSetVar(yapCode *code);
 void yapCodeAppendCode(yapCode *dst, yapCode *src);
+void yapCodeAppendRet(yapCode *code, int argcount);
 // ---------------------------------------------------------------------------
 
 #endif

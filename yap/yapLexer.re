@@ -31,6 +31,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "while"         { return YTT_COMMENT; }
     "var"           { return YTT_VAR; }
     "null"          { return YTT_NULL; }
+    "func"          { return YTT_FUNCTION; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }
@@ -50,7 +51,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     Newline
     {
         l->line++;
-        l->col = 1;
         return YTT_NEWLINE;
     }
 
@@ -67,7 +67,6 @@ comment:
     Newline
     {
         l->line++;
-        l->col = 1;
         return YTT_COMMENT;
     }
 

@@ -45,6 +45,7 @@ typedef struct yap32Array
 
 yOperand yap32ArrayPushUnique(yap32Array *p, yU32 v);
 yOperand yap32ArrayPush(yap32Array *p, yU32 v);
+yU32 yap32ArrayPop(yap32Array *p);
 void yap32ArrayClear(yap32Array *p);
 
 typedef struct yapArray

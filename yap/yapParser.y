@@ -51,6 +51,7 @@
 
 module ::= statement_list(L).
     {
+		yapCodeAppendRet(L, 0);
         compiler->module->block = yapBlockConvertCode(L, compiler->module);
     }
 
@@ -99,6 +100,11 @@ statement(S) ::= expression(E) NEWLINE.
         // TODO: probably need to add something here that cleans out the value stack, or
         //       pass AppendExpression something that indicates a special CALL with "leave
         //       nothing on the stack" is added
+    }
+
+statement(S) ::= FUNCTION IDENTIFIER LEFTPAREN RIGHTPAREN NEWLINE INDENT statement_list DEDENT.
+    {
+        S = yapCodeCreate();
     }
 
 statement(S) ::= NEWLINE.

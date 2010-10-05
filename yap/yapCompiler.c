@@ -26,7 +26,8 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     yapLex(parser, text, yapParse, compiler);
     yapParse(parser, 0, emptyToken, compiler);
 
-    yapModuleDump(compiler->module);
+    if(compiler->module->block)
+        yapModuleDump(compiler->module);
 
     yapParseFree(parser);
     return yTrue;

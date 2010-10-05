@@ -18,7 +18,8 @@ typedef struct yapLexer
     const char *token;
     const char *end;
     int line;
-    int col;
+    yBool newline;
+    yap32Array indents;
     yBool error;
 } yapLexer;
 
@@ -33,6 +34,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     int id;
     int token_len;
     int tokenMax;
+    int indentTop;
     yapToken token;
     yapLexer l = {0};
 
@@ -41,15 +43,49 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     l.cur    = l.text;
     l.token  = l.cur;
 
+    // TODO: Comment how this all works
+
+    yap32ArrayPush(&l.indents, 0);
+    indentTop = l.indents.data[l.indents.count-1];
+
     while(!compiler->error && ((id = getNextToken(&l)) != YTT_EOF))
     {
         if(l.error)
             break;
 
-        if((id != YTT_SPACE)
-        && (id != YTT_COMMENT))
+        token_len = (int)(l.cur - l.token);
+
+        if(l.newline)
         {
-            token_len = (int)(l.cur - l.token);
+            int curIndent = 0;
+            if(id == YTT_SPACE)
+            {
+                curIndent = token_len;
+            }
+
+            if(curIndent > indentTop)
+            {
+                yap32ArrayPush(&l.indents, token_len);
+                indentTop = l.indents.data[l.indents.count-1];
+                cb(parser, YTT_INDENT, token, compiler);
+            }
+            else if(curIndent < indentTop)
+            {
+                if(l.indents.count <= 1)
+                {
+                    printf("Indent stack empty!\n");
+                    compiler->error = yTrue;
+                    return yFalse;
+                }
+
+                yap32ArrayPop(&l.indents);
+                indentTop = l.indents.data[l.indents.count-1];
+                cb(parser, YTT_DEDENT, token, compiler);
+            }
+        }
+
+        if((id != YTT_SPACE) && (id != YTT_COMMENT))
+        {
             if(token_len > 0)
             {
                 token.text = l.token;
@@ -60,6 +96,13 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         }
 
         l.token = l.cur;
+        l.newline = (id == YTT_NEWLINE);
+    }
+
+    while(l.indents.count > 1)
+    {
+        yap32ArrayPop(&l.indents);
+        cb(parser, YTT_DEDENT, token, compiler);
     }
 
     return yTrue;
