@@ -8,7 +8,7 @@ yapVariable *yapVariableCreate(struct yapVM *vm, const char *name)
 {
     yapVariable *v = (yapVariable *)yapAlloc(sizeof(yapVariable));
     v->name = yapStrdup(name);
-    v->value = None;
+    v->value = &yapValueNull;
     yapArrayPush(&vm->usedVariables, v);
     return v;
 }

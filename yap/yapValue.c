@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 
-yapValue yapValueNone = {YVT_NONE};
+yapValue yapValueNull = {YVT_NULL};
 
 void yapValueSetInt(yapValue *p, int v)
 {
@@ -37,7 +37,7 @@ void yapValueClear(yapValue *p)
         yapFree(p->stringVal);
 
     memset(p, 0, sizeof(*p));
-    p->type = YVT_UNKNOWN;
+    p->type = YVT_NULL;
 }
 
 void yapValueDestroy(yapValue *p)
@@ -90,7 +90,7 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
 
 void yapValueMark(yapValue *value)
 {
-    if(value->type == YVT_NONE)
+    if(value->type == YVT_NULL)
         return;
 
     if(value->used)

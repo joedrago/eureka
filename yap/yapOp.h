@@ -10,13 +10,13 @@ enum
 {
     YOP_NOOP = 0,                      // does nothing
 
+    YOP_PUSHNULL,                      // push null value on top of stack
+
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
     YOP_ADD_KI,                        // add constant int ki[X] to top of stack
     YOP_SUB_KI,                        // subtract constant int ki[X] to top of stack
 
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
-
-    YOP_PUSHARGN,                      // push argument #X on top of stack
 
     YOP_POP,                           // pop value stack X times
 

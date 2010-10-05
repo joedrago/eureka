@@ -26,15 +26,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     yapLex(parser, text, yapParse, compiler);
     yapParse(parser, 0, emptyToken, compiler);
 
-    //if(compiler->list)
-    //{
-    //    int i;
-    //    for(i=0;i<compiler->list->count;i++)
-    //    {
-    //        char *identifier = (char*)compiler->list->data[i];
-    //        printf("Identifier: %s\n", identifier);
-    //    }
-    //}
+    yapModuleDump(compiler->module);
 
     yapParseFree(parser);
     return yTrue;

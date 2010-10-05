@@ -6,6 +6,7 @@
 #include "yapOp.h"
 
 #include <string.h>
+#include <stdio.h>
 
 // ---------------------------------------------------------------------------
 // Expression
@@ -23,6 +24,13 @@ yapExpression * yapExpressionCreateIdentifier(struct yapToken *token)
     yapExpression *e = yapExpressionCreate();
     e->token = *token;
     e->type = YEP_IDENTIFIER;
+    return e;
+}
+
+yapExpression * yapExpressionCreateNull()
+{
+    yapExpression *e = yapExpressionCreate();
+    e->type = YEP_NULL;
     return e;
 }
 
@@ -73,6 +81,14 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
             yapCodeAppend(code, YOP_REFVAL, 0);
             break;
         }
+        case YEP_NULL:
+        {
+            yapCodeGrow(code, 1);
+            yapCodeAppend(code, YOP_PUSHNULL, 0);
+            break;
+        }
+        default:
+            printf("Unknown expression");
     }
 }
 

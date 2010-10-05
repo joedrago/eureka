@@ -12,8 +12,7 @@ struct yapVM;
 
 typedef enum yapValueType
 {
-    YVT_UNKNOWN = 0,
-    YVT_NONE,                          // None, aka NULL
+    YVT_NULL,
 
     YVT_MODULE,
     YVT_FUNCTION,
@@ -66,8 +65,7 @@ yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
 // ---------------------------------------------------------------------------
 // Globals
 
-extern yapValue yapValueNone;
-#define None (&yapValueNone)
+extern yapValue yapValueNull;
 
 // ---------------------------------------------------------------------------
 

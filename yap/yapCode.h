@@ -15,7 +15,7 @@ struct yapCompiler;
 
 enum
 {
-    YEP_UNKNOWN = 0,
+    YEP_NULL = 0,
 
     YEP_IDENTIFIER,
     YEP_LITERALSTRING,
@@ -32,6 +32,7 @@ typedef struct yapExpression
 #define yapExpressionCreate() ((yapExpression*)yapAlloc(sizeof(yapExpression)))
 yapExpression * yapExpressionCreateLiteralString(struct yapToken *token);
 yapExpression * yapExpressionCreateIdentifier(struct yapToken *token);
+yapExpression * yapExpressionCreateNull();
 
 // ---------------------------------------------------------------------------
 

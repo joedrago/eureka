@@ -1,5 +1,6 @@
 #include "yapModule.h"
 
+#include "yapBlock.h"
 #include "yapVariable.h"
 
 #include <stdio.h>
@@ -22,7 +23,7 @@ void yapModuleDump(yapModule *module)
     printf("Dumping kStrings:\n");
     for(i=0; i<module->kStrings.count; i++)
     {
-        printf("%6d \"%s\"\n", i, module->kStrings.data[i]);
+        printf("%6d \"%s\"\n", i, (char*)module->kStrings.data[i]);
     }
 
     printf("Dumping kInts:\n");
@@ -30,5 +31,7 @@ void yapModuleDump(yapModule *module)
     {
         printf("%6d \"%d\"\n", i, module->kInts.data[i]);
     }
+
+    yapOpsDump(module->block->ops, module->block->opcount);
 }
 

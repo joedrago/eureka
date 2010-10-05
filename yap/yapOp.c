@@ -23,13 +23,13 @@ void yapOpsDump(yapOp *ops, int count)
 #define HURR(OP) case OP: printf("%20s", #OP); break;
             HURR(YOP_NOOP)
 
+            HURR(YOP_PUSHNULL)
+
             HURR(YOP_PUSH_KI)
             HURR(YOP_ADD_KI)
             HURR(YOP_SUB_KI)
 
             HURR(YOP_PUSH_KS)
-
-            HURR(YOP_PUSHARGN)
 
             HURR(YOP_POP)
 

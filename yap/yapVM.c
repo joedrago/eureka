@@ -70,10 +70,10 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     block->module = main;
     block->ops = yapOpsAlloc(4);
 
-    // return arg0 + 2;
+    // return 4 + 2;
     x = 0;
-    block->ops[x  ].opcode  = YOP_PUSHARGN;
-    block->ops[x++].operand = 0;
+    block->ops[x  ].opcode  = YOP_PUSH_KI;
+    block->ops[x++].operand = yap32ArrayPushUnique(&main->kInts, 4);
     block->ops[x  ].opcode  = YOP_ADD_KI;
     block->ops[x++].operand = yap32ArrayPushUnique(&main->kInts, 2);
     block->ops[x  ].opcode  = YOP_RET;
@@ -206,18 +206,9 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int numArgs)
     frame->block = block;
     frame->ip = block->ops;
     frame->bp = vm->stack.count - numArgs;
-    for(i=0; i<numArgs; i++)
-    {
-        yapValue *value = yapArrayPop(&vm->stack);
-        yapArrayPush(&frame->args, value);
 
-        if(i) printf(", ");
-        switch(value->type)
-        {
-        case YVT_INT:    printf("%d", value->intVal); break;
-        case YVT_STRING: printf("%s", value->stringVal); break;
-        };
-    }
+    // TODO: deal with args here
+
     yapArrayPush(&vm->frames, frame);
 
     printf(")\n");
@@ -293,21 +284,6 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapValueCreate(vm);
                 yapValueSetKString(value, frame->block->module->kStrings.data[operand]);
                 yapArrayPush(&vm->stack, value);
-            }
-            break;
-
-        case YOP_PUSHARGN:
-            {
-                if(operand >= frame->args.count)
-                {
-                    yapVMSetError(vm, "YOP_PUSHARGN: requesting arg %d when %d is max index", operand, frame->args.count-1);
-                    continueLooping = yFalse;
-                }
-                else
-                {
-                    yapValue *value = yapValueClone(vm, (yapValue *)frame->args.data[operand]);
-                    yapArrayPush(&vm->stack, value);
-                }
             }
             break;
 

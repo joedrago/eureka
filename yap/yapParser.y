@@ -7,6 +7,7 @@
 %name yapParse
 
 %include {
+#include "yapBlock.h"
 #include "yapCode.h"
 #include "yapCompiler.h"
 #include "yapLexer.h"
@@ -48,11 +49,9 @@
 
 %type module {yapCode*}
 
-module(M) ::= statement_list(L).
+module ::= statement_list(L).
     {
-        M = L;
-        yapModuleDump(compiler->module);
-        yapOpsDump(M->ops, M->count);
+        compiler->module->block = yapBlockConvertCode(L);
     }
 
 %type statement_list {yapCode*}
@@ -117,5 +116,10 @@ expression(E) ::= LITERALSTRING(L).
 expression(E) ::= IDENTIFIER(I).
     {
         E = yapExpressionCreateIdentifier(&I);
+    }
+
+expression(E) ::= NULL.
+    {
+        E = yapExpressionCreateNull();
     }
 

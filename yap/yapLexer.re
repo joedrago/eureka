@@ -30,6 +30,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
     "while"         { return YTT_COMMENT; }
     "var"           { return YTT_VAR; }
+    "null"          { return YTT_NULL; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }
