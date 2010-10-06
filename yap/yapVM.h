@@ -33,7 +33,7 @@ typedef struct yapVM
 yapVM * yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
-void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction *func);
+void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func);
 struct yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text);
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);

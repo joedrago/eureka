@@ -66,7 +66,7 @@ void lexTest()
 int main(int argc, char* argv[])
 {
 #ifdef PLATFORM_WIN32
-    // _CrtSetBreakAlloc(101);
+    //_CrtSetBreakAlloc(74);
 #endif
     {
         //vmTest();

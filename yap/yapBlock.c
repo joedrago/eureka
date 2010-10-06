@@ -22,6 +22,7 @@ yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner, int 
     code->ops = NULL;
     code->size = 0;
     code->count = 0;
+    yapCodeDestroy(code);
     return ret;
 }
 

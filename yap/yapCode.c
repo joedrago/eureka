@@ -43,6 +43,15 @@ yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args)
     return e;
 }
 
+void yapExpressionDestroy(yapExpression *expr)
+{
+    if(expr->args)
+    {
+        yapArrayDestroy(expr->args, yapExpressionDestroy);
+    }
+    yapFree(expr);
+}
+
 // ---------------------------------------------------------------------------
 // Code
 

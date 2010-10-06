@@ -37,6 +37,8 @@ yapExpression * yapExpressionCreateIdentifier(struct yapToken *token);
 yapExpression * yapExpressionCreateNull();
 yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args);
 
+void yapExpressionDestroy(yapExpression *expr);
+
 // ---------------------------------------------------------------------------
 
 typedef struct yapCode

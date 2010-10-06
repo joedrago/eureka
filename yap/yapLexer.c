@@ -105,6 +105,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         cb(parser, YTT_DEDENT, token, compiler);
     }
 
+    yap32ArrayClear(&l.indents);
     return yTrue;
 }
 

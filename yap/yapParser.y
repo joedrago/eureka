@@ -41,8 +41,6 @@
     compiler->error = yTrue;
 }
 
-%type module {yapCode*}
-
 module ::= statement_list(L).
     {
         yOperand index;
@@ -52,11 +50,14 @@ module ::= statement_list(L).
     }
 
 %type statement_list {yapCode*}
+%destructor statement_list { yapCodeDestroy($$); }
 
 statement_list(L) ::= statement_list(OL) statement(S).
     {
         L = OL;
         yapCodeAppendCode(L, S);
+        
+        yapCodeDestroy(S);
     }
 
 statement_list(L) ::= statement(S).
@@ -72,6 +73,8 @@ statement(S) ::= IDENTIFIER(I) EQUALS expression(E) NEWLINE.
         yapCodeAppendVarRef(compiler, S, &I);
         yapCodeAppendExpression(compiler, S, E, 1);
         yapCodeAppendSetVar(S);
+        
+        yapExpressionDestroy(E);
     }
 
 statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
@@ -80,6 +83,8 @@ statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
         yapCodeAppendVar(compiler, S, &I, yFalse);
         yapCodeAppendExpression(compiler, S, E, 1);
         yapCodeAppendSetVar(S);
+        
+        yapExpressionDestroy(E);
     }
 
 statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
@@ -98,6 +103,9 @@ statement(S) ::= RETURN expr_list(EL) NEWLINE.
         }
         yapCodeGrow(S, 1);
         yapCodeAppend(S, YOP_RET, EL->count);
+        
+        yapArrayClear(EL, yapExpressionDestroy);
+        yapFree(EL);
     }
 
 statement(S) ::= expr_list(L) NEWLINE.
@@ -108,13 +116,16 @@ statement(S) ::= expr_list(L) NEWLINE.
         {
             yapCodeAppendExpression(compiler, S, (yapExpression*)L->data[i], 0);
         }
+        
+        yapArrayClear(L, yapExpressionDestroy);
+        yapFree(L);
     }
 
 statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
     {
         yOperand index;
 
-        if(ARGS && ARGS->count)
+        if(ARGS->count)
         {
             int i;
             yapCode *code = yapCodeCreate();
@@ -130,6 +141,9 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
 
         yapCodeAppendRet(B, 0);
         index = yapBlockConvertCode(B, compiler->module, ARGS->count);
+        
+        yapArrayClear(ARGS, yapExpressionDestroy);
+        yapFree(ARGS);
 
         S = yapCodeCreate();
         yapCodeAppendVar(compiler, S, &I, yFalse);
@@ -145,6 +159,7 @@ statement(S) ::= NEWLINE.
     }
 
 %type expr_list {yapArray*}
+%destructor expr_list { yapArrayDestroy($$, yapExpressionDestroy); }
 
 expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
     {
@@ -169,6 +184,7 @@ expr_list(EL) ::= .
     }
 
 %type expression {yapExpression*}
+%destructor expression { yapExpressionDestroy($$); }
 
 expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     {
@@ -191,6 +207,7 @@ expression(E) ::= NULL.
     }
 
 %type ident_list {yapArray*}
+%destructor ident_list { yapArrayClear($$, yapExpressionDestroy); yapFree($$); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
     {
@@ -208,4 +225,3 @@ ident_list(IL) ::= .
     {
         IL = (yapArray*)yapAlloc(sizeof(yapArray));
     }
-

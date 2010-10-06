@@ -133,6 +133,12 @@ void yapArrayClear(yapArray *p, yapDestroyCB cb)
     p->capacity = 0;
 }
 
+void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
+{
+    yapArrayClear(p, cb);
+    yapFree(p);
+}
+
 void * yapAlloc(ySize bytes)
 {
     return calloc(1, bytes);

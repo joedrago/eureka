@@ -31,6 +31,8 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     yapCompiler *compiler = yapCompilerCreate();
     yapCompile(compiler, text);
     module = compiler->module;
+    compiler->module = NULL;
+    yapCompilerDestroy(compiler);
 
     if(module->block)
     {
@@ -38,11 +40,10 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
         moduleRef = yapVariableCreate(vm, name);
         moduleRef->value = yapValueCreate(vm);
         moduleRef->value->type = YVT_MODULE;
-        moduleRef->value->moduleVal = compiler->module;
+        moduleRef->value->moduleVal = module;
         yapArrayPush(&vm->globals, moduleRef);
 
-        compiler->module = NULL;
-        yapCompilerDestroy(compiler);
+        yapArrayPush(&vm->modules, module);
 
         // Execute the module's block
         yapVMPushFrame(vm, moduleRef, 0);
@@ -51,6 +52,7 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     }
     else
     {
+        yapModuleDestroy(module);
         module = NULL;
     }
 

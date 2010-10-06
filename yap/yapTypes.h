@@ -65,6 +65,7 @@ void yapArraySquash(yapArray *p);  // Removes all NULL entries
 
 typedef void (*yapDestroyCB)(void *p);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);
+void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
 
 // ---------------------------------------------------------------------------
 // Debug Functions

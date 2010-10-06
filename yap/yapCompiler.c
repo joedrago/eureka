@@ -18,6 +18,7 @@ void yapCompilerDestroy(yapCompiler *compiler)
 
 yBool yapCompile(yapCompiler *compiler, const char *text)
 {
+    yBool success = yFalse;
     yapToken emptyToken = {0};
     void *parser = yapParseAlloc();
 
@@ -27,8 +28,11 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     yapParse(parser, 0, emptyToken, compiler);
 
     if(compiler->module->block)
+    {
+        success = yTrue;
         yapModuleDump(compiler->module);
+    };
 
     yapParseFree(parser);
-    return yTrue;
+    return success;
 }

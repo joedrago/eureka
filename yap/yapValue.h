@@ -57,7 +57,7 @@ void yapValueSetInt(yapValue *p, int v);
 void yapValueSetKString(yapValue *p, char *s);
 void yapValueSetString(yapValue *p, char *s);
 void yapValueSetFunction(yapValue *p, struct yapBlock *block);
-void yapValueSetCFunction(yapValue *p, yapCFunction *func);
+void yapValueSetCFunction(yapValue *p, yapCFunction func);
 
 void yapValueClear(yapValue *p);
 
