@@ -103,9 +103,8 @@ statement(S) ::= RETURN expr_list(EL) NEWLINE.
         }
         yapCodeGrow(S, 1);
         yapCodeAppend(S, YOP_RET, EL->count);
-        
-        yapArrayClear(EL, yapExpressionDestroy);
-        yapFree(EL);
+
+        yapArrayDestroy(EL, (yapDestroyCB)yapExpressionDestroy);
     }
 
 statement(S) ::= expr_list(L) NEWLINE.
@@ -116,9 +115,8 @@ statement(S) ::= expr_list(L) NEWLINE.
         {
             yapCodeAppendExpression(compiler, S, (yapExpression*)L->data[i], 0);
         }
-        
-        yapArrayClear(L, yapExpressionDestroy);
-        yapFree(L);
+
+        yapArrayDestroy(L, (yapDestroyCB)yapExpressionDestroy);
     }
 
 statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
@@ -142,8 +140,7 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
         yapCodeAppendRet(B, 0);
         index = yapBlockConvertCode(B, compiler->module, ARGS->count);
         
-        yapArrayClear(ARGS, yapExpressionDestroy);
-        yapFree(ARGS);
+        yapArrayDestroy(ARGS, (yapDestroyCB)yapExpressionDestroy);
 
         S = yapCodeCreate();
         yapCodeAppendVar(compiler, S, &I, yFalse);
@@ -153,13 +150,8 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
         yapTrace(("function created. block %d\n", index));
     }
 
-statement(S) ::= NEWLINE.
-    {
-        S = yapCodeCreate();
-    }
-
 %type expr_list {yapArray*}
-%destructor expr_list { yapArrayDestroy($$, yapExpressionDestroy); }
+%destructor expr_list { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
 
 expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
     {
@@ -207,7 +199,7 @@ expression(E) ::= NULL.
     }
 
 %type ident_list {yapArray*}
-%destructor ident_list { yapArrayClear($$, yapExpressionDestroy); yapFree($$); }
+%destructor ident_list { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
     {

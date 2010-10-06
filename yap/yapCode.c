@@ -47,7 +47,7 @@ void yapExpressionDestroy(yapExpression *expr)
 {
     if(expr->args)
     {
-        yapArrayDestroy(expr->args, yapExpressionDestroy);
+        yapArrayDestroy(expr->args, (yapDestroyCB)yapExpressionDestroy);
     }
     yapFree(expr);
 }
