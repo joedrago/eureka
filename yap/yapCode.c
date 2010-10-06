@@ -34,11 +34,12 @@ yapExpression * yapExpressionCreateNull()
     return e;
 }
 
-yapExpression * yapExpressionCreateCall(struct yapToken *token)
+yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args)
 {
     yapExpression *e = yapExpressionCreate();
     e->token = *token;
     e->type = YEP_CALL;
+    e->args = args;
     return e;
 }
 
@@ -102,14 +103,19 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
         }
         case YEP_CALL:
         {
+            int i;
+            for(i=0; i<expr->args->count; i++)
+            {
+                yapCodeAppendExpression(compiler, code, (yapExpression*)expr->args->data[i], 1);
+            }
             yapCodeGrow(code, 3);
             yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
-            yapCodeAppend(code, YOP_CALL, 0);
+            yapCodeAppend(code, YOP_CALL, expr->args->count);
             yapCodeAppend(code, YOP_KEEP, keepCount);
             break;
         }
         default:
-            printf("Unknown expression");
+            yapTrace(("Unknown expression\n"));
     }
 
     if(offerCount != -1)
@@ -130,6 +136,13 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
     }
 }
 
+void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapExpression *name)
+{
+    yapCodeGrow(code, 2);
+    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, name->token.text, name->token.len));
+    yapCodeAppend(code, YOP_SETARG, 0);
+}
+
 void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yBool popRef)
 {
     int growAmount = (popRef) ? 2 : 1;
@@ -141,9 +154,8 @@ void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapTok
 
 void yapCodeAppendVarRef(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
 {
-    yapCodeGrow(code, 2);
+    yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
-    yapCodeAppend(code, YOP_REFVAL, 0);
 }
 
 void yapCodeAppendSetVar(yapCode *code)

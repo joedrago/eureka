@@ -14,12 +14,13 @@ typedef struct yapBlock
 {
     struct yapModule *module;
     struct yapOp *ops;
-    int opcount;
+    int opCount;
+    int argCount;
 } yapBlock;
 
 #define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
 void yapBlockDestroy(yapBlock *block);
 
-yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner);
+yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner, int argCount);
 
 #endif

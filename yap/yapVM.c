@@ -15,6 +15,14 @@
 
 #define MAX_ERROR_LENGTH 1023
 
+void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func)
+{
+    yapVariable *intrinsic = yapVariableCreate(vm, name);
+    intrinsic->value = yapValueCreate(vm);
+    yapValueSetCFunction(intrinsic->value, func);
+    yapArrayPush(&vm->globals, intrinsic);
+}
+
 yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
 {
     yapModule *module;
@@ -136,7 +144,7 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
     return NULL;
 }
 
-yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int numArgs)
+yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int argCount)
 {
     yapFrame *frame;
     yapBlock *block;
@@ -144,18 +152,30 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int numArgs)
 
     block = (ref->value->type == YVT_MODULE) ? ref->value->moduleVal->block : ref->value->blockVal;
 
-    printf("Function Call: %s(", ref->name);
+    // accomodate the function's arglist by padding/removing stack entries
+    if(argCount > block->argCount)
+    {
+        // Too many arguments passed to this function. Pop some!
+        int i;
+        for(i=0; i<(argCount - block->argCount); i++)
+            yapArrayPop(&vm->stack);
+    }
+    else if(block->argCount > argCount)
+    {
+        // Too few arguments -- pad with nulls
+        int i;
+        for(i=0; i<(block->argCount - argCount); i++)
+            yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
+    }
+
+    yapTrace(("Function Call: %s()\n", ref->name));
 
     frame = yapFrameCreate();
     frame->block = block;
     frame->ip = block->ops;
-    frame->bp = vm->stack.count - numArgs;
-
-    // TODO: deal with args here
-
+    frame->bp = vm->stack.count - argCount;
     yapArrayPush(&vm->frames, frame);
 
-    printf(")\n");
     return frame;
 }
 
@@ -167,7 +187,57 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
     yapArrayPush(&vm->stack, value);
 }
 
-#define YOP_UNIMPLEMENTED(OP) case OP: printf("NYI: " #OP "\n"); break
+yBool yapVMSetVar(yapVM *vm, yapValue *ref, yapValue *val)
+{
+    if(!val)
+    {
+        yapVMSetError(vm, "YOP_SETVAR: empty stack!");
+        return yFalse;
+    }
+    if(!ref)
+    {
+        yapVMSetError(vm, "YOP_SETVAR: empty stack!");
+        return yFalse;
+    }
+    if(ref->type != YVT_REF)
+    {
+        yapVMSetError(vm, "YOP_SETVAR: value on top of stack, ref underneath");
+        return yFalse;
+    }
+    ref->refVal->value = yapValueClone(vm, val);
+
+    if(val->type == YVT_STRING)
+        yapTrace(("-- set '%s' to '%s'\n", ref->refVal->name, val->stringVal));
+    else if(val->type == YVT_NULL)
+        yapTrace(("-- set '%s' to null\n", ref->refVal->name));
+    return yTrue;
+}
+
+// TODO: merge this function with PushFrame and _RET
+yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
+{
+    int retCount;
+    yapFrame *frame = yapFrameCreate();
+    frame->bp = vm->stack.count - argCount;
+    yapArrayPush(&vm->frames, frame);
+
+    retCount = func(vm, argCount);
+
+    yapArrayPop(&vm->frames); // Removes 'frame' from top of stack
+    yapFrameDestroy(frame);
+    frame = yapArrayTop(&vm->frames);
+    if(!frame)
+        return yFalse;
+
+    // Stash lastRet for any YOP_KEEPs in the pipeline
+    vm->lastRet = retCount;
+    return yTrue;
+}
+
+yapValue * yapVMPopValue(yapVM *vm)
+{
+    return yapArrayPop(&vm->stack);
+}
 
 void yapVMLoop(yapVM *vm)
 {
@@ -291,28 +361,15 @@ void yapVMLoop(yapVM *vm)
             {
                 yapValue *val = yapArrayPop(&vm->stack);
                 yapValue *ref = yapArrayPop(&vm->stack);
-                if(!val)
-                {
-                    yapVMSetError(vm, "YOP_SETVAR: empty stack!");
-                    continueLooping = yFalse;
-                    break;
-                }
-                if(!ref)
-                {
-                    yapVMSetError(vm, "YOP_SETVAR: empty stack!");
-                    continueLooping = yFalse;
-                    break;
-                }
-                if(ref->type != YVT_REF)
-                {
-                    yapVMSetError(vm, "YOP_SETVAR: value on stop of stack, ref underneath");
-                    continueLooping = yFalse;
-                    break;
-                }
-                ref->refVal->value = yapValueClone(vm, val);
+                continueLooping = yapVMSetVar(vm, ref, val);
+            }
+            break;
 
-                if(val->type == YVT_STRING)
-                    printf("  -- set '%s' to '%s'\n", ref->refVal->name, val->stringVal);
+        case YOP_SETARG:
+            {
+                yapValue *ref = yapArrayPop(&vm->stack);
+                yapValue *val = yapArrayPop(&vm->stack);
+                continueLooping = yapVMSetVar(vm, ref, val);
             }
             break;
 
@@ -345,11 +402,18 @@ void yapVMLoop(yapVM *vm)
                     continueLooping = yFalse;
                     break;
                 }
-                frame = yapVMPushFrame(vm, callable->refVal, operand);
-                if(frame)
-                    calledFunc = yTrue;
+                if(callable->refVal->value->type == YVT_CFUNCTION)
+                {
+                    continueLooping = yapVMCallCFunction(vm, *callable->refVal->value->cFuncVal, operand);
+                }
                 else
-                    continueLooping = yFalse;
+                {
+                    frame = yapVMPushFrame(vm, callable->refVal, operand);
+                    if(frame)
+                        calledFunc = yTrue;
+                    else
+                        continueLooping = yFalse;
+                }
             }
             break;
 
@@ -381,7 +445,7 @@ void yapVMLoop(yapVM *vm)
                     int i;
                     for(i=0; i<(offerCount - keepCount); i++)
                     {
-                        printf("-- cleaning stack entry --\n");
+                        yapTrace(("-- cleaning stack entry --\n"));
                         yapArrayPop(&vm->stack);
                     }
                 }
@@ -390,7 +454,7 @@ void yapVMLoop(yapVM *vm)
                     int i;
                     for(i=0; i<(keepCount - offerCount ); i++)
                     {
-                        printf("-- padding stack with null --\n");
+                        yapTrace(("-- padding stack with null --\n"));
                         yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
                     }
                 }

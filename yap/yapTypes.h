@@ -67,5 +67,11 @@ typedef void (*yapDestroyCB)(void *p);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);
 
 // ---------------------------------------------------------------------------
+// Debug Functions
+
+//#define yapTrace(ARGS)
+#define yapTrace(ARGS) printf ARGS
+
+// ---------------------------------------------------------------------------
 
 #endif

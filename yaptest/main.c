@@ -1,14 +1,30 @@
-#include "yapContext.h"
-#include "yapVM.h"
-
 #include "yapCompiler.h"
+#include "yapContext.h"
+#include "yapModule.h"
+#include "yapVM.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
+yU32 print(struct yapVM *vm, yU32 argCount)
+{
+    if(argCount)
+    {
+        yapValue *v = yapVMPopValue(vm);
+        printf("PRINT: '%s'\n", v->stringVal);
+    }
+    else
+    {
+        printf("(printing nothing)\n");
+    }
+    return 0;
+}
+
 void vmTest(const char *code)
 {
     yapContext *context = yapContextCreate();
+
+    yapVMRegisterIntrinsic(context->vm, "print", print);
     yapVMLoadModule(context->vm, "main", code);
     if(yapContextGetError(context))
     {

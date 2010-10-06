@@ -25,13 +25,7 @@
 
 %left UNKNOWN.
 %left COMMENT.
-%left IDENTIFIER.
 %left SPACE.
-%left NEWLINE.
-%left LITERALSTRING.
-%left LEFTPAREN.
-%left RIGHTPAREN.
-%left WHILE.
 %left EOF.
 
 %syntax_error {
@@ -42,7 +36,7 @@
         if(len > 31) len = 31;
         memcpy(temp, TOKEN.text, len);
         temp[len] = 0;
-        printf( "syntax error near '%s'\n", temp );
+        yapTrace(( "syntax error near '%s'\n", temp ));
     }
     compiler->error = yTrue;
 }
@@ -53,7 +47,7 @@ module ::= statement_list(L).
     {
         yOperand index;
         yapCodeAppendRet(L, 0);
-        index = yapBlockConvertCode(L, compiler->module);
+        index = yapBlockConvertCode(L, compiler->module, 0);
         compiler->module->block = compiler->module->blocks.data[index];
     }
 
@@ -94,32 +88,55 @@ statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
         yapCodeAppendVar(compiler, S, &I, yTrue);
     }
 
-statement(S) ::= RETURN expression(E) NEWLINE.
+statement(S) ::= RETURN expr_list(EL) NEWLINE.
     {
+        int i;
         S = yapCodeCreate();
-        yapCodeAppendExpression(compiler, S, E, 1);
+        for(i=0; i<EL->count; i++)
+        {
+            yapCodeAppendExpression(compiler, S, (yapExpression*)EL->data[i], 1);
+        }
         yapCodeGrow(S, 1);
-        yapCodeAppend(S, YOP_RET, 1);
+        yapCodeAppend(S, YOP_RET, EL->count);
     }
 
-statement(S) ::= expression(E) NEWLINE.
+statement(S) ::= expr_list(L) NEWLINE.
     {
+        int i;
         S = yapCodeCreate();
-        yapCodeAppendExpression(compiler, S, E, 0);
+        for(i=0; i<L->count; i++)
+        {
+            yapCodeAppendExpression(compiler, S, (yapExpression*)L->data[i], 0);
+        }
     }
 
-statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
+statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
     {
         yOperand index;
+
+        if(ARGS && ARGS->count)
+        {
+            int i;
+            yapCode *code = yapCodeCreate();
+            for(i=ARGS->count-1; i>=0; i--)
+            {
+                yapExpression *arg = (yapExpression*)ARGS->data[i];
+                yapCodeAppendNamedArg(compiler, code, arg);
+            }
+            yapCodeAppendCode(code, B);
+            yapCodeDestroy(B);
+            B = code;
+        }
+
         yapCodeAppendRet(B, 0);
-        index = yapBlockConvertCode(B, compiler->module);
+        index = yapBlockConvertCode(B, compiler->module, ARGS->count);
 
         S = yapCodeCreate();
         yapCodeAppendVar(compiler, S, &I, yFalse);
         yapCodeGrow(S, 1);
         yapCodeAppend(S, YOP_PUSHLBLOCK, index);
         yapCodeAppendSetVar(S);
-        printf("function created. block %d\n", index);
+        yapTrace(("function created. block %d\n", index));
     }
 
 statement(S) ::= NEWLINE.
@@ -127,11 +144,35 @@ statement(S) ::= NEWLINE.
         S = yapCodeCreate();
     }
 
+%type expr_list {yapArray*}
+
+expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
+    {
+        EL = OL;
+    }
+
+expr_list(EL) ::= expr_list(OL) COMMA expression(E).
+    {
+        EL = OL;
+        yapArrayPush(EL, E);
+    }
+
+expr_list(EL) ::= expression(E).
+    {
+        EL = (yapArray*)yapAlloc(sizeof(yapArray));
+        yapArrayPush(EL, E);
+    }
+
+expr_list(EL) ::= .
+    {
+        EL = (yapArray*)yapAlloc(sizeof(yapArray));
+    }
+
 %type expression {yapExpression*}
 
-expression(E) ::= IDENTIFIER(F) LEFTPAREN RIGHTPAREN.
+expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     {
-        E = yapExpressionCreateCall(&F);
+        E = yapExpressionCreateCall(&F, ARGS);
     }
 
 expression(E) ::= LITERALSTRING(L).
@@ -147,5 +188,24 @@ expression(E) ::= IDENTIFIER(I).
 expression(E) ::= NULL.
     {
         E = yapExpressionCreateNull();
+    }
+
+%type ident_list {yapArray*}
+
+ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
+    {
+        IL = OL;
+        yapArrayPush(IL, yapExpressionCreateIdentifier(&I));
+    }
+
+ident_list(IL) ::= IDENTIFIER(I).
+    {
+        IL = (yapArray*)yapAlloc(sizeof(yapArray));
+        yapArrayPush(IL, yapExpressionCreateIdentifier(&I));
+    }
+
+ident_list(IL) ::= .
+    {
+        IL = (yapArray*)yapAlloc(sizeof(yapArray));
     }
 

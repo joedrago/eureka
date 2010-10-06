@@ -28,13 +28,14 @@ typedef struct yapExpression
 {
     yapToken token;
     yU32 type;
+    yapArray *args;                    // for YEP_CALL
 } yapExpression;
 
 #define yapExpressionCreate() ((yapExpression*)yapAlloc(sizeof(yapExpression)))
 yapExpression * yapExpressionCreateLiteralString(struct yapToken *token);
 yapExpression * yapExpressionCreateIdentifier(struct yapToken *token);
 yapExpression * yapExpressionCreateNull();
-yapExpression * yapExpressionCreateCall(struct yapToken *token);
+yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args);
 
 // ---------------------------------------------------------------------------
 
@@ -51,6 +52,7 @@ void yapCodeGrow(yapCode *code, int count);
 void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand);
 
 void yapCodeAppendExpression(struct yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount);
+void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapExpression *name);
 void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yBool popRef);
 void yapCodeAppendVarRef(struct yapCompiler *compiler, yapCode *code, struct yapToken *token);
 void yapCodeAppendSetVar(yapCode *code);

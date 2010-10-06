@@ -2,6 +2,7 @@
 #define YAPVM_H
 
 #include "yapTypes.h"
+#include "yapValue.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -32,6 +33,7 @@ typedef struct yapVM
 yapVM * yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
+void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction *func);
 struct yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text);
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
@@ -40,6 +42,7 @@ void yapVMClearError(yapVM *vm);
 void yapVMGC(struct yapVM *vm);
 struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapVariable *ref, int numArgs);
 void yapVMLoop(yapVM *vm);
+yapValue * yapVMPopValue(yapVM *vm);
 
 // ---------------------------------------------------------------------------
 

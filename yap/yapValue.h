@@ -16,6 +16,7 @@ typedef enum yapValueType
 
     YVT_MODULE,
     YVT_FUNCTION,
+    YVT_CFUNCTION,
 
     YVT_INT,
     YVT_STRING,
@@ -26,6 +27,9 @@ typedef enum yapValueType
 } yapValueType;
 
 // ---------------------------------------------------------------------------
+
+// Should return how many values it is returning on the stack
+typedef yU32 (yapCFunction)(struct yapVM *vm, yU32 argCount);
 
 typedef struct yapValue
 {
@@ -40,6 +44,7 @@ typedef struct yapValue
         struct yapBlock *blockVal;     // Hurr, Shield Slam
         char *stringVal;
         struct yapVariable *refVal;
+        yapCFunction *cFuncVal;
     };
 } yapValue;
 
@@ -52,6 +57,7 @@ void yapValueSetInt(yapValue *p, int v);
 void yapValueSetKString(yapValue *p, char *s);
 void yapValueSetString(yapValue *p, char *s);
 void yapValueSetFunction(yapValue *p, struct yapBlock *block);
+void yapValueSetCFunction(yapValue *p, yapCFunction *func);
 
 void yapValueClear(yapValue *p);
 
@@ -61,7 +67,10 @@ void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call
 yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
 yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
 
-#define yapValueIsCallable(VAL) ((VAL->type == YVT_MODULE) || (VAL->type == YVT_FUNCTION))
+#define yapValueIsCallable(VAL)     \
+    ((VAL->type == YVT_MODULE)      \
+    || (VAL->type == YVT_FUNCTION)  \
+    || (VAL->type == YVT_CFUNCTION))
 
 // ---------------------------------------------------------------------------
 // Globals

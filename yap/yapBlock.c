@@ -9,12 +9,14 @@ void yapBlockDestroy(yapBlock *block)
     yapFree(block);
 }
 
-yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner)
+yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner, int argCount)
 {
     yOperand ret;
     yapBlock *block = yapBlockCreate();
     block->ops = code->ops;
-    block->opcount = code->count;
+    block->opCount = code->count;
+    block->argCount = argCount;
+
     ret = yapModuleAddBlock(owner, block);
 
     code->ops = NULL;

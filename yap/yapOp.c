@@ -19,7 +19,7 @@ void yapOpsDump(yapOp *ops, int count)
 
         switch(op->opcode)
         {
-#define HURR(OP) case OP: printf("%20s", #OP); break;
+#define HURR(OP) case OP: yapTrace(("%20s", #OP)); break;
             HURR(YOP_NOOP)
 
             HURR(YOP_PUSHNULL)
@@ -41,11 +41,12 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_VARREF_KS)
             HURR(YOP_REFVAL)
             HURR(YOP_SETVAR)
+            HURR(YOP_SETARG)
 #undef HURR
 
-            default: printf("%10s", "??");
+            default: yapTrace(("%10s", "??"));
         }
-        printf("%6d\n", op->operand);
+        yapTrace(("%6d\n", op->operand));
     }
 }
 

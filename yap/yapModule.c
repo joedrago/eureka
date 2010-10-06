@@ -28,30 +28,30 @@ void yapModuleDump(yapModule *module)
 {
     int i;
 
-    printf("* Dumping kStrings:\n");
+    yapTrace(("* Dumping kStrings:\n"));
     for(i=0; i<module->kStrings.count; i++)
     {
-        printf("%6d \"%s\"\n", i, (char*)module->kStrings.data[i]);
+        yapTrace(("%6d \"%s\"\n", i, (char*)module->kStrings.data[i]));
     }
 
-    printf("* Dumping kInts:\n");
+    yapTrace(("* Dumping kInts:\n"));
     for(i=0; i<module->kInts.count; i++)
     {
-        printf("%6d \"%d\"\n", i, module->kInts.data[i]);
+        yapTrace(("%6d \"%d\"\n", i, module->kInts.data[i]));
     }
 
-    printf("* Dumping blocks:\n");
+    yapTrace(("* Dumping blocks:\n"));
     for(i=0; i<module->blocks.count; i++)
     {
         yapBlock *block = module->blocks.data[i];
         if(block != module->block)
         {
-            printf("  * Block %d:\n", i);
-            yapOpsDump(block->ops, block->opcount);
+            yapTrace(("  * Block %d:\n", i));
+            yapOpsDump(block->ops, block->opCount);
         }
     }
 
-    printf("  * Main Block\n");
-    yapOpsDump(module->block->ops, module->block->opcount);
+    yapTrace(("  * Main Block\n"));
+    yapOpsDump(module->block->ops, module->block->opCount);
 }
 
