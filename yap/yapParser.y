@@ -81,6 +81,18 @@ statement(S) ::= RETURN expr_list(L) NEWLINE.
 statement(S) ::= expr_list(L) NEWLINE.
     { S = yapCompileStatementExpressionList(compiler, L); }
 
+statement(S) ::= IF expr_list(COND) NEWLINE INDENT statement_list(IFBODY) DEDENT ELSE NEWLINE INDENT statement_list(ELSEBODY) DEDENT.
+    { S = yapCompileStatementIfElse(compiler, COND, IFBODY, ELSEBODY); }
+
+statement(S) ::= IF expr_list(COND) NEWLINE INDENT statement_list(IFBODY) DEDENT.
+    { S = yapCompileStatementIfElse(compiler, COND, IFBODY, NULL); }
+
+statement(S) ::= WHILE expr_list(COND) NEWLINE INDENT statement_list(BODY) DEDENT.
+    { S = yapCompileStatementLoop(compiler, NULL, COND, NULL, BODY); }
+
+statement(S) ::= FOR LEFTPAREN expr_list(INIT) SEMI expr_list(COND) SEMI expr_list(INCR) RIGHTPAREN NEWLINE INDENT statement_list(BODY) DEDENT.
+    { S = yapCompileStatementLoop(compiler, INIT, COND, INCR, BODY); }
+
 statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(BODY) DEDENT.
     { S = yapCompileStatementFunctionDecl(compiler, &I, ARGS, BODY); }
 
@@ -116,6 +128,9 @@ expr_list(EL) ::= .
 
 expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     { E = yapExpressionCreateCall(&F, ARGS); }
+
+expression(E) ::= INTEGER(I).
+    { E = yapExpressionCreateInteger(&I); }
 
 expression(E) ::= LITERALSTRING(L).
     { E = yapExpressionCreateLiteralString(&L); }

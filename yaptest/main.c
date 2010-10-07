@@ -11,7 +11,13 @@ yU32 print(struct yapVM *vm, yU32 argCount)
     if(argCount)
     {
         yapValue *v = yapVMPopValue(vm);
-        printf("PRINT: '%s'\n", v->stringVal);
+        switch(v->type)
+        {
+            case YVT_STRING: printf("PRINT: '%s'\n", v->stringVal); break;
+            case YVT_INT:    printf("PRINT: %d\n", v->intVal); break;
+            default: printf("PRINT: hurrrrr\n"); break;
+        };
+        
     }
     else
     {

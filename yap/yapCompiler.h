@@ -38,6 +38,8 @@ struct yapCode * yapCompileStatementVar(yapCompiler *compiler, struct yapToken *
 struct yapCode * yapCompileStatementVarInit(yapCompiler *compiler, struct yapToken *name, struct yapExpression *initialValue);
 struct yapCode * yapCompileStatementAssignment(yapCompiler *compiler, struct yapToken *name, struct yapExpression *value);
 struct yapCode * yapCompileStatementListAppend(yapCompiler *compiler, struct yapCode *list, struct yapCode *statement);
+struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapArray *cond, struct yapCode *ifBody, struct yapCode *elseBody);
+struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray *init, struct yapArray *cond, struct yapArray *incr, struct yapCode *body);
 void yapCompileModuleStatementList(yapCompiler *compiler, struct yapCode *list);
 
 #endif

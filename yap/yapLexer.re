@@ -25,15 +25,20 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 */
 
 /*!re2c
-    "#"            { goto comment; }
-    "="            { return YTT_EQUALS; }
-    ","            { return YTT_COMMA; }
+    "#"             { goto comment; }
+    "="             { return YTT_EQUALS; }
+    ","             { return YTT_COMMA; }
+    ";"             { return YTT_SEMI; }
+    "+"             { return YTT_PLUS; }
 
-    "while"         { return YTT_COMMENT; }
+    "while"         { return YTT_WHILE; }
+    "for"           { return YTT_FOR; }
     "var"           { return YTT_VAR; }
     "null"          { return YTT_NULL; }
     "func"          { return YTT_FUNCTION; }
     "return"        { return YTT_RETURN; }
+    "if"            { return YTT_IF; }
+    "else"          { return YTT_ELSE; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }
@@ -43,6 +48,9 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
     (['] (EscapeSequence|any\[\n\r\\']|UniversalChar)+ ['])
         { return YTT_LITERALSTRING; }
+
+    Integer
+        { return YTT_INTEGER; }
 
     (["] (EscapeSequence|any\[\n\r\\"]|UniversalChar)* ["])
         { return YTT_LITERALSTRING; }

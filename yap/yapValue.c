@@ -34,7 +34,7 @@ void yapValueSetString(yapValue *p, char *s)
 void yapValueSetFunction(yapValue *p, struct yapBlock *block)
 {
     yapValueClear(p);
-    p->type = YVT_FUNCTION;
+    p->type = YVT_BLOCK;
     p->blockVal = block;
 }
 
@@ -78,7 +78,7 @@ void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
     case YVT_MODULE:
         dst->moduleVal = src->moduleVal;
         break;
-    case YVT_FUNCTION:
+    case YVT_BLOCK:
         dst->blockVal = src->blockVal;
         break;
     case YVT_INT:
@@ -137,3 +137,19 @@ yBool yapValueConvertToInt(yapVM *vm, yapValue *p)
     p->type = YVT_INT;
     return yTrue;
 }
+
+yBool yapValueAsBool(yapValue *p)
+{
+    switch(p->type)
+    {
+        case YVT_NULL: 
+            return yFalse;
+        case YVT_STRING: 
+            return (p->stringVal[0] != 0) ? yTrue : yFalse;
+        case YVT_INT: 
+            return (p->intVal != 0) ? yTrue : yFalse;
+    };
+
+    return yTrue;
+}
+

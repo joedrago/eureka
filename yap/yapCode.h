@@ -19,6 +19,7 @@ enum
 
     YEP_IDENTIFIER,
     YEP_LITERALSTRING,
+    YEP_INTEGER,
     YEP_CALL,
 
     YEP_COUNT
@@ -33,6 +34,7 @@ typedef struct yapExpression
 
 #define yapExpressionCreate() ((yapExpression*)yapAlloc(sizeof(yapExpression)))
 yapExpression * yapExpressionCreateLiteralString(struct yapToken *token);
+yapExpression * yapExpressionCreateInteger(struct yapToken *token);
 yapExpression * yapExpressionCreateIdentifier(struct yapToken *token);
 yapExpression * yapExpressionCreateNull();
 yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args);
@@ -52,6 +54,7 @@ typedef struct yapCode
 void yapCodeDestroy(yapCode *code);
 void yapCodeGrow(yapCode *code, int count);
 void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand);
+yS32 yapCodeLastIndex(yapCode *code);
 
 void yapCodeAppendExpression(struct yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount);
 void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapExpression *name);

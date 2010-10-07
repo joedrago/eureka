@@ -195,3 +195,97 @@ void yapCompileModuleStatementList(yapCompiler *compiler, struct yapCode *list)
     compiler->module->block = compiler->module->blocks.data[index];
 }
 
+struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapArray *cond, struct yapCode *ifBody, struct yapCode *elseBody)
+{
+    int i;
+    int index;
+    yapCode *code = yapCodeCreate();
+
+    if(elseBody)
+    {
+        yapCodeGrow(elseBody, 1);
+        yapCodeAppend(elseBody, YOP_LEAVE, 0);
+        index = yapBlockConvertCode(elseBody, compiler->module, 0);
+        yapCodeGrow(code, 1);
+        yapCodeAppend(code, YOP_PUSHLBLOCK, index);
+    }
+
+    yapCodeGrow(ifBody, 1);
+    yapCodeAppend(ifBody, YOP_LEAVE, 0);
+    index = yapBlockConvertCode(ifBody, compiler->module, 0);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_PUSHLBLOCK, index);
+
+    // Only keeps the value of the first expression on the stack for bool testing
+    for(i=0; i<cond->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapExpression*)cond->data[i], (i) ? 0 : 1);
+    }
+
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_IF, (elseBody) ? 1 : 0);
+
+    yapArrayDestroy(cond, (yapDestroyCB)yapExpressionDestroy);
+    return code;
+}
+
+struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray *init, struct yapArray *cond, struct yapArray *incr, struct yapCode *body)
+{
+    int i;
+    int skipInstruction = -1;
+    yU32 index;
+    yapCode *loop = yapCodeCreate();
+    yapCode *code = yapCodeCreate();
+
+    if(init && init->count)
+    {
+        for(i=0; i<init->count; i++)
+        {
+            yapCodeAppendExpression(compiler, loop, (yapExpression*)init->data[i], 0);
+        }
+    }
+
+    if(incr && incr->count)
+    {
+        yapCodeGrow(loop, 1);
+        yapCodeAppend(loop, YOP_SKIP, 0);
+        skipInstruction = yapCodeLastIndex(loop);
+    }
+
+    yapCodeGrow(loop, 1);
+    yapCodeAppend(loop, YOP_START, 0);
+
+    if(incr && incr->count)
+    {
+        for(i=0; i<incr->count; i++)
+        {
+            yapCodeAppendExpression(compiler, loop, (yapExpression*)incr->data[i], 0);
+        }
+        loop->ops[skipInstruction].operand = yapCodeLastIndex(loop) - skipInstruction;
+    }
+
+    if(cond->count)
+    {
+        // Only keeps the value of the first expression on the stack for bool testing
+        for(i=0; i<cond->count; i++)
+        {
+            yapCodeAppendExpression(compiler, loop, (yapExpression*)cond->data[i], (i) ? 0 : 1);
+        }
+        yapCodeGrow(loop, 1);
+        yapCodeAppend(loop, YOP_LEAVE, 1);
+    }
+    yapCodeAppendCode(loop, body);
+    yapCodeGrow(loop, 1);
+    yapCodeAppend(loop, YOP_BREAK, 1);
+    index = yapBlockConvertCode(loop, compiler->module, 0);
+
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_PUSHLBLOCK, index);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_ENTER, 0);
+
+    yapCodeDestroy(body);
+    yapArrayDestroy(cond, (yapDestroyCB)yapExpressionDestroy);
+    return code;
+}
+

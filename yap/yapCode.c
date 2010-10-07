@@ -19,6 +19,14 @@ yapExpression * yapExpressionCreateLiteralString(struct yapToken *token)
     return e;
 }
 
+yapExpression * yapExpressionCreateInteger(struct yapToken *token)
+{
+    yapExpression *e = yapExpressionCreate();
+    e->token = *token;
+    e->type = YEP_INTEGER;
+    return e;
+}
+
 yapExpression * yapExpressionCreateIdentifier(struct yapToken *token)
 {
     yapExpression *e = yapExpressionCreate();
@@ -82,6 +90,11 @@ void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
     code->count++;
 }
 
+yS32 yapCodeLastIndex(yapCode *code)
+{
+    return (code->count - 1);
+}
+
 void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount)
 {
     int offerCount = -1;
@@ -92,6 +105,14 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
         {
             yapCodeGrow(code, 1);
             yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
+            offerCount = 1;
+            break;
+        }
+        case YEP_INTEGER:
+        {
+            int intVal = yapTokenToInt(&expr->token);
+            yapCodeGrow(code, 1);
+            yapCodeAppend(code, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->module->kInts, intVal));
             offerCount = 1;
             break;
         }

@@ -117,3 +117,22 @@ char *yapTokenToString(yapToken *t)
     return str;
 }
 
+int yapTokenToInt(yapToken *t)
+{
+    char temp[32];
+    int base = 10;
+
+    int len = t->len;
+    if(len > 31) len = 31;
+    strncpy(temp, t->text, len);
+    temp[len] = 0;
+
+    if(len && temp[0] == '0')
+        if((len > 1) && (temp[1] == 'x' || temp[1] == 'X'))
+            base = 16;
+        else
+            base = 8;
+
+    return strtol(temp, NULL, base);
+}
+

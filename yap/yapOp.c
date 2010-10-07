@@ -37,6 +37,14 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_RET)
             HURR(YOP_KEEP)
 
+            HURR(YOP_START)
+            HURR(YOP_SKIP)
+
+            HURR(YOP_IF)
+            HURR(YOP_ENTER)
+            HURR(YOP_LEAVE)
+            HURR(YOP_BREAK)
+
             HURR(YOP_VARREG_KS)
             HURR(YOP_VARREF_KS)
             HURR(YOP_REFVAL)

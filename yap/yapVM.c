@@ -46,7 +46,7 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
         yapArrayPush(&vm->modules, module);
 
         // Execute the module's block
-        yapVMPushFrame(vm, moduleRef, 0);
+        yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
         yapVMLoop(vm);
         yapVMGC(vm);
     }
@@ -118,14 +118,15 @@ static yapVariable * yapArrayFindVariableByName(yapArray *a, const char *name)
 
 static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
 {
-    int i, j;
+    int i;
     yapModule *module;
     yapFrame *frame;
     yapVariable *v;
 
-    frame = yapArrayTop(&vm->frames);
-    if(frame)
+    for(i=vm->frames.count-1; i>=0; i--)
     {
+        frame = (yapFrame*)vm->frames.data[i];
+
         // Check the local variables
         v = yapArrayFindVariableByName(&frame->variables, name);
         if(v) return v;
@@ -137,6 +138,9 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
             v = yapArrayFindVariableByName(&module->variables, name);
             if(v) return v;
         }
+
+        if(frame->type == YFT_FUNC)
+            break;
     }
 
     // Then check global vars as a last ditch effort
@@ -146,13 +150,10 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
     return NULL;
 }
 
-yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int argCount)
+yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameType)
 {
     yapFrame *frame;
-    yapBlock *block;
     int i;
-
-    block = (ref->value->type == YVT_MODULE) ? ref->value->moduleVal->block : ref->value->blockVal;
 
     // accomodate the function's arglist by padding/removing stack entries
     if(argCount > block->argCount)
@@ -170,12 +171,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapVariable *ref, int argCount)
             yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
     }
 
-    yapTrace(("Function Call: %s()\n", ref->name));
-
-    frame = yapFrameCreate();
-    frame->block = block;
-    frame->ip = block->ops;
-    frame->bp = vm->stack.count - argCount;
+    frame = yapFrameCreate(frameType, block, vm->stack.count - argCount);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
@@ -219,8 +215,7 @@ yBool yapVMSetVar(yapVM *vm, yapValue *ref, yapValue *val)
 yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate();
-    frame->bp = vm->stack.count - argCount;
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count - argCount);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);
@@ -241,11 +236,34 @@ yapValue * yapVMPopValue(yapVM *vm)
     return yapArrayPop(&vm->stack);
 }
 
+struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
+{
+    yapFrame *frame = yapArrayTop(&vm->frames);
+
+    if(frameTypeToFind != YFT_ANY)
+    {
+        while(frame && frame->type != frameTypeToFind)
+        {
+            yapFrameDestroy(frame);
+            frame = yapArrayPop(&vm->frames);
+        };
+    }
+
+    if(frame && !keepIt)
+    {
+        yapFrameDestroy(frame);
+        yapArrayPop(&vm->frames);
+        frame = yapArrayTop(&vm->frames);
+    }
+
+    return frame;
+}
+
 void yapVMLoop(yapVM *vm)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
     yBool continueLooping = yTrue;
-    yBool calledFunc;
+    yBool newFrame;
     yU16 opcode;
     yU16 operand;
 
@@ -258,7 +276,7 @@ void yapVMLoop(yapVM *vm)
     // Main VM loop!
     while(continueLooping && !vm->error)
     {
-        calledFunc = yFalse;
+        newFrame = yFalse;
 
         // These are put into temporary variables for future ntohs() cross-platform safety
         opcode  = frame->ip->opcode;
@@ -267,6 +285,17 @@ void yapVMLoop(yapVM *vm)
         switch(opcode)
         {
         case YOP_NOOP:
+            break;
+
+        case YOP_START:
+            break;
+
+        case YOP_SKIP:
+            {
+                int i;
+                for(i=0; i<operand; i++)
+                    frame->ip++;
+            }
             break;
 
         case YOP_PUSHNULL:
@@ -410,9 +439,13 @@ void yapVMLoop(yapVM *vm)
                 }
                 else
                 {
-                    frame = yapVMPushFrame(vm, callable->refVal, operand);
+                    yapBlock *block = (callable->refVal->value->type == YVT_MODULE)
+                                    ? callable->refVal->value->moduleVal->block 
+                                    : callable->refVal->value->blockVal;
+
+                    frame = yapVMPushFrame(vm, block, operand, YFT_FUNC);
                     if(frame)
-                        calledFunc = yTrue;
+                        newFrame = yTrue;
                     else
                         continueLooping = yFalse;
                 }
@@ -421,9 +454,7 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_RET:
             {
-                yapArrayPop(&vm->frames); // Removes 'frame' from top of stack
-                yapFrameDestroy(frame);
-                frame = yapArrayTop(&vm->frames);
+                frame = yapVMPopFrames(vm, YFT_FUNC, yFalse);
                 if(frame)
                 {
                     // Stash lastRet for any YOP_KEEPs in the pipeline
@@ -463,13 +494,104 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
+        case YOP_IF:
+            {
+                yapBlock *block = NULL;
+                yapValue *cond, *ifBody, *elseBody = NULL;
+                cond   = yapArrayPop(&vm->stack);
+                ifBody = yapArrayPop(&vm->stack);
+                if(operand)
+                    elseBody = yapArrayPop(&vm->stack);
+                // TODO: verify ifBody/elseBody are YVT_BLOCK
+                if(yapValueAsBool(cond))
+                {
+                    block = ifBody->blockVal;
+                }
+                else if(elseBody)
+                {
+                    block = elseBody->blockVal;
+                }
+
+                if(block)
+                {
+                    frame = yapVMPushFrame(vm, block, 0, YFT_COND);
+                    if(frame)
+                        newFrame = yTrue;
+                    else
+                        continueLooping = yFalse;
+                }
+            }
+            break;
+
+        case YOP_ENTER:
+            {
+                yapValue *blockRef = yapArrayPop(&vm->stack);
+
+                if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
+                {
+                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, YFT_LOOP);
+                    if(frame)
+                        newFrame = yTrue;
+                    else
+                        continueLooping = yFalse;
+                }
+                else
+                {
+                    yapVMSetError(vm, "hurr");
+                    continueLooping = yFalse;
+                }
+            }
+            break;
+
+        case YOP_LEAVE:
+            {
+                yBool performLeave = yTrue;
+                if(operand)
+                {
+                    yapValue *cond = yapArrayPop(&vm->stack);
+                    performLeave   = !yapValueAsBool(cond); // don't leave if expr is true!
+                }
+
+                if(performLeave)
+                {
+                    frame = yapVMPopFrames(vm, YFT_ANY, yFalse);
+                    continueLooping = (frame) ? yTrue : yFalse;
+                }
+            }
+            break;
+
+        case YOP_BREAK:
+            {
+                if(operand)
+                {
+                    // a C-style continue. Find the innermost loop and reset it.
+                    frame = yapVMPopFrames(vm, YFT_LOOP, yTrue);
+                    if(frame)
+                    {
+                        yapFrameReset(frame, yTrue);
+                        newFrame = yTrue;
+                    }
+                    else
+                    {
+                        continueLooping = yFalse;
+                    }
+                }
+                else
+                {
+                    // a C-style break. Find the innermost loop and kill it.
+                    frame = yapVMPopFrames(vm, YFT_LOOP, yFalse);
+                    continueLooping = (frame) ? yTrue : yFalse;
+                }
+            }
+            break;
+
         default:
             yapVMSetError(vm, "Unknown VM Opcode: %d", opcode);
             continueLooping = yFalse;
             break;
         }
 
-        if(continueLooping && !calledFunc)
+        if(continueLooping && !newFrame)
             frame->ip++;
     }
 

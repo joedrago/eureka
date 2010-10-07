@@ -15,7 +15,7 @@ typedef enum yapValueType
     YVT_NULL,
 
     YVT_MODULE,
-    YVT_FUNCTION,
+    YVT_BLOCK,
     YVT_CFUNCTION,
 
     YVT_INT,
@@ -66,10 +66,11 @@ void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call
 
 yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
 yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
+yBool yapValueAsBool(yapValue *p);
 
 #define yapValueIsCallable(VAL)     \
-    ((VAL->type == YVT_MODULE)      \
-    || (VAL->type == YVT_FUNCTION)  \
+    (  (VAL->type == YVT_MODULE)    \
+    || (VAL->type == YVT_BLOCK)     \
     || (VAL->type == YVT_CFUNCTION))
 
 // ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ typedef struct yapToken
 } yapToken;
 
 char *yapTokenToString(yapToken *t); // yapAlloc's a string copy
+int yapTokenToInt(yapToken *t);
 
 typedef void (*tokenCB)(void *parser, int id, yapToken token, struct yapCompiler *compiler);
 yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *compiler);

@@ -25,6 +25,15 @@ enum
     YOP_RET,                           // leave current call, returning X items on the stack
     YOP_KEEP,                          // Pad/trim most recent RET to X args
 
+    YOP_START,                         // no-op, marks the beginning of a loop for yapFrameReset
+    YOP_SKIP,                          // skips over the next X ops; used in for loops
+
+    YOP_IF,                            // pop value, then X+1 LBLOCKs. run 0 if true, 1 if false and present
+    YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL)
+    YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
+    YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop.
+                                       // (BREAK 0 = break, BREAK 1 = continue)
+
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value
