@@ -1,219 +1,146 @@
 
-%token_prefix YTT_
-
-%token_type {yapToken}
-%default_type {yapToken}
-
 %name yapParse
 
-%include {
-#include "yapBlock.h"
-#include "yapCode.h"
-#include "yapCompiler.h"
-#include "yapLexer.h"
-#include "yapModule.h"
-#include "yapOp.h"
-#include "yapParser.h"
-#include <string.h>
-#include <stdlib.h>
+%token_prefix YTT_
 
-#define assert(ignoring_this_function)
-#define YYNOERRORRECOVERY 1
-} // end %include
+%token_type
+    { yapToken }
 
-%extra_argument {yapCompiler *compiler}
+%default_type
+    { yapToken }
+
+%extra_argument 
+    { yapCompiler *compiler }
+
+%include
+{
+    #include "yapBlock.h"
+    #include "yapCode.h"
+    #include "yapCompiler.h"
+    #include "yapLexer.h"
+    #include "yapModule.h"
+    #include "yapOp.h"
+    #include "yapParser.h"
+
+    #include <string.h>
+    #include <stdlib.h>
+
+    #define assert(ignoring_this_function)
+    #define YYNOERRORRECOVERY 1
+}
 
 %left UNKNOWN.
 %left COMMENT.
 %left SPACE.
 %left EOF.
 
-%syntax_error {
-    if(TOKEN.text)
-    {
-        char temp[32];
-        int len = strlen(TOKEN.text);
-        if(len > 31) len = 31;
-        memcpy(temp, TOKEN.text, len);
-        temp[len] = 0;
-        yapTrace(( "syntax error near '%s'\n", temp ));
-    }
-    compiler->error = yTrue;
-}
+%syntax_error { yapCompileSyntaxError(compiler, TOKEN.text); }
+
+// ---------------------------------------------------------------------------
+// Module
 
 module ::= statement_list(L).
-    {
-        yOperand index;
-        yapCodeAppendRet(L, 0);
-        index = yapBlockConvertCode(L, compiler->module, 0);
-        compiler->module->block = compiler->module->blocks.data[index];
-    }
+    { yapCompileModuleStatementList(compiler, L); }
 
-%type statement_list {yapCode*}
-%destructor statement_list { yapCodeDestroy($$); }
+// ---------------------------------------------------------------------------
+// Statement List
+
+%type statement_list
+    { yapCode* }
+
+%destructor statement_list
+    { yapCodeDestroy($$); }
 
 statement_list(L) ::= statement_list(OL) statement(S).
-    {
-        L = OL;
-        yapCodeAppendCode(L, S);
-        
-        yapCodeDestroy(S);
-    }
+    { L = yapCompileStatementListAppend(compiler, OL, S); }
 
 statement_list(L) ::= statement(S).
-    {
-        L = S;
-    }
+    { L = S; }
 
-%type statement {yapCode*}
+// ---------------------------------------------------------------------------
+// Statement
+
+%type statement
+    { yapCode* }
+
+%destructor statement
+    { yapCodeDestroy($$); }
 
 statement(S) ::= IDENTIFIER(I) EQUALS expression(E) NEWLINE.
-    {
-        S = yapCodeCreate();
-        yapCodeAppendVarRef(compiler, S, &I);
-        yapCodeAppendExpression(compiler, S, E, 1);
-        yapCodeAppendSetVar(S);
-        
-        yapExpressionDestroy(E);
-    }
+    { S = yapCompileStatementAssignment(compiler, &I, E); }
 
 statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
-    {
-        S = yapCodeCreate();
-        yapCodeAppendVar(compiler, S, &I, yFalse);
-        yapCodeAppendExpression(compiler, S, E, 1);
-        yapCodeAppendSetVar(S);
-        
-        yapExpressionDestroy(E);
-    }
+    { S = yapCompileStatementVarInit(compiler, &I, E); }
 
 statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
-    {
-        S = yapCodeCreate();
-        yapCodeAppendVar(compiler, S, &I, yTrue);
-    }
+    { S = yapCompileStatementVar(compiler, &I); }
 
-statement(S) ::= RETURN expr_list(EL) NEWLINE.
-    {
-        int i;
-        S = yapCodeCreate();
-        for(i=0; i<EL->count; i++)
-        {
-            yapCodeAppendExpression(compiler, S, (yapExpression*)EL->data[i], 1);
-        }
-        yapCodeGrow(S, 1);
-        yapCodeAppend(S, YOP_RET, EL->count);
-
-        yapArrayDestroy(EL, (yapDestroyCB)yapExpressionDestroy);
-    }
+statement(S) ::= RETURN expr_list(L) NEWLINE.
+    { S = yapCompileStatementReturn(compiler, L); }
 
 statement(S) ::= expr_list(L) NEWLINE.
-    {
-        int i;
-        S = yapCodeCreate();
-        for(i=0; i<L->count; i++)
-        {
-            yapCodeAppendExpression(compiler, S, (yapExpression*)L->data[i], 0);
-        }
+    { S = yapCompileStatementExpressionList(compiler, L); }
 
-        yapArrayDestroy(L, (yapDestroyCB)yapExpressionDestroy);
-    }
+statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(BODY) DEDENT.
+    { S = yapCompileStatementFunctionDecl(compiler, &I, ARGS, BODY); }
 
-statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(B) DEDENT.
-    {
-        yOperand index;
+// ---------------------------------------------------------------------------
+// Expression List
 
-        if(ARGS->count)
-        {
-            int i;
-            yapCode *code = yapCodeCreate();
-            for(i=ARGS->count-1; i>=0; i--)
-            {
-                yapExpression *arg = (yapExpression*)ARGS->data[i];
-                yapCodeAppendNamedArg(compiler, code, arg);
-            }
-            yapCodeAppendCode(code, B);
-            yapCodeDestroy(B);
-            B = code;
-        }
+%type expr_list
+    { yapArray* }
 
-        yapCodeAppendRet(B, 0);
-        index = yapBlockConvertCode(B, compiler->module, ARGS->count);
-        
-        yapArrayDestroy(ARGS, (yapDestroyCB)yapExpressionDestroy);
-
-        S = yapCodeCreate();
-        yapCodeAppendVar(compiler, S, &I, yFalse);
-        yapCodeGrow(S, 1);
-        yapCodeAppend(S, YOP_PUSHLBLOCK, index);
-        yapCodeAppendSetVar(S);
-        yapTrace(("function created. block %d\n", index));
-    }
-
-%type expr_list {yapArray*}
-%destructor expr_list { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
+%destructor expr_list
+    { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
 
 expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
-    {
-        EL = OL;
-    }
+    { EL = OL; }
 
 expr_list(EL) ::= expr_list(OL) COMMA expression(E).
-    {
-        EL = OL;
-        yapArrayPush(EL, E);
-    }
+    { EL = yapCompileExpressionListAppend(compiler, OL, E); }
 
 expr_list(EL) ::= expression(E).
-    {
-        EL = (yapArray*)yapAlloc(sizeof(yapArray));
-        yapArrayPush(EL, E);
-    }
+    { EL = yapCompileExpressionListCreate(compiler, E); }
 
 expr_list(EL) ::= .
-    {
-        EL = (yapArray*)yapAlloc(sizeof(yapArray));
-    }
+    { EL = yapCompileExpressionListCreate(compiler, NULL); }
 
-%type expression {yapExpression*}
-%destructor expression { yapExpressionDestroy($$); }
+// ---------------------------------------------------------------------------
+// Expression
+
+%type expression
+    { yapExpression* }
+
+%destructor expression
+    { yapExpressionDestroy($$); }
 
 expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    {
-        E = yapExpressionCreateCall(&F, ARGS);
-    }
+    { E = yapExpressionCreateCall(&F, ARGS); }
 
 expression(E) ::= LITERALSTRING(L).
-    {
-        E = yapExpressionCreateLiteralString(&L);
-    }
+    { E = yapExpressionCreateLiteralString(&L); }
 
 expression(E) ::= IDENTIFIER(I).
-    {
-        E = yapExpressionCreateIdentifier(&I);
-    }
+    { E = yapExpressionCreateIdentifier(&I); }
 
 expression(E) ::= NULL.
-    {
-        E = yapExpressionCreateNull();
-    }
+    { E = yapExpressionCreateNull(); }
 
-%type ident_list {yapArray*}
-%destructor ident_list { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
+// ---------------------------------------------------------------------------
+// Identifier List
+
+%type ident_list
+    { yapArray* }
+
+%destructor ident_list 
+    { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
-    {
-        IL = OL;
-        yapArrayPush(IL, yapExpressionCreateIdentifier(&I));
-    }
+    { IL = yapCompileIdentifierListAppend(compiler, OL, &I); }
 
 ident_list(IL) ::= IDENTIFIER(I).
-    {
-        IL = (yapArray*)yapAlloc(sizeof(yapArray));
-        yapArrayPush(IL, yapExpressionCreateIdentifier(&I));
-    }
+    { IL = yapCompileIdentifierListCreate(compiler, &I); }
 
 ident_list(IL) ::= .
-    {
-        IL = (yapArray*)yapAlloc(sizeof(yapArray));
-    }
+    { IL = yapCompileIdentifierListCreate(compiler, NULL); }
+
