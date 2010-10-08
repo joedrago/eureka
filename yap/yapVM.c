@@ -177,6 +177,38 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTy
     return frame;
 }
 
+static yBool yapVMInModuleFunc(yapVM *vm)
+{
+    int i;
+    yapFrame *frame;
+
+    for(i=vm->frames.count-1; i>=0; i--)
+    {
+        frame = (yapFrame*)vm->frames.data[i];
+        if(frame->type == YFT_FUNC)
+            return (frame->block == frame->block->module->block);
+    }
+    return yFalse;
+}
+
+static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
+{
+    yapFrame *frame = yapArrayTop(&vm->frames);
+    if(!frame)
+        return;
+
+    if(yapVMInModuleFunc(vm))
+    {
+        // If we're in the module's "main" function, all variable
+        // registration goes in the module's "global table"
+        yapArrayPush(&frame->block->module->variables, variable);
+    }
+    else
+    {
+        yapArrayPush(&frame->variables, variable);
+    }
+}
+
 static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 {
     yapValue *value = yapValueCreate(vm);
@@ -349,7 +381,7 @@ void yapVMLoop(yapVM *vm)
         case YOP_VARREG_KS:
             {
                 yapVariable *variable = yapVariableCreate(vm, frame->block->module->kStrings.data[operand]);
-                yapArrayPush(&frame->variables, variable);
+                yapVMRegisterVariable(vm, variable);
                 yapVMPushRef(vm, variable);
             }
             break;
