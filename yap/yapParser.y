@@ -100,10 +100,10 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
 // Expression List
 
 %type expr_list
-    { yapCode* }
+    { yapArray* }
 
 %destructor expr_list
-    { yapCodeDestroy($$); }
+    { yapArrayDestroy($$, (yapDestroyCB)yapCodeDestroy); }
 
 expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
     { EL = OL; }
@@ -127,19 +127,19 @@ expr_list(EL) ::= .
     { yapCodeDestroy($$); }
 
 expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    { E = yapCodeCreate(); yapCodeAppendCall(compiler, E, &F, ARGS); }
+    { E = yapCodeCreateCall(compiler, &F, ARGS); }
 
 expression(E) ::= INTEGER(I).
-    { E = yapCodeCreate(); yapCodeAppendInteger(compiler, E, &I); }
+    { E = yapCodeCreateInteger(compiler, &I); }
 
 expression(E) ::= LITERALSTRING(L).
-    { E = yapCodeCreate(); yapCodeAppendLiteralString(compiler, E, &L); }
+    { E = yapCodeCreateLiteralString(compiler, &L); }
 
 expression(E) ::= IDENTIFIER(I).
-    { E = yapCodeCreate(); yapCodeAppendIdentifier(compiler, E, &I); }
+    { E = yapCodeCreateIdentifier(compiler, &I); }
 
 expression(E) ::= NULL.
-    { E = yapCodeCreate(); yapCodeAppendNull(compiler, E); }
+    { E = yapCodeCreateNull(compiler); }
 
 // ---------------------------------------------------------------------------
 // Identifier List

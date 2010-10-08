@@ -57,37 +57,31 @@ yapArray * yapCompileIdentifierListCreate(yapCompiler *compiler, struct yapToken
 {
     yapArray *list = yapArrayCreate();
     if(firstIdentifier)
-    {
-        yapToken *token = (yapToken*)yapAlloc(sizeof(yapToken));
-        *token = *firstIdentifier;
-        yapArrayPush(list, token);
-    }
+        yapArrayPush(list, yapTokenClone(firstIdentifier));
     return list;
 }
 
 yapArray * yapCompileIdentifierListAppend(yapCompiler *compiler, yapArray *list, struct yapToken *identifier)
 {
-    yapToken *token = (yapToken*)yapAlloc(sizeof(yapToken));
-    *token = *identifier;
-    yapArrayPush(list, token);
+    yapArrayPush(list, yapTokenClone(identifier));
     return list;
 }
 
-struct yapCode * yapCompileExpressionListCreate(yapCompiler *compiler, struct yapCode *firstExpression)
+yapArray * yapCompileExpressionListCreate(yapCompiler *compiler, struct yapCode *firstExpression)
 {
-    yapCode *list = yapCodeCreate();
+    yapArray *list = yapArrayCreate();
     if(firstExpression)
-        yapCodeAppendCode(list, firstExpression);
+        yapArrayPush(list, firstExpression);
     return list;
 }
 
-struct yapCode * yapCompileExpressionListAppend(yapCompiler *compiler, struct yapCode *list, struct yapCode *expression)
+yapArray * yapCompileExpressionListAppend(yapCompiler *compiler, yapArray *list, struct yapCode *expression)
 {
-    yapCodeAppendCode(list, expression);
+    yapArrayPush(list, expression);
     return list;
 }
 
-struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct yapToken *name, struct yapArray *args, struct yapCode *body)
+struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct yapToken *name, yapArray *args, struct yapCode *body)
 {
     yapCode *regFunc; // code that will register the variable for this function
     yOperand index;
@@ -125,16 +119,35 @@ struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct y
     return regFunc;
 }
 
-struct yapCode * yapCompileStatementExpressionList(yapCompiler *compiler, yapCode *list)
+struct yapCode * yapCompileStatementExpressionList(yapCompiler *compiler, yapArray *list)
 {
-    yapCodeAppendKeep(compiler, list, 0);
-    return list;
+    int i;
+    yapCode *code = yapCodeCreate();
+
+    for(i=0; i<list->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapCode*)list->data[i], 0);
+    }
+
+    yapArrayDestroy(list, (yapDestroyCB)yapCodeDestroy);
+    return code;
 }
 
-struct yapCode * yapCompileStatementReturn(yapCompiler *compiler, yapCode *list)
+struct yapCode * yapCompileStatementReturn(yapCompiler *compiler, yapArray *list)
 {
-    yapCodeAppend(list, YOP_RET, list->offer);
-    return list;
+    int i;
+    yapCode *code = yapCodeCreate();
+
+    for(i=0; i<list->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapCode*)list->data[i], 1);
+    }
+
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_RET, list->count);
+
+    yapArrayDestroy(list, (yapDestroyCB)yapCodeDestroy);
+    return code;
 }
 
 struct yapCode * yapCompileStatementVar(yapCompiler *compiler, struct yapToken *name)
@@ -182,7 +195,7 @@ void yapCompileModuleStatementList(yapCompiler *compiler, struct yapCode *list)
     compiler->module->block = compiler->module->blocks.data[index];
 }
 
-struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapCode *cond, struct yapCode *ifBody, struct yapCode *elseBody)
+struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapArray *cond, struct yapCode *ifBody, struct yapCode *elseBody)
 {
     int i;
     int index;
@@ -203,17 +216,20 @@ struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapCode
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_PUSHLBLOCK, index);
 
-    yapCodeAppendKeep(compiler, cond, 1);
-    yapCodeAppendCode(code, cond);
+    // Only keeps the value of the first expression on the stack for bool testing
+    for(i=0; i<cond->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapCode*)cond->data[i], (i) ? 0 : 1);
+    }
 
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_IF, (elseBody) ? 1 : 0);
 
-    yapCodeDestroy(cond);
+    yapArrayDestroy(cond, (yapDestroyCB)yapCodeDestroy);
     return code;
 }
 
-struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapCode *init, struct yapCode *cond, struct yapCode *incr, struct yapCode *body)
+struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray *init, struct yapArray *cond, struct yapArray *incr, struct yapCode *body)
 {
     int i;
     int skipInstruction = -1;
@@ -221,13 +237,15 @@ struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapCode *
     yapCode *loop = yapCodeCreate();
     yapCode *code = yapCodeCreate();
 
-    if(init)
+    if(init && init->count)
     {
-        yapCodeAppendKeep(compiler, init, 0);
-        yapCodeAppendCode(init, code);
+        for(i=0; i<init->count; i++)
+        {
+            yapCodeAppendExpression(compiler, loop, (yapCode*)init->data[i], 0);
+        }
     }
 
-    if(incr)
+    if(incr && incr->count)
     {
         yapCodeGrow(loop, 1);
         yapCodeAppend(loop, YOP_SKIP, 0);
@@ -237,24 +255,25 @@ struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapCode *
     yapCodeGrow(loop, 1);
     yapCodeAppend(loop, YOP_START, 0);
 
-    if(incr)
+    if(incr && incr->count)
     {
         for(i=0; i<incr->count; i++)
         {
-            yapCodeAppendKeep(compiler, incr, 0);
-            yapCodeAppendCode(incr, code);
+            yapCodeAppendExpression(compiler, loop, (yapCode*)incr->data[i], 0);
         }
         loop->ops[skipInstruction].operand = yapCodeLastIndex(loop) - skipInstruction;
     }
 
-    if(cond)
+    if(cond->count)
     {
-        yapCodeAppendKeep(compiler, cond, 0);
-        yapCodeAppendCode(cond, code);
+        // Only keeps the value of the first expression on the stack for bool testing
+        for(i=0; i<cond->count; i++)
+        {
+            yapCodeAppendExpression(compiler, loop, (yapCode*)cond->data[i], (i) ? 0 : 1);
+        }
         yapCodeGrow(loop, 1);
         yapCodeAppend(loop, YOP_LEAVE, 1);
     }
-
     yapCodeAppendCode(loop, body);
     yapCodeGrow(loop, 1);
     yapCodeAppend(loop, YOP_BREAK, 1);
@@ -265,12 +284,8 @@ struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapCode *
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_ENTER, 0);
 
-    if(init)
-        yapCodeDestroy(init);
-    if(incr)
-        yapCodeDestroy(incr);
     yapCodeDestroy(body);
-    yapCodeDestroy(cond);
+    yapArrayDestroy(cond, (yapDestroyCB)yapCodeDestroy);
     return code;
 }
 

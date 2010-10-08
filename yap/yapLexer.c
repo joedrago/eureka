@@ -109,6 +109,13 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     return yTrue;
 }
 
+yapToken * yapTokenClone(yapToken *token)
+{
+    yapToken *ret = yapTokenCreate();
+    *ret = *token;
+    return ret;
+}
+
 char *yapTokenToString(yapToken *t)
 {
     char *str = yapAlloc(t->len+1);

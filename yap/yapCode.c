@@ -9,50 +9,56 @@
 #include <stdio.h>
 
 // ---------------------------------------------------------------------------
-// Expression
+// Code
 
-void yapCodeAppendLiteralString(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
+yapCode * yapCodeCreateLiteralString(struct yapCompiler *compiler, struct yapToken *token)
 {
+    yapCode *code = yapCodeCreate();
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
-    code->offer++;
+    return code;
 }
 
-void yapCodeAppendInteger(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
+yapCode * yapCodeCreateInteger(struct yapCompiler *compiler, struct yapToken *token)
 {
+    yapCode *code = yapCodeCreate();
     int intVal = yapTokenToInt(token);
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->module->kInts, intVal));
-    code->offer++;
+    return code;
 }
 
-void yapCodeAppendIdentifier(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
+yapCode * yapCodeCreateIdentifier(struct yapCompiler *compiler, struct yapToken *token)
 {
+    yapCode *code = yapCodeCreate();
     yapCodeGrow(code, 2);
     yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
     yapCodeAppend(code, YOP_REFVAL, 0);
-    code->offer++;
+    return code;
 }
 
-void yapCodeAppendNull(struct yapCompiler *compiler, yapCode *code)
+yapCode * yapCodeCreateNull(struct yapCompiler *compiler)
 {
+    yapCode *code = yapCodeCreate();
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_PUSHNULL, 0);
-    code->offer++;
+    return code;
 }
 
-void yapCodeAppendCall(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yapCode *args)
+yapCode * yapCodeCreateCall(struct yapCompiler *compiler, struct yapToken *token, yapArray *args)
 {
-    yapCodeAppendCode(code, args);
-    yapCodeGrow(code, 2);
+    yapCode *code = yapCodeCreate();
+    int i;
+    for(i=0; i<args->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapCode*)args->data[i], 1);
+    }
+    yapCodeGrow(code, 3);
     yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
-    yapCodeAppend(code, YOP_CALL, args->offer);
-    code->call = yTrue;
-    code->offer = 0;
+    yapCodeAppend(code, YOP_CALL, args->count);
+    code->keepIndex = yapCodeAppend(code, YOP_KEEP, 0);
+    return code;
 }
-
-// ---------------------------------------------------------------------------
-// Code
 
 void yapCodeDestroy(yapCode *code)
 {
@@ -73,12 +79,13 @@ void yapCodeGrow(yapCode *code, int count)
     code->size += count;
 }
 
-void yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
+int yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
 {
     yapOp *op = &code->ops[code->count];
     op->opcode  = opcode;
     op->operand = operand;
     code->count++;
+    return code->count - 1;
 }
 
 yS32 yapCodeLastIndex(yapCode *code)
@@ -86,16 +93,16 @@ yS32 yapCodeLastIndex(yapCode *code)
     return (code->count - 1);
 }
 
-void yapCodeAppendKeep(struct yapCompiler *compiler, yapCode *code, int keepCount)
+void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapCode *expr, int keepCount)
 {
-    int offerCount = code->offer;
+    int offerCount = -1;
 
-    if(code->call)
-    {
-        yapCodeGrow(code, 1);
-        yapCodeAppend(code, YOP_KEEP, keepCount);
-    }
-    else
+    if(expr->keepIndex)
+        expr->ops[expr->keepIndex].operand = keepCount;
+
+    yapCodeAppendCode(code, expr);
+
+    if(offerCount != -1)
     {
         if(offerCount > keepCount)
         {
@@ -111,25 +118,12 @@ void yapCodeAppendKeep(struct yapCompiler *compiler, yapCode *code, int keepCoun
                 yapCodeAppend(code, YOP_PUSHNULL, 0);
         }
     }
-
-    code->offer = keepCount;
-    code->call  = yFalse;
 }
 
-void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapCode *expr, int keepCount)
+void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapToken *name)
 {
-    int offerCount = expr->offer;
-
-    yapCodeAppendKeep(compiler, expr, keepCount);
-    yapCodeAppendCode(code, expr);
-    code->offer = keepCount;
-    code->call = yFalse;
-}
-
-void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, struct yapToken *name)
-{
-    yapCodeAppendVar(compiler, code, name, yFalse);
-    yapCodeGrow(code, 1);
+    yapCodeGrow(code, 2);
+    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, name->text, name->len));
     yapCodeAppend(code, YOP_SETARG, 0);
 }
 
@@ -162,8 +156,6 @@ void yapCodeAppendCode(yapCode *dst, yapCode *src)
     yapCodeGrow(dst, src->count);
     memcpy(&dst->ops[dst->count], src->ops, src->count*sizeof(yapOp));
     dst->count += src->count;
-    dst->offer += src->offer;
-    dst->call   = src->call;
 }
 
 void yapCodeAppendRet(yapCode *code, int argcount)
@@ -171,8 +163,3 @@ void yapCodeAppendRet(yapCode *code, int argcount)
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_RET, argcount);
 }
-
-void yapCodeAppendAdd(struct yapCompiler *compiler, yapCode *code, yapCode *add)
-{
-}
-

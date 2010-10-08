@@ -22,6 +22,8 @@ typedef struct yapToken
 #define yapTokenCreate() ((yapToken*)yapAlloc(sizeof(yapToken)))
 #define yapTokenDestroy yapFree
 
+yapToken * yapTokenClone(yapToken *token);
+
 char *yapTokenToString(yapToken *t); // yapAlloc's a string copy
 int yapTokenToInt(yapToken *t);
 

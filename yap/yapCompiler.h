@@ -7,6 +7,7 @@
 // Forwards
 
 struct yapCode;
+struct yapCode;
 struct yapToken;
 
 // ---------------------------------------------------------------------------
@@ -27,18 +28,18 @@ void yapCompileSyntaxError(yapCompiler *compiler, const char *token);
 yapArray * yapCompileIdentifierListCreate(yapCompiler *compiler, struct yapToken *firstIdentifier);
 yapArray * yapCompileIdentifierListAppend(yapCompiler *compiler, yapArray *list, struct yapToken *identifier);
 
-struct yapCode * yapCompileExpressionListCreate(yapCompiler *compiler, struct yapCode *firstExpression);
-struct yapCode * yapCompileExpressionListAppend(yapCompiler *compiler, struct yapCode *list, struct yapCode *expression);
+yapArray * yapCompileExpressionListCreate(yapCompiler *compiler, struct yapCode *firstExpression);
+yapArray * yapCompileExpressionListAppend(yapCompiler *compiler, yapArray *list, struct yapCode *expression);
 
 struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct yapToken *name, yapArray *args, struct yapCode *body);
-struct yapCode * yapCompileStatementExpressionList(yapCompiler *compiler, struct yapCode *list);
-struct yapCode * yapCompileStatementReturn(yapCompiler *compiler, struct yapCode *list);
+struct yapCode * yapCompileStatementExpressionList(yapCompiler *compiler, yapArray *list);
+struct yapCode * yapCompileStatementReturn(yapCompiler *compiler, yapArray *list);
 struct yapCode * yapCompileStatementVar(yapCompiler *compiler, struct yapToken *name);
 struct yapCode * yapCompileStatementVarInit(yapCompiler *compiler, struct yapToken *name, struct yapCode *initialValue);
 struct yapCode * yapCompileStatementAssignment(yapCompiler *compiler, struct yapToken *name, struct yapCode *value);
 struct yapCode * yapCompileStatementListAppend(yapCompiler *compiler, struct yapCode *list, struct yapCode *statement);
-struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapCode *cond, struct yapCode *ifBody, struct yapCode *elseBody);
-struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapCode *init, struct yapCode *cond, struct yapCode *incr, struct yapCode *body);
+struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapArray *cond, struct yapCode *ifBody, struct yapCode *elseBody);
+struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray *init, struct yapArray *cond, struct yapArray *incr, struct yapCode *body);
 void yapCompileModuleStatementList(yapCompiler *compiler, struct yapCode *list);
 
 #endif
