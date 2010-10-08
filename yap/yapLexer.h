@@ -19,6 +19,9 @@ typedef struct yapToken
     int len;
 } yapToken;
 
+#define yapTokenCreate() ((yapToken*)yapAlloc(sizeof(yapToken)))
+#define yapTokenDestroy yapFree
+
 char *yapTokenToString(yapToken *t); // yapAlloc's a string copy
 int yapTokenToInt(yapToken *t);
 

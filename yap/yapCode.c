@@ -11,53 +11,44 @@
 // ---------------------------------------------------------------------------
 // Expression
 
-yapExpression * yapExpressionCreateLiteralString(struct yapToken *token)
+void yapCodeAppendLiteralString(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
 {
-    yapExpression *e = yapExpressionCreate();
-    e->token = *token;
-    e->type = YEP_LITERALSTRING;
-    return e;
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    code->offer++;
 }
 
-yapExpression * yapExpressionCreateInteger(struct yapToken *token)
+void yapCodeAppendInteger(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
 {
-    yapExpression *e = yapExpressionCreate();
-    e->token = *token;
-    e->type = YEP_INTEGER;
-    return e;
+    int intVal = yapTokenToInt(token);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->module->kInts, intVal));
+    code->offer++;
 }
 
-yapExpression * yapExpressionCreateIdentifier(struct yapToken *token)
+void yapCodeAppendIdentifier(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
 {
-    yapExpression *e = yapExpressionCreate();
-    e->token = *token;
-    e->type = YEP_IDENTIFIER;
-    return e;
+    yapCodeGrow(code, 2);
+    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_REFVAL, 0);
+    code->offer++;
 }
 
-yapExpression * yapExpressionCreateNull()
+void yapCodeAppendNull(struct yapCompiler *compiler, yapCode *code)
 {
-    yapExpression *e = yapExpressionCreate();
-    e->type = YEP_NULL;
-    return e;
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_PUSHNULL, 0);
+    code->offer++;
 }
 
-yapExpression * yapExpressionCreateCall(struct yapToken *token, yapArray *args)
+void yapCodeAppendCall(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yapCode *args)
 {
-    yapExpression *e = yapExpressionCreate();
-    e->token = *token;
-    e->type = YEP_CALL;
-    e->args = args;
-    return e;
-}
-
-void yapExpressionDestroy(yapExpression *expr)
-{
-    if(expr->args)
-    {
-        yapArrayDestroy(expr->args, (yapDestroyCB)yapExpressionDestroy);
-    }
-    yapFree(expr);
+    yapCodeAppendCode(code, args);
+    yapCodeGrow(code, 2);
+    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_CALL, args->offer);
+    code->call = yTrue;
+    code->offer = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -95,60 +86,16 @@ yS32 yapCodeLastIndex(yapCode *code)
     return (code->count - 1);
 }
 
-void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression *expr, int keepCount)
+void yapCodeAppendKeep(struct yapCompiler *compiler, yapCode *code, int keepCount)
 {
-    int offerCount = -1;
+    int offerCount = code->offer;
 
-    switch(expr->type)
+    if(code->call)
     {
-        case YEP_LITERALSTRING:
-        {
-            yapCodeGrow(code, 1);
-            yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
-            offerCount = 1;
-            break;
-        }
-        case YEP_INTEGER:
-        {
-            int intVal = yapTokenToInt(&expr->token);
-            yapCodeGrow(code, 1);
-            yapCodeAppend(code, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->module->kInts, intVal));
-            offerCount = 1;
-            break;
-        }
-        case YEP_IDENTIFIER:
-        {
-            yapCodeGrow(code, 2);
-            yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
-            yapCodeAppend(code, YOP_REFVAL, 0);
-            offerCount = 1;
-            break;
-        }
-        case YEP_NULL:
-        {
-            yapCodeGrow(code, 1);
-            yapCodeAppend(code, YOP_PUSHNULL, 0);
-            offerCount = 1;
-            break;
-        }
-        case YEP_CALL:
-        {
-            int i;
-            for(i=0; i<expr->args->count; i++)
-            {
-                yapCodeAppendExpression(compiler, code, (yapExpression*)expr->args->data[i], 1);
-            }
-            yapCodeGrow(code, 3);
-            yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, expr->token.text, expr->token.len));
-            yapCodeAppend(code, YOP_CALL, expr->args->count);
-            yapCodeAppend(code, YOP_KEEP, keepCount);
-            break;
-        }
-        default:
-            yapTrace(("Unknown expression\n"));
+        yapCodeGrow(code, 1);
+        yapCodeAppend(code, YOP_KEEP, keepCount);
     }
-
-    if(offerCount != -1)
+    else
     {
         if(offerCount > keepCount)
         {
@@ -164,12 +111,25 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapExpression
                 yapCodeAppend(code, YOP_PUSHNULL, 0);
         }
     }
+
+    code->offer = keepCount;
+    code->call  = yFalse;
 }
 
-void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapExpression *name)
+void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapCode *expr, int keepCount)
 {
-    yapCodeGrow(code, 2);
-    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, name->token.text, name->token.len));
+    int offerCount = expr->offer;
+
+    yapCodeAppendKeep(compiler, expr, keepCount);
+    yapCodeAppendCode(code, expr);
+    code->offer = keepCount;
+    code->call = yFalse;
+}
+
+void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, struct yapToken *name)
+{
+    yapCodeAppendVar(compiler, code, name, yFalse);
+    yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_SETARG, 0);
 }
 
@@ -202,6 +162,8 @@ void yapCodeAppendCode(yapCode *dst, yapCode *src)
     yapCodeGrow(dst, src->count);
     memcpy(&dst->ops[dst->count], src->ops, src->count*sizeof(yapOp));
     dst->count += src->count;
+    dst->offer += src->offer;
+    dst->call   = src->call;
 }
 
 void yapCodeAppendRet(yapCode *code, int argcount)
@@ -209,3 +171,8 @@ void yapCodeAppendRet(yapCode *code, int argcount)
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_RET, argcount);
 }
+
+void yapCodeAppendAdd(struct yapCompiler *compiler, yapCode *code, yapCode *add)
+{
+}
+

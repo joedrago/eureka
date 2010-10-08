@@ -29,7 +29,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "="             { return YTT_EQUALS; }
     ","             { return YTT_COMMA; }
     ";"             { return YTT_SEMI; }
-    "+"             { return YTT_PLUS; }
 
     "while"         { return YTT_WHILE; }
     "for"           { return YTT_FOR; }

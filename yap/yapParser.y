@@ -100,10 +100,10 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
 // Expression List
 
 %type expr_list
-    { yapArray* }
+    { yapCode* }
 
 %destructor expr_list
-    { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
+    { yapCodeDestroy($$); }
 
 expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
     { EL = OL; }
@@ -121,25 +121,25 @@ expr_list(EL) ::= .
 // Expression
 
 %type expression
-    { yapExpression* }
+    { yapCode* }
 
 %destructor expression
-    { yapExpressionDestroy($$); }
+    { yapCodeDestroy($$); }
 
 expression(E) ::= IDENTIFIER(F) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    { E = yapExpressionCreateCall(&F, ARGS); }
+    { E = yapCodeCreate(); yapCodeAppendCall(compiler, E, &F, ARGS); }
 
 expression(E) ::= INTEGER(I).
-    { E = yapExpressionCreateInteger(&I); }
+    { E = yapCodeCreate(); yapCodeAppendInteger(compiler, E, &I); }
 
 expression(E) ::= LITERALSTRING(L).
-    { E = yapExpressionCreateLiteralString(&L); }
+    { E = yapCodeCreate(); yapCodeAppendLiteralString(compiler, E, &L); }
 
 expression(E) ::= IDENTIFIER(I).
-    { E = yapExpressionCreateIdentifier(&I); }
+    { E = yapCodeCreate(); yapCodeAppendIdentifier(compiler, E, &I); }
 
 expression(E) ::= NULL.
-    { E = yapExpressionCreateNull(); }
+    { E = yapCodeCreate(); yapCodeAppendNull(compiler, E); }
 
 // ---------------------------------------------------------------------------
 // Identifier List
@@ -148,7 +148,7 @@ expression(E) ::= NULL.
     { yapArray* }
 
 %destructor ident_list 
-    { yapArrayDestroy($$, (yapDestroyCB)yapExpressionDestroy); }
+    { yapArrayDestroy($$, (yapDestroyCB)yapTokenDestroy); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
     { IL = yapCompileIdentifierListAppend(compiler, OL, &I); }
