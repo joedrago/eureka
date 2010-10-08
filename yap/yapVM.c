@@ -316,7 +316,7 @@ void yapVMLoop(yapVM *vm)
 
         switch(opcode)
         {
-        case YOP_NOOP:
+        case YOP_NOP:
             break;
 
         case YOP_START:
@@ -349,24 +349,6 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapValueCreate(vm);
                 yapValueSetInt(value, frame->block->module->kInts.data[operand]);
                 yapArrayPush(&vm->stack, value);
-            }
-            break;
-
-        case YOP_ADD_KI:
-            {
-                yapValue *value = yapArrayTop(&vm->stack);
-                if(!yapValueConvertToInt(vm, value))
-                    break;
-                yapValueSetInt(value, value->intVal + frame->block->module->kInts.data[operand]);
-            }
-            break;
-
-        case YOP_SUB_KI:
-            {
-                yapValue *value = yapArrayTop(&vm->stack);
-                if(!yapValueConvertToInt(vm, value))
-                    break;
-                yapValueSetInt(value, value->intVal - frame->block->module->kInts.data[operand]);
             }
             break;
 
@@ -425,6 +407,54 @@ void yapVMLoop(yapVM *vm)
                 yapValue *val = yapArrayPop(&vm->stack);
                 yapValue *ref = yapArrayPop(&vm->stack);
                 continueLooping = yapVMSetVar(vm, ref, val);
+            }
+            break;
+
+        case YOP_ADD:
+            {
+                yapValue *b = yapArrayPop(&vm->stack);
+                yapValue *a = yapArrayPop(&vm->stack);
+                a = yapValueAdd(vm, a, b);
+                if(a)
+                    yapArrayPush(&vm->stack, a);
+                else
+                    continueLooping = yFalse;
+            }
+            break;
+
+        case YOP_SUB:
+            {
+                yapValue *b = yapArrayPop(&vm->stack);
+                yapValue *a = yapArrayPop(&vm->stack);
+                a = yapValueSub(vm, a, b);
+                if(a)
+                    yapArrayPush(&vm->stack, a);
+                else
+                    continueLooping = yFalse;
+            }
+            break;
+
+        case YOP_MUL:
+            {
+                yapValue *b = yapArrayPop(&vm->stack);
+                yapValue *a = yapArrayPop(&vm->stack);
+                a = yapValueMul(vm, a, b);
+                if(a)
+                    yapArrayPush(&vm->stack, a);
+                else
+                    continueLooping = yFalse;
+            }
+            break;
+
+        case YOP_DIV:
+            {
+                yapValue *b = yapArrayPop(&vm->stack);
+                yapValue *a = yapArrayPop(&vm->stack);
+                a = yapValueDiv(vm, a, b);
+                if(a)
+                    yapArrayPush(&vm->stack, a);
+                else
+                    continueLooping = yFalse;
             }
             break;
 

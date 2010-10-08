@@ -31,6 +31,8 @@ yapArray * yapCompileIdentifierListAppend(yapCompiler *compiler, yapArray *list,
 yapArray * yapCompileExpressionListCreate(yapCompiler *compiler, struct yapCode *firstExpression);
 yapArray * yapCompileExpressionListAppend(yapCompiler *compiler, yapArray *list, struct yapCode *expression);
 
+struct yapCode * yapCompileCombine(yapCompiler *compiler, yOpcode op, struct yapCode *code, struct yapCode *expr);
+
 struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct yapToken *name, yapArray *args, struct yapCode *body);
 struct yapCode * yapCompileStatementExpressionList(yapCompiler *compiler, yapArray *list);
 struct yapCode * yapCompileStatementReturn(yapCompiler *compiler, yapArray *list);

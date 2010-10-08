@@ -153,3 +153,45 @@ yBool yapValueAsBool(yapValue *p)
     return yTrue;
 }
 
+yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    if(a->type == YVT_INT && b->type == YVT_INT)
+        a->intVal += b->intVal;
+    else
+        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+    return a;
+}
+
+yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    if(a->type == YVT_INT && b->type == YVT_INT)
+        a->intVal -= b->intVal;
+    else
+        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+    return a;
+}
+
+yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    if(a->type == YVT_INT && b->type == YVT_INT)
+        a->intVal *= b->intVal;
+    else
+        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+    return a;
+}
+
+yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    if(a->type == YVT_INT && b->type == YVT_INT)
+    {
+        if(!b->intVal)
+        {
+            yapVMSetError(vm, "divide by zero!");
+            return NULL;
+        }
+        a->intVal /= b->intVal;
+    }
+    else
+        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+    return a;
+}

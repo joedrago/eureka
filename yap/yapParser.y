@@ -33,6 +33,10 @@
 %left COMMENT.
 %left SPACE.
 %left EOF.
+%left PLUS.
+%left DASH.
+%left STAR.
+%left SLASH.
 
 %syntax_error { yapCompileSyntaxError(compiler, TOKEN.text); }
 
@@ -66,10 +70,10 @@ statement_list(L) ::= statement(S).
 %destructor statement
     { yapCodeDestroy($$); }
 
-statement(S) ::= IDENTIFIER(I) EQUALS expression(E) NEWLINE.
+statement(S) ::= IDENTIFIER(I) EQUALS complex_expression(E) NEWLINE.
     { S = yapCompileStatementAssignment(compiler, &I, E); }
 
-statement(S) ::= VAR IDENTIFIER(I) EQUALS expression(E) NEWLINE.
+statement(S) ::= VAR IDENTIFIER(I) EQUALS complex_expression(E) NEWLINE.
     { S = yapCompileStatementVarInit(compiler, &I, E); }
 
 statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
@@ -105,17 +109,41 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NE
 %destructor expr_list
     { yapArrayDestroy($$, (yapDestroyCB)yapCodeDestroy); }
 
-expr_list(EL) ::= LEFTPAREN expr_list(OL) RIGHTPAREN.
-    { EL = OL; }
-
-expr_list(EL) ::= expr_list(OL) COMMA expression(E).
+expr_list(EL) ::= expr_list(OL) COMMA complex_expression(E).
     { EL = yapCompileExpressionListAppend(compiler, OL, E); }
 
-expr_list(EL) ::= expression(E).
+expr_list(EL) ::= complex_expression(E).
     { EL = yapCompileExpressionListCreate(compiler, E); }
 
 expr_list(EL) ::= .
     { EL = yapCompileExpressionListCreate(compiler, NULL); }
+
+// ---------------------------------------------------------------------------
+// Complex Expressions
+
+%type complex_expression
+	{ yapCode* }
+
+%destructor expression
+    { yapCodeDestroy($$); }
+    
+complex_expression(C) ::= complex_expression(OC) PLUS complex_expression(E).
+	{ C = yapCompileCombine(compiler, YOP_ADD, OC, E); }
+
+complex_expression(C) ::= complex_expression(OC) DASH complex_expression(E).
+	{ C = yapCompileCombine(compiler, YOP_SUB, OC, E); }
+
+complex_expression(C) ::= complex_expression(OC) STAR complex_expression(E).
+	{ C = yapCompileCombine(compiler, YOP_MUL, OC, E); }
+
+complex_expression(C) ::= complex_expression(OC) SLASH complex_expression(E).
+	{ C = yapCompileCombine(compiler, YOP_DIV, OC, E); }
+
+complex_expression(C) ::= LEFTPAREN complex_expression(E) RIGHTPAREN.
+	{ C = E; }
+	
+complex_expression(C) ::= expression(E).
+	{ C = E; }
 
 // ---------------------------------------------------------------------------
 // Expression

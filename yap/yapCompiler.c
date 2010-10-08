@@ -81,6 +81,15 @@ yapArray * yapCompileExpressionListAppend(yapCompiler *compiler, yapArray *list,
     return list;
 }
 
+struct yapCode * yapCompileCombine(yapCompiler *compiler, yOpcode op, struct yapCode *code, struct yapCode *expr)
+{
+    yapCodeAppendExpression(compiler, code, expr, 1);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, op, 0);
+    yapCodeDestroy(expr);
+    return code;
+}
+
 struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct yapToken *name, yapArray *args, struct yapCode *body)
 {
     yapCode *regFunc; // code that will register the variable for this function
@@ -114,8 +123,6 @@ struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct y
     yapCodeGrow(regFunc, 1);
     yapCodeAppend(regFunc, YOP_PUSHLBLOCK, index);
     yapCodeAppendSetVar(regFunc);
-
-    yapTrace(("function created. block %d\n", index));
     return regFunc;
 }
 
@@ -285,6 +292,10 @@ struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray 
     yapCodeAppend(code, YOP_ENTER, 0);
 
     yapCodeDestroy(body);
+    if(init)
+        yapArrayDestroy(init, (yapDestroyCB)yapCodeDestroy);
+    if(incr)
+        yapArrayDestroy(incr, (yapDestroyCB)yapCodeDestroy);
     yapArrayDestroy(cond, (yapDestroyCB)yapCodeDestroy);
     return code;
 }

@@ -19,42 +19,44 @@ void yapOpsDump(yapOp *ops, int count)
 
         switch(op->opcode)
         {
-#define HURR(OP) case OP: yapTrace(("%20s", #OP)); break;
-            HURR(YOP_NOOP)
+#define HURR(OP, NAME) case OP: yapTrace(("%12s", NAME)); break;
+            HURR(YOP_NOP, "nop")
 
-            HURR(YOP_PUSHNULL)
-            HURR(YOP_PUSHLBLOCK)
+            HURR(YOP_PUSHNULL, "pushnull")
+            HURR(YOP_PUSHLBLOCK, "pushlblock")
 
-            HURR(YOP_PUSH_KI)
-            HURR(YOP_ADD_KI)
-            HURR(YOP_SUB_KI)
+            HURR(YOP_PUSH_KI, "push_ki")
+            HURR(YOP_PUSH_KS, "push_ks")
 
-            HURR(YOP_PUSH_KS)
+            HURR(YOP_POP, "pop")
 
-            HURR(YOP_POP)
+            HURR(YOP_CALL, "call")
+            HURR(YOP_RET, "ret")
+            HURR(YOP_KEEP, "keep")
 
-            HURR(YOP_CALL)
-            HURR(YOP_RET)
-            HURR(YOP_KEEP)
+            HURR(YOP_START, "start")
+            HURR(YOP_SKIP, "skip")
 
-            HURR(YOP_START)
-            HURR(YOP_SKIP)
+            HURR(YOP_IF, "if")
+            HURR(YOP_ENTER, "enter")
+            HURR(YOP_LEAVE, "leave")
+            HURR(YOP_BREAK, "break")
 
-            HURR(YOP_IF)
-            HURR(YOP_ENTER)
-            HURR(YOP_LEAVE)
-            HURR(YOP_BREAK)
+            HURR(YOP_ADD, "add")
+            HURR(YOP_SUB, "sub")
+            HURR(YOP_MUL, "mul")
+            HURR(YOP_DIV, "div")
 
-            HURR(YOP_VARREG_KS)
-            HURR(YOP_VARREF_KS)
-            HURR(YOP_REFVAL)
-            HURR(YOP_SETVAR)
-            HURR(YOP_SETARG)
+            HURR(YOP_VARREG_KS, "varreg_ks")
+            HURR(YOP_VARREF_KS, "varref_ks")
+            HURR(YOP_REFVAL, "refval")
+            HURR(YOP_SETVAR, "setvar")
+            HURR(YOP_SETARG, "setarg")
 #undef HURR
 
-            default: yapTrace(("%10s", "??"));
+            default: yapTrace(("%12s", "??"));
         }
-        yapTrace(("%6d\n", op->operand));
+        yapTrace(("%3d\n", op->operand));
     }
 }
 

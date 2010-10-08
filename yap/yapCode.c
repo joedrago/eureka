@@ -57,6 +57,7 @@ yapCode * yapCodeCreateCall(struct yapCompiler *compiler, struct yapToken *token
     yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
     yapCodeAppend(code, YOP_CALL, args->count);
     code->keepIndex = yapCodeAppend(code, YOP_KEEP, 0);
+    yapArrayDestroy(args, (yapDestroyCB)yapCodeDestroy);
     return code;
 }
 

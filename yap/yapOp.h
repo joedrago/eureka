@@ -8,15 +8,12 @@
 
 enum
 {
-    YOP_NOOP = 0,                      // does nothing
+    YOP_NOP = 0,                      // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
     YOP_PUSHLBLOCK,                    // push reference to local (to module) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
-    YOP_ADD_KI,                        // add constant int ki[X] to top of stack
-    YOP_SUB_KI,                        // subtract constant int ki[X] to top of stack
-
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
     YOP_POP,                           // pop value stack X times
@@ -33,6 +30,11 @@ enum
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
     YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop.
                                        // (BREAK 0 = break, BREAK 1 = continue)
+
+    YOP_ADD,                           // pops [a,b], pushes a+b
+    YOP_SUB,                           // pops [a,b], pushes a-b
+    YOP_MUL,                           // pops [a,b], pushes a*b
+    YOP_DIV,                           // pops [a,b], pushes a/b
 
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack

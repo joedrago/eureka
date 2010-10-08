@@ -64,6 +64,11 @@ void yapValueClear(yapValue *p);
 void yapValueMark(yapValue *value);    // used by yapVMGC()
 void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call this
 
+yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b);
+
 yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
 yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
 yBool yapValueAsBool(yapValue *p);

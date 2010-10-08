@@ -1,10 +1,16 @@
+var foo
 
+foo = (2+3)*4
+print(foo)
 
-func a()
-    return "A"
+foo = 2+3*4
+print(foo)
 
-func b(roo)
-    return roo, "fuck", "this", "shit"
+func annoying(text)
+    var lots = 10
+    while lots
+        print(text)
+        lots = lots - 1
 
-print(b(a()))
+annoying("SPAM")
 
