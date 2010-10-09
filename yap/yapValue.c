@@ -2,7 +2,10 @@
 
 #include "yapVM.h"
 
+#include <stdio.h>
 #include <string.h>
+
+static char *NULL_STRING_FORM = "[null]";
 
 // ---------------------------------------------------------------------------
 
@@ -117,42 +120,6 @@ void yapValueMark(yapValue *value)
     // TODO: Arrays and Dicts need to have their subvalues marked recursively
 }
 
-
-yBool yapValueEnsureExistence(yapVM *vm, yapValue *p)
-{
-    if(!p)
-    {
-        yapVMSetError(vm, "Attempting to manipulate NULL value! Are you popping an empty value stack?");
-        return yFalse;
-    }
-    return yTrue;
-}
-
-yBool yapValueConvertToInt(yapVM *vm, yapValue *p)
-{
-    if(!yapValueEnsureExistence(vm, p))
-        return yFalse;
-
-    // TODO: Convert string/float to int, etc
-    p->type = YVT_INT;
-    return yTrue;
-}
-
-yBool yapValueAsBool(yapValue *p)
-{
-    switch(p->type)
-    {
-        case YVT_NULL: 
-            return yFalse;
-        case YVT_STRING: 
-            return (p->stringVal[0] != 0) ? yTrue : yFalse;
-        case YVT_INT: 
-            return (p->intVal != 0) ? yTrue : yFalse;
-    };
-
-    return yTrue;
-}
-
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     if(a->type == YVT_INT && b->type == YVT_INT)
@@ -195,3 +162,40 @@ yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
         yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
     return a;
 }
+
+yBool yapValueAsBool(yapValue *p)
+{
+    switch(p->type)
+    {
+        case YVT_NULL: 
+            return yFalse;
+        case YVT_STRING: 
+            return (p->stringVal[0] != 0) ? yTrue : yFalse;
+        case YVT_INT: 
+            return (p->intVal != 0) ? yTrue : yFalse;
+    };
+
+    return yTrue;
+}
+
+void yapValueToString(yapValue *p)
+{
+    switch(p->type)
+    {
+        case YVT_STRING: 
+            break;
+
+        case YVT_NULL: 
+            yapValueSetKString(p, NULL_STRING_FORM);
+            break;
+
+        case YVT_INT: 
+            {
+                char temp[32];
+                sprintf(temp, "%d", p->intVal);
+                yapValueSetString(p, temp);
+            }
+            break;
+    };
+}
+

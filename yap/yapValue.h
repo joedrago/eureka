@@ -69,9 +69,9 @@ yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b);
 
-yBool yapValueEnsureExistence(struct yapVM *vm, yapValue *p);
-yBool yapValueConvertToInt(struct yapVM *vm, yapValue *p);
 yBool yapValueAsBool(yapValue *p);
+
+void yapValueToString(yapValue *p);
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_MODULE)    \

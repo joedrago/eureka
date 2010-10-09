@@ -37,6 +37,7 @@
 %left DASH.
 %left STAR.
 %left SLASH.
+%left STRING.
 
 %syntax_error { yapCompileSyntaxError(compiler, TOKEN.text); }
 
@@ -127,6 +128,9 @@ expr_list(EL) ::= .
 %destructor expression
     { yapCodeDestroy($$); }
     
+complex_expression(C) ::= STRING complex_expression(E).
+	{ C = yapCompileAppendOp(compiler, E, YOP_TOSTRING, 0); }
+
 complex_expression(C) ::= complex_expression(OC) PLUS complex_expression(E).
 	{ C = yapCompileCombine(compiler, YOP_ADD, OC, E); }
 

@@ -647,6 +647,19 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
+        case YOP_TOSTRING:
+            {
+                yapValue *value = yapArrayTop(&vm->stack);
+                if(!value)
+                {
+                    yapVMSetError(vm, "YOP_REFVAL_KS: empty stack!");
+                    continueLooping = yFalse;
+                    break;
+                };
+                yapValueToString(value);
+            }
+            break;
+
         default:
             yapVMSetError(vm, "Unknown VM Opcode: %d", opcode);
             continueLooping = yFalse;

@@ -36,6 +36,8 @@ enum
     YOP_MUL,                           // pops [a,b], pushes a*b
     YOP_DIV,                           // pops [a,b], pushes a/b
 
+    YOP_TOSTRING,                      // type conversion: string
+
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value

@@ -300,3 +300,10 @@ struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray 
     return code;
 }
 
+yapCode * yapCompileAppendOp(yapCompiler *compiler, struct yapCode *code, yOpcode opcode, yOperand operand)
+{
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, opcode, operand);
+    return code;
+}
+

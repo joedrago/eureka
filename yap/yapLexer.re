@@ -42,6 +42,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "return"        { return YTT_RETURN; }
     "if"            { return YTT_IF; }
     "else"          { return YTT_ELSE; }
+    "string"        { return YTT_STRING; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }

@@ -44,4 +44,6 @@ struct yapCode * yapCompileStatementIfElse(yapCompiler *compiler, struct yapArra
 struct yapCode * yapCompileStatementLoop(yapCompiler *compiler, struct yapArray *init, struct yapArray *cond, struct yapArray *incr, struct yapCode *body);
 void yapCompileModuleStatementList(yapCompiler *compiler, struct yapCode *list);
 
+struct yapCode * yapCompileAppendOp(yapCompiler *compiler, struct yapCode *code, yOpcode opcode, yOperand operand);
+
 #endif
