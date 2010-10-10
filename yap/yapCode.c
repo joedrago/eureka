@@ -125,7 +125,7 @@ void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapToken
 {
     yapCodeGrow(code, 2);
     yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, name->text, name->len));
-    yapCodeAppend(code, YOP_SETARG, 0);
+    yapCodeAppend(code, YOP_SETVAR, 0);
 }
 
 void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapToken *token, yBool popRef)

@@ -402,14 +402,6 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
-        case YOP_SETVAR:
-            {
-                yapValue *val = yapArrayPop(&vm->stack);
-                yapValue *ref = yapArrayPop(&vm->stack);
-                continueLooping = yapVMSetVar(vm, ref, val);
-            }
-            break;
-
         case YOP_ADD:
             {
                 yapValue *b = yapArrayPop(&vm->stack);
@@ -458,7 +450,7 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
-        case YOP_SETARG:
+        case YOP_SETVAR:
             {
                 yapValue *ref = yapArrayPop(&vm->stack);
                 yapValue *val = yapArrayPop(&vm->stack);

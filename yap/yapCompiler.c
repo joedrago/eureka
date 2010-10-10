@@ -119,9 +119,9 @@ struct yapCode * yapCompileStatementFunctionDecl(yapCompiler *compiler, struct y
     // Return the chunk of code that registers this function as a variable
     // back to the main module block
     regFunc = yapCodeCreate();
-    yapCodeAppendVar(compiler, regFunc, name, yFalse);
     yapCodeGrow(regFunc, 1);
     yapCodeAppend(regFunc, YOP_PUSHLBLOCK, index);
+    yapCodeAppendVar(compiler, regFunc, name, yFalse);
     yapCodeAppendSetVar(regFunc);
     return regFunc;
 }
@@ -167,8 +167,8 @@ struct yapCode * yapCompileStatementVar(yapCompiler *compiler, struct yapToken *
 struct yapCode * yapCompileStatementVarInit(yapCompiler *compiler, struct yapToken *name, struct yapCode *initialValue)
 {
     yapCode *code = yapCodeCreate();
-    yapCodeAppendVar(compiler, code, name, yFalse);
     yapCodeAppendExpression(compiler, code, initialValue, 1);
+    yapCodeAppendVar(compiler, code, name, yFalse);
     yapCodeAppendSetVar(code);
 
     yapCodeDestroy(initialValue);
@@ -178,8 +178,8 @@ struct yapCode * yapCompileStatementVarInit(yapCompiler *compiler, struct yapTok
 struct yapCode * yapCompileStatementAssignment(yapCompiler *compiler, struct yapToken *name, struct yapCode *value)
 {
     yapCode *code = yapCodeCreate();
-    yapCodeAppendVarRef(compiler, code, name);
     yapCodeAppendExpression(compiler, code, value, 1);
+    yapCodeAppendVarRef(compiler, code, name);
     yapCodeAppendSetVar(code);
 
     yapCodeDestroy(value);
