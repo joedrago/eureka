@@ -2,6 +2,11 @@
 #define YAPTYPES_H
 
 // ---------------------------------------------------------------------------
+// Forwards
+
+struct yapToken;
+
+// ---------------------------------------------------------------------------
 // Core Types
 
 typedef int	yS32;
@@ -57,8 +62,8 @@ typedef struct yapArray
 
 #define yapArrayCreate() ((yapArray*)yapAlloc(sizeof(yapArray)))
 
-yOperand yapArrayPushUniqueString(yapArray *p, const char *s);
-yOperand yapArrayPushUniqueStringLen(yapArray *p, const char *s, int len);
+yOperand yapArrayPushUniqueString(yapArray *p, char *s);
+yOperand yapArrayPushUniqueToken(yapArray *p, struct yapToken *token);
 yOperand yapArrayPush(yapArray *p, void *v);
 void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);

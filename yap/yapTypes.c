@@ -1,5 +1,7 @@
 #include "yapTypes.h"
 
+#include "yapLexer.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,7 +59,7 @@ void yapArraySquash(yapArray *p)
     p->count = head;
 }
 
-yOperand yapArrayPushUniqueString(yapArray *p, const char *s)
+yOperand yapArrayPushUniqueString(yapArray *p, char *s)
 {
     int i;
     for(i=0; i<p->count; i++)
@@ -65,28 +67,16 @@ yOperand yapArrayPushUniqueString(yapArray *p, const char *s)
         const char *v = (const char *)p->data[i];
         if(!strcmp(s, v))
         {
+            yapFree(s);
             return (yOperand)i;
         }
     }
-    return yapArrayPush(p, yapStrdup(s));
+    return yapArrayPush(p, s);
 }
 
-yOperand yapArrayPushUniqueStringLen(yapArray *p, const char *s, int len)
+yOperand yapArrayPushUniqueToken(yapArray *p, struct yapToken *token)
 {
-    char *temp;
-    int i;
-    for(i=0; i<p->count; i++)
-    {
-        const char *v = (const char *)p->data[i];
-        if((strlen(v) == len) && !strncmp(s, v, len))
-        {
-            return (yOperand)i;
-        }
-    }
-    temp = yapAlloc(len+1);
-    memcpy(temp, s, len);
-    temp[len] = 0;
-    return yapArrayPush(p, temp);
+    return yapArrayPushUniqueString(p, yapTokenToString(token));
 }
 
 yOperand yapArrayPush(yapArray *p, void *v)

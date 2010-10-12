@@ -118,9 +118,56 @@ yapToken * yapTokenClone(yapToken *token)
 
 char *yapTokenToString(yapToken *t)
 {
+    const char *src = t->text;
+    const char *end = src + t->len;
     char *str = yapAlloc(t->len+1);
-    memcpy(str, t->text, t->len);
-    str[t->len] = 0;
+    char *dst = str;
+    yBool escaped = yFalse;
+
+    // Remove outer quotes
+    if(t->len > 1)
+    {
+        if(*src == '\"')
+            src++;
+        if(*(end-1) == '\"')
+            end--;
+    }
+
+    // The unescaped string should always be smaller or the same size,
+    // so len+1 should be fine for now. Replace with actual len calc.
+
+    while(src != end)
+    {
+        if(escaped)
+        {
+            switch(*src)
+            {
+                case '\\': *dst = '\\'; break;
+                case 't':  *dst = '\t'; break;
+                case 'n':  *dst = '\n'; break;
+
+                default: yapTrace(("Unknown escape character %c\n", *src));
+            }
+            escaped = yFalse;
+        }
+        else
+        {
+            if(*src == '\\')
+            {
+                escaped = yTrue;
+                src++;
+                continue;
+            }
+            else
+            {
+                *dst = *src;
+            }
+        }
+
+        dst++;
+        src++;
+    }
+    *dst = 0;
     return str;
 }
 

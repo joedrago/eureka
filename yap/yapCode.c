@@ -15,7 +15,7 @@ yapCode * yapCodeCreateLiteralString(struct yapCompiler *compiler, struct yapTok
 {
     yapCode *code = yapCodeCreate();
     yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_PUSH_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, token));
     return code;
 }
 
@@ -32,7 +32,7 @@ yapCode * yapCodeCreateIdentifier(struct yapCompiler *compiler, struct yapToken 
 {
     yapCode *code = yapCodeCreate();
     yapCodeGrow(code, 2);
-    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, token));
     yapCodeAppend(code, YOP_REFVAL, 0);
     return code;
 }
@@ -54,7 +54,7 @@ yapCode * yapCodeCreateCall(struct yapCompiler *compiler, struct yapToken *token
         yapCodeAppendExpression(compiler, code, (yapCode*)args->data[i], 1);
     }
     yapCodeGrow(code, 3);
-    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, token));
     yapCodeAppend(code, YOP_CALL, args->count);
     code->keepIndex = yapCodeAppend(code, YOP_KEEP, 0);
     yapArrayDestroy(args, (yapDestroyCB)yapCodeDestroy);
@@ -124,7 +124,7 @@ void yapCodeAppendExpression(yapCompiler *compiler, yapCode *code, yapCode *expr
 void yapCodeAppendNamedArg(struct yapCompiler *compiler, yapCode *code, yapToken *name)
 {
     yapCodeGrow(code, 2);
-    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, name->text, name->len));
+    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, name));
     yapCodeAppend(code, YOP_SETVAR, 0);
 }
 
@@ -132,7 +132,7 @@ void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapTok
 {
     int growAmount = (popRef) ? 2 : 1;
     yapCodeGrow(code, growAmount);
-    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_VARREG_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, token));
     if(popRef)
         yapCodeAppend(code, YOP_POP, 1);
 }
@@ -140,7 +140,7 @@ void yapCodeAppendVar(struct yapCompiler *compiler, yapCode *code, struct yapTok
 void yapCodeAppendVarRef(struct yapCompiler *compiler, yapCode *code, struct yapToken *token)
 {
     yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueStringLen(&compiler->module->kStrings, token->text, token->len));
+    yapCodeAppend(code, YOP_VARREF_KS, yapArrayPushUniqueToken(&compiler->module->kStrings, token));
 }
 
 void yapCodeAppendSetVar(yapCode *code)
