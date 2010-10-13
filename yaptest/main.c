@@ -10,14 +10,18 @@ yU32 print(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
-        yapValue *v = yapVMPopValue(vm);
-        switch(v->type)
+        int i;
+        for(i=0; i<argCount; i++)
         {
+            yapValue *v = yapVMGetArg(vm, i, argCount);
+            switch(v->type)
+            {
             case YVT_STRING: printf("%s", v->stringVal); break;
             case YVT_INT:    printf("%d", v->intVal); break;
             default: printf("***hurrrrr***"); break;
-        };
-        
+            };
+        }
+        yapVMPopValues(vm, argCount);
     }
     else
     {

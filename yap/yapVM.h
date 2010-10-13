@@ -46,7 +46,11 @@ struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
 void yapVMLoop(yapVM *vm);
 
-yapValue * yapVMPopValue(yapVM *vm);
+void yapVMPopValues(yapVM *vm, yU32 count);
+yapValue * yapVMGetValue(yapVM *vm, yU32 howDeep); // 0 is "top of stack"
+
+#define yapVMGetTop(VM) yapVMGetValue(VM, 0)
+#define yapVMGetArg(VM, INDEX, ARGCOUNT) yapVMGetValue(VM, (ARGCOUNT-1) - INDEX)
 
 // ---------------------------------------------------------------------------
 

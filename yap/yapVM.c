@@ -263,9 +263,21 @@ yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
     return yTrue;
 }
 
-yapValue * yapVMPopValue(yapVM *vm)
+void yapVMPopValues(yapVM *vm, yU32 count)
 {
-    return yapArrayPop(&vm->stack);
+    while(count)
+    {
+        yapArrayPop(&vm->stack);
+        count--;
+    }
+}
+
+yapValue * yapVMGetValue(yapVM *vm, yU32 howDeep)
+{
+    if(howDeep >= vm->stack.count)
+        return NULL;
+
+    return vm->stack.data[(vm->stack.count-1) - howDeep];
 }
 
 struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
