@@ -143,9 +143,12 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     }
 
 #ifdef PYTHON_SCOPING
+    cb(parser, YTT_ENDSTATEMENT, token, compiler); // some files might not end with a newline
+
     while(l.indents.count > 1)
     {
         yap32ArrayPop(&l.indents);
+        cb(parser, YTT_ENDSTATEMENT, token, compiler);
         cb(parser, YTT_ENDBLOCK, token, compiler);
     }
     yap32ArrayClear(&l.indents);

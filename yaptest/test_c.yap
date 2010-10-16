@@ -1,6 +1,6 @@
 var i_am_true = 1;
 
-if (i_am_true)
+if(i_am_true)
 {
     print("true!\n");
 }

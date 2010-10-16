@@ -236,10 +236,10 @@ yBool yapVMSetVar(yapVM *vm, yapValue *ref, yapValue *val)
     }
     ref->refVal->value = yapValueClone(vm, val);
 
-    if(val->type == YVT_STRING)
-        yapTrace(("-- set '%s' to '%s'\n", ref->refVal->name, val->stringVal));
-    else if(val->type == YVT_NULL)
-        yapTrace(("-- set '%s' to null\n", ref->refVal->name));
+    //if(val->type == YVT_STRING)
+    //    yapTrace(("-- set '%s' to '%s'\n", ref->refVal->name, val->stringVal));
+    //else if(val->type == YVT_NULL)
+    //    yapTrace(("-- set '%s' to null\n", ref->refVal->name));
     return yTrue;
 }
 
