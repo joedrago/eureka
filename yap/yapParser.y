@@ -29,6 +29,10 @@
     #define YYNOERRORRECOVERY 1
 }
 
+%left NEWLINE.
+%left OPENBRACE.
+%left CLOSEBRACE.
+
 %left UNKNOWN.
 %left COMMENT.
 %left SPACE.
@@ -71,34 +75,34 @@ statement_list(L) ::= statement(S).
 %destructor statement
     { yapCodeDestroy($$); }
 
-statement(S) ::= IDENTIFIER(I) EQUALS complex_expression(E) NEWLINE.
+statement(S) ::= IDENTIFIER(I) EQUALS complex_expression(E) ENDSTATEMENT.
     { S = yapCompileStatementAssignment(compiler, &I, E); }
 
-statement(S) ::= VAR IDENTIFIER(I) EQUALS complex_expression(E) NEWLINE.
+statement(S) ::= VAR IDENTIFIER(I) EQUALS complex_expression(E) ENDSTATEMENT.
     { S = yapCompileStatementVarInit(compiler, &I, E); }
 
-statement(S) ::= VAR IDENTIFIER(I) NEWLINE.
+statement(S) ::= VAR IDENTIFIER(I) ENDSTATEMENT.
     { S = yapCompileStatementVar(compiler, &I); }
 
-statement(S) ::= RETURN expr_list(L) NEWLINE.
+statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
     { S = yapCompileStatementReturn(compiler, L); }
 
-statement(S) ::= expr_list(L) NEWLINE.
+statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = yapCompileStatementExpressionList(compiler, L); }
 
-statement(S) ::= IF expr_list(COND) NEWLINE INDENT statement_list(IFBODY) DEDENT ELSE NEWLINE INDENT statement_list(ELSEBODY) DEDENT.
+statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK ELSE STARTBLOCK statement_list(ELSEBODY) ENDBLOCK.
     { S = yapCompileStatementIfElse(compiler, COND, IFBODY, ELSEBODY); }
 
-statement(S) ::= IF expr_list(COND) NEWLINE INDENT statement_list(IFBODY) DEDENT.
+statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
     { S = yapCompileStatementIfElse(compiler, COND, IFBODY, NULL); }
 
-statement(S) ::= WHILE expr_list(COND) NEWLINE INDENT statement_list(BODY) DEDENT.
+statement(S) ::= WHILE expr_list(COND) STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapCompileStatementLoop(compiler, NULL, COND, NULL, BODY); }
 
-statement(S) ::= FOR LEFTPAREN expr_list(INIT) SEMI expr_list(COND) SEMI expr_list(INCR) RIGHTPAREN NEWLINE INDENT statement_list(BODY) DEDENT.
+statement(S) ::= FOR LEFTPAREN expr_list(INIT) SEMI expr_list(COND) SEMI expr_list(INCR) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapCompileStatementLoop(compiler, INIT, COND, INCR, BODY); }
 
-statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN NEWLINE INDENT statement_list(BODY) DEDENT.
+statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapCompileStatementFunctionDecl(compiler, &I, ARGS, BODY); }
 
 // ---------------------------------------------------------------------------
