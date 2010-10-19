@@ -73,6 +73,8 @@ yapValue * yapValueToBool(struct yapVM *vm, yapValue *p);
 yapValue * yapValueToInt(struct yapVM *vm, yapValue *p);
 yapValue * yapValueToString(struct yapVM *vm, yapValue *p);
 
+yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
+
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_MODULE)    \
     || (VAL->type == YVT_BLOCK)     \

@@ -110,6 +110,8 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
             }
             else
             {
+                token.text = NULL;
+                token.len  = 0;
                 cb(parser, YTT_ENDSTATEMENT, token, compiler);
             }
         }

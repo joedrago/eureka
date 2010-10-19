@@ -122,19 +122,21 @@ void yapValueMark(yapValue *value)
     // TODO: Arrays and Dicts need to have their subvalues marked recursively
 }
 
+// TODO: Make a real string class that isn't terrible
+static char *concat(char *a, char *b)
+{
+    yU32 newLen = (yU32)strlen(a) + (yU32)strlen(b);
+    char *newString = yapAlloc(newLen + 1);
+    strcpy(newString, a); // TODO: make this smarter
+    strcat(newString, b);
+    return newString;
+}
+
 yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
 {
-    yU32 newLen;
-    char *newString;
-
     a = yapValueToString(vm, a);
     b = yapValueToString(vm, b);
-    newLen = (yU32)strlen(a->stringVal) + (yU32)strlen(b->stringVal);
-    newString = yapAlloc(newLen + 1);
-    strcpy(newString, a->stringVal); // TODO: make this smarter
-    strcat(newString, b->stringVal);
-
-    a->stringVal = newString;        // due to yapValueToString's clone, no free required
+    a->stringVal = concat(a->stringVal, b->stringVal);
     a->type = YVT_STRING;
     a->shared   = yFalse;
     a->constant = yFalse;
@@ -261,3 +263,88 @@ yapValue * yapValueToString(struct yapVM *vm, yapValue *p)
     return v;
 }
 
+yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount)
+{
+    char *out = yapStrdup("");
+    int outSize = 1;
+    int outPos = 0;
+    int addLen;
+
+    char *curr = format->stringVal;
+    char *next;
+
+    yapValue *arg;
+    int argIndex = 0;
+
+    while(curr && (next = strchr(curr, '%')))
+    {
+        // First, add in all of the stuff before the %
+        {
+            addLen = next - curr;
+            outSize += addLen;
+            out = yapRealloc(out, outSize);
+            memcpy(&out[outPos], curr, addLen);
+            outPos += addLen;
+        }
+        next++;
+
+        switch(*next)
+        {
+        case '\0':
+            curr = NULL; 
+            break;
+        case '%':
+            out = yapRealloc(out, ++outSize);
+            out[outPos++] = '%';
+            break;
+        case 's':
+            arg = yapVMGetArg(vm, argIndex++, argCount);
+            if(arg)
+            {
+                arg = yapValueToString(vm, arg);
+                addLen = strlen(arg->stringVal);
+                outSize += addLen;
+                out = yapRealloc(out, outSize);
+                memcpy(&out[outPos], arg->stringVal, addLen);
+                outPos += addLen;
+            }
+            break;
+        case 'd':
+            arg = yapVMGetArg(vm, argIndex++, argCount);
+            if(arg)
+            {
+                char temp[32];
+                arg = yapValueToInt(vm, arg);
+                sprintf(temp, "%d", arg->intVal);
+                addLen = strlen(temp);
+                outSize += addLen;
+                out = yapRealloc(out, outSize);
+                memcpy(&out[outPos], temp, addLen);
+                outPos += addLen;
+            }
+            break;
+        };
+
+        curr = next+1;
+    }
+
+    // Add the remainder of the string, if any
+    if(curr)
+    {
+        addLen = strlen(curr);
+        outSize += addLen;
+        out = yapRealloc(out, outSize);
+        memcpy(&out[outPos], curr, addLen);
+        outPos += addLen;
+    }
+
+    // Terminate the string
+    out[outPos] = 0;
+
+    format = yapValueCreate(vm);
+    format->type = YVT_STRING;
+    format->stringVal = out;
+
+    yapVMPopValues(vm, argCount);
+    return format;
+}
