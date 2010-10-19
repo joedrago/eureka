@@ -41,7 +41,9 @@
 %left DASH.
 %left STAR.
 %left SLASH.
+%left INT.
 %left STRING.
+%left MOD.
 
 %syntax_error { yapCompileSyntaxError(compiler, TOKEN.text); }
 
@@ -127,31 +129,37 @@ expr_list(EL) ::= .
 // Complex Expressions
 
 %type complex_expression
-	{ yapCode* }
+    { yapCode* }
 
 %destructor expression
     { yapCodeDestroy($$); }
     
+complex_expression(C) ::= INT complex_expression(E).
+    { C = yapCompileAppendOp(compiler, E, YOP_TOINT, 0); }
+
 complex_expression(C) ::= STRING complex_expression(E).
-	{ C = yapCompileAppendOp(compiler, E, YOP_TOSTRING, 0); }
+    { C = yapCompileAppendOp(compiler, E, YOP_TOSTRING, 0); }
 
 complex_expression(C) ::= complex_expression(OC) PLUS complex_expression(E).
-	{ C = yapCompileCombine(compiler, YOP_ADD, OC, E); }
+    { C = yapCompileCombine(compiler, YOP_ADD, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) DASH complex_expression(E).
-	{ C = yapCompileCombine(compiler, YOP_SUB, OC, E); }
+    { C = yapCompileCombine(compiler, YOP_SUB, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) STAR complex_expression(E).
-	{ C = yapCompileCombine(compiler, YOP_MUL, OC, E); }
+    { C = yapCompileCombine(compiler, YOP_MUL, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) SLASH complex_expression(E).
-	{ C = yapCompileCombine(compiler, YOP_DIV, OC, E); }
+    { C = yapCompileCombine(compiler, YOP_DIV, OC, E); }
 
+complex_expression(C) ::= complex_expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+    { C = yapCodeCreateStringFormat(compiler, FORMAT, ARGS); }
+    
 complex_expression(C) ::= LEFTPAREN complex_expression(E) RIGHTPAREN.
-	{ C = E; }
-	
+    { C = E; }
+    
 complex_expression(C) ::= expression(E).
-	{ C = E; }
+    { C = E; }
 
 // ---------------------------------------------------------------------------
 // Expression

@@ -48,6 +48,9 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_DIV, "div")
 
             HURR(YOP_TOSTRING, "tostring")
+            HURR(YOP_TOINT, "toint")
+
+            HURR(YOP_FORMAT, "format")
 
             HURR(YOP_VARREG_KS, "varreg_ks")
             HURR(YOP_VARREF_KS, "varref_ks")

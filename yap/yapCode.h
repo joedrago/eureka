@@ -27,6 +27,7 @@ yapCode * yapCodeCreateInteger(struct yapCompiler *compiler, struct yapToken *to
 yapCode * yapCodeCreateIdentifier(struct yapCompiler *compiler, struct yapToken *token);
 yapCode * yapCodeCreateNull(struct yapCompiler *compiler);
 yapCode * yapCodeCreateCall(struct yapCompiler *compiler, struct yapToken *token, yapArray *args);
+yapCode * yapCodeCreateStringFormat(struct yapCompiler *compiler, yapCode *format, yapArray *args);
 
 void yapCodeDestroy(yapCode *code);
 

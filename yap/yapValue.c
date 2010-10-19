@@ -1,5 +1,6 @@
 #include "yapValue.h"
 
+#include "yapLexer.h"
 #include "yapVM.h"
 
 #include <stdio.h>
@@ -121,10 +122,52 @@ void yapValueMark(yapValue *value)
     // TODO: Arrays and Dicts need to have their subvalues marked recursively
 }
 
+yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    yU32 newLen;
+    char *newString;
+
+    a = yapValueToString(vm, a);
+    b = yapValueToString(vm, b);
+    newLen = (yU32)strlen(a->stringVal) + (yU32)strlen(b->stringVal);
+    newString = yapAlloc(newLen + 1);
+    strcpy(newString, a->stringVal); // TODO: make this smarter
+    strcat(newString, b->stringVal);
+
+    a->stringVal = newString;        // due to yapValueToString's clone, no free required
+    a->type = YVT_STRING;
+    a->shared   = yFalse;
+    a->constant = yFalse;
+    return a;
+}
+
+yapValue * yapValueIntOp(struct yapVM *vm, yapValue *a, yapValue *b, char op)
+{
+    a = yapValueToInt(vm, a);
+    b = yapValueToInt(vm, b);
+    switch(op)
+    {
+        case '+': yapValueSetInt(a, a->intVal + b->intVal); break;
+        case '-': yapValueSetInt(a, a->intVal - b->intVal); break;
+        case '*': yapValueSetInt(a, a->intVal * b->intVal); break;
+        case '/': 
+            if(!b->intVal)
+            {
+                yapVMSetError(vm, "divide by zero!");
+                return NULL;
+            }
+            yapValueSetInt(a, a->intVal / b->intVal);
+            break;
+    };
+    return a;
+}
+
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
 {
-    if(a->type == YVT_INT && b->type == YVT_INT)
-        a->intVal += b->intVal;
+    if(a->type == YVT_STRING)
+        return yapValueConcat(vm, a, b);
+    else if(a->type == YVT_INT)
+        a = yapValueIntOp(vm, a, b, '+');
     else
         yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
     return a;
@@ -132,71 +175,89 @@ yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
 
 yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b)
 {
-    if(a->type == YVT_INT && b->type == YVT_INT)
-        a->intVal -= b->intVal;
+    if(a->type == YVT_INT)
+        a = yapValueIntOp(vm, a, b, '-');
     else
-        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+        yapTrace(("Don't know how to subtract types %d and %d\n", a->type, b->type));
     return a;
 }
 
 yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b)
 {
-    if(a->type == YVT_INT && b->type == YVT_INT)
-        a->intVal *= b->intVal;
+    if(a->type == YVT_INT)
+        a = yapValueIntOp(vm, a, b, '*');
     else
-        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+        yapTrace(("Don't know how to multiply types %d and %d\n", a->type, b->type));
     return a;
 }
 
 yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
 {
-    if(a->type == YVT_INT && b->type == YVT_INT)
-    {
-        if(!b->intVal)
-        {
-            yapVMSetError(vm, "divide by zero!");
-            return NULL;
-        }
-        a->intVal /= b->intVal;
-    }
+    if(a->type == YVT_INT)
+        a = yapValueIntOp(vm, a, b, '/');
     else
-        yapTrace(("Don't know how to add types %d and %d\n", a->type, b->type));
+        yapTrace(("Don't know how to divide types %d and %d\n", a->type, b->type));
     return a;
 }
 
-yBool yapValueAsBool(yapValue *p)
+yapValue * yapValueToBool(struct yapVM *vm, yapValue *p)
 {
-    switch(p->type)
+    yapValue *v = yapValueClone(vm, p);
+    switch(v->type)
     {
         case YVT_NULL: 
-            return yFalse;
+            v->intVal = 0;
+            break;
         case YVT_STRING: 
-            return (p->stringVal[0] != 0) ? yTrue : yFalse;
-        case YVT_INT: 
-            return (p->intVal != 0) ? yTrue : yFalse;
+            // I can get away with non-free'ing murder here due to copy-on-write
+            v->intVal = (p->stringVal[0] != 0) ? 1 : 0;
+            break;
     };
 
-    return yTrue;
+    v->type = YVT_INT;
+    return v;
 }
 
-void yapValueToString(yapValue *p)
+yapValue * yapValueToInt(struct yapVM *vm, yapValue *p)
 {
-    switch(p->type)
+    yapValue *v = yapValueClone(vm, p);
+    switch(v->type)
+    {
+        case YVT_NULL: 
+            v->intVal = 0;
+            break;
+        case YVT_STRING: 
+        {
+            yapToken t = { p->stringVal, strlen(p->stringVal) };
+            v->intVal = yapTokenToInt(&t);
+            break;
+        }
+    };
+
+    v->type = YVT_INT;
+    return v;
+}
+
+yapValue * yapValueToString(struct yapVM *vm, yapValue *p)
+{
+    yapValue *v = yapValueClone(vm, p);
+    switch(v->type)
     {
         case YVT_STRING: 
             break;
 
         case YVT_NULL: 
-            yapValueSetKString(p, NULL_STRING_FORM);
+            yapValueSetKString(v, NULL_STRING_FORM);
             break;
 
         case YVT_INT: 
             {
                 char temp[32];
-                sprintf(temp, "%d", p->intVal);
-                yapValueSetString(p, temp);
+                sprintf(temp, "%d", v->intVal);
+                yapValueSetString(v, temp);
             }
             break;
     };
+    return v;
 }
 

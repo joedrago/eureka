@@ -48,7 +48,6 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
         // Execute the module's block
         yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
         yapVMLoop(vm);
-        yapVMGC(vm);
     }
     else
     {
@@ -400,13 +399,13 @@ void yapVMLoop(yapVM *vm)
                 yapValue *value = yapArrayTop(&vm->stack);
                 if(!value)
                 {
-                    yapVMSetError(vm, "YOP_REFVAL_KS: empty stack!");
+                    yapVMSetError(vm, "YOP_REFVAL: empty stack!");
                     continueLooping = yFalse;
                     break;
                 };
                 if(value->type != YVT_REF)
                 {
-                    yapVMSetError(vm, "YOP_REFVAL_KS: requires ref on top of stack");
+                    yapVMSetError(vm, "YOP_REFVAL: requires ref on top of stack");
                     continueLooping = yFalse;
                     break;
                 }
@@ -569,7 +568,8 @@ void yapVMLoop(yapVM *vm)
                 if(operand)
                     elseBody = yapArrayPop(&vm->stack);
                 // TODO: verify ifBody/elseBody are YVT_BLOCK
-                if(yapValueAsBool(cond))
+                cond = yapValueToBool(vm, cond);
+                if(cond->intVal)
                 {
                     block = ifBody->blockVal;
                 }
@@ -615,7 +615,8 @@ void yapVMLoop(yapVM *vm)
                 if(operand)
                 {
                     yapValue *cond = yapArrayPop(&vm->stack);
-                    performLeave   = !yapValueAsBool(cond); // don't leave if expr is true!
+                    cond = yapValueToBool(vm, cond);
+                    performLeave   = !cond->intVal; // don't leave if expr is true!
                 }
 
                 if(performLeave)
@@ -653,14 +654,48 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_TOSTRING:
             {
-                yapValue *value = yapArrayTop(&vm->stack);
+                yapValue *value = yapArrayPop(&vm->stack);
                 if(!value)
                 {
-                    yapVMSetError(vm, "YOP_REFVAL_KS: empty stack!");
+                    yapVMSetError(vm, "YOP_TOSTRING: empty stack!");
                     continueLooping = yFalse;
                     break;
                 };
-                yapValueToString(value);
+                yapArrayPush(&vm->stack, yapValueToString(vm, value));
+            }
+            break;
+
+        case YOP_TOINT:
+            {
+                yapValue *value = yapArrayPop(&vm->stack);
+                if(!value)
+                {
+                    yapVMSetError(vm, "YOP_TOINT: empty stack!");
+                    continueLooping = yFalse;
+                    break;
+                };
+                yapArrayPush(&vm->stack, yapValueToInt(vm, value));
+            }
+            break;
+
+        case YOP_FORMAT:
+            {
+                yapValue *format = yapArrayPop(&vm->stack);
+                yapValue *val;
+                if(!format)
+                {
+                    yapVMSetError(vm, "YOP_FORMAT: empty stack!");
+                    continueLooping = yFalse;
+                    break;
+                };
+                val = yapValueStringFormat(vm, format, operand);
+                if(!val)
+                {
+                    yapVMSetError(vm, "YOP_FORMAT: bad format");
+                    continueLooping = yFalse;
+                    break;
+                };
+                yapArrayPush(&vm->stack, val);
             }
             break;
 
@@ -672,6 +707,8 @@ void yapVMLoop(yapVM *vm)
 
         if(continueLooping && !newFrame)
             frame->ip++;
+
+        yapVMGC(vm); // TODO: Only do this when (new var) vm->gc == 0, then reset
     }
 
     yapVMGC(vm);

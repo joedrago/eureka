@@ -61,6 +61,23 @@ yapCode * yapCodeCreateCall(struct yapCompiler *compiler, struct yapToken *token
     return code;
 }
 
+yapCode * yapCodeCreateStringFormat(struct yapCompiler *compiler, yapCode *format, yapArray *args)
+{
+    yapCode *code = yapCodeCreate();
+    int i;
+    for(i=0; i<args->count; i++)
+    {
+        yapCodeAppendExpression(compiler, code, (yapCode*)args->data[i], 1);
+    }
+    yapCodeAppendCode(code, format);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_FORMAT, args->count);
+
+    yapCodeDestroy(format);
+    yapArrayDestroy(args, (yapDestroyCB)yapCodeDestroy);
+    return code;
+}
+
 void yapCodeDestroy(yapCode *code)
 {
     if(code->ops)

@@ -33,6 +33,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "-"             { return YTT_DASH; }
     "*"             { return YTT_STAR; }
     "/"             { return YTT_SLASH; }
+    "%"             { return YTT_MOD; }
     "{"             { return YTT_OPENBRACE; }
     "}"             { return YTT_CLOSEBRACE; }
 
@@ -44,6 +45,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "return"        { return YTT_RETURN; }
     "if"            { return YTT_IF; }
     "else"          { return YTT_ELSE; }
+    "int"           { return YTT_INT; }
     "string"        { return YTT_STRING; }
 
     "("             { return YTT_LEFTPAREN; }
