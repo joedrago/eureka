@@ -21,6 +21,8 @@ typedef enum yapValueType
     YVT_INT,
     YVT_STRING,
 
+    YVT_ARRAY,
+
     YVT_REF,                           // Variable reference
 
     YVT_COUNT
@@ -45,6 +47,7 @@ typedef struct yapValue
         char *stringVal;
         struct yapVariable *refVal;
         yapCFunction *cFuncVal;
+        yapArray *arrayVal;
     };
 } yapValue;
 
@@ -58,6 +61,8 @@ void yapValueSetKString(yapValue *p, char *s);
 void yapValueSetString(yapValue *p, char *s);
 void yapValueSetFunction(yapValue *p, struct yapBlock *block);
 void yapValueSetCFunction(yapValue *p, yapCFunction func);
+
+void yapValueArrayPush(yapValue *p, yapValue *v);
 
 void yapValueClear(yapValue *p);
 

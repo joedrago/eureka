@@ -50,10 +50,28 @@ void yapValueSetCFunction(yapValue *p, yapCFunction func)
     p->cFuncVal = func;
 }
 
+// ---------------------------------------------------------------------------
+
+void yapValueArrayPush(yapValue *p, yapValue *v)
+{
+    if(p->type != YVT_ARRAY)
+    {
+        yapValueClear(p);
+        p->arrayVal = yapArrayCreate();
+        p->type = YVT_ARRAY;
+    }
+
+    yapArrayPush(p->arrayVal, v);
+}
+
+// ---------------------------------------------------------------------------
+
 void yapValueClear(yapValue *p)
 {
-    if(p->type == YVT_STRING && !p->constant && !p->shared)
+    if((p->type == YVT_STRING) && !p->constant && !p->shared)
         yapFree(p->stringVal);
+    else if((p->type == YVT_ARRAY) && !p->shared)
+        yapArrayDestroy(p->arrayVal, NULL);
 
     memset(p, 0, sizeof(*p));
     p->type = YVT_NULL;
@@ -114,12 +132,22 @@ void yapValueMark(yapValue *value)
     if(value->type == YVT_NULL)
         return;
 
+    if(!value->used && (value->type == YVT_ARRAY))
+    {
+        int i;
+        for(i=0; i<value->arrayVal->count; i++)
+        {
+            yapValue *child = (yapValue *)value->arrayVal->data[i];
+            yapValueMark(child);
+        }
+    }
+
+    // TODO: Dicts need to have their subvalues marked recursively
+
     if(value->used)
         value->shared = yTrue;
     else
         value->used = yTrue;
-
-    // TODO: Arrays and Dicts need to have their subvalues marked recursively
 }
 
 // TODO: Make a real string class that isn't terrible
