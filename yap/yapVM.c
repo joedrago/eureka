@@ -34,26 +34,26 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     compiler->module = NULL;
     yapCompilerDestroy(compiler);
 
-    if(module->block)
-    {
-        // Alloc the global variable "main"
-        moduleRef = yapVariableCreate(vm, name);
-        moduleRef->value = yapValueCreate(vm);
-        moduleRef->value->type = YVT_MODULE;
-        moduleRef->value->moduleVal = module;
-        yapArrayPush(&vm->globals, moduleRef);
-
-        yapArrayPush(&vm->modules, module);
-
-        // Execute the module's block
-        yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
-        yapVMLoop(vm);
-    }
-    else
-    {
-        yapModuleDestroy(module);
-        module = NULL;
-    }
+//    if(module->block)
+//    {
+//        // Alloc the global variable "main"
+//        moduleRef = yapVariableCreate(vm, name);
+//        moduleRef->value = yapValueCreate(vm);
+//        moduleRef->value->type = YVT_MODULE;
+//        moduleRef->value->moduleVal = module;
+//        yapArrayPush(&vm->globals, moduleRef);
+//
+//        yapArrayPush(&vm->modules, module);
+//
+//        // Execute the module's block
+//        yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
+//        yapVMLoop(vm);
+//    }
+//    else
+//    {
+//        yapModuleDestroy(module);
+//        module = NULL;
+//    }
 
     return module;
 }

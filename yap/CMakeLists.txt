@@ -59,6 +59,8 @@ set(yap_src
     yapOp.h
     yapOp.c
     yapParser.y
+    yapSyntax.h
+    yapSyntax.c
     yapTypes.h
     yapTypes.c
     yapValue.h

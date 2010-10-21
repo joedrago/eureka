@@ -3,13 +3,14 @@
 
 #include "yapTypes.h"
 
-#include "yapParser.h"
+// #include "yapParser.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yapVM;
 struct yapCompiler;
+struct yapSyntaxTree;
+struct yapVM;
 
 // ---------------------------------------------------------------------------
 

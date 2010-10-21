@@ -4,6 +4,7 @@
 #include "yapLexer.h"
 #include "yapModule.h"
 #include "yapParser.h"
+#include "yapSyntax.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +13,8 @@
 void *yapParseAlloc();
 void yapParse(void *yyp, int id, yapToken token, yapCompiler *compiler);
 void yapParseFree(void *p);
+
+yBool yapAssemble(yapCompiler *compiler);
 
 void yapCompilerDestroy(yapCompiler *compiler)
 {
@@ -24,33 +27,27 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     yapToken emptyToken = {0};
     void *parser = yapParseAlloc();
 
-    compiler->module = yapModuleCreate();
+    compiler->tree = yapSyntaxTreeCreate();
 
     yapLex(parser, text, yapParse, compiler);
     yapParse(parser, 0, emptyToken, compiler);
 
-    if(compiler->module->block)
+    if(compiler->tree->root && !compiler->errors.count)
     {
+        yapAssemble(compiler);
         success = yTrue;
-        yapModuleDump(compiler->module);
+        printf("hurr\n");
+        // yapModuleDump(compiler->module);
     };
 
+    yapSyntaxTreeDestroy(compiler->tree);
     yapParseFree(parser);
     return success;
 }
 
-void yapCompileSyntaxError(yapCompiler *compiler, const char *token)
+void yapCompileError(yapCompiler *compiler, const char *error)
 {
-    if(token)
-    {
-        char temp[32];
-        int len = strlen(token);
-        if(len > 31) len = 31;
-        memcpy(temp, token, len);
-        temp[len] = 0;
-        yapTrace(( "syntax error near '%s'\n", temp ));
-    }
-    compiler->error = yTrue;
+    yapArrayPush(&compiler->errors, yapStrdup(error));
 }
 
 yapArray * yapCompileIdentifierListCreate(yapCompiler *compiler, struct yapToken *firstIdentifier)
@@ -305,5 +302,87 @@ yapCode * yapCompileAppendOp(yapCompiler *compiler, struct yapCode *code, yOpcod
     yapCodeGrow(code, 1);
     yapCodeAppend(code, opcode, operand);
     return code;
+}
+
+// ---------------------------------------------------------------------------
+
+enum
+{
+    YAF_HURR
+};
+
+typedef yapCode * (*yapAssembleFunc)(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep);
+
+yapCode * yapAssembleFoo(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
+{
+    return NULL;
+}
+
+typedef struct yapAssembleInfo
+{
+    yU32 flags;
+    yapAssembleFunc assemble;
+} yapAssembleInfo;
+
+#define ASMFORWARD(NAME) \
+yapCode * yapAssemble ## NAME (yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
+
+ASMFORWARD(StatementList);
+
+static yapAssembleInfo asmDispatch[YST_COUNT] =
+{
+    { 0, yapAssembleFoo },             // YST_ROOT
+
+    { 0, yapAssembleFoo },             // YST_KSTRING
+    { 0, yapAssembleFoo },             // YST_KINT
+    { 0, yapAssembleFoo },             // YST_IDENTIFIER
+
+    { 0, yapAssembleStatementList },   // YST_STATEMENTLIST
+    { 0, yapAssembleFoo },             // YST_EXPRESSIONLIST
+    { 0, yapAssembleFoo },             // YST_IDENTIFIERLIST
+
+    { 0, yapAssembleFoo },             // YST_CALL
+    { 0, yapAssembleFoo },             // YST_STRINGFORMAT
+
+    { 0, yapAssembleFoo },             // YST_NULL
+
+    { 0, yapAssembleFoo },             // YST_TOSTRING
+    { 0, yapAssembleFoo },             // YST_TOINT
+    { 0, yapAssembleFoo },             // YST_ADD
+    { 0, yapAssembleFoo },             // YST_SUB
+    { 0, yapAssembleFoo },             // YST_MUL
+    { 0, yapAssembleFoo },             // YST_DIV
+
+    { 0, yapAssembleFoo },             // YST_STATEMENT_EXPR
+    { 0, yapAssembleFoo },             // YST_ASSIGNMENT
+    { 0, yapAssembleFoo },             // YST_VAR
+    { 0, yapAssembleFoo },             // YST_RETURN
+
+    { 0, yapAssembleFoo },             // YST_IFELSE
+    { 0, yapAssembleFoo },             // YST_LOOP
+    { 0, yapAssembleFoo },             // YST_FUNCTION
+};
+
+yapCode * yapAssembleStatementList(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
+{
+    int i;
+    for(i=0; i<syntax->r.a->count; i++)
+    {
+        yapSyntax *child = (yapSyntax *)syntax->r.a->data[i];
+        asmDispatch[child->type].assemble(compiler, dst, child, NULL);
+    }
+    return dst;
+}
+
+yBool yapAssemble(yapCompiler *compiler)
+{
+    if(compiler->tree->root && (compiler->tree->root->type == YST_STATEMENTLIST))
+    {
+        compiler->module = yapModuleCreate();
+        compiler->code   = yapCodeCreate();
+        yapAssembleStatementList(compiler, compiler->code, compiler->tree->root, NULL);
+        printf("moar\n");
+    }
+    return yTrue;
 }
 

@@ -1,6 +1,8 @@
 #include "yapLexer.h"
 
 #include "yapCompiler.h"
+#include "yapParser.h"
+#include "yapSyntax.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +61,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     indentTop = l.indents.data[l.indents.count-1];
 #endif
 
-    while(!compiler->error && ((id = getNextToken(&l)) != YTT_EOF))
+    while(!compiler->errors.count && ((id = getNextToken(&l)) != YTT_EOF))
     {
         if(l.error)
             break;
@@ -103,8 +105,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
                 if(!l.indents.count)
                 {
-                    printf("Indent stack empty!\n");
-                    compiler->error = yTrue;
+                    yapCompileError(compiler, "Indent stack empty!");
                     return yFalse;
                 }
             }
