@@ -18,8 +18,7 @@
 void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func)
 {
     yapVariable *intrinsic = yapVariableCreate(vm, name);
-    intrinsic->value = yapValueCreate(vm);
-    yapValueSetCFunction(intrinsic->value, func);
+    intrinsic->value = yapValueSetCFunction(vm, yapValueCreate(vm), func);
     yapArrayPush(&vm->globals, intrinsic);
 }
 
@@ -40,9 +39,7 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
         {
             // Alloc the global variable "main"
             moduleRef = yapVariableCreate(vm, name);
-            moduleRef->value = yapValueCreate(vm);
-            moduleRef->value->type = YVT_MODULE;
-            moduleRef->value->moduleVal = module;
+            moduleRef->value = yapValueSetModule(vm, yapValueCreate(vm), module);
             yapArrayPush(&vm->globals, moduleRef);
 
             yapArrayPush(&vm->modules, module);
@@ -170,7 +167,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTy
         // Too few arguments -- pad with nulls
         int i;
         for(i=0; i<(block->argCount - argCount); i++)
-            yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
+            yapArrayPush(&vm->stack, &yapValueNull);
     }
 
     frame = yapFrameCreate(frameType, block, vm->stack.count - argCount);
@@ -213,36 +210,8 @@ static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
 
 static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 {
-    yapValue *value = yapValueCreate(vm);
-    value->type = YVT_REF;
-    value->refVal = variable;
+    yapValue *value = yapValueSetRef(vm, yapValueCreate(vm), variable);
     yapArrayPush(&vm->stack, value);
-}
-
-yBool yapVMSetVar(yapVM *vm, yapValue *ref, yapValue *val)
-{
-    if(!val)
-    {
-        yapVMSetError(vm, "YOP_SETVAR: empty stack!");
-        return yFalse;
-    }
-    if(!ref)
-    {
-        yapVMSetError(vm, "YOP_SETVAR: empty stack!");
-        return yFalse;
-    }
-    if(ref->type != YVT_REF)
-    {
-        yapVMSetError(vm, "YOP_SETVAR: value on top of stack, ref underneath");
-        return yFalse;
-    }
-    ref->refVal->value = yapValueClone(vm, val);
-
-    //if(val->type == YVT_STRING)
-    //    yapTrace(("-- set '%s' to '%s'\n", ref->refVal->name, val->stringVal));
-    //else if(val->type == YVT_NULL)
-    //    yapTrace(("-- set '%s' to null\n", ref->refVal->name));
-    return yTrue;
 }
 
 // TODO: merge this function with PushFrame and _RET
@@ -328,8 +297,8 @@ void yapVMLoop(yapVM *vm)
         opcode  = frame->ip->opcode;
         operand = frame->ip->operand;
 
-        //printf(" -> %d\n", vm->stack.count);
-        //yapOpsDump(frame->ip, 1);
+        printf(" -> %d\n", vm->stack.count);
+        yapOpsDump(frame->ip, 1);
 
         switch(opcode)
         {
@@ -349,30 +318,27 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_PUSHNULL:
             {
-                yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
+                yapArrayPush(&vm->stack, &yapValueNull);
             }
             break;
 
         case YOP_PUSHLBLOCK:
             {
-                yapValue *value = yapValueCreate(vm);
-                yapValueSetFunction(value, frame->block->module->blocks.data[operand]);
+                yapValue *value = yapValueSetFunction(vm, yapValueCreate(vm), frame->block->module->blocks.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
 
         case YOP_PUSH_KI:
             {
-                yapValue *value = yapValueCreate(vm);
-                yapValueSetInt(value, frame->block->module->kInts.data[operand]);
+                yapValue *value = yapValueSetInt(vm, yapValueCreate(vm), frame->block->module->kInts.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
 
         case YOP_PUSH_KS:
             {
-                yapValue *value = yapValueCreate(vm);
-                yapValueSetKString(value, frame->block->module->kStrings.data[operand]);
+                yapValue *value = yapValueSetKString(vm, yapValueCreate(vm), frame->block->module->kStrings.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
@@ -402,7 +368,7 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_REFVAL:
             {
-                yapValue *value = yapArrayTop(&vm->stack);
+                yapValue *value = yapArrayPop(&vm->stack);
                 if(!value)
                 {
                     yapVMSetError(vm, "YOP_REFVAL: empty stack!");
@@ -415,7 +381,7 @@ void yapVMLoop(yapVM *vm)
                     continueLooping = yFalse;
                     break;
                 }
-                yapValueCloneData(vm, value, value->refVal->value);
+                yapArrayPush(&vm->stack, value->refVal->value);
             }
             break;
 
@@ -471,7 +437,7 @@ void yapVMLoop(yapVM *vm)
             {
                 yapValue *ref = yapArrayPop(&vm->stack);
                 yapValue *val = yapArrayPop(&vm->stack);
-                continueLooping = yapVMSetVar(vm, ref, val);
+                continueLooping = yapValueSetRefVal(vm, ref, val);
             }
             break;
 
@@ -559,7 +525,7 @@ void yapVMLoop(yapVM *vm)
                     for(i=0; i<(keepCount - offerCount ); i++)
                     {
                         yapTrace(("-- padding stack with null --\n"));
-                        yapArrayPush(&vm->stack, yapValueClone(vm, &yapValueNull));
+                        yapArrayPush(&vm->stack, &yapValueNull);
                     }
                 }
             }
@@ -730,8 +696,7 @@ void yapVMGC(struct yapVM *vm)
     for(i=0; i<vm->usedValues.count; i++)
     {
         yapValue *value = (yapValue *)vm->usedValues.data[i];
-        value->used   = yFalse;
-        value->shared = yFalse;
+        value->used = yFalse;
     }
 
     for(i=0; i<vm->usedVariables.count; i++)

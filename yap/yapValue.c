@@ -1,6 +1,7 @@
 #include "yapValue.h"
 
 #include "yapLexer.h"
+#include "yapVariable.h"
 #include "yapVM.h"
 
 #include <stdio.h>
@@ -13,49 +14,121 @@ static char *NULL_STRING_FORM = "[null]";
 
 yapValue yapValueNull = {YVT_NULL};
 
-void yapValueSetInt(yapValue *p, int v)
+yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_INT;
     p->intVal = v;
+    p->used = yTrue;
+    yapTrace(("yapValueSetInt %p [%d]\n", p, v));
+    return p;
 }
 
-void yapValueSetKString(yapValue *p, char *s)
+yapValue * yapValueSetKString(struct yapVM *vm, yapValue *p, char *s)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_STRING;
     p->stringVal = s;
     p->constant = yTrue;
+    p->used = yTrue;
+    yapTrace(("yapValueSetKString %p\n", p));
+    return p;
 }
 
-void yapValueSetString(yapValue *p, char *s)
+yapValue * yapValueSetString(struct yapVM *vm, yapValue *p, char *s)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_STRING;
     p->stringVal = yapStrdup(s);
     p->constant = yFalse;
+    p->used = yTrue;
+    yapTrace(("yapValueSetString %p\n", p));
+    return p;
 }
 
-void yapValueDonateString(yapValue *p, char *s)
+yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_STRING;
     p->stringVal = s;
     p->constant = yFalse;
+    p->used = yTrue;
+    yapTrace(("yapValueDonateString %p\n", p));
+    return p;
 }
 
-void yapValueSetFunction(yapValue *p, struct yapBlock *block)
+yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_BLOCK;
     p->blockVal = block;
+    p->used = yTrue;
+    yapTrace(("yapValueSetFunction %p\n", p));
+    return p;
 }
 
-void yapValueSetCFunction(yapValue *p, yapCFunction func)
+yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func)
 {
+    p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_CFUNCTION;
     p->cFuncVal = func;
+    p->used = yTrue;
+    yapTrace(("yapValueSetCFunction %p\n", p));
+    return p;
+}
+
+yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module)
+{
+    p = yapValuePersonalize(vm, p);
+    yapValueClear(p);
+    p->type = YVT_MODULE;
+    p->moduleVal = module;
+    p->used = yTrue;
+    yapTrace(("yapValueSetModule %p\n", p));
+    return p;
+}
+
+yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapVariable *variable)
+{
+    p = yapValuePersonalize(vm, p);
+    yapValueClear(p);
+    p->type = YVT_REF;
+    p->refVal = variable;
+    p->used = yTrue;
+    yapTrace(("yapValueSetRef %p\n", p));
+    return p;
+}
+
+yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
+{
+    if(!p)
+    {
+        yapVMSetError(vm, "yapValueSetRefVal: empty stack!");
+        return yFalse;
+    }
+    if(!ref)
+    {
+        yapVMSetError(vm, "yapValueSetRefVal: empty stack!");
+        return yFalse;
+    }
+    if(ref->type != YVT_REF)
+    {
+        yapVMSetError(vm, "yapValueSetRefVal: value on top of stack, ref underneath");
+        return yFalse;
+    }
+
+    p = yapValuePersonalize(vm, p);
+    ref->refVal->value = p;
+    p->used = yTrue;
+
+    yapTrace(("yapValueSetRefVal %p = %p\n", ref, p));
+    return yTrue;
 }
 
 // ---------------------------------------------------------------------------
@@ -76,9 +149,9 @@ void yapValueArrayPush(yapValue *p, yapValue *v)
 
 void yapValueClear(yapValue *p)
 {
-    if((p->type == YVT_STRING) && !p->constant /*COW && !p->shared */)
+    if((p->type == YVT_STRING) && !p->constant)
         yapFree(p->stringVal);
-    else if((p->type == YVT_ARRAY) && !p->shared)
+    else if(p->type == YVT_ARRAY)
         yapArrayDestroy(p->arrayVal, NULL);
 
     memset(p, 0, sizeof(*p));
@@ -87,6 +160,7 @@ void yapValueClear(yapValue *p)
 
 void yapValueDestroy(yapValue *p)
 {
+    yapTrace(("yapValueDestroy %p\n", p));
     yapValueClear(p);
     yapFree(p);
 }
@@ -95,6 +169,7 @@ yapValue * yapValueCreate(struct yapVM *vm)
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
     yapArrayPush(&vm->usedValues, value);
+    yapTrace(("yapValueCreate %p\n", value));
     return value;
 }
 
@@ -126,13 +201,6 @@ void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
             dst->stringVal = src->stringVal;
         else
             dst->stringVal = yapStrdup(src->stringVal);
-        /*COW
-        dst->stringVal = src->stringVal;
-        if(!dst->constant)
-        {
-            dst->shared = yTrue;
-            src->shared = yTrue;
-        } */
         break;
     default:
         yapVMSetError(vm, "yapValueCloneData(): cannot clone type %d", dst->type);
@@ -143,7 +211,19 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
 {
     yapValue *n = yapValueCreate(vm);
     yapValueCloneData(vm, n, p);
+    yapTrace(("yapValueClone %p -> %p\n", p, n));
     return n;
+}
+
+yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
+{
+    if(p == &yapValueNull)
+        return yapValueCreate(vm);
+
+    if(p->used)
+        return yapValueClone(vm, p);
+
+    return p;
 }
 
 void yapValueMark(yapValue *value)
@@ -166,10 +246,7 @@ void yapValueMark(yapValue *value)
 
     // TODO: Dicts need to have their subvalues marked recursively
 
-    if(value->used)
-        value->shared = yTrue;
-    else
-        value->used = yTrue;
+    value->used = yTrue;
 }
 
 // TODO: Make a real string class that isn't terrible
@@ -186,10 +263,7 @@ yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     a = yapValueToString(vm, a);
     b = yapValueToString(vm, b);
-    yapValueDonateString(a, concat(a->stringVal, b->stringVal));
-    a->type = YVT_STRING;
-    a->shared   = yFalse;
-    a->constant = yFalse;
+    a = yapValueDonateString(vm, a, concat(a->stringVal, b->stringVal));
     return a;
 }
 
@@ -199,16 +273,16 @@ yapValue * yapValueIntOp(struct yapVM *vm, yapValue *a, yapValue *b, char op)
     b = yapValueToInt(vm, b);
     switch(op)
     {
-        case '+': yapValueSetInt(a, a->intVal + b->intVal); break;
-        case '-': yapValueSetInt(a, a->intVal - b->intVal); break;
-        case '*': yapValueSetInt(a, a->intVal * b->intVal); break;
+        case '+': a = yapValueSetInt(vm, a, a->intVal + b->intVal); break;
+        case '-': a = yapValueSetInt(vm, a, a->intVal - b->intVal); break;
+        case '*': a = yapValueSetInt(vm, a, a->intVal * b->intVal); break;
         case '/': 
             if(!b->intVal)
             {
                 yapVMSetError(vm, "divide by zero!");
                 return NULL;
             }
-            yapValueSetInt(a, a->intVal / b->intVal);
+            a = yapValueSetInt(vm, a, a->intVal / b->intVal);
             break;
     };
     return a;
@@ -272,45 +346,56 @@ yapValue * yapValueToBool(struct yapVM *vm, yapValue *p)
 
 yapValue * yapValueToInt(struct yapVM *vm, yapValue *p)
 {
-    yapValue *v = yapValueClone(vm, p);
-    switch(v->type)
+    switch(p->type)
     {
-        case YVT_NULL: 
-            v->intVal = 0;
+        case YVT_INT: 
             break;
+
+        case YVT_NULL: 
+            p = yapValueSetInt(vm, p, 0);
+            break;
+
         case YVT_STRING: 
         {
             yapToken t = { p->stringVal, strlen(p->stringVal) };
-            v->intVal = yapTokenToInt(&t);
+            p = yapValueSetInt(vm, p, yapTokenToInt(&t));
             break;
         }
+
+        default:
+            printf("yapValueToInt: unhandled case %d\n", p->type);
+            return NULL;
+            break;
     };
 
-    v->type = YVT_INT;
-    return v;
+    return p;
 }
 
 yapValue * yapValueToString(struct yapVM *vm, yapValue *p)
 {
-    yapValue *v = yapValueClone(vm, p);
-    switch(v->type)
+    switch(p->type)
     {
         case YVT_STRING: 
             break;
 
         case YVT_NULL: 
-            yapValueSetKString(v, NULL_STRING_FORM);
+            p = yapValueSetKString(vm, p, NULL_STRING_FORM);
             break;
 
         case YVT_INT: 
             {
                 char temp[32];
-                sprintf(temp, "%d", v->intVal);
-                yapValueSetString(v, temp);
+                sprintf(temp, "%d", p->intVal);
+                p = yapValueSetString(vm, p, temp);
             }
             break;
+
+        default:
+            printf("yapValueToString: unhandled case %d\n", p->type);
+            return NULL;
+            break;
     };
-    return v;
+    return p;
 }
 
 yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount)

@@ -38,7 +38,6 @@ typedef struct yapValue
     yU8 type;
     yFlag constant:1;                  // Pointing at a constant table, do not free
     yFlag used:1;                      // The "mark" during the GC's mark-and-sweep
-    yFlag shared:1;                    // GC's second mark; flags copy-on-write for string
     union
     {
         yS32 intVal;
@@ -55,13 +54,18 @@ yapValue * yapValueCreate(struct yapVM *vm);
 
 void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src);
 yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
+yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p); // only clones if used
 
-void yapValueSetInt(yapValue *p, int v);
-void yapValueSetKString(yapValue *p, char *s);
-void yapValueSetString(yapValue *p, char *s);
-void yapValueDonateString(yapValue *p, char *s); // grants ownership
-void yapValueSetFunction(yapValue *p, struct yapBlock *block);
-void yapValueSetCFunction(yapValue *p, yapCFunction func);
+yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v);
+yapValue * yapValueSetKString(struct yapVM *vm, yapValue *p, char *s);
+yapValue * yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
+yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s); // grants ownership to the char*
+yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
+yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);
+yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module);
+yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapVariable *variable);
+
+yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 
 void yapValueArrayPush(yapValue *p, yapValue *v);
 
