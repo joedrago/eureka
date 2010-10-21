@@ -311,12 +311,9 @@ enum
     YAF_HURR
 };
 
+#define asmFunc(NAME) \
+yapCode * yapAssemble ## NAME (yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
 typedef yapCode * (*yapAssembleFunc)(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep);
-
-yapCode * yapAssembleFoo(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
-{
-    return NULL;
-}
 
 typedef struct yapAssembleInfo
 {
@@ -324,53 +321,96 @@ typedef struct yapAssembleInfo
     yapAssembleFunc assemble;
 } yapAssembleInfo;
 
-#define ASMFORWARD(NAME) \
-yapCode * yapAssemble ## NAME (yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
 
-ASMFORWARD(StatementList);
+asmFunc(Nop);
+asmFunc(StatementExpr);
+asmFunc(StatementList);
+asmFunc(ExpressionList);
+asmFunc(Binary);
 
 static yapAssembleInfo asmDispatch[YST_COUNT] =
 {
-    { 0, yapAssembleFoo },             // YST_ROOT
+    { 0, yapAssembleNop },             // YST_ROOT
 
-    { 0, yapAssembleFoo },             // YST_KSTRING
-    { 0, yapAssembleFoo },             // YST_KINT
-    { 0, yapAssembleFoo },             // YST_IDENTIFIER
+    { 0, yapAssembleNop },             // YST_KSTRING
+    { 0, yapAssembleNop },             // YST_KINT
+    { 0, yapAssembleNop },             // YST_IDENTIFIER
 
     { 0, yapAssembleStatementList },   // YST_STATEMENTLIST
-    { 0, yapAssembleFoo },             // YST_EXPRESSIONLIST
-    { 0, yapAssembleFoo },             // YST_IDENTIFIERLIST
+    { 0, yapAssembleExpressionList },  // YST_EXPRESSIONLIST
+    { 0, yapAssembleNop },             // YST_IDENTIFIERLIST
 
-    { 0, yapAssembleFoo },             // YST_CALL
-    { 0, yapAssembleFoo },             // YST_STRINGFORMAT
+    { 0, yapAssembleNop },             // YST_CALL
+    { 0, yapAssembleNop },             // YST_STRINGFORMAT
 
-    { 0, yapAssembleFoo },             // YST_NULL
+    { 0, yapAssembleNop },             // YST_NULL
 
-    { 0, yapAssembleFoo },             // YST_TOSTRING
-    { 0, yapAssembleFoo },             // YST_TOINT
-    { 0, yapAssembleFoo },             // YST_ADD
-    { 0, yapAssembleFoo },             // YST_SUB
-    { 0, yapAssembleFoo },             // YST_MUL
-    { 0, yapAssembleFoo },             // YST_DIV
+    { 0, yapAssembleNop },             // YST_TOSTRING
+    { 0, yapAssembleNop },             // YST_TOINT
+    { 0, yapAssembleBinary },          // YST_ADD
+    { 0, yapAssembleNop },             // YST_SUB
+    { 0, yapAssembleNop },             // YST_MUL
+    { 0, yapAssembleNop },             // YST_DIV
 
-    { 0, yapAssembleFoo },             // YST_STATEMENT_EXPR
-    { 0, yapAssembleFoo },             // YST_ASSIGNMENT
-    { 0, yapAssembleFoo },             // YST_VAR
-    { 0, yapAssembleFoo },             // YST_RETURN
+    { 0, yapAssembleStatementExpr },   // YST_STATEMENT_EXPR
+    { 0, yapAssembleNop },             // YST_ASSIGNMENT
+    { 0, yapAssembleNop },             // YST_VAR
+    { 0, yapAssembleNop },             // YST_RETURN
 
-    { 0, yapAssembleFoo },             // YST_IFELSE
-    { 0, yapAssembleFoo },             // YST_LOOP
-    { 0, yapAssembleFoo },             // YST_FUNCTION
+    { 0, yapAssembleNop },             // YST_IFELSE
+    { 0, yapAssembleNop },             // YST_LOOP
+    { 0, yapAssembleNop },             // YST_FUNCTION
 };
 
-yapCode * yapAssembleStatementList(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, int *keep)
+asmFunc(Nop)
+{
+    printf("%d\n", syntax->type);
+    return NULL;
+}
+
+asmFunc(Binary)
+{
+    yapSyntax *a = syntax->l.p;
+    yapSyntax *b = syntax->r.p;
+    asmDispatch[a->type].assemble(compiler, dst, a, NULL);
+    asmDispatch[b->type].assemble(compiler, dst, b, NULL);
+    yapCodeGrow(dst, 1);
+    printf("Binary\n");
+    switch(syntax->type)
+    {
+        case YST_ADD: yapCodeAppend(dst, YOP_ADD, 0); break;
+    };
+    if(keep) *keep = 1;
+    return NULL;
+}
+
+asmFunc(ExpressionList)
 {
     int i;
-    for(i=0; i<syntax->r.a->count; i++)
+    for(i=0; i<syntax->v.a->count; i++)
     {
-        yapSyntax *child = (yapSyntax *)syntax->r.a->data[i];
+        yapSyntax *child = (yapSyntax *)syntax->v.a->data[i];
         asmDispatch[child->type].assemble(compiler, dst, child, NULL);
     }
+    if(keep) *keep = 0;
+    return dst;
+}
+
+asmFunc(StatementExpr)
+{
+    yapSyntax *child = syntax->v.p;
+    asmDispatch[child->type].assemble(compiler, dst, child, keep);
+}
+
+asmFunc(StatementList)
+{
+    int i;
+    for(i=0; i<syntax->v.a->count; i++)
+    {
+        yapSyntax *child = (yapSyntax *)syntax->v.a->data[i];
+        asmDispatch[child->type].assemble(compiler, dst, child, NULL);
+    }
+    if(keep) *keep = 0;
     return dst;
 }
 
@@ -381,7 +421,7 @@ yBool yapAssemble(yapCompiler *compiler)
         compiler->module = yapModuleCreate();
         compiler->code   = yapCodeCreate();
         yapAssembleStatementList(compiler, compiler->code, compiler->tree->root, NULL);
-        printf("moar\n");
+        yapOpsDump(compiler->code->ops, compiler->code->count);
     }
     return yTrue;
 }

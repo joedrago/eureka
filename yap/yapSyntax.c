@@ -94,15 +94,15 @@ yapSyntax * yapSyntaxCreateNull()
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
-    syntax->r.a = yapArrayCreate();
+    syntax->v.a = yapArrayCreate();
     if(firstExpr)
-        yapArrayPush(syntax->r.a, firstExpr);
+        yapArrayPush(syntax->v.a, firstExpr);
     return syntax;
 }
 
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
 {
-    yapArrayPush(list->r.a, expr);
+    yapArrayPush(list->v.a, expr);
     return list;
 }
 
@@ -146,7 +146,7 @@ yapSyntax * yapSyntaxCreateCombine(yU32 type, yapSyntax *l, yapSyntax *r)
 yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_STATEMENT_EXPR);
-    syntax->r.p = expr;
+    syntax->v.p = expr;
     return syntax;
 }
 
