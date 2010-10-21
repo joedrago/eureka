@@ -59,6 +59,7 @@ yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
 void yapValueSetInt(yapValue *p, int v);
 void yapValueSetKString(yapValue *p, char *s);
 void yapValueSetString(yapValue *p, char *s);
+void yapValueDonateString(yapValue *p, char *s); // grants ownership
 void yapValueSetFunction(yapValue *p, struct yapBlock *block);
 void yapValueSetCFunction(yapValue *p, yapCFunction func);
 

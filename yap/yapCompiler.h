@@ -8,14 +8,14 @@
 
 struct yapCode;
 struct yapModule;
-struct yapSyntaxTree;
+struct yapSyntax;
 struct yapToken;
 
 // ---------------------------------------------------------------------------
 
 typedef struct yapCompiler
 {
-    struct yapSyntaxTree *tree;
+    struct yapSyntax *root;
     struct yapModule *module;
     struct yapCode *code;
     yapArray errors;
@@ -28,5 +28,6 @@ void yapCompilerDestroy(yapCompiler *compiler);
 yBool yapCompile(yapCompiler *compiler, const char *text);
 
 void yapCompileError(yapCompiler *compiler, const char *error);
+void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token);
 
 #endif

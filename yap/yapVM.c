@@ -34,26 +34,29 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     compiler->module = NULL;
     yapCompilerDestroy(compiler);
 
-//    if(module->block)
-//    {
-//        // Alloc the global variable "main"
-//        moduleRef = yapVariableCreate(vm, name);
-//        moduleRef->value = yapValueCreate(vm);
-//        moduleRef->value->type = YVT_MODULE;
-//        moduleRef->value->moduleVal = module;
-//        yapArrayPush(&vm->globals, moduleRef);
-//
-//        yapArrayPush(&vm->modules, module);
-//
-//        // Execute the module's block
-//        yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
-//        yapVMLoop(vm);
-//    }
-//    else
-//    {
-//        yapModuleDestroy(module);
-//        module = NULL;
-//    }
+    if(module)
+    {
+        if(module->block)
+        {
+            // Alloc the global variable "main"
+            moduleRef = yapVariableCreate(vm, name);
+            moduleRef->value = yapValueCreate(vm);
+            moduleRef->value->type = YVT_MODULE;
+            moduleRef->value->moduleVal = module;
+            yapArrayPush(&vm->globals, moduleRef);
+
+            yapArrayPush(&vm->modules, module);
+
+            // Execute the module's block
+            yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
+            yapVMLoop(vm);
+        }
+        else
+        {
+            yapModuleDestroy(module);
+            module = NULL;
+        }
+    }
 
     return module;
 }
@@ -324,6 +327,9 @@ void yapVMLoop(yapVM *vm)
         // These are put into temporary variables for future ntohs() cross-platform safety
         opcode  = frame->ip->opcode;
         operand = frame->ip->operand;
+
+        //printf(" -> %d\n", vm->stack.count);
+        //yapOpsDump(frame->ip, 1);
 
         switch(opcode)
         {
@@ -778,12 +784,7 @@ void yapVMGC(struct yapVM *vm)
     for(i=0; i<vm->usedValues.count; i++)
     {
         yapValue *value = (yapValue *)vm->usedValues.data[i];
-        if(value->used)
-        {
-            if(value->type == YVT_REF)
-                yapVariableMark(value->refVal);
-        }
-        else
+        if(!value->used)
         {
             yapValueDestroy(value);
             vm->usedValues.data[i] = NULL; // for future squashing
@@ -800,5 +801,6 @@ void yapVMGC(struct yapVM *vm)
             vm->usedVariables.data[i] = NULL; // for future squashing
         }
     }
+
     yapArraySquash(&vm->usedVariables);
 }

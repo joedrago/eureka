@@ -36,6 +36,14 @@ void yapValueSetString(yapValue *p, char *s)
     p->constant = yFalse;
 }
 
+void yapValueDonateString(yapValue *p, char *s)
+{
+    yapValueClear(p);
+    p->type = YVT_STRING;
+    p->stringVal = s;
+    p->constant = yFalse;
+}
+
 void yapValueSetFunction(yapValue *p, struct yapBlock *block)
 {
     yapValueClear(p);
@@ -68,7 +76,7 @@ void yapValueArrayPush(yapValue *p, yapValue *v)
 
 void yapValueClear(yapValue *p)
 {
-    if((p->type == YVT_STRING) && !p->constant && !p->shared)
+    if((p->type == YVT_STRING) && !p->constant /*COW && !p->shared */)
         yapFree(p->stringVal);
     else if((p->type == YVT_ARRAY) && !p->shared)
         yapArrayDestroy(p->arrayVal, NULL);
@@ -107,13 +115,24 @@ void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
     case YVT_INT:
         dst->intVal = src->intVal;
         break;
+    case YVT_CFUNCTION:
+        dst->cFuncVal = src->cFuncVal;
+        break;
+    case YVT_REF:
+        dst->refVal = src->refVal;
+        break;
     case YVT_STRING:
+        if(src->constant)
+            dst->stringVal = src->stringVal;
+        else
+            dst->stringVal = yapStrdup(src->stringVal);
+        /*COW
         dst->stringVal = src->stringVal;
         if(!dst->constant)
         {
             dst->shared = yTrue;
             src->shared = yTrue;
-        }
+        } */
         break;
     default:
         yapVMSetError(vm, "yapValueCloneData(): cannot clone type %d", dst->type);
@@ -142,6 +161,9 @@ void yapValueMark(yapValue *value)
         }
     }
 
+    if(!value->used && (value->type == YVT_REF))
+        yapVariableMark(value->refVal);
+
     // TODO: Dicts need to have their subvalues marked recursively
 
     if(value->used)
@@ -164,7 +186,7 @@ yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     a = yapValueToString(vm, a);
     b = yapValueToString(vm, b);
-    a->stringVal = concat(a->stringVal, b->stringVal);
+    yapValueDonateString(a, concat(a->stringVal, b->stringVal));
     a->type = YVT_STRING;
     a->shared   = yFalse;
     a->constant = yFalse;

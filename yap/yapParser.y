@@ -43,13 +43,13 @@
 %left STRING.
 %left MOD.
 
-%syntax_error { yapSyntaxTreeSyntaxError(compiler->tree, &TOKEN); }
+%syntax_error { yapCompileSyntaxError(compiler, &TOKEN); }
 
 // ---------------------------------------------------------------------------
 // Module
 
 module ::= statement_list(L).
-    { compiler->tree->root = L; }
+    { compiler->root = L; }
 
 // ---------------------------------------------------------------------------
 // Statement List
@@ -136,16 +136,16 @@ complex_expression(C) ::= STRING complex_expression(E).
     { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
 
 complex_expression(C) ::= complex_expression(OC) PLUS complex_expression(E).
-    { C = yapSyntaxCreateCombine(YST_ADD, OC, E); }
+    { C = yapSyntaxCreateBinary(YST_ADD, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) DASH complex_expression(E).
-    { C = yapSyntaxCreateCombine(YST_SUB, OC, E); }
+    { C = yapSyntaxCreateBinary(YST_SUB, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) STAR complex_expression(E).
-    { C = yapSyntaxCreateCombine(YST_MUL, OC, E); }
+    { C = yapSyntaxCreateBinary(YST_MUL, OC, E); }
 
 complex_expression(C) ::= complex_expression(OC) SLASH complex_expression(E).
-    { C = yapSyntaxCreateCombine(YST_DIV, OC, E); }
+    { C = yapSyntaxCreateBinary(YST_DIV, OC, E); }
 
 complex_expression(C) ::= complex_expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }

@@ -1,6 +1,15 @@
-print(5+5, "\n")
-print(5+"5", "\n")
-print("5"+5, "\n")
-print(string(5)+5, "\n")
-print(int("5")+5, "\n")
-print("my name is %s and I am %d years old.\n" % ("joe", 0x1f))
+
+func testret(punctuation)
+	var derp = "sweet%s" % (punctuation)
+	return derp
+
+print(testret("!") + "\n")
+
+print("start loop\n")
+
+var hurr = 5
+while hurr
+	print("hurr %d\n" % (hurr))
+	hurr = hurr - 1
+
+print("end loop\n")

@@ -7,28 +7,13 @@
 // Forwards
 
 struct yapToken;
-struct yapSyntax;
 
 // ---------------------------------------------------------------------------
 
-typedef struct yapSyntaxTree
-{
-    struct yapSyntax *root;
-    yapArray errors;
-} yapSyntaxTree;
-
-yapSyntaxTree * yapSyntaxTreeCreate();
-void yapSyntaxTreeDestroy(yapSyntaxTree *tree);
-
-void yapSyntaxTreeSetError(yapSyntaxTree *tree, const char *error);
-void yapSyntaxTreeSetSyntaxError(yapSyntaxTree *tree, struct yapToken *token);
-
-// ---------------------------------------------------------------------------
-
-// Note: This enum must stay syncd with yapCompiler's yapAssembleInfo
+// Note: This enum must stay sync'd with yapCompiler's yapAssembleInfo
 enum
 {
-    YST_ROOT = 0,
+    YST_NOP = 0,
 
     YST_KSTRING,                       // s
     YST_KINT,                          // i
@@ -88,7 +73,7 @@ yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
 yapSyntax * yapSyntaxCreateCall(struct yapToken *name, yapSyntax *args);
 yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
-yapSyntax * yapSyntaxCreateCombine(yU32 type, yapSyntax *l, yapSyntax *r);
+yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);
 yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateAssignment(struct yapToken *token, yapSyntax *expr);
 yapSyntax * yapSyntaxCreateVar(struct yapToken *token, yapSyntax *expr);

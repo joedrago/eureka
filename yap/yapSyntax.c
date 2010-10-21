@@ -5,51 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 
-yapSyntaxTree * yapSyntaxTreeCreate()
-{
-    yapSyntaxTree *tree = (yapSyntaxTree *)yapAlloc(sizeof(yapSyntaxTree));
-    return tree;
-}
-
-void yapSyntaxTreeDestroy(yapSyntaxTree *tree)
-{
-    yapArrayClear(&tree->errors, yapFree);
-
-    if(tree->root)
-        yapSyntaxDestroy(tree->root);
-
-    yapFree(tree);
-}
-
-void yapSyntaxTreeError(yapSyntaxTree *tree, const char *error)
-{
-    yapArrayPush(&tree->errors, yapStrdup(error));
-}
-
-void yapSyntaxTreeSyntaxError(yapSyntaxTree *tree, struct yapToken *token)
-{
-    char error[64];
-    strcpy(error, "syntax error near '");
-    if(token && token->text)
-    {
-        char temp[32];
-        int len = strlen(token->text);
-        if(len > 31) len = 31;
-        memcpy(temp, token->text, len);
-        temp[len] = 0;
-        strcat(error, temp);
-    }
-    else
-    {
-        strcat(error, "<unknown>");
-    }
-    strcat(error, "'");
-
-    yapSyntaxTreeError(tree, error);
-}
-
-// ---------------------------------------------------------------------------
-
 yapSyntax * yapSyntaxCreate(yU32 type)
 {
     yapSyntax *syntax = (yapSyntax *)yapAlloc(sizeof(yapSyntax));
@@ -57,9 +12,21 @@ yapSyntax * yapSyntaxCreate(yU32 type)
     return syntax;
 }
 
+static void yapSyntaxElementClear(yapSyntaxElement *e)
+{
+    if(e->p)
+        yapSyntaxDestroy(e->p);
+    if(e->s)
+        yapFree(e->s);
+    if(e->a)
+        yapArrayDestroy(e->a, (yapDestroyCB)yapSyntaxDestroy);
+}
+
 void yapSyntaxDestroy(yapSyntax *syntax)
 {
-    // TODO: lots of things
+    yapSyntaxElementClear(&syntax->v);
+    yapSyntaxElementClear(&syntax->l);
+    yapSyntaxElementClear(&syntax->r);
 
     yapFree(syntax);
 }
@@ -110,10 +77,7 @@ yapSyntax * yapSyntaxCreateCall(struct yapToken *name, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
     syntax->v.s = yapTokenToString(name);
-    syntax->r.a = args->r.a;
-    args->r.a   = NULL;
-
-    yapSyntaxDestroy(args);
+    syntax->r.p = args;
     return syntax;
 }
 
@@ -121,10 +85,7 @@ yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_STRINGFORMAT);
     syntax->l.p = format;
-    syntax->r.a = args->r.a;
-    args->r.a   = NULL;
-
-    yapSyntaxDestroy(args);
+    syntax->r.p = args;
     return syntax;
 }
 
@@ -135,10 +96,10 @@ yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateCombine(yU32 type, yapSyntax *l, yapSyntax *r)
+yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
-    syntax->r.p = l;
+    syntax->l.p = l;
     syntax->r.p = r;
     return syntax;
 }
