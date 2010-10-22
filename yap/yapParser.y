@@ -30,6 +30,7 @@
 %left OPENBRACE.
 %left CLOSEBRACE.
 %left SEMI.
+%left EQUALS.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -75,15 +76,6 @@ statement_list(L) ::= statement(S).
 %destructor statement
     { yapSyntaxDestroy($$); }
 
-statement(S) ::= IDENTIFIER(I) EQUALS complex_expression(E) ENDSTATEMENT.
-    { S = yapSyntaxCreateAssignment(&I, E); }
-
-statement(S) ::= VAR IDENTIFIER(I) EQUALS complex_expression(E) ENDSTATEMENT.
-    { S = yapSyntaxCreateVar(&I, E); }
-
-statement(S) ::= VAR IDENTIFIER(I) ENDSTATEMENT.
-    { S = yapSyntaxCreateVar(&I, NULL); }
-
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateReturn(L); }
 
@@ -111,50 +103,14 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN ST
 %destructor expr_list
     { yapSyntaxDestroy($$); }
 
-expr_list(EL) ::= expr_list(OL) COMMA complex_expression(E).
+expr_list(EL) ::= expr_list(OL) COMMA expression(E).
     { EL = yapSyntaxListAppend(OL, E); }
 
-expr_list(EL) ::= complex_expression(E).
+expr_list(EL) ::= expression(E).
     { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, E); }
 
 expr_list(EL) ::= .
     { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, NULL); }
-
-// ---------------------------------------------------------------------------
-// Complex Expressions
-
-%type complex_expression
-    { yapSyntax* }
-
-%destructor expression
-    { yapSyntaxDestroy($$); }
-
-complex_expression(C) ::= INT complex_expression(E).
-    { C = yapSyntaxCreateUnary(YST_TOINT, E); }
-
-complex_expression(C) ::= STRING complex_expression(E).
-    { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
-
-complex_expression(C) ::= complex_expression(OC) PLUS complex_expression(E).
-    { C = yapSyntaxCreateBinary(YST_ADD, OC, E); }
-
-complex_expression(C) ::= complex_expression(OC) DASH complex_expression(E).
-    { C = yapSyntaxCreateBinary(YST_SUB, OC, E); }
-
-complex_expression(C) ::= complex_expression(OC) STAR complex_expression(E).
-    { C = yapSyntaxCreateBinary(YST_MUL, OC, E); }
-
-complex_expression(C) ::= complex_expression(OC) SLASH complex_expression(E).
-    { C = yapSyntaxCreateBinary(YST_DIV, OC, E); }
-
-complex_expression(C) ::= complex_expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
-
-complex_expression(C) ::= LEFTPAREN complex_expression(E) RIGHTPAREN.
-    { C = E; }
-
-complex_expression(C) ::= expression(E).
-    { C = E; }
 
 // ---------------------------------------------------------------------------
 // Expression
@@ -165,6 +121,36 @@ complex_expression(C) ::= expression(E).
 %destructor expression
     { yapSyntaxDestroy($$); }
 
+expression(C) ::= INT expression(E).
+    { C = yapSyntaxCreateUnary(YST_TOINT, E); }
+
+expression(C) ::= STRING expression(E).
+    { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
+
+expression(C) ::= expression(OC) PLUS expression(E).
+    { C = yapSyntaxCreateBinary(YST_ADD, OC, E); }
+
+expression(C) ::= expression(OC) DASH expression(E).
+    { C = yapSyntaxCreateBinary(YST_SUB, OC, E); }
+
+expression(C) ::= expression(OC) STAR expression(E).
+    { C = yapSyntaxCreateBinary(YST_MUL, OC, E); }
+
+expression(C) ::= expression(OC) SLASH expression(E).
+    { C = yapSyntaxCreateBinary(YST_DIV, OC, E); }
+
+expression(C) ::= expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+    { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
+
+expression(C) ::= LEFTPAREN expression(E) RIGHTPAREN.
+    { C = E; }
+
+expression(E) ::= lvalue(L) EQUALS expression(R).
+    { E = yapSyntaxCreateAssignment(L, R); }
+
+expression(E) ::= lvalue(LV).
+    { E = LV; }
+
 expression(E) ::= IDENTIFIER(FUNCNAME) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     { E = yapSyntaxCreateCall(&FUNCNAME, ARGS); }
 
@@ -174,11 +160,23 @@ expression(E) ::= INTEGER(I).
 expression(E) ::= LITERALSTRING(L).
     { E = yapSyntaxCreateKString(&L); }
 
-expression(E) ::= IDENTIFIER(I).
-    { E = yapSyntaxCreateIdentifier(&I); }
-
 expression(E) ::= NULL.
     { E = yapSyntaxCreateNull(); }
+
+// ---------------------------------------------------------------------------
+// LValue
+
+%type lvalue
+    { yapSyntax* }
+
+%destructor lvalue
+    { yapSyntaxDestroy($$); }
+
+lvalue(L) ::= IDENTIFIER(I).
+    { L = yapSyntaxCreateIdentifier(&I); }
+
+lvalue(L) ::= VAR IDENTIFIER(I).
+    { L = yapSyntaxCreateVar(yapSyntaxCreateIdentifier(&I)); }
 
 // ---------------------------------------------------------------------------
 // Identifier List
@@ -197,4 +195,3 @@ ident_list(IL) ::= IDENTIFIER(I).
 
 ident_list(IL) ::= .
     { IL = yapSyntaxCreateList(YST_IDENTIFIERLIST, NULL); }
-

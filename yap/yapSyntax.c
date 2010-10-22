@@ -111,19 +111,18 @@ yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateAssignment(struct yapToken *token, yapSyntax *expr)
+yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_ASSIGNMENT);
-    syntax->v.s = yapTokenToString(token);
-    syntax->r.p = expr;
+    syntax->l.p = l;
+    syntax->r.p = r;
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateVar(struct yapToken *token, yapSyntax *expr)
+yapSyntax * yapSyntaxCreateVar(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_VAR);
-    syntax->v.s = yapTokenToString(token);
-    syntax->r.p = expr;
+    syntax->v.p = expr;
     return syntax;
 }
 

@@ -44,7 +44,7 @@ enum
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value
-    YOP_SETVAR,                        // pops [ref,v], sets *ref = v
+    YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
 
     YOP_COUNT
 };

@@ -315,22 +315,9 @@ asmFunc(Binary)
 
 asmFunc(Var)
 {
-    char *name = syntax->v.s;
-    yapSyntax *initialValue = syntax->r.p;
-
-    if(initialValue)
-        asmDispatch[initialValue->type].assemble(compiler, dst, initialValue, 1, ASM_NORMAL);
-
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
-
-    yapCodeGrow(dst, 1);
-    if(initialValue)
-        yapCodeAppend(dst, YOP_SETVAR, 0);
-    else
-        yapCodeAppend(dst, YOP_POP, 1);
-
-    return PAD(0);
+    yapSyntax *expr = syntax->v.p;
+    asmDispatch[expr->type].assemble(compiler, dst, expr, 1, ASM_VAR|ASM_LVALUE);
+    return PAD(1);
 }
 
 asmFunc(Return)
@@ -344,16 +331,15 @@ asmFunc(Return)
 
 asmFunc(Assignment)
 {
-    char *name = syntax->v.s;
-    yapSyntax *value = syntax->r.p;
+    yapSyntax *l = syntax->l.p;
+    yapSyntax *r = syntax->r.p;
+    int leave = (keep > 0) ? 1 : 0;
 
-    asmDispatch[value->type].assemble(compiler, dst, value, 1, ASM_NORMAL);
+    asmDispatch[r->type].assemble(compiler, dst, r, 1, ASM_NORMAL);
+    asmDispatch[l->type].assemble(compiler, dst, l, 1, ASM_LVALUE);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_SETVAR, 0);
-
-    return PAD(0);
+    yapCodeAppend(dst, YOP_SETVAR, leave);
+    return PAD(leave);
 }
 
 asmFunc(IfElse)

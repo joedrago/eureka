@@ -446,7 +446,9 @@ void yapVMLoop(yapVM *vm)
         case YOP_SETVAR:
             {
                 yapValue *ref = yapArrayPop(&vm->stack);
-                yapValue *val = yapArrayPop(&vm->stack);
+                yapValue *val = yapArrayTop(&vm->stack);
+                if(!operand)
+                    yapArrayPop(&vm->stack);
                 continueLooping = yapValueSetRefVal(vm, ref, val);
             }
             break;
