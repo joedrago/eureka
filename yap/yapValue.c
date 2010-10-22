@@ -158,18 +158,36 @@ void yapValueClear(yapValue *p)
     p->type = YVT_NULL;
 }
 
+void yapValueRelease(yapVM *vm, yapValue *p)
+{
+    yapTrace(("yapValueRelease %p\n", p));
+    yapValueClear(p);
+    yapArrayPush(&vm->freeValues, p);
+}
+
 void yapValueDestroy(yapValue *p)
 {
-    yapTrace(("yapValueDestroy %p\n", p));
+    yapTrace(("yapValueFree %p\n", p));
     yapValueClear(p);
     yapFree(p);
 }
 
-yapValue * yapValueCreate(struct yapVM *vm)
+static yapValue * yapValueCreate()
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
-    yapArrayPush(&vm->usedValues, value);
     yapTrace(("yapValueCreate %p\n", value));
+    return value;
+}
+
+yapValue * yapValueAcquire(struct yapVM *vm)
+{
+    yapValue *value = yapArrayPop(&vm->freeValues);
+    if(!value)
+    {
+        value = yapValueCreate();
+    };
+    yapArrayPush(&vm->usedValues, value);
+    yapTrace(("yapValueAcquire %p\n", value));
     return value;
 }
 
@@ -209,7 +227,7 @@ void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
 
 yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
 {
-    yapValue *n = yapValueCreate(vm);
+    yapValue *n = yapValueAcquire(vm);
     yapValueCloneData(vm, n, p);
     yapTrace(("yapValueClone %p -> %p\n", p, n));
     return n;
@@ -218,7 +236,7 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
 yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
 {
     if(p == &yapValueNull)
-        return yapValueCreate(vm);
+        return yapValueAcquire(vm);
 
     if(p->used)
         return yapValueClone(vm, p);
@@ -476,7 +494,7 @@ yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCoun
     // Terminate the string
     out[outPos] = 0;
 
-    format = yapValueCreate(vm);
+    format = yapValueAcquire(vm);
     format->type = YVT_STRING;
     format->stringVal = out;
 

@@ -2,6 +2,7 @@
 
 #include "yapLexer.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,7 +21,10 @@ yOperand yap32ArrayPush(yap32Array *p, yU32 v)
 {
     if(p->count == p->capacity)
     {
-        p->capacity = (p->capacity) ? p->capacity*2 : 2;
+        int newSize = (p->capacity) ? p->capacity*2 : 2;
+        yapTraceMem(("                                     "
+                     "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
+        p->capacity = newSize;
         p->data = yapRealloc(p->data, p->capacity * sizeof(yU32));
     }
     p->data[p->count++] = v;
@@ -38,7 +42,8 @@ yU32 yap32ArrayPop(yap32Array *p)
 void yap32ArrayClear(yap32Array *p)
 {
     p->count = 0;
-    yapFree(p->data);
+    if(p->data)
+        yapFree(p->data);
     p->data = NULL;
     p->capacity = 0;
 }
@@ -83,7 +88,10 @@ yOperand yapArrayPush(yapArray *p, void *v)
 {
     if(p->count == p->capacity)
     {
-        p->capacity = (p->capacity) ? p->capacity*2 : 2;
+        int newSize = (p->capacity) ? p->capacity*2 : 2;
+        yapTraceMem(("                                     "
+                     "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
+        p->capacity = newSize;
         p->data = yapRealloc(p->data, p->capacity * sizeof(char**));
     }
     p->data[p->count++] = v;
@@ -118,7 +126,8 @@ void yapArrayClear(yapArray *p, yapDestroyCB cb)
             cb(p->data[i]);
     }
     p->count = 0;
-    yapFree(p->data);
+    if(p->data)
+        yapFree(p->data);
     p->data = NULL;
     p->capacity = 0;
 }
@@ -131,20 +140,28 @@ void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
 
 void * yapAlloc(ySize bytes)
 {
-    return calloc(1, bytes);
+    void *ptr = calloc(1, bytes);
+    yapTraceMem(("                                     ALLOC %p [%d]\n", ptr, bytes));
+    return ptr;
 }
 
 void * yapRealloc(void *ptr, ySize bytes)
 {
-    return realloc(ptr, bytes);
+    void *p = realloc(ptr, bytes);
+    yapTraceMem(("                                     REALLOC %p -> %p [%d]\n", ptr, p, bytes));
+    return p;
 }
 
 void yapFree(void *ptr)
 {
+    yapTraceMem(("                                     FREE %p\n", ptr));
+    if(ptr == 0)
+        printf("huh\n");
     free(ptr);
 }
 
 char * yapStrdup(const char *s)
 {
+    yapTraceMem(("                                     STRDUP %p\n", s));
     return strdup(s);
 }

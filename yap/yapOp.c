@@ -3,15 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 
-yapOp *yapOpsMerge(yapOp *dst, int dstCount, yapOp *src, int srcCount)
-{
-    dst = yapRealloc(dst, sizeof(yapOp) * (dstCount+srcCount));
-    memcpy(&dst[dstCount], src, srcCount*sizeof(yapOp));
-    return dst;
-}
-
 void yapOpsDump(yapOp *ops, int count)
 {
+#ifdef YAP_TRACE_OPS
     int i = 0;
     for(i=0;i<count;i++)
     {
@@ -19,7 +13,7 @@ void yapOpsDump(yapOp *ops, int count)
 
         switch(op->opcode)
         {
-#define HURR(OP, NAME) case OP: yapTrace(("%12s", NAME)); break;
+#define HURR(OP, NAME) case OP: printf("%12s", NAME); break;
             HURR(YOP_NOP, "nop")
 
             HURR(YOP_PUSHNULL, "pushnull")
@@ -58,9 +52,10 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_SETVAR, "setvar")
 #undef HURR
 
-            default: yapTrace(("%12s", "??"));
+            default: printf("%12s", "??");
         }
-        yapTrace(("%3d\n", op->operand));
+        printf("%3d\n", op->operand);
     }
+#endif
 }
 

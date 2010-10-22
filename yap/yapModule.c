@@ -26,16 +26,17 @@ yOperand yapModuleAddBlock(yapModule *module, struct yapBlock *block)
 
 void yapModuleDump(yapModule *module)
 {
+#ifdef YAP_TRACE_OPS
     int i;
 
     for(i=0; i<module->kStrings.count; i++)
     {
-        yapTrace((".kstr %3d    \"%s\"\n", i, (char*)module->kStrings.data[i]));
+        printf(".kstr %3d    \"%s\"\n", i, (char*)module->kStrings.data[i]);
     }
 
     for(i=0; i<module->kInts.count; i++)
     {
-        yapTrace((".kint %3d    %d\n", i, module->kInts.data[i]));
+        printf(".kint %3d    %d\n", i, module->kInts.data[i]);
     }
 
     for(i=0; i<module->blocks.count; i++)
@@ -43,13 +44,14 @@ void yapModuleDump(yapModule *module)
         yapBlock *block = module->blocks.data[i];
         if(block != module->block)
         {
-            yapTrace(("\n.block %d\n", i));
+            printf("\n.block %d\n", i);
             yapOpsDump(block->ops, block->opCount);
         }
     }
 
-    yapTrace(("\n.main\n"));
+    printf("\n.main\n");
     yapOpsDump(module->block->ops, module->block->opCount);
-    yapTrace(("\n"));
+    printf("\n");
+#endif
 }
 

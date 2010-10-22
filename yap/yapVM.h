@@ -22,6 +22,7 @@ typedef struct yapVM
     // GC data
     yapArray usedValues;               // All values used by the system
     yapArray usedVariables;            // All variables used by the system
+    yapArray freeValues;               // Free value pool
 
     // state
     int lastRet;

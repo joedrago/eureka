@@ -50,7 +50,14 @@ typedef struct yapValue
     };
 } yapValue;
 
-yapValue * yapValueCreate(struct yapVM *vm);
+// yapValueCreate() is only ever called via yapValueAcquire
+yapValue * yapValueAcquire(struct yapVM *vm);
+void yapValueRelease(struct yapVM *vm, yapValue *p); // returns to free pool
+
+void yapValueMark(yapValue *value);    // used by yapVMGC()
+void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call this
+
+void yapValueClear(yapValue *p);
 
 void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src);
 yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
@@ -68,11 +75,6 @@ yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapVariable *var
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 
 void yapValueArrayPush(yapValue *p, yapValue *v);
-
-void yapValueClear(yapValue *p);
-
-void yapValueMark(yapValue *value);    // used by yapVMGC()
-void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call this
 
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);

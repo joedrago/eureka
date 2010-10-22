@@ -26,8 +26,12 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
 {
     yBool success = yFalse;
     yapToken emptyToken = {0};
-    void *parser = yapParseAlloc();
+    void *parser;
 
+    yapTraceMem(("\n                                     "
+                 "--- start module compile ---\n"));
+
+    parser = yapParseAlloc();
     compiler->root = NULL;
 
     yapLex(parser, text, yapParse, compiler);
@@ -50,12 +54,18 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     {
         yapAssemble(compiler);
         success = yTrue;
-        yapModuleDump(compiler->module);
     };
 
     if(compiler->root)
         yapSyntaxDestroy(compiler->root);
     yapParseFree(parser);
+
+    yapTraceMem(("                                     "
+                 "---  end  module compile ---\n\n"));
+
+    if(success && compiler->module)
+        yapModuleDump(compiler->module);
+
     return success;
 }
 

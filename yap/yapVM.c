@@ -18,7 +18,7 @@
 void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func)
 {
     yapVariable *intrinsic = yapVariableCreate(vm, name);
-    intrinsic->value = yapValueSetCFunction(vm, yapValueCreate(vm), func);
+    intrinsic->value = yapValueSetCFunction(vm, yapValueAcquire(vm), func);
     yapArrayPush(&vm->globals, intrinsic);
 }
 
@@ -39,14 +39,21 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
         {
             // Alloc the global variable "main"
             moduleRef = yapVariableCreate(vm, name);
-            moduleRef->value = yapValueSetModule(vm, yapValueCreate(vm), module);
+            moduleRef->value = yapValueSetModule(vm, yapValueAcquire(vm), module);
             yapArrayPush(&vm->globals, moduleRef);
 
             yapArrayPush(&vm->modules, module);
 
+#ifdef YAP_TRACE_OPS
+            printf("--- begin module execution ---\n");
+#endif
             // Execute the module's block
             yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
             yapVMLoop(vm);
+
+#ifdef YAP_TRACE_OPS
+            printf("---  end  module execution ---\n");
+#endif
         }
         else
         {
@@ -95,6 +102,7 @@ void yapVMDestroy(yapVM *vm)
 
     yapArrayClear(&vm->usedVariables, (yapDestroyCB)yapVariableDestroy);
     yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueDestroy);
+    yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueDestroy);
 
     yapVMClearError(vm);
 
@@ -210,7 +218,7 @@ static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
 
 static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 {
-    yapValue *value = yapValueSetRef(vm, yapValueCreate(vm), variable);
+    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), variable);
     yapArrayPush(&vm->stack, value);
 }
 
@@ -297,8 +305,10 @@ void yapVMLoop(yapVM *vm)
         opcode  = frame->ip->opcode;
         operand = frame->ip->operand;
 
+#ifdef YAP_TRACE_OPS
         printf(" -> %d\n", vm->stack.count);
         yapOpsDump(frame->ip, 1);
+#endif
 
         switch(opcode)
         {
@@ -324,21 +334,21 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_PUSHLBLOCK:
             {
-                yapValue *value = yapValueSetFunction(vm, yapValueCreate(vm), frame->block->module->blocks.data[operand]);
+                yapValue *value = yapValueSetFunction(vm, yapValueAcquire(vm), frame->block->module->blocks.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
 
         case YOP_PUSH_KI:
             {
-                yapValue *value = yapValueSetInt(vm, yapValueCreate(vm), frame->block->module->kInts.data[operand]);
+                yapValue *value = yapValueSetInt(vm, yapValueAcquire(vm), frame->block->module->kInts.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
 
         case YOP_PUSH_KS:
             {
-                yapValue *value = yapValueSetKString(vm, yapValueCreate(vm), frame->block->module->kStrings.data[operand]);
+                yapValue *value = yapValueSetKString(vm, yapValueAcquire(vm), frame->block->module->kStrings.data[operand]);
                 yapArrayPush(&vm->stack, value);
             }
             break;
@@ -751,7 +761,7 @@ void yapVMGC(struct yapVM *vm)
         yapValue *value = (yapValue *)vm->usedValues.data[i];
         if(!value->used)
         {
-            yapValueDestroy(value);
+            yapValueRelease(vm, value);
             vm->usedValues.data[i] = NULL; // for future squashing
         }
     }
