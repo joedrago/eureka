@@ -57,7 +57,10 @@ yBool yapCompile(yapCompiler *compiler, const char *text)
     };
 
     if(compiler->root)
+    {
+        yapSyntaxDot(compiler->root);
         yapSyntaxDestroy(compiler->root);
+    };
     yapParseFree(parser);
 
     yapTraceMem(("                                     "
@@ -283,7 +286,7 @@ asmFunc(StringFormat)
 
 asmFunc(Unary)
 {
-    yapSyntax *expr = syntax->r.p;
+    yapSyntax *expr = syntax->v.p;
     asmDispatch[expr->type].assemble(compiler, dst, expr, 1, ASM_NORMAL);
     yapCodeGrow(dst, 1);
     switch(syntax->type)
