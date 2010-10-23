@@ -69,7 +69,8 @@ yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
 
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
 {
-    yapArrayPush(list->v.a, expr);
+    if(expr != NULL)
+        yapArrayPush(list->v.a, expr);
     return list;
 }
 
@@ -106,7 +107,18 @@ yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
 
 yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_STATEMENT_EXPR);
+    yapSyntax *syntax;
+
+    if((expr->type == YST_EXPRESSIONLIST) && (expr->v.a->count == 0))
+    {
+        // An empty statement. Without PYTHON_SCOPING, this only happens
+        // when there are multiple semicolons in a row. However, when
+        // it is enabled, one is created for every blank line!
+        yapSyntaxDestroy(expr);
+        return NULL;
+    }
+
+    syntax = yapSyntaxCreate(YST_STATEMENT_EXPR);
     syntax->v.p = expr;
     return syntax;
 }
