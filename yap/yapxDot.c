@@ -2,6 +2,9 @@
 
 #include "yapSyntax.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #define REC_CHILD(CHILD) yapSyntaxDotRecurse(CHILD, childLineOpts, syntax);
 #define REC_ARRAY(ARRAY) yapSyntaxDotRecurseArray(ARRAY, childLineOpts, syntax);
 
@@ -33,8 +36,22 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_KSTRING:
     {
+        char *c;
         myOpts = "shape=house,color=blueviolet";
-        sprintf(label, "\\\"%s\\\"", syntax->v.s);
+        sprintf(label, "K: \\\"%s\\\"", syntax->v.s);
+        c = label;
+        while(*c)
+        {
+            switch(*c)
+            {
+                case '\n':
+                case '\t':
+                case '\r':
+                    *c = ' ';
+                    break;
+            };
+            c++; // this never gets old.
+        };
     }
     break;
 
@@ -48,7 +65,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     case YST_IDENTIFIER:
     {
         myOpts = "shape=house";
-        sprintf(label, "\\\"%s\\\"", syntax->v.s);
+        sprintf(label, "V: \\\"%s\\\"", syntax->v.s);
     }
     break;
 
