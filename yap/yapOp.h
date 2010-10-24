@@ -60,6 +60,4 @@ typedef struct yapOp
 #define yapOpsAlloc(COUNT) ((yapOp*)(yapAlloc(sizeof(yapOp) * COUNT)))
 #define yapOpsFree(OPS) yapFree(OPS)
 
-void yapOpsDump(yapOp *ops, int count);
-
 #endif

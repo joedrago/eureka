@@ -69,6 +69,10 @@ set(yap_src
     yapVariable.c
     yapVM.h
     yapVM.c
+    yapxDot.h
+    yapxDot.c
+    yapxDisasm.h
+    yapxDisasm.c
 )
 add_lemon_files(yap_src yapParser.y)
 add_re2c_files(yap_src yapLexer.re)

@@ -2,7 +2,6 @@
 #define YAPMODULE_H
 
 #include "yapTypes.h"
-#include "yapOp.h"
 
 typedef struct yapModule
 {
@@ -21,7 +20,5 @@ typedef struct yapModule
 void yapModuleDestroy(yapModule *module);
 
 yOperand yapModuleAddBlock(yapModule *module, struct yapBlock *block);
-
-void yapModuleDump(yapModule *module);
 
 #endif

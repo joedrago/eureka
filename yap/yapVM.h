@@ -2,7 +2,7 @@
 #define YAPVM_H
 
 #include "yapTypes.h"
-#include "yapValue.h"
+#include "yapValue.h"                  // for yapCFunction
 
 // ---------------------------------------------------------------------------
 // Forwards

@@ -28,9 +28,24 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     yapVariable *moduleRef;
 
     yapCompiler *compiler = yapCompilerCreate();
-    yapCompile(compiler, text);
+    yapCompile(compiler, text, YCO_DEFAULT);
+
+    if(compiler->errors.count)
+    {
+        int i;
+        for(i=0; i<compiler->errors.count; i++)
+        {
+            char *error = (char *)compiler->errors.data[i];
+
+            // TODO: set vm->error instead of printf
+            printf("Error: %s\n", error);
+        }
+    }
+
+    // take ownership of the module
     module = compiler->module;
     compiler->module = NULL;
+
     yapCompilerDestroy(compiler);
 
     if(module)

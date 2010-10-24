@@ -84,6 +84,4 @@ yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, 
 
 void yapSyntaxDestroy(yapSyntax *syntax);
 
-void yapSyntaxDot(yapSyntax *syntax);
-
 #endif
