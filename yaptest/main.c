@@ -1,12 +1,16 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapModule.h"
+#include "yapxDot.h"
 #include "yapVM.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-yU32 print(struct yapVM *vm, yU32 argCount)
+// ---------------------------------------------------------------------------
+// global print() funcs -- someday to be moved into an optional lib
+
+yU32 standard_print(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
@@ -30,11 +34,20 @@ yU32 print(struct yapVM *vm, yU32 argCount)
     return 0;
 }
 
-void vmTest(const char *code)
+yU32 print_nothing(struct yapVM *vm, yU32 argCount)
+{
+    if(argCount)
+        yapVMPopValues(vm, argCount);
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
+void loadModule(const char *code)
 {
     yapContext *context = yapContextCreate();
 
-    yapVMRegisterIntrinsic(context->vm, "print", print);
+    yapVMRegisterIntrinsic(context->vm, "print", standard_print);
     yapVMLoadModule(context->vm, "main", code);
     if(yapContextGetError(context))
     {
@@ -43,9 +56,24 @@ void vmTest(const char *code)
     yapContextFree(context);
 }
 
-void lexTest()
+// ---------------------------------------------------------------------------
+
+void outputDot(const char *code)
 {
-    FILE *f = fopen("test.yap", "rb");
+    yapCompiler *compiler = yapCompilerCreate();
+    yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE|YCO_OPTIMIZE);
+    if(compiler->root)
+        yapSyntaxDot(compiler->root);
+    else
+        printf("ERROR: Failed to build syntax tree\n");
+    yapCompilerDestroy(compiler);
+}
+
+// ---------------------------------------------------------------------------
+
+char *loadFile(const char *filename)
+{
+    FILE *f = fopen(filename, "rb");
     if(f)
     {
         int size;
@@ -61,17 +89,21 @@ void lexTest()
 
         fclose(f);
 
-        {
-            vmTest(buffer);
-        }
-
-        free(buffer);
+        return buffer;
     }
-    else
-    {
-        printf("cant open test.yap\n");
-    }
+    
+    printf("cant open '%s' for read\n", filename);
+    return NULL;
 }
+
+// ---------------------------------------------------------------------------
+
+// Yap Test Mode
+enum
+{
+    YTM_LOADMODULE,
+    YTM_DOT
+};
 
 int main(int argc, char* argv[])
 {
@@ -79,9 +111,40 @@ int main(int argc, char* argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        //vmTest();
-        lexTest();
+        int mode = YTM_LOADMODULE;
+        int i;
+        char *filename = NULL;
+        for(i=1;i<argc; i++)
+        {
+            if(argv[i][0] == '-')
+            {
+                switch(argv[i][1])
+                {
+                case 'd': mode = YTM_DOT; break;
+                };
+            }
+            filename = argv[i];
+        }
+
+        if(filename)
+        {
+            char *code = loadFile(filename);
+            if(code)
+            {
+                switch(mode)
+                {
+                case YTM_LOADMODULE: loadModule(code); break;
+                case YTM_DOT:        outputDot(code);  break;
+                };
+                free(code);
+            }
+        }
+        else
+        {
+            printf("yaptest [filename.yap]\n");
+        }
     }
+
 #ifdef PLATFORM_WIN32
     _CrtDumpMemoryLeaks();
 #endif

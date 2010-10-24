@@ -104,8 +104,118 @@ void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token)
 
 // ---------------------------------------------------------------------------
 
+static int yapCompileOptimizeChild(yapCompiler *compiler, yapSyntax *syntax);
+
+static void yapCompileOptimizeArray(yapCompiler *compiler, yapArray *a)
+{
+    int i;
+    for(i=0; i<a->count; i++)
+    {
+        yapCompileOptimizeChild(compiler, (yapSyntax*)a->data[i]);
+    }
+}
+
+static int yapCompileOptimizeChild(yapCompiler *compiler, yapSyntax *syntax)
+{
+    switch(syntax->type)
+    {
+    case YST_STATEMENTLIST:
+        yapCompileOptimizeArray(compiler, syntax->v.a);
+        break;
+
+    case YST_EXPRESSIONLIST:
+        yapCompileOptimizeArray(compiler, syntax->v.a);
+        break;
+
+    case YST_CALL:
+        yapCompileOptimizeChild(compiler, syntax->r.p);
+        break;
+
+    case YST_STRINGFORMAT:
+        yapCompileOptimizeChild(compiler, syntax->l.p);
+        yapCompileOptimizeChild(compiler, syntax->r.p);
+        break;
+
+    case YST_TOSTRING:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        break;
+
+    case YST_TOINT:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        break;
+
+    case YST_ADD:
+    case YST_SUB:
+    case YST_MUL:
+    case YST_DIV:
+        {
+            yapCompileOptimizeChild(compiler, syntax->l.p);
+            yapCompileOptimizeChild(compiler, syntax->r.p);
+
+            // Integer arithmetic optimization
+            if((syntax->l.p->type == YST_KINT)
+            && (syntax->r.p->type == YST_KINT))
+            {
+                int val;
+                switch(syntax->type)
+                {
+                case YST_ADD: val = syntax->l.p->v.i + syntax->r.p->v.i; break;
+                case YST_SUB: val = syntax->l.p->v.i - syntax->r.p->v.i; break;
+                case YST_MUL: val = syntax->l.p->v.i * syntax->r.p->v.i; break;
+                case YST_DIV: if(!syntax->r.p->v.i) return 0; 
+                              val = syntax->l.p->v.i / syntax->r.p->v.i; break;
+                };
+                yapSyntaxDestroy(syntax->l.p);
+                syntax->l.p = NULL;
+                yapSyntaxDestroy(syntax->r.p);
+                syntax->r.p = NULL;
+                syntax->type = YST_KINT;
+                syntax->v.i = val;
+            }
+        }
+        break;
+
+    case YST_STATEMENT_EXPR:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        break;
+
+    case YST_ASSIGNMENT:
+        yapCompileOptimizeChild(compiler, syntax->l.p);
+        yapCompileOptimizeChild(compiler, syntax->r.p);
+        break;
+
+    case YST_VAR:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        break;
+
+    case YST_RETURN:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        break;
+
+    case YST_IFELSE:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        yapCompileOptimizeChild(compiler, syntax->l.p);
+        if(syntax->r.p)
+            yapCompileOptimizeChild(compiler, syntax->r.p);
+        break;
+
+    case YST_LOOP:
+        yapCompileOptimizeChild(compiler, syntax->v.p);
+        yapCompileOptimizeChild(compiler, syntax->l.p);
+        break;
+
+    case YST_FUNCTION:
+        yapCompileOptimizeChild(compiler, syntax->l.p);
+        yapCompileOptimizeChild(compiler, syntax->r.p);
+        break;
+    };
+
+    return 0;
+}
+
 void yapCompileOptimize(yapCompiler *compiler)
 {
+    yapCompileOptimizeChild(compiler, compiler->root);
 }
 
 // ---------------------------------------------------------------------------
