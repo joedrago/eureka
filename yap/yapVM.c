@@ -333,11 +333,30 @@ void yapVMLoop(yapVM *vm)
         case YOP_START:
             break;
 
-        case YOP_SKIP:
+        case YOP_AND:
+        case YOP_OR:
             {
                 int i;
-                for(i=0; i<operand; i++)
-                    frame->ip++;
+                yapValue *performSkipValue = yapArrayTop(&vm->stack);
+                yBool performSkip = yFalse;
+                if(!performSkipValue)
+                {
+                    yapVMSetError(vm, "YOP_SKIP: empty stack!");
+                    continueLooping = yFalse;
+                }
+                performSkipValue = yapValueToBool(vm, performSkipValue);
+                performSkip = (performSkipValue->intVal) ? yTrue : yFalse;
+                if(opcode == YOP_AND)
+                    performSkip = !performSkip;
+                if(performSkip)
+                {
+                    for(i=0; i<operand; i++)
+                        frame->ip++;
+                }
+                else
+                {
+                    yapArrayPop(&vm->stack);
+                }
             }
             break;
 
@@ -674,6 +693,21 @@ void yapVMLoop(yapVM *vm)
                     break;
                 };
                 yapArrayPush(&vm->stack, yapValueToInt(vm, value));
+            }
+            break;
+
+        case YOP_NOT:
+            {
+                yapValue *value = yapArrayPop(&vm->stack);
+                if(!value)
+                {
+                    yapVMSetError(vm, "YOP_NOT: empty stack!");
+                    continueLooping = yFalse;
+                    break;
+                };
+                value = yapValueToBool(vm, value);
+                value = yapValueSetInt(vm, value, !value->intVal); // Double temporary?
+                yapArrayPush(&vm->stack, value);
             }
             break;
 

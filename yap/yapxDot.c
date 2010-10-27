@@ -140,6 +140,29 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_NOT:
+    {
+        strcpy(label,"Not");
+        REC_CHILD(syntax->v.p);
+    }
+    break;
+
+    case YST_AND:
+    {
+        strcpy(label,"And");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_OR:
+    {
+        strcpy(label,"Or");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
     case YST_ADD:
     {
         strcpy(label, "+");

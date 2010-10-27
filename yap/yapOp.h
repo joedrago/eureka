@@ -23,7 +23,8 @@ enum
     YOP_KEEP,                          // Pad/trim most recent RET to X args
 
     YOP_START,                         // no-op, marks the beginning of a loop for yapFrameReset
-    YOP_SKIP,                          // skips over the next X ops; used in for loops
+    YOP_AND,                           // skips over the next X ops if top of stack is false (skipping leaves value on stack)
+    YOP_OR,                            // skips over the next X ops if top of stack is true  (skipping leaves value on stack)
 
     YOP_IF,                            // pop value, then X+1 LBLOCKs. run 0 if true, 1 if false and present
     YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL)
@@ -38,6 +39,8 @@ enum
 
     YOP_TOSTRING,                      // type conversion: string
     YOP_TOINT,                         // type conversion: int
+
+    YOP_NOT,                           // pops [a], pushes ![a] (bool value)
 
     YOP_FORMAT,                        // string format (%)
 

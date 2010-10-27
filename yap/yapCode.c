@@ -27,7 +27,7 @@ void yapCodeGrow(yapCode *code, int count)
     code->size += count;
 }
 
-int yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
+yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
 {
     yapOp *op = &code->ops[code->count];
     op->opcode  = opcode;

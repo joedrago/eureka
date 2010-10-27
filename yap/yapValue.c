@@ -346,20 +346,26 @@ yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
 
 yapValue * yapValueToBool(struct yapVM *vm, yapValue *p)
 {
-    yapValue *v = yapValueClone(vm, p);
-    switch(v->type)
+    switch(p->type)
     {
-        case YVT_NULL: 
-            v->intVal = 0;
+        case YVT_INT: 
             break;
+
+        case YVT_NULL: 
+            p = yapValueSetInt(vm, p, 0);
+            break;
+
         case YVT_STRING: 
-            // I can get away with non-free'ing murder here due to copy-on-write
-            v->intVal = (p->stringVal[0] != 0) ? 1 : 0;
+            p = yapValueSetInt(vm, p, (p->stringVal[0] != 0) ? 1 : 0);
+            break;
+
+        default:
+            printf("yapValueToBool: unhandled case %d\n", p->type);
+            return NULL;
             break;
     };
 
-    v->type = YVT_INT;
-    return v;
+    return p;
 }
 
 yapValue * yapValueToInt(struct yapVM *vm, yapValue *p)

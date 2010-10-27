@@ -30,10 +30,15 @@ enum
 
     YST_TOSTRING,                      // r: expression to convert
     YST_TOINT,                         // r: expression to convert
+    YST_NOT,                           // !v
+
     YST_ADD,                           // l+r
     YST_SUB,                           // l-r
     YST_MUL,                           // l*r
     YST_DIV,                           // l/r
+
+    YST_AND,                           // l && r
+    YST_OR,                            // l || r
 
     YST_STATEMENT_EXPR,                // r: expr
     YST_ASSIGNMENT,                    // s = r

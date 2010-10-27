@@ -117,41 +117,20 @@ static void yapCompileOptimizeArray(yapCompiler *compiler, yapArray *a)
 
 static int yapCompileOptimizeChild(yapCompiler *compiler, yapSyntax *syntax)
 {
+    if(syntax->v.a) yapCompileOptimizeArray(compiler, syntax->v.a);
+    if(syntax->v.p) yapCompileOptimizeChild(compiler, syntax->v.p);
+    if(syntax->l.a) yapCompileOptimizeArray(compiler, syntax->l.a);
+    if(syntax->l.p) yapCompileOptimizeChild(compiler, syntax->l.p);
+    if(syntax->r.a) yapCompileOptimizeArray(compiler, syntax->r.a);
+    if(syntax->r.p) yapCompileOptimizeChild(compiler, syntax->r.p);
+
     switch(syntax->type)
     {
-    case YST_STATEMENTLIST:
-        yapCompileOptimizeArray(compiler, syntax->v.a);
-        break;
-
-    case YST_EXPRESSIONLIST:
-        yapCompileOptimizeArray(compiler, syntax->v.a);
-        break;
-
-    case YST_CALL:
-        yapCompileOptimizeChild(compiler, syntax->r.p);
-        break;
-
-    case YST_STRINGFORMAT:
-        yapCompileOptimizeChild(compiler, syntax->l.p);
-        yapCompileOptimizeChild(compiler, syntax->r.p);
-        break;
-
-    case YST_TOSTRING:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        break;
-
-    case YST_TOINT:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        break;
-
     case YST_ADD:
     case YST_SUB:
     case YST_MUL:
     case YST_DIV:
         {
-            yapCompileOptimizeChild(compiler, syntax->l.p);
-            yapCompileOptimizeChild(compiler, syntax->r.p);
-
             // Integer arithmetic optimization
             if((syntax->l.p->type == YST_KINT)
             && (syntax->r.p->type == YST_KINT))
@@ -173,40 +152,6 @@ static int yapCompileOptimizeChild(yapCompiler *compiler, yapSyntax *syntax)
                 syntax->v.i = val;
             }
         }
-        break;
-
-    case YST_STATEMENT_EXPR:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        break;
-
-    case YST_ASSIGNMENT:
-        yapCompileOptimizeChild(compiler, syntax->l.p);
-        yapCompileOptimizeChild(compiler, syntax->r.p);
-        break;
-
-    case YST_VAR:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        break;
-
-    case YST_RETURN:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        break;
-
-    case YST_IFELSE:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        yapCompileOptimizeChild(compiler, syntax->l.p);
-        if(syntax->r.p)
-            yapCompileOptimizeChild(compiler, syntax->r.p);
-        break;
-
-    case YST_LOOP:
-        yapCompileOptimizeChild(compiler, syntax->v.p);
-        yapCompileOptimizeChild(compiler, syntax->l.p);
-        break;
-
-    case YST_FUNCTION:
-        yapCompileOptimizeChild(compiler, syntax->l.p);
-        yapCompileOptimizeChild(compiler, syntax->r.p);
         break;
     };
 
@@ -252,6 +197,7 @@ asmFunc(Null);
 asmFunc(StringFormat);
 asmFunc(Unary);
 asmFunc(Binary);
+asmFunc(ShortCircuit);
 asmFunc(Var);
 asmFunc(Return);
 asmFunc(Assignment);
@@ -278,10 +224,15 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
 
     { yapAssembleUnary },           // YST_TOSTRING
     { yapAssembleUnary },           // YST_TOINT
+    { yapAssembleUnary },           // YST_NOT
+
     { yapAssembleBinary },          // YST_ADD
     { yapAssembleBinary },          // YST_SUB
     { yapAssembleBinary },          // YST_MUL
     { yapAssembleBinary },          // YST_DIV
+
+    { yapAssembleShortCircuit },    // YST_AND
+    { yapAssembleShortCircuit },    // YST_OR
 
     { yapAssembleStatementExpr },   // YST_STATEMENT_EXPR
     { yapAssembleAssignment },      // YST_ASSIGNMENT
@@ -412,6 +363,7 @@ asmFunc(Unary)
     {
         case YST_TOSTRING: yapCodeAppend(dst, YOP_TOSTRING, 0); break;
         case YST_TOINT:    yapCodeAppend(dst, YOP_TOINT,    0); break;
+        case YST_NOT:      yapCodeAppend(dst, YOP_NOT,      0); break;
     };
     return PAD(1);
 }
@@ -435,6 +387,28 @@ asmFunc(Binary)
     return PAD(1);
 }
 
+asmFunc(ShortCircuit)
+{
+    yS32 skipIndex;
+    yapSyntax *a = syntax->l.p;
+    yapSyntax *b = syntax->r.p;
+
+    // code to add first expression on the stack
+    asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
+
+    // test stack top's truth and uses the current value instead of the second expression's value
+    yapCodeGrow(dst, 1);
+    skipIndex = yapCodeAppend(dst, (syntax->type == YST_AND) ? YOP_AND : YOP_OR, 0);
+
+    // code to add second expression on the stack
+    asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
+
+    // clue in the and/or opcode how far to optionally jump
+    dst->ops[skipIndex].operand = dst->count - skipIndex - 1;
+
+    return PAD(1);
+}
+
 asmFunc(Var)
 {
     yapSyntax *expr = syntax->v.p;
@@ -444,7 +418,7 @@ asmFunc(Var)
 
 asmFunc(Return)
 {
-    yapSyntax *expr = syntax->r.p;
+    yapSyntax *expr = syntax->v.p;
     int retCount = asmDispatch[expr->type].assemble(compiler, dst, expr, 1, ASM_NORMAL);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_RET, retCount);

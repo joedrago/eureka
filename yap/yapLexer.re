@@ -46,6 +46,9 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "else"          { return YTT_ELSE; }
     "int"           { return YTT_INT; }
     "string"        { return YTT_STRING; }
+    "and"           { return YTT_AND; }
+    "or"            { return YTT_OR; }
+    "not"           { return YTT_NOT; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }

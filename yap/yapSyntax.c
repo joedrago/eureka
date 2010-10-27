@@ -141,7 +141,7 @@ yapSyntax * yapSyntaxCreateVar(yapSyntax *expr)
 yapSyntax * yapSyntaxCreateReturn(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_RETURN);
-    syntax->r.p = expr;
+    syntax->v.p = expr;
     return syntax;
 }
 

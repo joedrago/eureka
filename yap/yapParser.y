@@ -40,8 +40,11 @@
 %left DASH.
 %left STAR.
 %left SLASH.
+%left AND.
+%left OR.
 %left INT.
 %left STRING.
+%left NOT.
 %left MOD.
 
 %syntax_error { yapCompileSyntaxError(compiler, &TOKEN); }
@@ -127,6 +130,9 @@ expression(C) ::= INT expression(E).
 expression(C) ::= STRING expression(E).
     { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
 
+expression(C) ::= NOT expression(E).
+    { C = yapSyntaxCreateUnary(YST_NOT, E); }
+
 expression(C) ::= expression(OC) PLUS expression(E).
     { C = yapSyntaxCreateBinary(YST_ADD, OC, E); }
 
@@ -138,6 +144,12 @@ expression(C) ::= expression(OC) STAR expression(E).
 
 expression(C) ::= expression(OC) SLASH expression(E).
     { C = yapSyntaxCreateBinary(YST_DIV, OC, E); }
+
+expression(C) ::= expression(OC) AND expression(E).
+    { C = yapSyntaxCreateBinary(YST_AND, OC, E); }
+
+expression(C) ::= expression(OC) OR expression(E).
+    { C = yapSyntaxCreateBinary(YST_OR, OC, E); }
 
 expression(C) ::= expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }

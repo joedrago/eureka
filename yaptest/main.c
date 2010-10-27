@@ -1,6 +1,7 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapModule.h"
+#include "yapxDisasm.h"
 #include "yapxDot.h"
 #include "yapVM.h"
 
@@ -45,10 +46,13 @@ yU32 print_nothing(struct yapVM *vm, yU32 argCount)
 
 void loadModule(const char *code)
 {
+    yapModule *module;
     yapContext *context = yapContextCreate();
 
     yapVMRegisterIntrinsic(context->vm, "print", standard_print);
-    yapVMLoadModule(context->vm, "main", code);
+    module = yapVMLoadModule(context->vm, "main", code);
+    if(module)
+        yapModuleDump(module);
     if(yapContextGetError(context))
     {
         printf("VM Bailed out: %s\n", yapContextGetError(context));
@@ -61,7 +65,7 @@ void loadModule(const char *code)
 void outputDot(const char *code)
 {
     yapCompiler *compiler = yapCompilerCreate();
-    yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE|YCO_OPTIMIZE);
+    yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
     if(compiler->root)
         yapSyntaxDot(compiler->root);
     else
