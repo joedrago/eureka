@@ -25,6 +25,8 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_PUSH_KI, "push_ki")
             HURR(YOP_PUSH_KS, "push_ks")
 
+            HURR(YOP_INDEX, "index")
+
             HURR(YOP_POP, "pop")
 
             HURR(YOP_CALL, "call")

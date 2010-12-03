@@ -69,6 +69,16 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_INDEX:
+    {
+        strcpy(label, "Index");
+        childLineOpts = "style=dotted,label=array";
+        REC_CHILD(syntax->l.p);
+        childLineOpts = "style=dotted,label=index";
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
     case YST_STATEMENTLIST:
     {
         myOpts = "shape=box";

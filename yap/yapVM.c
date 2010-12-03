@@ -487,6 +487,45 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
+        case YOP_INDEX:
+            {
+                yapValue *index = yapArrayPop(&vm->stack);
+                yapValue *array = yapArrayPop(&vm->stack);
+                if(array && index)
+                {
+                    if(array->type == YVT_ARRAY)
+                    {
+                        index = yapValueToInt(vm, index);
+                        if(index->intVal >= 0 && index->intVal < array->arrayVal->count)
+                        {
+                            yapValue *value = array->arrayVal->data[index->intVal];
+
+                            // if !operand, convert variable references to values
+                            if((!operand) && (value->type == YVT_REF))
+                                yapArrayPush(&vm->stack, value->refVal->value);
+                            else
+                                yapArrayPush(&vm->stack, value);
+                        }
+                        else
+                        {
+                            yapVMSetError(vm, "YOP_INDEX: Index out of range!");
+                            continueLooping = yFalse;
+                        }
+                    }
+                    else
+                    {
+                        yapVMSetError(vm, "YOP_INDEX: Attempting to index into nonarray");
+                        continueLooping = yFalse;
+                    }
+                }
+                else
+                {
+                    yapVMSetError(vm, "YOP_INDEX: empty stack!");
+                    continueLooping = yFalse;
+                }
+            }
+            break;
+
         case YOP_POP:
             {
                 int i;

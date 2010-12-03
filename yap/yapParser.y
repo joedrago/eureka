@@ -29,6 +29,8 @@
 %left NEWLINE.
 %left OPENBRACE.
 %left CLOSEBRACE.
+%left OPENBRACKET.
+%left CLOSEBRACKET.
 %left SEMI.
 %left EQUALS.
 
@@ -184,11 +186,27 @@ expression(E) ::= NULL.
 %destructor lvalue
     { yapSyntaxDestroy($$); }
 
-lvalue(L) ::= IDENTIFIER(I).
-    { L = yapSyntaxCreateIdentifier(&I); }
+lvalue(L) ::= lvalue_indexable(I).
+    { L = I; }
 
 lvalue(L) ::= VAR IDENTIFIER(I).
     { L = yapSyntaxCreateVar(yapSyntaxCreateIdentifier(&I)); }
+
+// ---------------------------------------------------------------------------
+// LValueIndexable
+
+%type lvalue_indexable
+    { yapSyntax* }
+
+%destructor lvalue_indexable
+    { yapSyntaxDestroy($$); }
+
+lvalue_indexable(L) ::= IDENTIFIER(I).
+    { L = yapSyntaxCreateIdentifier(&I); }
+
+lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
+    { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
+
 
 // ---------------------------------------------------------------------------
 // Identifier List

@@ -52,6 +52,14 @@ yapSyntax * yapSyntaxCreateIdentifier(struct yapToken *token)
     return syntax;
 }
 
+yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_INDEX);
+    syntax->l.p = array;
+    syntax->r.p = index;
+    return syntax;
+}
+
 yapSyntax * yapSyntaxCreateNull()
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_NULL);

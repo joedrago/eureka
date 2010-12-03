@@ -16,6 +16,8 @@ enum
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
+    YOP_INDEX,                         // pops [array,index], pushes array[index]. if X, push lvalue instead rvalue
+
     YOP_POP,                           // pop value stack X times
 
     YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args

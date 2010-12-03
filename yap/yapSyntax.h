@@ -19,6 +19,8 @@ enum
     YST_KINT,                          // i
     YST_IDENTIFIER,                    // s
 
+    YST_INDEX,                         // l[r]
+
     YST_STATEMENTLIST,                 // r: array of syntax
     YST_EXPRESSIONLIST,                // r: array of syntax
     YST_IDENTIFIERLIST,                // r: array of syntax
@@ -72,6 +74,7 @@ yapSyntax * yapSyntaxCreate(yU32 type);
 yapSyntax * yapSyntaxCreateKString(struct yapToken *token);
 yapSyntax * yapSyntaxCreateKInt(struct yapToken *token);
 yapSyntax * yapSyntaxCreateIdentifier(struct yapToken *token);
+yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
 yapSyntax * yapSyntaxCreateNull();
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);

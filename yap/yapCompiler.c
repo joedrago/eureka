@@ -183,11 +183,11 @@ typedef struct yapAssembleInfo
     yapAssembleFunc assemble;
 } yapAssembleInfo;
 
-
 asmFunc(Nop);
 asmFunc(KString);
 asmFunc(KInt);
 asmFunc(Identifier);
+asmFunc(Index);
 asmFunc(StatementExpr);
 asmFunc(StatementList);
 asmFunc(ExpressionList);
@@ -212,6 +212,8 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleKString },         // YST_KSTRING
     { yapAssembleKInt },            // YST_KINT
     { yapAssembleIdentifier },      // YST_IDENTIFIER
+
+    { yapAssembleIndex },           // YST_INDEX
 
     { yapAssembleStatementList },   // YST_STATEMENTLIST
     { yapAssembleExpressionList },  // YST_EXPRESSIONLIST
@@ -304,6 +306,17 @@ asmFunc(Identifier)
         yapCodeGrow(dst, 1);
         yapCodeAppend(dst, YOP_REFVAL, 0);
     }
+    return PAD(1);
+}
+
+asmFunc(Index)
+{
+    yapSyntax *a = syntax->l.p;
+    yapSyntax *b = syntax->r.p;
+    asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
+    asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_INDEX, (flags & ASM_LVALUE) ? 1 : 0);
     return PAD(1);
 }
 
