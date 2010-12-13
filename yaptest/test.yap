@@ -1,13 +1,8 @@
-func first()
-    print("first\n")
-    return 1
 
-func second()
-    print("second\n")
-    return 0
 
-if first() or second()
-    print("either\n")
-else
-    print("neither\n")
+var a = array()
+push(a, 14)
+push(a, 15)
+
+print("herp derp: %d,%d\n\n" % (a[0], a[1]))
 

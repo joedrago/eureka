@@ -77,7 +77,7 @@ void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
 // ---------------------------------------------------------------------------
 // Debug Functions
 
-//#define YAP_TRACE_OPS
+#define YAP_TRACE_OPS
 
 #define yapTrace(ARGS)
 //#define yapTrace(ARGS) printf ARGS

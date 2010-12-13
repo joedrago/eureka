@@ -44,7 +44,7 @@ typedef struct yapValue
         struct yapModule *moduleVal;
         struct yapBlock *blockVal;     // Hurr, Shield Slam
         char *stringVal;
-        struct yapVariable *refVal;
+        struct yapValue **refVal;
         yapCFunction *cFuncVal;
         yapArray *arrayVal;
     };
@@ -70,11 +70,12 @@ yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s); // gran
 yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
 yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);
 yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module);
-yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapVariable *variable);
+yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref);
 
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 
-void yapValueArrayPush(yapValue *p, yapValue *v);
+yapValue * yapValueArrayCreate(struct yapVM *vm);
+void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);

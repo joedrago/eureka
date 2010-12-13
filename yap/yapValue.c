@@ -94,12 +94,12 @@ yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *mo
     return p;
 }
 
-yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapVariable *variable)
+yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
     p->type = YVT_REF;
-    p->refVal = variable;
+    p->refVal = ref;
     p->used = yTrue;
     yapTrace(("yapValueSetRef %p\n", p));
     return p;
@@ -117,6 +117,11 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
         yapVMSetError(vm, "yapValueSetRefVal: empty stack!");
         return yFalse;
     }
+    if(!(*ref->refVal))
+    {
+        yapVMSetError(vm, "yapValueSetRefVal: missing ref!");
+        return yFalse;
+    }
     if(ref->type != YVT_REF)
     {
         yapVMSetError(vm, "yapValueSetRefVal: value on top of stack, ref underneath");
@@ -124,7 +129,7 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
     }
 
     p = yapValuePersonalize(vm, p);
-    ref->refVal->value = p;
+    *(ref->refVal) = p;
     p->used = yTrue;
 
     yapTrace(("yapValueSetRefVal %p = %p\n", ref, p));
@@ -133,8 +138,18 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
 
 // ---------------------------------------------------------------------------
 
-void yapValueArrayPush(yapValue *p, yapValue *v)
+yapValue * yapValueArrayCreate(struct yapVM *vm)
 {
+    yapValue *p = yapValueAcquire(vm);
+    p->arrayVal = yapArrayCreate();
+    p->type = YVT_ARRAY;
+    p->used = yTrue;
+    return p;
+}
+
+void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
+{
+    p = yapValuePersonalize(vm, p);
     if(p->type != YVT_ARRAY)
     {
         yapValueClear(p);
@@ -143,6 +158,7 @@ void yapValueArrayPush(yapValue *p, yapValue *v)
     }
 
     yapArrayPush(p->arrayVal, v);
+    v->used = yTrue;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,6 +254,11 @@ yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
     if(p == &yapValueNull)
         return yapValueAcquire(vm);
 
+    if(p->type == YVT_ARRAY) // Arrays are all shared
+        return p;
+
+    // TODO: Return p on type hash
+
     if(p->used)
         return yapValueClone(vm, p);
 
@@ -259,8 +280,8 @@ void yapValueMark(yapValue *value)
         }
     }
 
-    if(!value->used && (value->type == YVT_REF))
-        yapVariableMark(value->refVal);
+    if(!value->used && (value->type == YVT_REF) && *value->refVal)
+            yapValueMark(*value->refVal);
 
     // TODO: Dicts need to have their subvalues marked recursively
 

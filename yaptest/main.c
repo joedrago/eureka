@@ -35,6 +35,31 @@ yU32 standard_print(struct yapVM *vm, yU32 argCount)
     return 0;
 }
 
+yU32 make_array(struct yapVM *vm, yU32 argCount)
+{
+    yapValue *v;
+    yapVMPopValues(vm, argCount);
+    v = yapValueArrayCreate(vm);
+    yapArrayPush(&vm->stack, v);
+    return 1;
+}
+
+yU32 array_push(struct yapVM *vm, yU32 argCount)
+{
+    if(argCount)
+    {
+        int i;
+        yapValue *a = yapVMGetArg(vm, 0, argCount);
+        for(i=1; i<argCount; i++)
+        {
+            yapValue *v = yapVMGetArg(vm, i, argCount);
+            yapValueArrayPush(vm, a, v);
+        }
+        yapVMPopValues(vm, argCount);
+    }
+    return 0;
+}
+
 yU32 print_nothing(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
@@ -50,6 +75,8 @@ void loadModule(const char *code)
     yapContext *context = yapContextCreate();
 
     yapVMRegisterIntrinsic(context->vm, "print", standard_print);
+    yapVMRegisterIntrinsic(context->vm, "push", array_push);
+    yapVMRegisterIntrinsic(context->vm, "array", make_array);
     module = yapVMLoadModule(context->vm, "main", code);
     if(module)
         yapModuleDump(module);

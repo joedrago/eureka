@@ -233,7 +233,7 @@ static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
 
 static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 {
-    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), variable);
+    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), &variable->value);
     yapArrayPush(&vm->stack, value);
 }
 
@@ -425,7 +425,7 @@ void yapVMLoop(yapVM *vm)
                     continueLooping = yFalse;
                     break;
                 }
-                yapArrayPush(&vm->stack, value->refVal->value);
+                yapArrayPush(&vm->stack, *value->refVal);
             }
             break;
 
@@ -498,13 +498,14 @@ void yapVMLoop(yapVM *vm)
                         index = yapValueToInt(vm, index);
                         if(index->intVal >= 0 && index->intVal < array->arrayVal->count)
                         {
-                            yapValue *value = array->arrayVal->data[index->intVal];
+                            int lvalue = operand;
+                            yapValue **ref = (yapValue**)&(array->arrayVal->data[index->intVal]);
 
-                            // if !operand, convert variable references to values
-                            if((!operand) && (value->type == YVT_REF))
-                                yapArrayPush(&vm->stack, value->refVal->value);
+                            // if lvalue, push reference to index, otherwise push value
+                            if(lvalue)
+                                yapArrayPush(&vm->stack, yapValueSetRef(vm, yapValueAcquire(vm), ref));
                             else
-                                yapArrayPush(&vm->stack, value);
+                                yapArrayPush(&vm->stack, *ref);
                         }
                         else
                         {
@@ -549,21 +550,21 @@ void yapVMLoop(yapVM *vm)
                     continueLooping = yFalse;
                     break;
                 }
-                if(!yapValueIsCallable(callable->refVal->value))
+                if(!yapValueIsCallable((*callable->refVal)))
                 {
                     yapVMSetError(vm, "YOP_CALL: variable not callable");
                     continueLooping = yFalse;
                     break;
                 }
-                if(callable->refVal->value->type == YVT_CFUNCTION)
+                if((*callable->refVal)->type == YVT_CFUNCTION)
                 {
-                    continueLooping = yapVMCallCFunction(vm, *callable->refVal->value->cFuncVal, operand);
+                    continueLooping = yapVMCallCFunction(vm, *((*callable->refVal)->cFuncVal), operand);
                 }
                 else
                 {
-                    yapBlock *block = (callable->refVal->value->type == YVT_MODULE)
-                                    ? callable->refVal->value->moduleVal->block 
-                                    : callable->refVal->value->blockVal;
+                    yapBlock *block = ((*callable->refVal)->type == YVT_MODULE)
+                                    ? (*callable->refVal)->moduleVal->block 
+                                    : (*callable->refVal)->blockVal;
 
                     frame = yapVMPushFrame(vm, block, operand, YFT_FUNC);
                     if(frame)
