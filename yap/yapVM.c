@@ -2,6 +2,7 @@
 
 #include "yapBlock.h"
 #include "yapCompiler.h"
+#include "yapDict.h"
 #include "yapFrame.h"
 #include "yapModule.h"
 #include "yapOp.h"
@@ -490,16 +491,17 @@ void yapVMLoop(yapVM *vm)
         case YOP_INDEX:
             {
                 yapValue *index = yapArrayPop(&vm->stack);
-                yapValue *array = yapArrayPop(&vm->stack);
-                if(array && index)
+                yapValue *value = yapArrayPop(&vm->stack);
+                if(value && index)
                 {
-                    if(array->type == YVT_ARRAY)
+                    int lvalue = operand;
+                    yapValue **ref = NULL;
+                    if(value->type == YVT_ARRAY)
                     {
                         index = yapValueToInt(vm, index);
-                        if(index->intVal >= 0 && index->intVal < array->arrayVal->count)
+                        if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
                         {
-                            int lvalue = operand;
-                            yapValue **ref = (yapValue**)&(array->arrayVal->data[index->intVal]);
+                            ref = (yapValue**)&(value->arrayVal->data[index->intVal]);
 
                             // if lvalue, push reference to index, otherwise push value
                             if(lvalue)
@@ -513,9 +515,20 @@ void yapVMLoop(yapVM *vm)
                             continueLooping = yFalse;
                         }
                     }
+                    else if(value->type == YVT_DICT)
+                    {
+                        index = yapValueToString(vm, index);
+                        ref = yapDictGetRef(vm, value->dictVal, index->stringVal, lvalue /* create? */);
+
+                        // if lvalue, push reference to index, otherwise push value
+                        if(lvalue)
+                            yapArrayPush(&vm->stack, yapValueSetRef(vm, yapValueAcquire(vm), ref));
+                        else
+                            yapArrayPush(&vm->stack, *ref);
+                    }
                     else
                     {
-                        yapVMSetError(vm, "YOP_INDEX: Attempting to index into nonarray");
+                        yapVMSetError(vm, "YOP_INDEX: Attempting to index into scalar");
                         continueLooping = yFalse;
                     }
                 }

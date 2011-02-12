@@ -32,7 +32,7 @@
 %left OPENBRACKET.
 %left CLOSEBRACKET.
 %left SEMI.
-%left EQUALS.
+%left EQUALS.
 
 %left UNKNOWN.
 %left COMMENT.

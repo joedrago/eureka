@@ -1,5 +1,6 @@
 #include "yapValue.h"
 
+#include "yapDict.h"
 #include "yapLexer.h"
 #include "yapVariable.h"
 #include "yapVM.h"
@@ -13,6 +14,7 @@ static char *NULL_STRING_FORM = "[null]";
 // ---------------------------------------------------------------------------
 
 yapValue yapValueNull = {YVT_NULL};
+yapValue *yapValueNullPtr = &yapValueNull;
 
 yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
 {
@@ -163,12 +165,25 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
+yapValue * yapValueDictCreate(struct yapVM *vm)
+{
+    yapValue *p = yapValueAcquire(vm);
+    p->dictVal = yapDictCreate(vm);
+    p->type = YVT_DICT;
+    p->used = yTrue;
+    return p;
+}
+
+// ---------------------------------------------------------------------------
+
 void yapValueClear(yapValue *p)
 {
     if((p->type == YVT_STRING) && !p->constant)
         yapFree(p->stringVal);
     else if(p->type == YVT_ARRAY)
         yapArrayDestroy(p->arrayVal, NULL);
+    else if(p->type == YVT_DICT)
+        yapDictDestroy(p->dictVal);
 
     memset(p, 0, sizeof(*p));
     p->type = YVT_NULL;
@@ -257,7 +272,8 @@ yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
     if(p->type == YVT_ARRAY) // Arrays are all shared
         return p;
 
-    // TODO: Return p on type hash
+    if(p->type == YVT_DICT) // Dicts are all shared
+        return p;
 
     if(p->used)
         return yapValueClone(vm, p);
@@ -270,7 +286,12 @@ void yapValueMark(yapValue *value)
     if(value->type == YVT_NULL)
         return;
 
-    if(!value->used && (value->type == YVT_ARRAY))
+    if(value->used)
+        return;
+
+    value->used = yTrue;
+
+    if(value->type == YVT_ARRAY)
     {
         int i;
         for(i=0; i<value->arrayVal->count; i++)
@@ -279,13 +300,14 @@ void yapValueMark(yapValue *value)
             yapValueMark(child);
         }
     }
-
-    if(!value->used && (value->type == YVT_REF) && *value->refVal)
-            yapValueMark(*value->refVal);
-
-    // TODO: Dicts need to have their subvalues marked recursively
-
-    value->used = yTrue;
+    else if((value->type == YVT_REF) && *value->refVal)
+    {
+        yapValueMark(*value->refVal);
+    }
+    else if(value->type == YVT_DICT)
+    {
+        yapDictMark(value->dictVal);
+    }
 }
 
 // TODO: Make a real string class that isn't terrible
