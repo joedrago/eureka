@@ -38,6 +38,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "}"             { return YTT_CLOSEBRACE; }
     "["             { return YTT_OPENBRACKET; }
     "]"             { return YTT_CLOSEBRACKET; }
+    "."             { return YTT_PERIOD; }
 
     "while"         { return YTT_WHILE; }
     "var"           { return YTT_VAR; }

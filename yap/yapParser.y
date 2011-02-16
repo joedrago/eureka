@@ -32,7 +32,7 @@
 %left OPENBRACKET.
 %left CLOSEBRACKET.
 %left SEMI.
-%left EQUALS.
+%left EQUALS.%left PERIOD.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -207,6 +207,8 @@ lvalue_indexable(L) ::= IDENTIFIER(I).
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
     { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
 
+lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
+    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER)); }
 
 // ---------------------------------------------------------------------------
 // Identifier List
