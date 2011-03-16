@@ -338,12 +338,13 @@ asmFunc(IdentifierList)
 
 asmFunc(Call)
 {
-    char *name = syntax->v.s;
+    yapSyntax *func = syntax->v.p;
     yapSyntax *args = syntax->r.p;
     int argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
 
-    yapCodeGrow(dst, 3);
-    yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
+    asmDispatch[func->type].assemble(compiler, dst, func, 1, ASM_NORMAL);
+
+    yapCodeGrow(dst, 2);
     yapCodeAppend(dst, YOP_CALL, argCount);
     yapCodeAppend(dst, YOP_KEEP, keep);
     return PAD(keep);

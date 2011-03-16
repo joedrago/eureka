@@ -19,7 +19,7 @@ void yapDestroyDictEntry(struct yapDictEntry *e)
 
 void yapDictDestroy(yapDict *v)
 {
-    yapArrayDestroy(v->entries, yapDestroyDictEntry);
+    yapArrayDestroy(v->entries, (yapDestroyCB)yapDestroyDictEntry);
     yapFree(v);
 }
 

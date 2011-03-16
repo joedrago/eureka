@@ -78,7 +78,7 @@ yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
 yapSyntax * yapSyntaxCreateNull();
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
-yapSyntax * yapSyntaxCreateCall(struct yapToken *name, yapSyntax *args);
+yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
 yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
 yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);

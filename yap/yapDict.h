@@ -15,7 +15,7 @@ typedef struct yapDictEntry
 {
     char *key;
     struct yapValue *val;
-};
+} yapDictEntry;
 
 typedef struct yapDict
 {

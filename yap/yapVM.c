@@ -551,32 +551,44 @@ void yapVMLoop(yapVM *vm)
         case YOP_CALL:
             {
                 yapValue *callable = yapArrayPop(&vm->stack);
+                yapCFunction *cFunc = NULL;
                 if(!callable)
                 {
                     yapVMSetError(vm, "YOP_CALL: empty stack!");
                     continueLooping = yFalse;
                     break;
                 }
-                if(callable->type != YVT_REF)
+                if(callable->type == YVT_REF)
                 {
-                    yapVMSetError(vm, "YOP_CALL: top of stack not a reference");
+                    if(!yapValueIsCallable((*callable->refVal)))
+                    {
+                        yapVMSetError(vm, "YOP_CALL: variable not callable");
+                        continueLooping = yFalse;
+                        break;
+                    }
+                    if((*callable->refVal)->type == YVT_CFUNCTION)
+                    {
+                        cFunc = *((*callable->refVal)->cFuncVal);
+                    }
+                }
+                else if(callable->type == YVT_CFUNCTION)
+                {
+                    cFunc = callable->cFuncVal;
+                }
+                else
+                {
+                    yapVMSetError(vm, "YOP_CALL: top of stack not a reference or a function");
                     continueLooping = yFalse;
                     break;
                 }
-                if(!yapValueIsCallable((*callable->refVal)))
+                if(cFunc)
                 {
-                    yapVMSetError(vm, "YOP_CALL: variable not callable");
-                    continueLooping = yFalse;
-                    break;
-                }
-                if((*callable->refVal)->type == YVT_CFUNCTION)
-                {
-                    continueLooping = yapVMCallCFunction(vm, *((*callable->refVal)->cFuncVal), operand);
+                    continueLooping = yapVMCallCFunction(vm, cFunc, operand);
                 }
                 else
                 {
                     yapBlock *block = ((*callable->refVal)->type == YVT_MODULE)
-                                    ? (*callable->refVal)->moduleVal->block 
+                                    ? (*callable->refVal)->moduleVal->block
                                     : (*callable->refVal)->blockVal;
 
                     frame = yapVMPushFrame(vm, block, operand, YFT_FUNC);

@@ -82,10 +82,10 @@ yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
     return list;
 }
 
-yapSyntax * yapSyntaxCreateCall(struct yapToken *name, yapSyntax *args)
+yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
-    syntax->v.s = yapTokenToString(name);
+    syntax->v.p = func;
     syntax->r.p = args;
     return syntax;
 }

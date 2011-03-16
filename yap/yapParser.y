@@ -165,8 +165,8 @@ expression(E) ::= lvalue(L) EQUALS expression(R).
 expression(E) ::= lvalue(LV).
     { E = LV; }
 
-expression(E) ::= IDENTIFIER(FUNCNAME) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    { E = yapSyntaxCreateCall(&FUNCNAME, ARGS); }
+expression(E) ::= lvalue(FUNC) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+    { E = yapSyntaxCreateCall(FUNC, ARGS); }
 
 expression(E) ::= INTEGER(I).
     { E = yapSyntaxCreateKInt(&I); }
