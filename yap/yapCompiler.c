@@ -194,6 +194,7 @@ asmFunc(ExpressionList);
 asmFunc(IdentifierList);
 asmFunc(Call);
 asmFunc(Null);
+asmFunc(This);
 asmFunc(StringFormat);
 asmFunc(Unary);
 asmFunc(Binary);
@@ -223,6 +224,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleStringFormat },    // YST_STRINGFORMAT
 
     { yapAssembleNull },            // YST_NULL
+    { yapAssembleThis },            // YST_THIS
 
     { yapAssembleUnary },           // YST_TOSTRING
     { yapAssembleUnary },           // YST_TOINT
@@ -354,6 +356,13 @@ asmFunc(Null)
 {
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHNULL, 0);
+    return PAD(1);
+}
+
+asmFunc(This)
+{
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHTHIS, 0);
     return PAD(1);
 }
 

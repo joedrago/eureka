@@ -11,6 +11,7 @@ enum
     YOP_NOP = 0,                      // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
+    YOP_PUSHTHIS,                      // push 'this' value on top of stack
     YOP_PUSHLBLOCK,                    // push reference to local (to module) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack

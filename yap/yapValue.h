@@ -95,6 +95,7 @@ yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCoun
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_MODULE)    \
+    || (VAL->type == YVT_OBJECT)    \
     || (VAL->type == YVT_BLOCK)     \
     || (VAL->type == YVT_CFUNCTION))
 

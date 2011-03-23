@@ -9,7 +9,7 @@
 %default_type
     { yapToken }
 
-%extra_argument 
+%extra_argument
     { yapCompiler *compiler }
 
 %include
@@ -32,7 +32,8 @@
 %left OPENBRACKET.
 %left CLOSEBRACKET.
 %left SEMI.
-%left EQUALS.%left PERIOD.
+%left EQUALS.
+%left PERIOD.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -203,6 +204,9 @@ lvalue(L) ::= VAR IDENTIFIER(I).
 
 lvalue_indexable(L) ::= IDENTIFIER(I).
     { L = yapSyntaxCreateIdentifier(&I); }
+
+lvalue_indexable(L) ::= THIS.
+    { L = yapSyntaxCreateThis(); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
     { L = yapSyntaxCreateIndex(ARRAY, INDEX); }

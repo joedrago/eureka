@@ -66,6 +66,12 @@ yapSyntax * yapSyntaxCreateNull()
     return syntax;
 }
 
+yapSyntax * yapSyntaxCreateThis()
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_THIS);
+    return syntax;
+}
+
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);

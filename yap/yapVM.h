@@ -42,7 +42,7 @@ void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
 
-struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapBlock *block, int numArgs, yU32 frameType);
+struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapBlock *block, int numArgs, yU32 frameType, struct yapValue *thisVal, yU32 flags);
 struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
 void yapVMLoop(yapVM *vm);

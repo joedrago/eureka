@@ -64,7 +64,7 @@ yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text)
             printf("--- begin module execution ---\n");
 #endif
             // Execute the module's block
-            yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
+            yapVMPushFrame(vm, module->block, 0, YFT_FUNC, NULL, YFF_NONE);
             yapVMLoop(vm);
 
 #ifdef YAP_TRACE_OPS
@@ -173,7 +173,7 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
     return NULL;
 }
 
-yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameType)
+yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameType, yapValue *thisVal, yU32 flags)
 {
     yapFrame *frame;
     int i;
@@ -194,10 +194,79 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTy
             yapArrayPush(&vm->stack, &yapValueNull);
     }
 
-    frame = yapFrameCreate(frameType, block, vm->stack.count - argCount);
+    frame = yapFrameCreate(frameType, block, vm->stack.count - argCount, thisVal, flags);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
+}
+
+static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal, yU32 frameFlags);
+static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, int argCount);
+
+static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int argCount, yapValue *thisVal, yU32 frameFlags)
+{
+    if(!callable)
+    {
+        yapVMSetError(vm, "YOP_CALL: empty stack!");
+        return yFalse;
+    }
+    if(callable->type == YVT_REF)
+    {
+        callable = *callable->refVal;
+    }
+    if(!yapValueIsCallable(callable))
+    {
+        yapVMSetError(vm, "YOP_CALL: variable not callable");
+        return yFalse;
+    }
+    if(callable->type == YVT_CFUNCTION)
+    {
+        if(!yapVMCallCFunction(vm, *callable->cFuncVal, argCount, thisVal, frameFlags))
+            return yFalse;
+    }
+    else if(callable->type == YVT_OBJECT)
+    {
+        return yapVMCreateObject(vm, framePtr, callable->objectVal, argCount);
+    }
+    else
+    {
+        yapBlock *block = (callable->type == YVT_MODULE)
+            ? callable->moduleVal->block
+            : callable->blockVal;
+
+        *framePtr = yapVMPushFrame(vm, block, argCount, YFT_FUNC, thisVal, frameFlags);
+    }
+    return yTrue;
+}
+
+static yapValue * yapFindInit(yapVM *vm, yapObject *object)
+{
+    yapValue *v = *(yapObjectGetRef(vm, object, "init", yFalse));
+    if(v == &yapValueNull)
+    {
+        // if object has an isa, recursively call yapFindInit on it (and return it)
+        return NULL;
+    }
+    else
+    {
+        if(!yapValueIsCallable(v))
+            return NULL;
+    }
+    return v;
+}
+
+static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, int argCount)
+{
+    yBool ret = yTrue;
+    yapValue *initFunc = yapFindInit(vm, isa);
+    yapValue *newObject = yapValueObjectCreate(vm); // TODO: need to take isa
+    if(initFunc)
+        return yapVMCall(vm, framePtr, initFunc, argCount, newObject, YFF_INIT);
+
+    // No init, just throw out any arguments and push the new object
+    yapVMPopValues(vm, argCount);
+    yapArrayPush(&vm->stack, newObject);
+    return ret;
 }
 
 static yBool yapVMInModuleFunc(yapVM *vm)
@@ -212,6 +281,21 @@ static yBool yapVMInModuleFunc(yapVM *vm)
             return (frame->block == frame->block->module->block);
     }
     return yFalse;
+}
+
+static yapValue * yapVMFindThis(yapVM *vm)
+{
+    int i;
+    yapFrame *frame;
+    for(i=vm->frames.count-1; i>=0; i--)
+    {
+        frame = (yapFrame*)vm->frames.data[i];
+        if(frame->type == YFT_FUNC)
+            break;
+    }
+    if(frame && frame->thisVal)
+        return frame->thisVal;
+    return &yapValueNull;
 }
 
 static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
@@ -239,10 +323,10 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 }
 
 // TODO: merge this function with PushFrame and _RET
-yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
+static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal, yU32 frameFlags)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count - argCount);
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count - argCount, thisVal, frameFlags);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);
@@ -364,6 +448,12 @@ void yapVMLoop(yapVM *vm)
         case YOP_PUSHNULL:
             {
                 yapArrayPush(&vm->stack, &yapValueNull);
+            }
+            break;
+
+        case YOP_PUSHTHIS:
+            {
+                yapArrayPush(&vm->stack, yapVMFindThis(vm));
             }
             break;
 
@@ -550,63 +640,34 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_CALL:
             {
+                int argCount = operand;
+                yapFrame *oldFrame = frame;
                 yapValue *callable = yapArrayPop(&vm->stack);
-                yapCFunction *cFunc = NULL;
-                if(!callable)
-                {
-                    yapVMSetError(vm, "YOP_CALL: empty stack!");
-                    continueLooping = yFalse;
-                    break;
-                }
-                if(callable->type == YVT_REF)
-                {
-                    if(!yapValueIsCallable((*callable->refVal)))
-                    {
-                        yapVMSetError(vm, "YOP_CALL: variable not callable");
-                        continueLooping = yFalse;
-                        break;
-                    }
-                    if((*callable->refVal)->type == YVT_CFUNCTION)
-                    {
-                        cFunc = *((*callable->refVal)->cFuncVal);
-                    }
-                }
-                else if(callable->type == YVT_CFUNCTION)
-                {
-                    cFunc = callable->cFuncVal;
-                }
-                else
-                {
-                    yapVMSetError(vm, "YOP_CALL: top of stack not a reference or a function");
-                    continueLooping = yFalse;
-                    break;
-                }
-                if(cFunc)
-                {
-                    continueLooping = yapVMCallCFunction(vm, cFunc, operand);
-                }
-                else
-                {
-                    yapBlock *block = ((*callable->refVal)->type == YVT_MODULE)
-                                    ? (*callable->refVal)->moduleVal->block
-                                    : (*callable->refVal)->blockVal;
-
-                    frame = yapVMPushFrame(vm, block, operand, YFT_FUNC);
-                    if(frame)
-                        newFrame = yTrue;
-                    else
-                        continueLooping = yFalse;
-                }
+                continueLooping = yapVMCall(vm, &frame, callable, argCount, NULL, YFF_NONE);
+                if(frame != oldFrame)
+                    newFrame = yTrue;
             }
             break;
 
         case YOP_RET:
             {
+                int argCount = operand;
+                frame = yapVMPopFrames(vm, YFT_FUNC, yTrue);
+                if(!argCount && frame && (frame->flags & YFF_INIT) && frame->thisVal)
+                {
+                    // We are leaving an init function that does not return any value (which
+                    // is different from returning null). This bit of magic makes init() functions
+                    // return 'this' instead of nothing. It avoids the boilerplate 'return this'
+                    // at the end of every init() in order for it to work at all, but allows for
+                    // generator init functions.
+                    argCount = 1;
+                    yapArrayPush(&vm->stack, frame->thisVal);
+                }
                 frame = yapVMPopFrames(vm, YFT_FUNC, yFalse);
                 if(frame)
                 {
                     // Stash lastRet for any YOP_KEEPs in the pipeline
-                    vm->lastRet = operand;
+                    vm->lastRet = argCount;
                 }
                 else
                 {
@@ -663,7 +724,7 @@ void yapVMLoop(yapVM *vm)
 
                 if(block)
                 {
-                    frame = yapVMPushFrame(vm, block, 0, YFT_COND);
+                    frame = yapVMPushFrame(vm, block, 0, YFT_COND, NULL, YFF_NONE);
                     if(frame)
                         newFrame = yTrue;
                     else
@@ -678,7 +739,7 @@ void yapVMLoop(yapVM *vm)
 
                 if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
                 {
-                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, YFT_LOOP);
+                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, YFT_LOOP, NULL, YFF_NONE);
                     if(frame)
                         newFrame = yTrue;
                     else
@@ -844,6 +905,8 @@ void yapVMGC(struct yapVM *vm)
     for(i=0; i<vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
+        if(frame->thisVal)
+            yapValueMark(frame->thisVal);
         for(j=0; j<frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];
