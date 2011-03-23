@@ -401,6 +401,11 @@ yapValue * yapValueToBool(struct yapVM *vm, yapValue *p)
             p = yapValueSetInt(vm, p, (p->stringVal[0] != 0) ? 1 : 0);
             break;
 
+        case YVT_OBJECT: 
+            p = yapValueAcquire(vm);
+            p = yapValueSetInt(vm, p, 1);
+            break;
+
         default:
             printf("yapValueToBool: unhandled case %d\n", p->type);
             return NULL;
