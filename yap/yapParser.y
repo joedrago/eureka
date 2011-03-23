@@ -178,6 +178,10 @@ expression(E) ::= LITERALSTRING(L).
 expression(E) ::= NULL.
     { E = yapSyntaxCreateNull(); }
 
+expression(E) ::= FUNCTION LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
+    { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY); }
+
+
 // ---------------------------------------------------------------------------
 // LValue
 

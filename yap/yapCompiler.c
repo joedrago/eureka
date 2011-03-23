@@ -534,18 +534,32 @@ asmFunc(Function)
     yapCode *code = yapCodeCreate();
     yOperand index;
 
+    // If a name is used ("func name()" vs "func()"), the
+    // generated code will consume the block left on the stack
+    // with a setvar, effectively compiling "func name()" into
+    // "var name = func()".
+    int additionalOpsForNaming = 0;
+    int valuesLeftOnStack = 1;
+
     int argCount = asmDispatch[args->type].assemble(compiler, code, args, ASM_ALL_ARGS, ASM_VAR|ASM_LVALUE);
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_RET, 0);
     index = yapBlockConvertCode(code, compiler->module, argCount);
 
-    // Register the new block as a function in the current scope
-    yapCodeGrow(dst, 3);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
-    yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
-    yapCodeAppend(dst, YOP_SETVAR, 0);
-    return PAD(0);
+    if(name)
+    {
+        additionalOpsForNaming = 2;
+        valuesLeftOnStack = 0;
+    }
+    yapCodeGrow(dst, 1 + additionalOpsForNaming);
+    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);    // Push the new block on the stack
+    if(name)
+    {
+        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
+        yapCodeAppend(dst, YOP_SETVAR, 0);
+    };
+    return PAD(valuesLeftOnStack);
 }
 
 asmFunc(ExpressionList)

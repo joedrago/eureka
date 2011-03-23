@@ -3,12 +3,11 @@
 #include "yapBlock.h"
 #include "yapOp.h"
 
-yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block, yS32 bp, struct yapValue *thisVal, yU32 flags)
+yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block, struct yapValue *thisVal, yU32 flags)
 {
     yapFrame *frame = (yapFrame*)yapAlloc(sizeof(yapFrame));
     frame->type = type;
     frame->block = block;
-    frame->bp = bp;
     frame->thisVal = thisVal;
     frame->flags = flags;
     yapFrameReset(frame, yFalse);

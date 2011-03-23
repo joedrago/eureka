@@ -179,7 +179,7 @@ yapSyntax * yapSyntaxCreateLoop(yapSyntax *cond, yapSyntax *body)
 yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_FUNCTION);
-    syntax->v.s = yapTokenToString(name);
+    syntax->v.s = (name) ? yapTokenToString(name) : NULL;
     syntax->l.p = args;
     syntax->r.p = body;
     return syntax;

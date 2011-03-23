@@ -1,11 +1,10 @@
-func i(self)
-    print("init!\n")
-    this.whatever = 7
 
-var o = object()
-o.init = i
+var SomeClass = object()
+SomeClass.init = func(a, b, c)
+    this.a = a
+    this.b = b
+    this.c = c
 
-var b = o()
-
-print("whatever is: %s\n\n" % (b.whatever))
+var b = SomeClass(3, 4, 5)
+print("a: %s / b: %s\n\n" % (b.a, b.b))
 

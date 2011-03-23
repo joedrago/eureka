@@ -36,12 +36,11 @@ typedef struct yapFrame
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // 'this', as in C++ (non-null in a member function call). Only valid on YFT_FUNC frames.
-    yS32   bp;                         // Base pointer (prev. stack depth minus arg count)
     yU32 type;                         // YFT_*
     yU32 flags;                        // YFF_*
 } yapFrame;
 
-yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block, yS32 bp, struct yapValue *thisVal, yU32 flags);
+yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block, struct yapValue *thisVal, yU32 flags);
 void yapFrameReset(yapFrame *frame, yBool jumpToStart);
 void yapFrameDestroy(yapFrame *frame);
 

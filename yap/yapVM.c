@@ -194,7 +194,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTy
             yapArrayPush(&vm->stack, &yapValueNull);
     }
 
-    frame = yapFrameCreate(frameType, block, vm->stack.count - argCount, thisVal, flags);
+    frame = yapFrameCreate(frameType, block, thisVal, flags);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
@@ -326,7 +326,7 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal, yU32 frameFlags)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count - argCount, thisVal, frameFlags);
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, thisVal, frameFlags);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);

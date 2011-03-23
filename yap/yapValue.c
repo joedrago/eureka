@@ -130,7 +130,6 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
         return yFalse;
     }
 
-    p = yapValuePersonalize(vm, p);
     *(ref->refVal) = p;
     p->used = yTrue;
 
