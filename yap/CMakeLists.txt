@@ -49,8 +49,8 @@ set(yap_src
     yapCompiler.c
     yapContext.h
     yapContext.c
-    yapDict.h
-    yapDict.c
+    yapObject.h
+    yapObject.c
     yapFrame.h
     yapFrame.c
     yapLexer.c

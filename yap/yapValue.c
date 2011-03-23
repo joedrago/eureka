@@ -1,6 +1,6 @@
 #include "yapValue.h"
 
-#include "yapDict.h"
+#include "yapObject.h"
 #include "yapLexer.h"
 #include "yapVariable.h"
 #include "yapVM.h"
@@ -165,11 +165,11 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue * yapValueDictCreate(struct yapVM *vm)
+yapValue * yapValueObjectCreate(struct yapVM *vm)
 {
     yapValue *p = yapValueAcquire(vm);
-    p->dictVal = yapDictCreate(vm);
-    p->type = YVT_DICT;
+    p->objectVal = yapObjectCreate(vm);
+    p->type = YVT_OBJECT;
     p->used = yTrue;
     return p;
 }
@@ -182,8 +182,8 @@ void yapValueClear(yapValue *p)
         yapFree(p->stringVal);
     else if(p->type == YVT_ARRAY)
         yapArrayDestroy(p->arrayVal, NULL);
-    else if(p->type == YVT_DICT)
-        yapDictDestroy(p->dictVal);
+    else if(p->type == YVT_OBJECT)
+        yapObjectDestroy(p->objectVal);
 
     memset(p, 0, sizeof(*p));
     p->type = YVT_NULL;
@@ -272,7 +272,7 @@ yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
     if(p->type == YVT_ARRAY) // Arrays are all shared
         return p;
 
-    if(p->type == YVT_DICT) // Dicts are all shared
+    if(p->type == YVT_OBJECT) // Objects are all shared
         return p;
 
     if(p->used)
@@ -304,9 +304,9 @@ void yapValueMark(yapValue *value)
     {
         yapValueMark(*value->refVal);
     }
-    else if(value->type == YVT_DICT)
+    else if(value->type == YVT_OBJECT)
     {
-        yapDictMark(value->dictVal);
+        yapObjectMark(value->objectVal);
     }
 }
 

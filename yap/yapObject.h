@@ -1,5 +1,5 @@
-#ifndef YAPDICT_H
-#define YAPDICT_H
+#ifndef YAPOBJECT_H
+#define YAPOBJECT_H
 
 #include "yapTypes.h"
 
@@ -11,21 +11,21 @@ struct yapVM;
 
 // ---------------------------------------------------------------------------
 
-typedef struct yapDictEntry
+typedef struct yapObjectEntry
 {
     char *key;
     struct yapValue *val;
-} yapDictEntry;
+} yapObjectEntry;
 
-typedef struct yapDict
+typedef struct yapObject
 {
     yapArray *entries;
-} yapDict;
+} yapObject;
 
-yapDict *yapDictCreate(struct yapVM *vm);
-void yapDictDestroy(yapDict *v);
-void yapDictMark(yapDict *v);
+yapObject *yapObjectCreate(struct yapVM *vm);
+void yapObjectDestroy(yapObject *v);
+void yapObjectMark(yapObject *v);
 
-struct yapValue **yapDictGetRef(struct yapVM *vm, yapDict *dict, const char *key, yBool create);
+struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *dict, const char *key, yBool create);
 
 #endif

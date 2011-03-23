@@ -2,7 +2,7 @@
 
 #include "yapBlock.h"
 #include "yapCompiler.h"
-#include "yapDict.h"
+#include "yapObject.h"
 #include "yapFrame.h"
 #include "yapModule.h"
 #include "yapOp.h"
@@ -515,10 +515,10 @@ void yapVMLoop(yapVM *vm)
                             continueLooping = yFalse;
                         }
                     }
-                    else if(value->type == YVT_DICT)
+                    else if(value->type == YVT_OBJECT)
                     {
                         index = yapValueToString(vm, index);
-                        ref = yapDictGetRef(vm, value->dictVal, index->stringVal, lvalue /* create? */);
+                        ref = yapObjectGetRef(vm, value->objectVal, index->stringVal, lvalue /* create? */);
 
                         // if lvalue, push reference to index, otherwise push value
                         if(lvalue)

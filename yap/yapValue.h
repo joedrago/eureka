@@ -7,7 +7,7 @@
 // Forwards
 
 struct yapVM;
-struct yapDict;
+struct yapObject;
 
 // ---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ typedef enum yapValueType
     YVT_STRING,
 
     YVT_ARRAY,
-    YVT_DICT,
+    YVT_OBJECT,
 
     YVT_REF,                           // Variable reference
 
@@ -49,7 +49,7 @@ typedef struct yapValue
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
         yapArray *arrayVal;
-        struct yapDict *dictVal;
+        struct yapObject *objectVal;
     };
 } yapValue;
 
@@ -80,7 +80,7 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 yapValue * yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
-yapValue * yapValueDictCreate(struct yapVM *vm);
+yapValue * yapValueObjectCreate(struct yapVM *vm);
 
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
