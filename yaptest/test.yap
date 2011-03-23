@@ -1,6 +1,11 @@
-var d = dict()
-d["awesome"] = print
-d.sweet = dict()
-d.sweet.awesome = d.awesome
-d.sweet.awesome("does this work?\n\n")
+func i(self)
+    print("init!\n")
+    this.whatever = 7
+
+var o = object()
+o.init = i
+
+var b = o()
+
+print("whatever is: %s\n\n" % (b.whatever))
 
