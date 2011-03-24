@@ -157,8 +157,8 @@ expression(C) ::= expression(OC) OR expression(E).
 expression(C) ::= expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
 
-expression(C) ::= LEFTPAREN expression(E) RIGHTPAREN.
-    { C = E; }
+expression(C) ::= LEFTPAREN expr_list(EL) RIGHTPAREN.
+    { C = EL; }
 
 expression(E) ::= lvalue(L) EQUALS expression(R).
     { E = yapSyntaxCreateAssignment(L, R); }
