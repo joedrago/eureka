@@ -98,6 +98,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
                 {
                     cb(parser, YTT_ENDSTATEMENT, token, compiler);
                     cb(parser, YTT_ENDBLOCK, token, compiler);
+                    cb(parser, YTT_ENDSTATEMENT, token, compiler);
 
                     yap32ArrayPop(&l.indents);
                     indentTop = l.indents.data[l.indents.count-1];
