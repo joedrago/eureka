@@ -879,6 +879,48 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
+        case YOP_NTH:
+            {
+                yapValue *val = yapArrayPop(&vm->stack);
+
+                if(val->type == YVT_ARRAY)
+                {
+                    yapValue *nth = yapArrayPop(&vm->stack);
+                    if(nth->intVal >= 0 && nth->intVal < val->arrayVal->count)
+                    {
+                        yapArrayPush(&vm->stack, val->arrayVal->data[nth->intVal]);
+                        vm->lastRet = 1;
+                    }
+                    else
+                    {
+                        yapVMSetError(vm, "YOP_NTH: index out of range");
+                        continueLooping = yFalse;
+                        break;
+                    }
+                }
+                else if(val->type == YVT_OBJECT)
+                {
+                    yapFrame *oldFrame = frame;
+                    yapValue *getFunc = yapFindFunc(vm, val->objectVal, "get");
+                    if(!getFunc)
+                    {
+                        yapVMSetError(vm, "YVT_COUNT: iterable does not have a get() function");
+                        continueLooping = yFalse;
+                        break;
+                    }
+                    continueLooping = yapVMCall(vm, &frame, getFunc, 1, val, YFF_NONE);
+                    if(frame != oldFrame)
+                        newFrame = yTrue;
+                }
+                else
+                {
+                    yapVMSetError(vm, "YOP_NTH: Invalid value type %d", val->type);
+                    continueLooping = yFalse;
+                    break;
+                }
+            }
+            break;
+
         case YOP_COUNT:
             {
                 yapValue *val = yapArrayPop(&vm->stack);

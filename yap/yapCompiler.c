@@ -558,15 +558,9 @@ asmFunc(For)
 
     // Populate the loop vars from the call to get()
     yapCodeGrow(loop, 7);
-    yapCodeAppend(loop, YOP_DUPE, 0);    // dupe counter for call to get() later
+    yapCodeAppend(loop, YOP_DUPE, 0);    // dupe counter
     yapCodeAppend(loop, YOP_DUPE, 3);    // dupe object
-    yapCodeAppend(loop, YOP_PUSH_KS,     // push "get"
-        yapArrayPushUniqueString(
-            &compiler->module->kStrings, 
-            yapStrdup("get"))); // HATE
-    yapCodeAppend(loop, YOP_INDEX, 0);   // lookup object.get
-    yapCodeAppend(loop, YOP_DUPE, 4);    // dupe object again
-    yapCodeAppend(loop, YOP_MCALL, 1);   // call object.get(counter)
+    yapCodeAppend(loop, YOP_NTH, 0);     // call nth
     yapCodeAppend(loop, YOP_KEEP, vars->v.a->count);
     asmDispatch[vars->type].assemble(compiler, loop, vars, vars->v.a->count, ASM_LVALUE|ASM_VAR);
 
