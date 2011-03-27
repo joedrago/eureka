@@ -2,6 +2,7 @@
 
 #include "yapBlock.h"
 #include "yapCode.h"
+#include "yapFrame.h"
 #include "yapLexer.h"
 #include "yapModule.h"
 #include "yapOp.h"
@@ -206,6 +207,7 @@ asmFunc(IfElse);
 asmFunc(While);
 asmFunc(For);
 asmFunc(Function);
+asmFunc(Class);
 
 static yapAssembleInfo asmDispatch[YST_COUNT] =
 {
@@ -248,6 +250,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleWhile },           // YST_WHILE
     { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
+    { yapAssembleClass },           // YST_CLASS
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -523,7 +526,7 @@ asmFunc(While)
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, 0);
+    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
 
     return PAD(0);
 }
@@ -578,7 +581,7 @@ asmFunc(For)
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, 0);
+    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
 
     return PAD(0);
 }
@@ -617,6 +620,48 @@ asmFunc(Function)
         yapCodeAppend(dst, YOP_SETVAR, 0);
     };
     return PAD(valuesLeftOnStack);
+}
+
+asmFunc(Class)
+{
+    yapSyntax *name = syntax->v.p;
+    yapSyntax *isa = syntax->l.p;
+    yapSyntax *body = syntax->r.p;
+    yapCode   *code = yapCodeCreate();
+    int index;
+
+    // create base object (calls init on it)
+    if(isa)
+    {
+        asmDispatch[isa->type].assemble(compiler, dst, isa, 1, ASM_NORMAL);
+    }
+    else
+    {
+        // No isa offered, assume "object()"
+        yapCodeGrow(dst, 3);
+        yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup("object")));
+        yapCodeAppend(dst, YOP_CALL, 0);
+        yapCodeAppend(dst, YOP_KEEP, 1);
+    }
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_SETTHIS, 0); // prepares next PushFrame to use the new object as 'this'
+    asmDispatch[name->type].assemble(compiler, dst, name, 1, ASM_VAR|ASM_LVALUE);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_SETVAR, 0);
+
+    // create class declaration block with a regular 'leave' at the end
+    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_LEAVE, 0);
+    index = yapBlockConvertCode(code, compiler->module, 0);
+
+    // enter the newly created block from the parent block, flagging the frame as type CLASS
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_ENTER, YFT_CLASS);
+
+    return PAD(0);
 }
 
 asmFunc(ExpressionList)

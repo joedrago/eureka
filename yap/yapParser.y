@@ -94,6 +94,15 @@ statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK E
 statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
+//statement(S) ::= CLASS IDENTIFIER(NAME) STARTBLOCK statement_list(BODY) ENDBLOCK.
+//    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), NULL, BODY); }
+
+statement(S) ::= CLASS IDENTIFIER(NAME) COLON expression(ISA) STARTBLOCK statement_list(BODY) ENDBLOCK.
+    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), ISA, BODY); }
+
+statement(S) ::= CLASS IDENTIFIER(NAME) STARTBLOCK statement_list(BODY) ENDBLOCK.
+    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), NULL, BODY); }
+
 statement(S) ::= WHILE expr_list(COND) STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateWhile(COND, BODY); }
 

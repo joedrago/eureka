@@ -19,6 +19,7 @@ enum
     YFT_FUNC,                          // Function scope
     YFT_COND,                          // Conditional (if/else) scope
     YFT_LOOP,                          // Loop (while/for) scope
+    YFT_CLASS,                         // Class declaration scope
 
     YFT_COUNT
 };

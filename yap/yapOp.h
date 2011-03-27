@@ -32,7 +32,7 @@ enum
     YOP_OR,                            // skips over the next X ops if top of stack is true  (skipping leaves value on stack)
 
     YOP_IF,                            // pop value, then X+1 LBLOCKs. run 0 if true, 1 if false and present
-    YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL)
+    YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL). X == YFT_*
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
     YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop.
                                        // (BREAK 0 = break, BREAK 1 = continue)
@@ -53,6 +53,8 @@ enum
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
+
+    YOP_SETTHIS,                       // sets vm->nextThis to top of stack. does not pop stack.
 
     YOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]
     YOP_COUNT                          // pops value, returns either array length and sets lastRet=1, or performs call to 'count' on obj

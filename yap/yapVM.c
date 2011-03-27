@@ -279,7 +279,8 @@ static yapValue * yapVMFindThis(yapVM *vm)
     for(i=vm->frames.count-1; i>=0; i--)
     {
         frame = (yapFrame*)vm->frames.data[i];
-        if(frame->type == YFT_FUNC)
+        if((frame->type == YFT_FUNC)
+        || (frame->type == YFT_CLASS))
             break;
     }
     if(frame && frame->thisVal)
@@ -476,9 +477,20 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_VARREG_KS:
             {
-                yapVariable *variable = yapVariableCreate(vm, frame->block->module->kStrings.data[operand]);
-                yapVMRegisterVariable(vm, variable);
-                yapVMPushRef(vm, variable);
+                if(frame->type == YFT_CLASS)
+                {
+                    // Inside a class block, all variables registered become a part of the object.
+                    // Is this dumb or cool?
+                    yapValue **ref = yapObjectGetRef(vm, frame->thisVal->objectVal, frame->block->module->kStrings.data[operand], yTrue);
+                    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), ref);
+                    yapArrayPush(&vm->stack, value);
+                }
+                else
+                {
+                    yapVariable *variable = yapVariableCreate(vm, frame->block->module->kStrings.data[operand]);
+                    yapVMRegisterVariable(vm, variable);
+                    yapVMPushRef(vm, variable);
+                }
             }
             break;
 
@@ -577,6 +589,12 @@ void yapVMLoop(yapVM *vm)
                 if(!operand)
                     yapArrayPop(&vm->stack);
                 continueLooping = yapValueSetRefVal(vm, ref, val);
+            }
+            break;
+
+        case YOP_SETTHIS:
+            {
+                vm->nextThis = yapArrayTop(&vm->stack);
             }
             break;
 
@@ -760,7 +778,7 @@ void yapVMLoop(yapVM *vm)
 
                 if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
                 {
-                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, YFT_LOOP, YFF_NONE);
+                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, operand, YFF_NONE);
                     if(frame)
                         newFrame = yTrue;
                     else

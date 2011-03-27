@@ -53,6 +53,8 @@ enum
     YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
 
+    YST_CLASS,                         // class v.s \n body r
+
     YST_COUNT
 };
 
@@ -93,6 +95,7 @@ yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax 
 yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
+yapSyntax * yapSyntaxCreateClass(yapSyntax *name, yapSyntax *isa, yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);
 

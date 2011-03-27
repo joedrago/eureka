@@ -193,3 +193,12 @@ yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, 
     syntax->r.p = body;
     return syntax;
 }
+
+yapSyntax * yapSyntaxCreateClass(yapSyntax *name, yapSyntax *isa, yapSyntax *body)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_CLASS);
+    syntax->v.p = name;
+    syntax->l.p = isa;
+    syntax->r.p = body;
+    return syntax;
+}
