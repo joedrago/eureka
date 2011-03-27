@@ -33,7 +33,6 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_POP, "pop")
 
             HURR(YOP_CALL, "call")
-            HURR(YOP_MCALL, "mcall")
             HURR(YOP_RET, "ret")
             HURR(YOP_KEEP, "keep")
 

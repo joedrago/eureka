@@ -24,7 +24,6 @@ enum
     YOP_POP,                           // pop value stack X times
 
     YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
-    YOP_MCALL,                         // "member call": same as call, except it first pops the object representing 'this'
     YOP_RET,                           // leave current call, returning X items on the stack
     YOP_KEEP,                          // Pad/trim most recent RET to X args
 
