@@ -53,6 +53,8 @@ set(yap_src
     yapObject.c
     yapFrame.h
     yapFrame.c
+    yapIntrinsics.c
+    yapIntrinsics.h
     yapLexer.c
     yapLexer.h
     yapLexer.re

@@ -1,11 +1,13 @@
 #include "yapContext.h"
 
+#include "yapIntrinsics.h"
 #include "yapVM.h"
 
 yapContext * yapContextCreate(void)
 {
     yapContext *context = yapAlloc(sizeof(yapContext));
     context->vm = yapVMCreate();
+    yapIntrinsicsRegister(context->vm);
     return context;
 }
 
