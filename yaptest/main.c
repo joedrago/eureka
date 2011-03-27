@@ -1,7 +1,6 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapModule.h"
-#include "yapObject.h"
 #include "yapxDisasm.h"
 #include "yapxDot.h"
 #include "yapVM.h"
