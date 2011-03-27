@@ -239,12 +239,13 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     return yTrue;
 }
 
-static yapValue * yapFindInit(yapVM *vm, yapObject *object)
+static yapValue * yapFindFunc(yapVM *vm, yapObject *object, const char *name)
 {
-    yapValue *v = *(yapObjectGetRef(vm, object, "init", yFalse));
+    yapValue *v = *(yapObjectGetRef(vm, object, name, yFalse));
     if(v == &yapValueNull)
     {
-        // if object has an isa, recursively call yapFindInit on it (and return it)
+        if(object->isa)
+            return yapFindFunc(vm, object->isa, name);
         return NULL;
     }
     else
@@ -258,8 +259,8 @@ static yapValue * yapFindInit(yapVM *vm, yapObject *object)
 static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, int argCount)
 {
     yBool ret = yTrue;
-    yapValue *initFunc = yapFindInit(vm, isa);
-    yapValue *newObject = yapValueObjectCreate(vm); // TODO: need to take isa
+    yapValue *initFunc = yapFindFunc(vm, isa, "init");
+    yapValue *newObject = yapValueObjectCreate(vm, isa);
     if(initFunc)
         return yapVMCall(vm, framePtr, initFunc, argCount, newObject, YFF_INIT);
 
@@ -267,20 +268,6 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, i
     yapVMPopValues(vm, argCount);
     yapArrayPush(&vm->stack, newObject);
     return ret;
-}
-
-static yBool yapVMInModuleFunc(yapVM *vm)
-{
-    int i;
-    yapFrame *frame;
-
-    for(i=vm->frames.count-1; i>=0; i--)
-    {
-        frame = (yapFrame*)vm->frames.data[i];
-        if(frame->type == YFT_FUNC)
-            return (frame->block == frame->block->module->block);
-    }
-    return yFalse;
 }
 
 static yapValue * yapVMFindThis(yapVM *vm)
@@ -304,7 +291,7 @@ static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
     if(!frame)
         return;
 
-    if(yapVMInModuleFunc(vm))
+    if(frame->block == frame->block->module->block)
     {
         // If we're in the module's "main" function, all variable
         // registration goes in the module's "global table"
@@ -450,6 +437,12 @@ void yapVMLoop(yapVM *vm)
                 yapArrayPush(&vm->stack, &yapValueNull);
             }
             break;
+        case YOP_PUSHI:
+            {
+                yapValue *value = yapValueSetInt(vm, yapValueAcquire(vm), operand);
+                yapArrayPush(&vm->stack, value);
+            }
+            break;
 
         case YOP_PUSHTHIS:
             {
@@ -536,9 +529,15 @@ void yapVMLoop(yapVM *vm)
             {
                 yapValue *b = yapArrayPop(&vm->stack);
                 yapValue *a = yapArrayPop(&vm->stack);
-                a = yapValueSub(vm, a, b);
-                if(a)
+                yapValue *c = yapValueSub(vm, a, b);
+                if(operand)
+                {
+                    // Leave entries on the stack. Used in for loops.
                     yapArrayPush(&vm->stack, a);
+                    yapArrayPush(&vm->stack, b);
+                }
+                if(c)
+                    yapArrayPush(&vm->stack, c);
                 else
                     continueLooping = yFalse;
             }
@@ -630,6 +629,23 @@ void yapVMLoop(yapVM *vm)
             }
             break;
 
+        case YOP_DUPE:
+            {
+                int topIndex = vm->stack.count - 1;
+                int requestedIndex = topIndex - operand;
+                if(requestedIndex >= 0)
+                {
+                    yapValue *val = vm->stack.data[requestedIndex];
+                    yapArrayPush(&vm->stack, val);
+                }
+                else
+                {
+                    yapVMSetError(vm, "YOP_DUPE: impossible index");
+                    continueLooping = yFalse;
+                }
+            }
+            break;
+
         case YOP_POP:
             {
                 int i;
@@ -639,11 +655,16 @@ void yapVMLoop(yapVM *vm)
             break;
 
         case YOP_CALL:
+        case YOP_MCALL:
             {
                 int argCount = operand;
                 yapFrame *oldFrame = frame;
-                yapValue *callable = yapArrayPop(&vm->stack);
-                continueLooping = yapVMCall(vm, &frame, callable, argCount, NULL, YFF_NONE);
+                yapValue *object = NULL;
+                yapValue *callable;
+                if(opcode == YOP_MCALL)
+                    object = yapArrayPop(&vm->stack);
+                callable = yapArrayPop(&vm->stack);
+                continueLooping = yapVMCall(vm, &frame, callable, argCount, object, YFF_NONE);
                 if(frame != oldFrame)
                     newFrame = yTrue;
             }
@@ -855,6 +876,39 @@ void yapVMLoop(yapVM *vm)
                     break;
                 };
                 yapArrayPush(&vm->stack, val);
+            }
+            break;
+
+        case YOP_COUNT:
+            {
+                yapValue *val = yapArrayPop(&vm->stack);
+                if(val->type == YVT_ARRAY)
+                {
+                    yapValue *count = yapValueAcquire(vm);
+                    count = yapValueSetInt(vm, count, val->arrayVal->count);
+                    yapArrayPush(&vm->stack, count);
+                    vm->lastRet = 1;
+                }
+                else if(val->type == YVT_OBJECT)
+                {
+                    yapFrame *oldFrame = frame;
+                    yapValue *countFunc = yapFindFunc(vm, val->objectVal, "count");
+                    if(!countFunc)
+                    {
+                        yapVMSetError(vm, "YVT_COUNT: iterable does not have a count() function");
+                        continueLooping = yFalse;
+                        break;
+                    }
+                    continueLooping = yapVMCall(vm, &frame, countFunc, 0, val, YFF_NONE);
+                    if(frame != oldFrame)
+                        newFrame = yTrue;
+                }
+                else
+                {
+                    yapVMSetError(vm, "YVT_COUNT: Invalid value type %d", val->type);
+                    continueLooping = yFalse;
+                    break;
+                }
             }
             break;
 

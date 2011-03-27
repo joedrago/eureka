@@ -113,7 +113,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     case YST_CALL:
     {
         myOpts = "shape=invtrapezium,color=blue";
-        sprintf(label, "Call: %s(%d)", syntax->v.s, syntax->r.p->v.a->count);
+        sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", syntax->r.p->v.a->count);
         childLineOpts = "style=dotted,label=args";
         REC_CHILD(syntax->r.p);
     }
@@ -249,13 +249,25 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
-    case YST_LOOP:
+    case YST_WHILE:
     {
         strcpy(label, "while");
         childLineOpts = "style=dotted,label=cond";
         REC_CHILD(syntax->v.p);
         childLineOpts = "label=body";
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_FOR:
+    {
+        strcpy(label, "for");
+        childLineOpts = "style=dotted,label=vars";
+        REC_CHILD(syntax->v.p);
+        childLineOpts = "style=dotted,label=iter";
         REC_CHILD(syntax->l.p);
+        childLineOpts = "label=body";
+        REC_CHILD(syntax->r.p);
     }
     break;
 

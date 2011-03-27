@@ -23,7 +23,6 @@ void yapFrameReset(yapFrame *frame, yBool jumpToStart)
         while(frame->ip->opcode != YOP_START)
             frame->ip++;
     }
-    // Clearing the stack to bp should not be necessary here, as non-func blocks have no args
 }
 
 void yapFrameDestroy(yapFrame *frame)

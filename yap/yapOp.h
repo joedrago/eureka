@@ -11,6 +11,7 @@ enum
     YOP_NOP = 0,                      // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
+    YOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
     YOP_PUSHTHIS,                      // push 'this' value on top of stack
     YOP_PUSHLBLOCK,                    // push reference to local (to module) block
 
@@ -19,9 +20,11 @@ enum
 
     YOP_INDEX,                         // pops [array,index], pushes array[index]. if X, push lvalue instead rvalue
 
+    YOP_DUPE,                          // pushes the Nth element in the stack on top again (eg. X=0 would dupe the top of the stack)
     YOP_POP,                           // pop value stack X times
 
     YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
+    YOP_MCALL,                         // "member call": same as call, except it first pops the object representing 'this'
     YOP_RET,                           // leave current call, returning X items on the stack
     YOP_KEEP,                          // Pad/trim most recent RET to X args
 
@@ -36,7 +39,7 @@ enum
                                        // (BREAK 0 = break, BREAK 1 = continue)
 
     YOP_ADD,                           // pops [a,b], pushes a+b
-    YOP_SUB,                           // pops [a,b], pushes a-b
+    YOP_SUB,                           // pops [a,b], pushes a-b. Leaves [a,b] on stack if X=1
     YOP_MUL,                           // pops [a,b], pushes a*b
     YOP_DIV,                           // pops [a,b], pushes a/b
 
@@ -52,7 +55,7 @@ enum
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
 
-    YOP_COUNT
+    YOP_COUNT                          // pops value, returns either array length and sets lastRet=1, or performs call to 'count' on obj
 };
 
 // ---------------------------------------------------------------------------

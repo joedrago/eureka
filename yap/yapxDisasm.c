@@ -20,6 +20,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_NOP, "nop")
 
             HURR(YOP_PUSHNULL, "pushnull")
+            HURR(YOP_PUSHI, "pushi")
             HURR(YOP_PUSHTHIS, "pushthis")
             HURR(YOP_PUSHLBLOCK, "pushlblock")
 
@@ -28,9 +29,11 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_INDEX, "index")
 
+            HURR(YOP_DUPE, "dupe")
             HURR(YOP_POP, "pop")
 
             HURR(YOP_CALL, "call")
+            HURR(YOP_MCALL, "mcall")
             HURR(YOP_RET, "ret")
             HURR(YOP_KEEP, "keep")
 
@@ -59,6 +62,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_VARREF_KS, "varref_ks")
             HURR(YOP_REFVAL, "refval")
             HURR(YOP_SETVAR, "setvar")
+            HURR(YOP_COUNT, "count")
 #undef HURR
 
             default: printf("%12s", "??");

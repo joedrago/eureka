@@ -164,10 +164,10 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue * yapValueObjectCreate(struct yapVM *vm)
+yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapObject *isa)
 {
     yapValue *p = yapValueAcquire(vm);
-    p->objectVal = yapObjectCreate(vm);
+    p->objectVal = yapObjectCreate(vm, isa);
     p->type = YVT_OBJECT;
     p->used = yTrue;
     return p;

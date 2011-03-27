@@ -203,7 +203,8 @@ asmFunc(Var);
 asmFunc(Return);
 asmFunc(Assignment);
 asmFunc(IfElse);
-asmFunc(Loop);
+asmFunc(While);
+asmFunc(For);
 asmFunc(Function);
 
 static yapAssembleInfo asmDispatch[YST_COUNT] =
@@ -244,7 +245,8 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleReturn },          // YST_RETURN
 
     { yapAssembleIfElse },          // YST_IFELSE
-    { yapAssembleLoop },            // YST_LOOP
+    { yapAssembleWhile },           // YST_WHILE
+    { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
 };
 
@@ -497,10 +499,10 @@ asmFunc(IfElse)
     return PAD(0);
 }
 
-asmFunc(Loop)
+asmFunc(While)
 {
     yapSyntax *cond = syntax->v.p;
-    yapSyntax *body = syntax->l.p;
+    yapSyntax *body = syntax->r.p;
     yapCode   *loop = yapCodeCreate();
     int index;
 
@@ -514,6 +516,67 @@ asmFunc(Loop)
     asmDispatch[body->type].assemble(compiler, loop, body, 0, ASM_NORMAL);
 
     yapCodeGrow(loop, 1);
+    yapCodeAppend(loop, YOP_BREAK, 1);
+
+    index = yapBlockConvertCode(loop, compiler->module, 0);
+
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_ENTER, 0);
+
+    return PAD(0);
+}
+
+asmFunc(For)
+{
+    yapSyntax *vars = syntax->v.p;
+    yapSyntax *iter = syntax->l.p;
+    yapSyntax *body = syntax->r.p;
+    yapCode   *loop = yapCodeCreate();
+    int index;
+
+    // Get the iterable onto the stack
+    asmDispatch[iter->type].assemble(compiler, dst, iter, 1, ASM_NORMAL);
+
+    yapCodeGrow(loop, 4);
+    yapCodeAppend(loop, YOP_DUPE, 0);    // stash the object itself
+    yapCodeAppend(loop, YOP_COUNT, 0);   // using the dupe, call .count() to push the count on top
+    yapCodeAppend(loop, YOP_KEEP, 1);    // keep only one value from the call to .count()
+    yapCodeAppend(loop, YOP_PUSHI, 0);   // init our counter to zero
+
+    // At this point, the stack should look like:
+    // -- top --
+    // counter = 0
+    // count = N
+    // object
+
+    yapCodeGrow(loop, 3);
+    yapCodeAppend(loop, YOP_START, 0);   // begin loop
+    yapCodeAppend(loop, YOP_SUB, 1);     // push (count-counter) onto stack
+    yapCodeAppend(loop, YOP_LEAVE, 1);   // leave if ((count-counter) == 0)
+
+    // Populate the loop vars from the call to get()
+    yapCodeGrow(loop, 7);
+    yapCodeAppend(loop, YOP_DUPE, 0);    // dupe counter for call to get() later
+    yapCodeAppend(loop, YOP_DUPE, 3);    // dupe object
+    yapCodeAppend(loop, YOP_PUSH_KS,     // push "get"
+        yapArrayPushUniqueString(
+            &compiler->module->kStrings, 
+            yapStrdup("get"))); // HATE
+    yapCodeAppend(loop, YOP_INDEX, 0);   // lookup object.get
+    yapCodeAppend(loop, YOP_DUPE, 4);    // dupe object again
+    yapCodeAppend(loop, YOP_MCALL, 1);   // call object.get(counter)
+    yapCodeAppend(loop, YOP_KEEP, vars->v.a->count);
+    asmDispatch[vars->type].assemble(compiler, loop, vars, vars->v.a->count, ASM_LVALUE|ASM_VAR);
+
+    // Assemble the loop body itself
+    asmDispatch[body->type].assemble(compiler, loop, body, 0, ASM_NORMAL);
+
+    // Increment the counter and loop
+    yapCodeGrow(loop, 3);
+    yapCodeAppend(loop, YOP_PUSHI, 1);
+    yapCodeAppend(loop, YOP_ADD, 0);
     yapCodeAppend(loop, YOP_BREAK, 1);
 
     index = yapBlockConvertCode(loop, compiler->module, 0);

@@ -168,11 +168,20 @@ yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax 
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateLoop(yapSyntax *cond, yapSyntax *body)
+yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_LOOP);
+    yapSyntax *syntax = yapSyntaxCreate(YST_WHILE);
     syntax->v.p = cond;
-    syntax->l.p = body;
+    syntax->r.p = body;
+    return syntax;
+}
+
+yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_FOR);
+    syntax->v.p = vars;
+    syntax->l.p = iter;
+    syntax->r.p = body;
     return syntax;
 }
 

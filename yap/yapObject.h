@@ -19,10 +19,11 @@ typedef struct yapObjectEntry
 
 typedef struct yapObject
 {
+    struct yapObject *isa; // "is a": what this object is derived from. Can be NULL.
     yapArray *entries;
 } yapObject;
 
-yapObject *yapObjectCreate(struct yapVM *vm);
+yapObject *yapObjectCreate(struct yapVM *vm, yapObject *isa);
 void yapObjectDestroy(yapObject *v);
 void yapObjectMark(yapObject *v);
 

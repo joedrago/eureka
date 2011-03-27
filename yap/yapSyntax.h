@@ -21,9 +21,9 @@ enum
 
     YST_INDEX,                         // l[r]
 
-    YST_STATEMENTLIST,                 // r: array of syntax
-    YST_EXPRESSIONLIST,                // r: array of syntax
-    YST_IDENTIFIERLIST,                // r: array of syntax
+    YST_STATEMENTLIST,                 // v.a: array of syntax
+    YST_EXPRESSIONLIST,                // v.a: array of syntax
+    YST_IDENTIFIERLIST,                // v.a: array of syntax
 
     YST_CALL,                          // s: funcname,  r: array of arg exprs
     YST_STRINGFORMAT,                  // l: format expr, r: array of arg exprs
@@ -49,7 +49,8 @@ enum
     YST_RETURN,                        // return a:r
 
     YST_IFELSE,                        // if v: l else r
-    YST_LOOP,                          // while v: l
+    YST_WHILE,                         // while v: l
+    YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
 
     YST_COUNT
@@ -89,7 +90,8 @@ yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
 yapSyntax * yapSyntaxCreateVar(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateReturn(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
-yapSyntax * yapSyntaxCreateLoop(yapSyntax *cond, yapSyntax *body);
+yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
+yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);

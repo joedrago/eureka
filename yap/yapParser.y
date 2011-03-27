@@ -95,10 +95,13 @@ statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
 statement(S) ::= WHILE expr_list(COND) STARTBLOCK statement_list(BODY) ENDBLOCK.
-    { S = yapSyntaxCreateLoop(COND, BODY); }
+    { S = yapSyntaxCreateWhile(COND, BODY); }
 
 statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY); }
+
+statement(S) ::= FOR ident_list(VARS) IN expression(ITER) STARTBLOCK statement_list(BODY) ENDBLOCK.
+    { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
 
 // ---------------------------------------------------------------------------
 // Expression List
