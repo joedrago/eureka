@@ -1,6 +1,7 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapModule.h"
+#include "yapObject.h"
 #include "yapxDisasm.h"
 #include "yapxDot.h"
 #include "yapVM.h"
@@ -81,6 +82,32 @@ yU32 make_object(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
+yU32 super(struct yapVM *vm, yU32 argCount)
+{
+    yapObject *object = NULL;
+    if(argCount)
+    {
+        yapValue *arg = yapVMGetArg(vm, 0, argCount);
+        if(arg->type == YVT_REF)
+            arg = *arg->refVal;
+        if(arg->type == YVT_OBJECT)
+            object = arg->objectVal;
+    }
+
+    yapVMPopValues(vm, argCount);
+
+    if(object && object->isa)
+    {
+        yapArrayPush(&vm->stack, object->isa);
+    }
+    else
+    {
+        yapArrayPush(&vm->stack, &yapValueNull);
+    }
+    
+    return 1;
+}
+
 yU32 print_nothing(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
@@ -100,6 +127,7 @@ void loadModule(const char *code)
     yapVMRegisterIntrinsic(context->vm, "array", make_array);
     yapVMRegisterIntrinsic(context->vm, "length", array_length);
     yapVMRegisterIntrinsic(context->vm, "object", make_object);
+    yapVMRegisterIntrinsic(context->vm, "super", super);
     module = yapVMLoadModule(context->vm, "main", code);
     if(module)
         yapModuleDump(module);

@@ -1,13 +1,15 @@
 class foo
-    func y()
-        print("1\n")
+    func init()
+        print("foo init\n")
 
 class woo : foo()
+    func init()
+        print("woo init\n")
+        super(woo).init()
     func z()
         print("2\n")
 
 var o = woo()
-o.y()
 o.z()
 
 #var range = array()

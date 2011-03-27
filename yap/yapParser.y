@@ -94,9 +94,6 @@ statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK E
 statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
-//statement(S) ::= CLASS IDENTIFIER(NAME) STARTBLOCK statement_list(BODY) ENDBLOCK.
-//    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), NULL, BODY); }
-
 statement(S) ::= CLASS IDENTIFIER(NAME) COLON expression(ISA) STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), ISA, BODY); }
 
@@ -178,9 +175,6 @@ expression(E) ::= lvalue(L) EQUALS expression(R).
 expression(E) ::= lvalue(LV).
     { E = LV; }
 
-expression(E) ::= lvalue(FUNC) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
-    { E = yapSyntaxCreateCall(FUNC, ARGS); }
-
 expression(E) ::= INTEGER(I).
     { E = yapSyntaxCreateKInt(&I); }
 
@@ -218,17 +212,20 @@ lvalue(L) ::= VAR IDENTIFIER(I).
 %destructor lvalue_indexable
     { yapSyntaxDestroy($$); }
 
-lvalue_indexable(L) ::= IDENTIFIER(I).
-    { L = yapSyntaxCreateIdentifier(&I); }
-
-lvalue_indexable(L) ::= THIS.
-    { L = yapSyntaxCreateThis(); }
+lvalue_indexable(L) ::= lvalue_indexable(FUNC) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+    { L = yapSyntaxCreateCall(FUNC, ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
     { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
     { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER)); }
+
+lvalue_indexable(L) ::= IDENTIFIER(I).
+    { L = yapSyntaxCreateIdentifier(&I); }
+
+lvalue_indexable(L) ::= THIS.
+    { L = yapSyntaxCreateThis(); }
 
 // ---------------------------------------------------------------------------
 // Identifier List

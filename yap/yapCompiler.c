@@ -630,9 +630,11 @@ asmFunc(Class)
     yapCode   *code = yapCodeCreate();
     int index;
 
-    // create base object (calls init on it)
+    // create base object (does not call init on it)
     if(isa)
     {
+        yapCodeGrow(dst, 1);
+        yapCodeAppend(dst, YOP_SKIPINIT, 0);
         asmDispatch[isa->type].assemble(compiler, dst, isa, 1, ASM_NORMAL);
     }
     else

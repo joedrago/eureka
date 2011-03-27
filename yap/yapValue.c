@@ -107,6 +107,17 @@ yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref)
     return p;
 }
 
+yapValue * yapValueSetObject(struct yapVM *vm, yapValue *p, struct yapObject *object)
+{
+    p = yapValuePersonalize(vm, p);
+    yapValueClear(p);
+    p->type = YVT_OBJECT;
+    p->objectVal = object;
+    p->used = yTrue;
+    yapTrace(("yapValueSetObject %p\n", p));
+    return p;
+}
+
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
 {
     if(!p)
@@ -164,7 +175,7 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapObject *isa)
+yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa)
 {
     yapValue *p = yapValueAcquire(vm);
     p->objectVal = yapObjectCreate(vm, isa);

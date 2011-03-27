@@ -80,7 +80,7 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 yapValue * yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
-yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapObject *isa);
+yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa);
 
 yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);

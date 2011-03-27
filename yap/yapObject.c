@@ -4,7 +4,7 @@
 #include "yapValue.h"
 #include "yapVM.h"
 
-yapObject *yapObjectCreate(struct yapVM *vm, yapObject *isa)
+yapObject *yapObjectCreate(struct yapVM *vm, yapValue *isa)
 {
     yapObject *v = (yapObject *)yapAlloc(sizeof(yapObject));
     v->isa = isa;
@@ -33,7 +33,7 @@ void yapObjectMark(yapObject *v)
         yapValueMark(e->val);
     }
     if(v->isa)
-        yapObjectMark(v->isa); // Is this necessary?
+        yapValueMark(v->isa); // Is this necessary?
 }
 
 struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const char *key, yBool create)
@@ -60,7 +60,7 @@ struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const cha
         else
         {
             if(object->isa)
-                return yapObjectGetRef(vm, object->isa, key, create);
+                return yapObjectGetRef(vm, object->isa->objectVal, key, create);
             ref = &yapValueNullPtr;
         }
     }

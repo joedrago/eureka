@@ -26,6 +26,8 @@ typedef struct yapVM
 
     // state
     int lastRet;
+    int skipInit;                      // Counter representing how many incoming class inits there are. 
+                                       // init() will not be called on object creates if this is non-zero.
     struct yapValue *nextThis;         // Set by INDEX (and object CALLs), used/reset by PushFrame
 
     // error data

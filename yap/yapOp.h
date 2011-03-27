@@ -54,6 +54,7 @@ enum
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
 
+    YOP_SKIPINIT,                      // Increment the skipInit counter to avoid calls to parent init() during a class create.
     YOP_SETTHIS,                       // sets vm->nextThis to top of stack. does not pop stack.
 
     YOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]

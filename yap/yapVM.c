@@ -202,7 +202,7 @@ yapFrame * yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTy
 }
 
 static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yU32 frameFlags);
-static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, int argCount);
+static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, int argCount);
 
 static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int argCount, yU32 frameFlags)
 {
@@ -227,7 +227,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     }
     else if(callable->type == YVT_OBJECT)
     {
-        return yapVMCreateObject(vm, framePtr, callable->objectVal, argCount);
+        return yapVMCreateObject(vm, framePtr, callable, argCount);
     }
     else
     {
@@ -240,13 +240,13 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     return yTrue;
 }
 
-static yapValue * yapFindFunc(yapVM *vm, yapObject *object, const char *name)
+static yapValue * yapFindFunc(yapVM *vm, yapValue *object, const char *name)
 {
-    yapValue *v = *(yapObjectGetRef(vm, object, name, yFalse));
+    yapValue *v = *(yapObjectGetRef(vm, object->objectVal, name, yFalse));
     if(v == &yapValueNull)
     {
-        if(object->isa)
-            return yapFindFunc(vm, object->isa, name);
+        if(object->objectVal->isa)
+            return yapFindFunc(vm, object->objectVal->isa, name);
         return NULL;
     }
     else
@@ -257,14 +257,21 @@ static yapValue * yapFindFunc(yapVM *vm, yapObject *object, const char *name)
     return v;
 }
 
-static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapObject *isa, int argCount)
+static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, int argCount)
 {
     yBool ret = yTrue;
     yapValue *initFunc = yapFindFunc(vm, isa, "init");
     yapValue *newObject = yapValueObjectCreate(vm, isa);
     vm->nextThis = newObject;
-    if(initFunc)
-        return yapVMCall(vm, framePtr, initFunc, argCount, YFF_INIT);
+    if(vm->skipInit > 0)
+    {
+        vm->skipInit--;
+    }
+    else
+    {
+        if(initFunc)
+            return yapVMCall(vm, framePtr, initFunc, argCount, YFF_INIT);
+    }
 
     // No init, just throw out any arguments and push the new object
     yapVMPopValues(vm, argCount);
@@ -589,6 +596,12 @@ void yapVMLoop(yapVM *vm)
                 if(!operand)
                     yapArrayPop(&vm->stack);
                 continueLooping = yapValueSetRefVal(vm, ref, val);
+            }
+            break;
+
+        case YOP_SKIPINIT:
+            {
+                vm->skipInit++;
             }
             break;
 
@@ -919,7 +932,7 @@ void yapVMLoop(yapVM *vm)
                 else if(val->type == YVT_OBJECT)
                 {
                     yapFrame *oldFrame = frame;
-                    yapValue *getFunc = yapFindFunc(vm, val->objectVal, "get");
+                    yapValue *getFunc = yapFindFunc(vm, val, "get");
                     if(!getFunc)
                     {
                         yapVMSetError(vm, "YVT_COUNT: iterable does not have a get() function");
@@ -953,7 +966,7 @@ void yapVMLoop(yapVM *vm)
                 else if(val->type == YVT_OBJECT)
                 {
                     yapFrame *oldFrame = frame;
-                    yapValue *countFunc = yapFindFunc(vm, val->objectVal, "count");
+                    yapValue *countFunc = yapFindFunc(vm, val, "count");
                     if(!countFunc)
                     {
                         yapVMSetError(vm, "YVT_COUNT: iterable does not have a count() function");
