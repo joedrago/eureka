@@ -5,6 +5,8 @@
 #include "yapValue.h"
 #include "yapVM.h"
 
+#include <stdio.h>
+
 yU32 make_array(struct yapVM *vm, yU32 argCount)
 {
     yapValue *v;
