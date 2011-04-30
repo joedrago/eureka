@@ -30,6 +30,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_INDEX, "index")
 
             HURR(YOP_DUPE, "dupe")
+            HURR(YOP_MOVE, "move")
             HURR(YOP_POP, "pop")
 
             HURR(YOP_CALL, "call")

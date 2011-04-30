@@ -88,6 +88,15 @@ yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
     return list;
 }
 
+yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
+    syntax->l.p = obj;
+    syntax->v.p = func;
+    syntax->r.p = args;
+    return syntax;
+}
+
 yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_CALL);

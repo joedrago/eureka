@@ -1,16 +1,33 @@
-class foo
-    func init()
-        print("foo init\n")
 
-class woo : foo()
-    func init()
-        print("woo init\n")
-        super(woo).init()
-    func z()
-        print("2\n")
+var foo = object()
+foo.val = 345
+foo.bar = func(s, a,b,c)
+    print("callng foo.bar()\n")
+    if s
+        print("s is non-null: %s %s %s %s\n" % (s.val, a,b,c))
+    else
+        print("s is null\n")
+    return 7
 
-var o = woo()
-o.z()
+var b = foo.bar()
+print("value of b: %d\n" % (b))
+foo:bar(1,3,5)
+
+#class foo
+#    func init()
+#        print("foo init\n")
+#
+#class woo : foo()
+#    func init()
+#        print("woo init\n")
+#        super(woo).init()
+#    func z()
+#        print("2\n")
+#
+#var o = woo()
+#o.z()
+
+
 
 #var range = array()
 #push(range, 5)

@@ -34,6 +34,8 @@
 %left SEMI.
 %left EQUALS.
 %left PERIOD.
+%left LEFTPAREN.
+%left COLON.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -94,7 +96,7 @@ statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK E
 statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
-statement(S) ::= CLASS IDENTIFIER(NAME) COLON expression(ISA) STARTBLOCK statement_list(BODY) ENDBLOCK.
+statement(S) ::= CLASS IDENTIFIER(NAME) COLONCOLON expression(ISA) STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), ISA, BODY); }
 
 statement(S) ::= CLASS IDENTIFIER(NAME) STARTBLOCK statement_list(BODY) ENDBLOCK.
@@ -218,6 +220,9 @@ lvalue_indexable(L) ::= lvalue_indexable(FUNC) LEFTPAREN expr_list(ARGS) RIGHTPA
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
     { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
 
+lvalue_indexable(L) ::= lvalue_indexable(OBJ) COLON IDENTIFIER(MEMBER) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+    { L = yapSyntaxCreateIndexedCall(OBJ, yapSyntaxCreateKString(&MEMBER), ARGS); }
+
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
     { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER)); }
 
@@ -233,7 +238,7 @@ lvalue_indexable(L) ::= THIS.
 %type ident_list
     { yapSyntax* }
 
-%destructor ident_list 
+%destructor ident_list
     { yapSyntaxDestroy($$); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).

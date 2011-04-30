@@ -21,9 +21,10 @@ enum
     YOP_INDEX,                         // pops [array,index], pushes array[index]. if X, push lvalue instead rvalue
 
     YOP_DUPE,                          // pushes the Nth element in the stack on top again (eg. X=0 would dupe the top of the stack)
+    YOP_MOVE,                          // like DUPE, except it moves the Nth element to the top instead of duping it
     YOP_POP,                           // pop value stack X times
 
-    YOP_CALL,                          // calls function named ks[X], using the current frame's stack pushes as args
+    YOP_CALL,                          // calls function with X args, using the current frame's stack pushes as args
     YOP_RET,                           // leave current call, returning X items on the stack
     YOP_KEEP,                          // Pad/trim most recent RET to X args
 

@@ -154,16 +154,16 @@ static yapVariable * yapVMResolveVariable(yapVM *vm, const char *name)
         v = yapArrayFindVariableByName(&frame->variables, name);
         if(v) return v;
 
-        // Next: Check the variables in the module this block is from
-        module = frame->block->module;
-        if(module)
-        {
-            v = yapArrayFindVariableByName(&module->variables, name);
-            if(v) return v;
-        }
-
         if(frame->type == YFT_FUNC)
             break;
+    }
+
+    // Next: Check the variables in the module this block is from
+    module = frame->block->module;
+    if(module)
+    {
+        v = yapArrayFindVariableByName(&module->variables, name);
+        if(v) return v;
     }
 
     // Then check global vars as a last ditch effort
@@ -262,7 +262,6 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
     yBool ret = yTrue;
     yapValue *initFunc = yapFindFunc(vm, isa, "init");
     yapValue *newObject = yapValueObjectCreate(vm, isa);
-    vm->nextThis = newObject;
     if(vm->skipInit > 0)
     {
         vm->skipInit--;
@@ -270,7 +269,10 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
     else
     {
         if(initFunc)
+        {
+            vm->nextThis = newObject;
             return yapVMCall(vm, framePtr, initFunc, argCount, YFF_INIT);
+        }
     }
 
     // No init, just throw out any arguments and push the new object
@@ -665,17 +667,25 @@ void yapVMLoop(yapVM *vm)
             break;
 
         case YOP_DUPE:
+        case YOP_MOVE:
             {
                 int topIndex = vm->stack.count - 1;
                 int requestedIndex = topIndex - operand;
                 if(requestedIndex >= 0)
                 {
                     yapValue *val = vm->stack.data[requestedIndex];
+                    if(opcode == YOP_MOVE)
+                    {
+                        if(operand == 0)
+                            break; // no sense in moving the top to the top
+                        vm->stack.data[requestedIndex] = NULL;
+                        yapArraySquash(&vm->stack);
+                    }
                     yapArrayPush(&vm->stack, val);
                 }
                 else
                 {
-                    yapVMSetError(vm, "YOP_DUPE: impossible index");
+                    yapVMSetError(vm, "%s: impossible index", (opcode == YOP_DUPE)?"YOP_DUPE":"YOP_MOVE");
                     continueLooping = yFalse;
                 }
             }

@@ -83,6 +83,7 @@ yapSyntax * yapSyntaxCreateNull();
 yapSyntax * yapSyntaxCreateThis();
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
+yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args);
 yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
 yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
