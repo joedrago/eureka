@@ -21,7 +21,6 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_PUSHNULL, "pushnull")
             HURR(YOP_PUSHI, "pushi")
-            HURR(YOP_PUSHTHIS, "pushthis")
             HURR(YOP_PUSHLBLOCK, "pushlblock")
 
             HURR(YOP_PUSH_KI, "push_ki")
@@ -62,9 +61,6 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_VARREF_KS, "varref_ks")
             HURR(YOP_REFVAL, "refval")
             HURR(YOP_SETVAR, "setvar")
-
-            HURR(YOP_SKIPINIT, "skipinit")
-            HURR(YOP_SETTHIS, "setthis")
 
             HURR(YOP_NTH, "nth")
             HURR(YOP_COUNT, "count")

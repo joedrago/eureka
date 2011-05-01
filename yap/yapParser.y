@@ -229,9 +229,6 @@ lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
 lvalue_indexable(L) ::= IDENTIFIER(I).
     { L = yapSyntaxCreateIdentifier(&I); }
 
-lvalue_indexable(L) ::= THIS.
-    { L = yapSyntaxCreateThis(); }
-
 // ---------------------------------------------------------------------------
 // Identifier List
 

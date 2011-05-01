@@ -75,7 +75,7 @@ yU32 super(struct yapVM *vm, yU32 argCount)
     {
         yapArrayPush(&vm->stack, &yapValueNull);
     }
-    
+
     return 1;
 }
 

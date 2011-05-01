@@ -195,7 +195,6 @@ asmFunc(ExpressionList);
 asmFunc(IdentifierList);
 asmFunc(Call);
 asmFunc(Null);
-asmFunc(This);
 asmFunc(StringFormat);
 asmFunc(Unary);
 asmFunc(Binary);
@@ -227,7 +226,6 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleStringFormat },    // YST_STRINGFORMAT
 
     { yapAssembleNull },            // YST_NULL
-    { yapAssembleThis },            // YST_THIS
 
     { yapAssembleUnary },           // YST_TOSTRING
     { yapAssembleUnary },           // YST_TOINT
@@ -387,13 +385,6 @@ asmFunc(Null)
 {
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHNULL, 0);
-    return PAD(1);
-}
-
-asmFunc(This)
-{
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHTHIS, 0);
     return PAD(1);
 }
 
@@ -650,44 +641,44 @@ asmFunc(Function)
 
 asmFunc(Class)
 {
-    yapSyntax *name = syntax->v.p;
-    yapSyntax *isa = syntax->l.p;
-    yapSyntax *body = syntax->r.p;
-    yapCode   *code = yapCodeCreate();
-    int index;
-
-    // create base object (does not call init on it)
-    if(isa)
-    {
-        yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_SKIPINIT, 0);
-        asmDispatch[isa->type].assemble(compiler, dst, isa, 1, ASM_NORMAL);
-    }
-    else
-    {
-        // No isa offered, assume "object()"
-        yapCodeGrow(dst, 3);
-        yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup("object")));
-        yapCodeAppend(dst, YOP_CALL, 0);
-        yapCodeAppend(dst, YOP_KEEP, 1);
-    }
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_SETTHIS, 0); // prepares next PushFrame to use the new object as 'this'
-    asmDispatch[name->type].assemble(compiler, dst, name, 1, ASM_VAR|ASM_LVALUE);
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_SETVAR, 0);
-
-    // create class declaration block with a regular 'leave' at the end
-    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
-    yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_LEAVE, 0);
-    index = yapBlockConvertCode(code, compiler->module, 0);
-
-    // enter the newly created block from the parent block, flagging the frame as type CLASS
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, YFT_CLASS);
+//    yapSyntax *name = syntax->v.p;
+//    yapSyntax *isa = syntax->l.p;
+//    yapSyntax *body = syntax->r.p;
+//    yapCode   *code = yapCodeCreate();
+//    int index;
+//
+//    // create base object (does not call init on it)
+//    if(isa)
+//    {
+//        yapCodeGrow(dst, 1);
+//        yapCodeAppend(dst, YOP_SKIPINIT, 0);
+//        asmDispatch[isa->type].assemble(compiler, dst, isa, 1, ASM_NORMAL);
+//    }
+//    else
+//    {
+//        // No isa offered, assume "object()"
+//        yapCodeGrow(dst, 3);
+//        yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup("object")));
+//        yapCodeAppend(dst, YOP_CALL, 0);
+//        yapCodeAppend(dst, YOP_KEEP, 1);
+//    }
+//    yapCodeGrow(dst, 1);
+//    yapCodeAppend(dst, YOP_SETTHIS, 0); // prepares next PushFrame to use the new object as 'this'
+//    asmDispatch[name->type].assemble(compiler, dst, name, 1, ASM_VAR|ASM_LVALUE);
+//    yapCodeGrow(dst, 1);
+//    yapCodeAppend(dst, YOP_SETVAR, 0);
+//
+//    // create class declaration block with a regular 'leave' at the end
+//    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
+//    yapCodeGrow(code, 1);
+//    yapCodeAppend(code, YOP_LEAVE, 0);
+//    index = yapBlockConvertCode(code, compiler->module, 0);
+//
+//    // enter the newly created block from the parent block, flagging the frame as type CLASS
+//    yapCodeGrow(dst, 1);
+//    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+//    yapCodeGrow(dst, 1);
+//    yapCodeAppend(dst, YOP_ENTER, YFT_CLASS);
 
     return PAD(0);
 }

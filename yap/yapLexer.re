@@ -54,7 +54,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "and"           { return YTT_AND; }
     "or"            { return YTT_OR; }
     "not"           { return YTT_NOT; }
-    "this"          { return YTT_THIS; }
     "for"           { return YTT_FOR; }
     "in"            { return YTT_IN; }
     "class"         { return YTT_CLASS; }

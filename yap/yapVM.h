@@ -26,9 +26,6 @@ typedef struct yapVM
 
     // state
     int lastRet;
-    int skipInit;                      // Counter representing how many incoming class inits there are. 
-                                       // init() will not be called on object creates if this is non-zero.
-    struct yapValue *nextThis;         // Set by INDEX (and object CALLs), used/reset by PushFrame
 
     // error data
     char *error;
@@ -45,7 +42,7 @@ void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
 
-struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapBlock *block, int numArgs, yU32 frameType, yU32 flags);
+struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType);
 struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
 void yapVMLoop(yapVM *vm);

@@ -12,7 +12,6 @@ enum
 
     YOP_PUSHNULL,                      // push null value on top of stack
     YOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
-    YOP_PUSHTHIS,                      // push 'this' value on top of stack
     YOP_PUSHLBLOCK,                    // push reference to local (to module) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
@@ -54,9 +53,6 @@ enum
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
-
-    YOP_SKIPINIT,                      // Increment the skipInit counter to avoid calls to parent init() during a class create.
-    YOP_SETTHIS,                       // sets vm->nextThis to top of stack. does not pop stack.
 
     YOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]
     YOP_COUNT                          // pops value, returns either array length and sets lastRet=1, or performs call to 'count' on obj

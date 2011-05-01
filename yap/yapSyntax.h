@@ -29,7 +29,6 @@ enum
     YST_STRINGFORMAT,                  // l: format expr, r: array of arg exprs
 
     YST_NULL,
-    YST_THIS,
 
     YST_TOSTRING,                      // r: expression to convert
     YST_TOINT,                         // r: expression to convert
@@ -80,7 +79,6 @@ yapSyntax * yapSyntaxCreateKInt(struct yapToken *token);
 yapSyntax * yapSyntaxCreateIdentifier(struct yapToken *token);
 yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
 yapSyntax * yapSyntaxCreateNull();
-yapSyntax * yapSyntaxCreateThis();
 yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
 yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args);
