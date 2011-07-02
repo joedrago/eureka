@@ -1,5 +1,5 @@
-// ---------------------------------------------------------------------------
-// Implementation of range
+// ----------------------------------------------------------
+// Creating the range() iterator
 
 var range = object();
 range.init = function(self, start, end)
@@ -19,15 +19,17 @@ range.get = function(self, i)
     return self.start + i;
 };
 
-// ---------------------------------------------------------------------------
-// Usage of range()
+// ----------------------------------------------------------
+// Iterator usage
 
+print("Range:");
 for(v in range(1, 10))
 {
-    print("v: %d\n" % (v));
+    print(" %d" % (v));
 }
+print("\n");
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------
 // Array iteration
 
 var a = array();
@@ -35,8 +37,16 @@ push(a, 5);
 push(a, 6);
 push(a, 7);
 push(a, 8);
+print("Array:");
 for(w in a)
 {
-    print("w: %d\n" % (w));
+    print(" %d" % (w));
 }
+print("\n");
+
+// ----------------------------------------------------------
+// Member Function Execution
+
+var obj = range(1, 100);
+print("Object count: %d\n" % ( obj:count() ));
 
