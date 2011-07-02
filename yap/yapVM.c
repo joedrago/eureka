@@ -264,7 +264,8 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
 
     if(initFunc)
     {
-        return yapVMCall(vm, framePtr, initFunc, argCount);
+        yapArrayInject(&vm->stack, newObject, argCount);
+        return yapVMCall(vm, framePtr, initFunc, argCount+1);
     }
 
     // TODO: initFunc needs to be the noop call if its not there
@@ -903,11 +904,12 @@ void yapVMLoop(yapVM *vm)
                     yapValue *getFunc = yapFindFunc(vm, val, "get");
                     if(!getFunc)
                     {
-                        yapVMSetError(vm, "YVT_COUNT: iterable does not have a get() function");
+                        yapVMSetError(vm, "YVT_NTH: iterable does not have a get() function");
                         continueLooping = yFalse;
                         break;
                     }
-                    continueLooping = yapVMCall(vm, &frame, getFunc, 1);
+                    yapArrayInject(&vm->stack, val, 1);
+                    continueLooping = yapVMCall(vm, &frame, getFunc, 2 /*obj, index*/);
                     if(frame != oldFrame)
                         newFrame = yTrue;
                 }
@@ -940,7 +942,8 @@ void yapVMLoop(yapVM *vm)
                         continueLooping = yFalse;
                         break;
                     }
-                    continueLooping = yapVMCall(vm, &frame, countFunc, 0);
+                    yapArrayPush(&vm->stack, val);
+                    continueLooping = yapVMCall(vm, &frame, countFunc, 1);
                     if(frame != oldFrame)
                         newFrame = yTrue;
                 }

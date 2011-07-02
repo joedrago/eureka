@@ -1,70 +1,42 @@
+// ---------------------------------------------------------------------------
+// Implementation of range
 
-var foo = object()
-foo.val = 345
-foo.bar = func(s, a,b,c)
-    print("callng foo.bar()\n")
-    if s
-        print("s is non-null: %s %s %s %s\n" % (s.val, a,b,c))
-    else
-        print("s is null\n")
-    return 7
+var range = object();
+range.init = function(self, start, end)
+{
+    self.start = start;
+    self.end = end;
+    return self;
+};
 
-var b = foo.bar()
-print("value of b: %d\n" % (b))
-foo:bar(1,3,5)
+range.count = function(self)
+{
+    return 1 + (self.end - self.start);
+};
 
-#class foo
-#    func init()
-#        print("foo init\n")
-#
-#class woo : foo()
-#    func init()
-#        print("woo init\n")
-#        super(woo).init()
-#    func z()
-#        print("2\n")
-#
-#var o = woo()
-#o.z()
+range.get = function(self, i)
+{
+    return self.start + i;
+};
 
+// ---------------------------------------------------------------------------
+// Usage of range()
 
+for(v in range(1, 10))
+{
+    print("v: %d\n" % (v));
+}
 
-#var range = array()
-#push(range, 5)
+// ---------------------------------------------------------------------------
+// Array iteration
 
-#var range = object()
-#range.init = func(start, end)
-#    this.offset_ = start
-#    this.count_  = end - start + 1
-#
-#range.count = func()
-#    return this.count_
-#
-#range.get = func(i)
-#    return this.offset_ + i
+var a = array();
+push(a, 5);
+push(a, 6);
+push(a, 7);
+push(a, 8);
+for(w in a)
+{
+    print("w: %d\n" % (w));
+}
 
-#var walk = object()
-#walk.init = func(a)
-#    this.a = a
-#walk.count = func()
-#    return length(this.a)
-#walk.get = func(i)
-#    return this.a[i]
-#
-#var reverse = object()
-#reverse.init = func(iter)
-#    this.iter = iter
-#    this.count_ = iter.count()
-#reverse.count = func()
-#    return this.count_
-#reverse.get = func(i)
-#    return this.iter.get(this.count_ - 1 - i)
-#
-#var z = array()
-#push(z, 5)
-#push(z, 7)
-#push(z, 8)
-#
-#for x in reverse(walk(z))
-#    print("sweet: %s\n" % (x))
-#

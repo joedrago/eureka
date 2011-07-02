@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PYTHON_SCOPING
+//#define PYTHON_SCOPING
 
 #define YYCTYPE char
 #define YYCURSOR l->cur
@@ -148,12 +148,14 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
         if((id != YTT_SPACE) && (id != YTT_COMMENT))
         {
+#ifdef PYTHON_SCOPING
             if(l.needsEndStatement)
             {
                 if(id != YTT_ELSE)
                     CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
                 l.needsEndStatement = yFalse;
             }
+#endif
 
             if(token_len > 0)
             {
@@ -167,8 +169,8 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         l.token = l.cur;
     }
 
-#ifdef PYTHON_SCOPING
     CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler); // some files might not end with a newline
+#ifdef PYTHON_SCOPING
 
     while(l.indents.count > 1)
     {

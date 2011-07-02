@@ -64,6 +64,23 @@ void yapArraySquash(yapArray *p)
     p->count = head;
 }
 
+void yapArrayInject(yapArray *p, void *v, int n)
+{
+    int index = yapArrayPush(p, v); // start with a push to cause the array to grow, if need be
+    int injectIndex = index - n;    // calculate the proper home for the entry that is now at the endIndex
+    if(injectIndex < 0)
+    {
+        printf("yapArrayInject(): injectIndex is %d! Terrible things are happening!\n", injectIndex);
+        injectIndex = 0;
+    }
+    while(index > injectIndex)
+    {
+        p->data[index] = p->data[index-1];
+        index--;
+    }
+    p->data[index] = v;
+}
+
 yOperand yapArrayPushUniqueString(yapArray *p, char *s)
 {
     int i;

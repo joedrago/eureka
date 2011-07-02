@@ -69,6 +69,7 @@ void * yapArrayPop(yapArray *p);
 void * yapArrayTop(yapArray *p);
 yU32 yapArrayCount(yapArray *p);
 void yapArraySquash(yapArray *p);  // Removes all NULL entries
+void yapArrayInject(yapArray *p, void *v, int n);  // Injects v n entries from the end (0 being equivalent to Push)
 
 typedef void (*yapDestroyCB)(void *p);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);

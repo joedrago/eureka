@@ -108,7 +108,7 @@ statement(S) ::= WHILE expr_list(COND) STARTBLOCK statement_list(BODY) ENDBLOCK.
 statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY); }
 
-statement(S) ::= FOR ident_list(VARS) IN expression(ITER) STARTBLOCK statement_list(BODY) ENDBLOCK.
+statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
     { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
 
 // ---------------------------------------------------------------------------

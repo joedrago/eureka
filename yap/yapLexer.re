@@ -25,6 +25,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 */
 
 /*!re2c
+    "//"            { goto comment; }
     "#"             { goto comment; }
     "="             { return YTT_EQUALS; }
     ","             { return YTT_COMMA; }
@@ -45,7 +46,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "while"         { return YTT_WHILE; }
     "var"           { return YTT_VAR; }
     "null"          { return YTT_NULL; }
-    "func"          { return YTT_FUNCTION; }
+    "function"      { return YTT_FUNCTION; }
     "return"        { return YTT_RETURN; }
     "if"            { return YTT_IF; }
     "else"          { return YTT_ELSE; }
