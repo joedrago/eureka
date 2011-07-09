@@ -17,7 +17,7 @@ enum
     YFT_FUNC,                          // Function scope
     YFT_COND,                          // Conditional (if/else) scope
     YFT_LOOP,                          // Loop (while/for) scope
-    YFT_CLASS,                         // Class declaration scope
+    YFT_WITH,                          // "with" scope: convenient way to add lots of things to an object
 
     YFT_COUNT
 };
@@ -27,6 +27,7 @@ typedef struct yapFrame
     yapArray variables;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
+    struct yapValue *with;             // Used in WITH blocks, represents the "with object"
     yU32 type;                         // YFT_*
 } yapFrame;
 

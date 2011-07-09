@@ -33,6 +33,7 @@
 %left CLOSEBRACKET.
 %left SEMI.
 %left EQUALS.
+%left INHERITS.
 %left PERIOD.
 %left LEFTPAREN.
 %left COLON.
@@ -76,6 +77,25 @@ statement_list(L) ::= statement(S).
     { L = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
+// Statement Block
+
+%type statement_block
+    { yapSyntax* }
+
+%destructor statement_block
+    { yapSyntaxDestroy($$); }
+
+statement_block(B) ::= STARTBLOCK ENDBLOCK.
+    { B = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+
+statement_block(B) ::= STARTBLOCK statement_list(L) ENDBLOCK.
+    { B = L; }
+
+// TODO: Reorganize grammar to allow for arbitrary scope creation and single-statement if contents
+//statement_block(B) ::= statement(S).
+//    { B = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
+
+// ---------------------------------------------------------------------------
 // Statement
 
 %type statement
@@ -90,25 +110,22 @@ statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
 statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateStatementExpr(L); }
 
-statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK ELSE STARTBLOCK statement_list(ELSEBODY) ENDBLOCK.
+statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
     { S = yapSyntaxCreateIfElse(COND, IFBODY, ELSEBODY); }
 
-statement(S) ::= IF expr_list(COND) STARTBLOCK statement_list(IFBODY) ENDBLOCK.
+statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
-statement(S) ::= CLASS IDENTIFIER(NAME) COLONCOLON expression(ISA) STARTBLOCK statement_list(BODY) ENDBLOCK.
-    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), ISA, BODY); }
+statement(S) ::= WITH expr_list(OBJ) statement_block(BODY).
+    { S = yapSyntaxCreateWith(OBJ, BODY); }
 
-statement(S) ::= CLASS IDENTIFIER(NAME) STARTBLOCK statement_list(BODY) ENDBLOCK.
-    { S = yapSyntaxCreateClass(yapSyntaxCreateIdentifier(&NAME), NULL, BODY); }
-
-statement(S) ::= WHILE expr_list(COND) STARTBLOCK statement_list(BODY) ENDBLOCK.
+statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
     { S = yapSyntaxCreateWhile(COND, BODY); }
 
-statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
+statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY); }
 
-statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
+statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +191,9 @@ expression(C) ::= LEFTPAREN expr_list(EL) RIGHTPAREN.
 expression(E) ::= lvalue(L) EQUALS expression(R).
     { E = yapSyntaxCreateAssignment(L, R); }
 
+expression(E) ::= lvalue(L) INHERITS expression(R).
+    { E = yapSyntaxCreateInherits(L, R); }
+
 expression(E) ::= lvalue(LV).
     { E = LV; }
 
@@ -186,7 +206,7 @@ expression(E) ::= LITERALSTRING(L).
 expression(E) ::= NULL.
     { E = yapSyntaxCreateNull(); }
 
-expression(E) ::= FUNCTION LEFTPAREN ident_list(ARGS) RIGHTPAREN STARTBLOCK statement_list(BODY) ENDBLOCK.
+expression(E) ::= FUNCTION LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
     { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY); }
 
 

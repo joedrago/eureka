@@ -118,7 +118,7 @@ yapValue * yapValueSetObject(struct yapVM *vm, yapValue *p, struct yapObject *ob
     return p;
 }
 
-yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
+static yBool yapValueCheckRef(struct yapVM *vm, yapValue *ref, yapValue *p)
 {
     if(!p)
     {
@@ -140,11 +140,41 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
         yapVMSetError(vm, "yapValueSetRefVal: value on top of stack, ref underneath");
         return yFalse;
     }
+    return yTrue;
+}
+
+yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p)
+{
+    if(!yapValueCheckRef(vm, ref, p))
+        return yFalse;
 
     *(ref->refVal) = p;
     p->used = yTrue;
 
     yapTrace(("yapValueSetRefVal %p = %p\n", ref, p));
+    return yTrue;
+}
+
+yBool yapValueSetRefInherits(struct yapVM *vm, yapValue *ref, yapValue *p)
+{
+    if(!yapValueCheckRef(vm, ref, p))
+        return yFalse;
+
+    if(*(ref->refVal) == &yapValueNull)
+    {
+        *(ref->refVal) = yapValueObjectCreate(vm, p);
+    }
+
+    if((*(ref->refVal))->type != YVT_OBJECT)
+    {
+        yapVMSetError(vm, "yapValueSetRefInherits: non-objects cannot inherit");
+        return yFalse;
+    }
+
+    (*(ref->refVal))->objectVal->isa = p;
+    p->used = yTrue;
+
+    yapTrace(("yapValueSetRefInherits %p = %p\n", ref, p));
     return yTrue;
 }
 

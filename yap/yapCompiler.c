@@ -202,11 +202,12 @@ asmFunc(ShortCircuit);
 asmFunc(Var);
 asmFunc(Return);
 asmFunc(Assignment);
+asmFunc(Inherits);
 asmFunc(IfElse);
 asmFunc(While);
 asmFunc(For);
 asmFunc(Function);
-asmFunc(Class);
+asmFunc(With);
 
 static yapAssembleInfo asmDispatch[YST_COUNT] =
 {
@@ -241,6 +242,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
 
     { yapAssembleStatementExpr },   // YST_STATEMENT_EXPR
     { yapAssembleAssignment },      // YST_ASSIGNMENT
+    { yapAssembleInherits },        // YST_INHERITS
     { yapAssembleVar },             // YST_VAR
     { yapAssembleReturn },          // YST_RETURN
 
@@ -248,7 +250,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleWhile },           // YST_WHILE
     { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
-    { yapAssembleClass },           // YST_CLASS
+    { yapAssembleWith },            // YST_WITH
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -375,7 +377,8 @@ asmFunc(Call)
 
     argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
     yapCodeGrow(dst, 3);
-    yapCodeAppend(dst, YOP_MOVE, argCount); // should move the funcref above the args
+    if(argCount)
+        yapCodeAppend(dst, YOP_MOVE, argCount); // should move the funcref above the args
     yapCodeAppend(dst, YOP_CALL, argCount + ((obj)?1:0));
     yapCodeAppend(dst, YOP_KEEP, keep);
     return PAD(keep);
@@ -480,6 +483,19 @@ asmFunc(Assignment)
     asmDispatch[l->type].assemble(compiler, dst, l, 1, ASM_LVALUE);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_SETVAR, leave);
+    return PAD(leave);
+}
+
+asmFunc(Inherits)
+{
+    yapSyntax *l = syntax->l.p;
+    yapSyntax *r = syntax->r.p;
+    int leave = (keep > 0) ? 1 : 0;
+
+    asmDispatch[r->type].assemble(compiler, dst, r, 1, ASM_NORMAL);
+    asmDispatch[l->type].assemble(compiler, dst, l, 1, ASM_LVALUE);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_INHERITS, leave);
     return PAD(leave);
 }
 
@@ -639,46 +655,28 @@ asmFunc(Function)
     return PAD(valuesLeftOnStack);
 }
 
-asmFunc(Class)
+asmFunc(With)
 {
-//    yapSyntax *name = syntax->v.p;
-//    yapSyntax *isa = syntax->l.p;
-//    yapSyntax *body = syntax->r.p;
-//    yapCode   *code = yapCodeCreate();
-//    int index;
-//
-//    // create base object (does not call init on it)
-//    if(isa)
-//    {
-//        yapCodeGrow(dst, 1);
-//        yapCodeAppend(dst, YOP_SKIPINIT, 0);
-//        asmDispatch[isa->type].assemble(compiler, dst, isa, 1, ASM_NORMAL);
-//    }
-//    else
-//    {
-//        // No isa offered, assume "object()"
-//        yapCodeGrow(dst, 3);
-//        yapCodeAppend(dst, YOP_VARREF_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup("object")));
-//        yapCodeAppend(dst, YOP_CALL, 0);
-//        yapCodeAppend(dst, YOP_KEEP, 1);
-//    }
-//    yapCodeGrow(dst, 1);
-//    yapCodeAppend(dst, YOP_SETTHIS, 0); // prepares next PushFrame to use the new object as 'this'
-//    asmDispatch[name->type].assemble(compiler, dst, name, 1, ASM_VAR|ASM_LVALUE);
-//    yapCodeGrow(dst, 1);
-//    yapCodeAppend(dst, YOP_SETVAR, 0);
-//
-//    // create class declaration block with a regular 'leave' at the end
-//    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
-//    yapCodeGrow(code, 1);
-//    yapCodeAppend(code, YOP_LEAVE, 0);
-//    index = yapBlockConvertCode(code, compiler->module, 0);
-//
-//    // enter the newly created block from the parent block, flagging the frame as type CLASS
-//    yapCodeGrow(dst, 1);
-//    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
-//    yapCodeGrow(dst, 1);
-//    yapCodeAppend(dst, YOP_ENTER, YFT_CLASS);
+    yapSyntax *obj  = syntax->v.p;
+    yapSyntax *body = syntax->r.p;
+    yapCode   *code = yapCodeCreate();
+    int index;
+
+    // "obj" expression should ultimately leave a reference to an object on the stack
+    asmDispatch[obj->type].assemble(compiler, dst, obj, 1, ASM_VAR|ASM_LVALUE);
+
+    // create new block from "body"
+    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_LEAVE, 0);
+    index = yapBlockConvertCode(code, compiler->module, 0);
+
+    // enter the newly created block from the parent block, flagging the frame as type WITH
+    // this will cause the object reference to be popped and associated with the frame
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_ENTER, YFT_WITH);
 
     return PAD(0);
 }

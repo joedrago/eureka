@@ -61,6 +61,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_VARREF_KS, "varref_ks")
             HURR(YOP_REFVAL, "refval")
             HURR(YOP_SETVAR, "setvar")
+            HURR(YOP_INHERITS, "inherits")
 
             HURR(YOP_NTH, "nth")
             HURR(YOP_COUNT, "count")

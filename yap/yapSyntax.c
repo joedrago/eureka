@@ -148,6 +148,14 @@ yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
     return syntax;
 }
 
+yapSyntax * yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_INHERITS);
+    syntax->l.p = l;
+    syntax->r.p = r;
+    return syntax;
+}
+
 yapSyntax * yapSyntaxCreateVar(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_VAR);
@@ -197,11 +205,10 @@ yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, 
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateClass(yapSyntax *name, yapSyntax *isa, yapSyntax *body)
+yapSyntax * yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_CLASS);
-    syntax->v.p = name;
-    syntax->l.p = isa;
+    yapSyntax *syntax = yapSyntaxCreate(YST_WITH);
+    syntax->v.p = obj;
     syntax->r.p = body;
     return syntax;
 }

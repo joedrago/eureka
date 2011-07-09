@@ -40,7 +40,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "["             { return YTT_OPENBRACKET; }
     "]"             { return YTT_CLOSEBRACKET; }
     "."             { return YTT_PERIOD; }
-    "::"            { return YTT_COLONCOLON; }
     ":"             { return YTT_COLON; }
 
     "while"         { return YTT_WHILE; }
@@ -57,7 +56,8 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "not"           { return YTT_NOT; }
     "for"           { return YTT_FOR; }
     "in"            { return YTT_IN; }
-    "class"         { return YTT_CLASS; }
+    "with"          { return YTT_WITH; }
+    "inherits"      { return YTT_INHERITS; }
 
     "("             { return YTT_LEFTPAREN; }
     ")"             { return YTT_RIGHTPAREN; }

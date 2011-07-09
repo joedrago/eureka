@@ -458,13 +458,13 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_VARREG_KS:
             {
-                if(frame->type == YFT_CLASS)
+                if(frame->type == YFT_WITH)
                 {
-                    // Inside a class block, all variables registered become a part of the object.
+                    // Inside a with block, all variables registered become a part of the object.
                     // Is this dumb or cool?
-//                    yapValue **ref = yapObjectGetRef(vm, frame->thisVal->objectVal, frame->block->module->kStrings.data[operand], yTrue);
-//                    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), ref);
-//                    yapArrayPush(&vm->stack, value);
+                    yapValue **ref = yapObjectGetRef(vm, frame->with->objectVal, frame->block->module->kStrings.data[operand], yTrue);
+                    yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), ref);
+                    yapArrayPush(&vm->stack, value);
                 }
                 else
                 {
@@ -570,6 +570,18 @@ void yapVMLoop(yapVM *vm)
                 if(!operand)
                     yapArrayPop(&vm->stack);
                 continueLooping = yapValueSetRefVal(vm, ref, val);
+            }
+            break;
+
+        case YOP_INHERITS:
+            {
+                yapValue *ref = yapArrayPop(&vm->stack);
+                yapValue *val = yapArrayPop(&vm->stack);
+                continueLooping = yapValueSetRefInherits(vm, ref, val);
+                if(continueLooping && operand)
+                {
+                    yapArrayPush(&vm->stack, *ref->refVal);
+                }
             }
             break;
 
@@ -760,9 +772,22 @@ void yapVMLoop(yapVM *vm)
 
                 if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
                 {
-                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, operand);
+                    yU32 frameType = operand;
+                    frame = yapVMPushFrame(vm, blockRef->blockVal, 0, frameType);
                     if(frame)
+                    {
                         newFrame = yTrue;
+                        if(frameType == YFT_WITH)
+                        {
+                            // pop the "with object" from the stack
+                            frame->with = yapArrayPop(&vm->stack);
+                            if(frame->with->type != YVT_OBJECT)
+                            {
+                                yapVMSetError(vm, "'with' expression does not evaluate to an object");
+                                continueLooping = yFalse;
+                            }
+                        }
+                    }
                     else
                         continueLooping = yFalse;
                 }
@@ -1003,6 +1028,8 @@ void yapVMGC(struct yapVM *vm)
     for(i=0; i<vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
+        if(frame->with)
+            yapValueMark(frame->with);
         for(j=0; j<frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];

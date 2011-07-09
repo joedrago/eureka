@@ -220,6 +220,14 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_INHERITS:
+    {
+        strcpy(label, "Inherits");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
     case YST_VAR:
     {
         strcpy(label, "Var");
@@ -281,13 +289,13 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
-    case YST_CLASS:
+    case YST_WITH:
     {
-        sprintf(label, "Class: \\\"%s\\\"", syntax->v.s);
-        if(syntax->l.p)
+        sprintf(label, "WITH");
+        if(syntax->v.p)
         {
-            childLineOpts = "style=dotted,label=isa";
-            REC_CHILD(syntax->l.p);
+            childLineOpts = "style=dotted,label=object";
+            REC_CHILD(syntax->v.p);
         }
         childLineOpts = "label=body";
         REC_CHILD(syntax->r.p);

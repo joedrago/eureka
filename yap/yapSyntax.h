@@ -43,7 +43,8 @@ enum
     YST_OR,                            // l || r
 
     YST_STATEMENT_EXPR,                // r: expr
-    YST_ASSIGNMENT,                    // s = r
+    YST_ASSIGNMENT,                    // l = r
+    YST_INHERITS,                      // ensures l is an object, and then makes r inherit from l
     YST_VAR,                           // var s (= r)
     YST_RETURN,                        // return a:r
 
@@ -52,7 +53,7 @@ enum
     YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
 
-    YST_CLASS,                         // class v.s \n body r
+    YST_WITH,                          // with(v) { body r }
 
     YST_COUNT
 };
@@ -88,13 +89,14 @@ yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
 yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);
 yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
+yapSyntax * yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);
 yapSyntax * yapSyntaxCreateVar(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateReturn(yapSyntax *expr);
 yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
 yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
-yapSyntax * yapSyntaxCreateClass(yapSyntax *name, yapSyntax *isa, yapSyntax *body);
+yapSyntax * yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);
 

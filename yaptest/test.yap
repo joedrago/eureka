@@ -1,52 +1,72 @@
-// ----------------------------------------------------------
-// Creating the range() iterator
+// ----------------------------------------------------------------------------
+// Keyword: inherits / usage of "static" vs "overridden" variables
 
-var range = object();
-range.init = function(self, start, end)
+var fruit = object();
+fruit.type = "fruit"; // override me!
+fruit.count = 0;      // static count of eaten fruit
+
+fruit.eat = function(self)
 {
-    self.start = start;
-    self.end = end;
-    return self;
+    fruit.count = fruit.count + 1; // implement increment, kthx
+    print("Eating %s (count: %d)\n" % (self.type, fruit.count));
 };
 
-range.count = function(self)
-{
-    return 1 + (self.end - self.start);
-};
+var apple = object();
+apple inherits fruit;
+apple.type = "apple";
+apple:eat();
 
-range.get = function(self, i)
-{
-    return self.start + i;
-};
+var pear inherits fruit;
+pear.type = "pear";
+pear:eat();
 
-// ----------------------------------------------------------
-// Iterator usage
+// ----------------------------------------------------------------------------
+// Keyword: with / multiple withs for a single var, and 'with' nesting
 
-print("Range:");
-for(v in range(1, 10))
+with var very = object()
 {
-    print(" %d" % (v));
+    function awesome()
+    {
+        print("very awesome\n");
+    }
 }
-print("\n");
 
-// ----------------------------------------------------------
-// Array iteration
-
-var a = array();
-push(a, 5);
-push(a, 6);
-push(a, 7);
-push(a, 8);
-print("Array:");
-for(w in a)
+with very
 {
-    print(" %d" % (w));
+    with var very = object()
+    {
+        function awesome()
+        {
+            print("very VERY awesome\n");
+        }
+    }
 }
-print("\n");
 
-// ----------------------------------------------------------
-// Member Function Execution
+very.awesome();
+very.very.awesome();
 
-var obj = range(1, 100);
-print("Object count: %d\n" % ( obj:count() ));
+// ----------------------------------------------------------------------------
+// Variable creation in a 'with' statement, and mixing with/inherits
+
+with var vehicle = object()
+{
+    var type = "generic";
+
+    function printType(self)
+    {
+        print("vehicle type: %s\n" % (self.type));
+    }
+}
+
+var car inherits vehicle;
+car.type = "car";
+
+with var boat inherits vehicle
+{
+    var type = "boat";
+}
+
+vehicle:printType();
+car:printType();
+boat:printType();
 
