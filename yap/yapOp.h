@@ -34,13 +34,20 @@ enum
     YOP_IF,                            // pop value, then X+1 LBLOCKs. run 0 if true, 1 if false and present
     YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL). X == YFT_*
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
-    YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop.
-    // (BREAK 0 = break, BREAK 1 = continue)
+    YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop. (BREAK 0 = break, BREAK 1 = continue)
 
     YOP_ADD,                           // pops [a,b], pushes a+b
     YOP_SUB,                           // pops [a,b], pushes a-b. Leaves [a,b] on stack if X=1
     YOP_MUL,                           // pops [a,b], pushes a*b
     YOP_DIV,                           // pops [a,b], pushes a/b
+
+    YOP_CMP,                           // pops [a,b], pushes a<=>b (int)
+    YOP_EQUALS,                        // pops [a,b], pushes a==b (bool)
+    YOP_NOTEQUALS,                     // pops [a,b], pushes a!=b (bool)
+    YOP_GREATERTHAN,                   // pops [a,b], pushes a>b  (bool)
+    YOP_GREATERTHANOREQUAL,            // pops [a,b], pushes a>=b (bool)
+    YOP_LESSTHAN,                      // pops [a,b], pushes a<b  (bool)
+    YOP_LESSTHANOREQUAL,               // pops [a,b], pushes a<=b (bool)
 
     YOP_TOSTRING,                      // type conversion: string
     YOP_TOINT,                         // type conversion: int

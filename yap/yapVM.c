@@ -563,6 +563,50 @@ void yapVMLoop(yapVM *vm)
         }
         break;
 
+        case YOP_CMP:
+        case YOP_EQUALS:
+        case YOP_NOTEQUALS:
+        case YOP_LESSTHAN:
+        case YOP_LESSTHANOREQUAL:
+        case YOP_GREATERTHAN:
+        case YOP_GREATERTHANOREQUAL:
+        {
+            yapValue *b = yapArrayPop(&vm->stack);
+            yapValue *a = yapArrayPop(&vm->stack);
+            yS32 cmp = yapValueCmp(vm, a, b);
+            if(opcode != YOP_CMP)
+            {
+                if((opcode == YOP_EQUALS) || (opcode == YOP_NOTEQUALS))
+                {
+                    // Boolean tests
+                    cmp = !cmp;
+                    if(opcode == YOP_NOTEQUALS)
+                        cmp = !cmp;
+                }
+                else
+                {
+                    // Comparisons-to-bool
+                    switch(opcode)
+                    {
+                        case YOP_LESSTHAN:
+                            cmp = (cmp < 0) ? 1 : 0;
+                            break;
+                        case YOP_LESSTHANOREQUAL:
+                            cmp = (cmp <= 0) ? 1 : 0;
+                            break;
+                        case YOP_GREATERTHAN:
+                            cmp = (cmp > 0) ? 1 : 0;
+                            break;
+                        case YOP_GREATERTHANOREQUAL:
+                            cmp = (cmp >= 0) ? 1 : 0;
+                            break;
+                    }
+                }
+            }
+            yapArrayPush(&vm->stack, yapValueSetInt(vm, a, cmp));
+        }
+        break;
+
         case YOP_SETVAR:
         {
             yapValue *ref = yapArrayPop(&vm->stack);

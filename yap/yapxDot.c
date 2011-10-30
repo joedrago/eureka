@@ -220,6 +220,62 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_CMP:
+    {
+        strcpy(label, "cmp");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_EQUALS:
+    {
+        strcpy(label, "==");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_NOTEQUALS:
+    {
+        strcpy(label, "!=");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_GREATERTHAN:
+    {
+        strcpy(label, ">");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_GREATERTHANOREQUAL:
+    {
+        strcpy(label, ">=");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_LESSTHAN:
+    {
+        strcpy(label, "<");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_LESSTHANOREQUAL:
+    {
+        strcpy(label, "<=");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
     case YST_INHERITS:
     {
         strcpy(label, "Inherits");

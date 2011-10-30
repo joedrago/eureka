@@ -262,6 +262,26 @@ yapValue *yapValueAcquire(struct yapVM *vm)
     return value;
 }
 
+yS32 yapValueCmp(struct yapVM *vm, yapValue *a, yapValue *b)
+{
+    if(a == b)
+        return 0;
+
+    if(a && b)
+    {
+        if((a->type == YVT_INT) && (b->type == YVT_INT))
+        {
+            return (a->intVal - b->intVal);
+        }
+        if((a->type == YVT_STRING) && (b->type == YVT_STRING))
+        {
+            return strcmp(a->stringVal, b->stringVal);
+        }
+    }
+
+    return (yS32)(a - b); // Fallback case: compare pointers for consistency
+}
+
 void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src)
 {
     dst->type = src->type;

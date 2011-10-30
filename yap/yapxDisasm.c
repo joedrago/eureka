@@ -50,6 +50,14 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_MUL, "mul")
             HURR(YOP_DIV, "div")
 
+            HURR(YOP_CMP, "cmp")
+            HURR(YOP_EQUALS, "eq")
+            HURR(YOP_NOTEQUALS, "ne")
+            HURR(YOP_GREATERTHAN, "gt")
+            HURR(YOP_GREATERTHANOREQUAL, "gte")
+            HURR(YOP_LESSTHAN, "lt")
+            HURR(YOP_LESSTHANOREQUAL, "lte")
+
             HURR(YOP_TOSTRING, "tostring")
             HURR(YOP_TOINT, "toint")
 

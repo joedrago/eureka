@@ -42,6 +42,14 @@ enum
     YST_AND,                           // l && r
     YST_OR,                            // l || r
 
+    YST_CMP,                           // l <=> r  (compare)
+    YST_EQUALS,                        // l == r
+    YST_NOTEQUALS,                     // l != r
+    YST_GREATERTHAN,                   // l > r
+    YST_GREATERTHANOREQUAL,            // l >= r
+    YST_LESSTHAN,                      // l < r
+    YST_LESSTHANOREQUAL,               // l <= r
+
     YST_STATEMENT_EXPR,                // r: expr
     YST_ASSIGNMENT,                    // l = r
     YST_INHERITS,                      // ensures l is an object, and then makes r inherit from l

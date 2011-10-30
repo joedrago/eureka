@@ -258,6 +258,14 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleShortCircuit },    // YST_AND
     { yapAssembleShortCircuit },    // YST_OR
 
+    { yapAssembleBinary },          // YST_CMP
+    { yapAssembleBinary },          // YST_EQUALS
+    { yapAssembleBinary },          // YST_NOTEQUALS
+    { yapAssembleBinary },          // YST_GREATERTHAN
+    { yapAssembleBinary },          // YST_GREATERTHANOREQUAL
+    { yapAssembleBinary },          // YST_LESSTHAN
+    { yapAssembleBinary },          // YST_LESSTHANOREQUAL
+
     { yapAssembleStatementExpr },   // YST_STATEMENT_EXPR
     { yapAssembleAssignment },      // YST_ASSIGNMENT
     { yapAssembleInherits },        // YST_INHERITS
@@ -444,26 +452,50 @@ asmFunc(Binary)
 {
     yapSyntax *a = syntax->l.p;
     yapSyntax *b = syntax->r.p;
+    int op = YOP_NOP;
+
     asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
 
-    yapCodeGrow(dst, 1);
     switch(syntax->type)
     {
     case YST_ADD:
-        yapCodeAppend(dst, YOP_ADD, 0);
+        op = YOP_ADD;
         break;
     case YST_SUB:
-        yapCodeAppend(dst, YOP_SUB, 0);
+        op = YOP_SUB;
         break;
     case YST_MUL:
-        yapCodeAppend(dst, YOP_MUL, 0);
+        op = YOP_MUL;
         break;
     case YST_DIV:
-        yapCodeAppend(dst, YOP_DIV, 0);
+        op = YOP_DIV;
+        break;
+    case YST_CMP:
+        op = YOP_CMP;
+        break;
+    case YST_EQUALS:
+        op = YOP_EQUALS;
+        break;
+    case YST_NOTEQUALS:
+        op = YOP_NOTEQUALS;
+        break;
+    case YST_GREATERTHAN:
+        op = YOP_GREATERTHAN;
+        break;
+    case YST_GREATERTHANOREQUAL:
+        op = YOP_GREATERTHANOREQUAL;
+        break;
+    case YST_LESSTHAN:
+        op = YOP_LESSTHAN;
+        break;
+    case YST_LESSTHANOREQUAL:
+        op = YOP_LESSTHANOREQUAL;
         break;
     };
 
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, op, 0);
     return PAD(1);
 }
 

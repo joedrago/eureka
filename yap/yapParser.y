@@ -34,7 +34,14 @@
 %left OPENBRACKET.
 %left CLOSEBRACKET.
 %left SEMI.
+%left ASSIGN.
+%left CMP.
 %left EQUALS.
+%left NOTEQUALS.
+%left LESSTHAN.
+%left LESSTHANOREQUAL.
+%left GREATERTHAN.
+%left GREATERTHANOREQUAL.
 %left INHERITS.
 %left PERIOD.
 %left LEFTPAREN.
@@ -183,23 +190,44 @@ expression(C) ::= STRING expression(E).
 expression(C) ::= NOT expression(E).
     { C = yapSyntaxCreateUnary(YST_NOT, E); }
 
-expression(C) ::= expression(OC) PLUS expression(E).
-    { C = yapSyntaxCreateBinary(YST_ADD, OC, E); }
+expression(C) ::= expression(L) PLUS expression(R).
+    { C = yapSyntaxCreateBinary(YST_ADD, L, R); }
 
-expression(C) ::= expression(OC) DASH expression(E).
-    { C = yapSyntaxCreateBinary(YST_SUB, OC, E); }
+expression(C) ::= expression(L) DASH expression(R).
+    { C = yapSyntaxCreateBinary(YST_SUB, L, R); }
 
-expression(C) ::= expression(OC) STAR expression(E).
-    { C = yapSyntaxCreateBinary(YST_MUL, OC, E); }
+expression(C) ::= expression(L) STAR expression(R).
+    { C = yapSyntaxCreateBinary(YST_MUL, L, R); }
 
-expression(C) ::= expression(OC) SLASH expression(E).
-    { C = yapSyntaxCreateBinary(YST_DIV, OC, E); }
+expression(C) ::= expression(L) SLASH expression(R).
+    { C = yapSyntaxCreateBinary(YST_DIV, L, R); }
 
-expression(C) ::= expression(OC) AND expression(E).
-    { C = yapSyntaxCreateBinary(YST_AND, OC, E); }
+expression(C) ::= expression(L) AND expression(R).
+    { C = yapSyntaxCreateBinary(YST_AND, L, R); }
 
-expression(C) ::= expression(OC) OR expression(E).
-    { C = yapSyntaxCreateBinary(YST_OR, OC, E); }
+expression(C) ::= expression(L) OR expression(R).
+    { C = yapSyntaxCreateBinary(YST_OR, L, R); }
+
+expression(C) ::= expression(L) CMP expression(R).
+    { C = yapSyntaxCreateBinary(YST_CMP, L, R); }
+
+expression(C) ::= expression(L) EQUALS expression(R).
+    { C = yapSyntaxCreateBinary(YST_EQUALS, L, R); }
+
+expression(C) ::= expression(L) NOTEQUALS expression(R).
+    { C = yapSyntaxCreateBinary(YST_NOTEQUALS, L, R); }
+
+expression(C) ::= expression(L) GREATERTHAN expression(R).
+    { C = yapSyntaxCreateBinary(YST_GREATERTHAN, L, R); }
+
+expression(C) ::= expression(L) GREATERTHANOREQUAL expression(R).
+    { C = yapSyntaxCreateBinary(YST_GREATERTHANOREQUAL, L, R); }
+
+expression(C) ::= expression(L) LESSTHAN expression(R).
+    { C = yapSyntaxCreateBinary(YST_LESSTHAN, L, R); }
+
+expression(C) ::= expression(L) LESSTHANOREQUAL expression(R).
+    { C = yapSyntaxCreateBinary(YST_LESSTHANOREQUAL, L, R); }
 
 expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
@@ -207,7 +235,7 @@ expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
 expression(C) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { C = EL; }
 
-expression(E) ::= lvalue(L) EQUALS expression(R).
+expression(E) ::= lvalue(L) ASSIGN expression(R).
     { E = yapSyntaxCreateAssignment(L, R); }
 
 expression(E) ::= lvalue(L) INHERITS expression(R).

@@ -87,6 +87,8 @@ yapValue *yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue *yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue *yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b);
 
+yS32 yapValueCmp(struct yapVM *vm, yapValue *a, yapValue *b);
+
 yapValue *yapValueToBool(struct yapVM *vm, yapValue *p);
 yapValue *yapValueToInt(struct yapVM *vm, yapValue *p);
 yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
