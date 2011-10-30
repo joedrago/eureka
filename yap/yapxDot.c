@@ -14,9 +14,9 @@ static void yapSyntaxDotRecurseArray(yapArray *a, const char *myLineOpts, yapSyn
 {
     int i;
     const char *childLineOpts = myLineOpts;
-    for(i=0; i<a->count; i++)
+    for(i = 0; i < a->count; i++)
     {
-        REC_CHILD((yapSyntax*)a->data[i]);
+        REC_CHILD((yapSyntax *)a->data[i]);
     }
 }
 
@@ -44,11 +44,11 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
         {
             switch(*c)
             {
-                case '\n':
-                case '\t':
-                case '\r':
-                    *c = ' ';
-                    break;
+            case '\n':
+            case '\t':
+            case '\r':
+                *c = ' ';
+                break;
             };
             c++; // this never gets old.
         };
@@ -82,7 +82,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     case YST_STATEMENTLIST:
     {
         myOpts = "shape=box";
-        strcpy(label,"StatementList");
+        strcpy(label, "StatementList");
         REC_ARRAY(syntax->v.a);
     }
     break;
@@ -138,28 +138,28 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_TOSTRING:
     {
-        strcpy(label,"ToString");
+        strcpy(label, "ToString");
         REC_CHILD(syntax->v.p);
     }
     break;
 
     case YST_TOINT:
     {
-        strcpy(label,"ToInt");
+        strcpy(label, "ToInt");
         REC_CHILD(syntax->v.p);
     }
     break;
 
     case YST_NOT:
     {
-        strcpy(label,"Not");
+        strcpy(label, "Not");
         REC_CHILD(syntax->v.p);
     }
     break;
 
     case YST_AND:
     {
-        strcpy(label,"And");
+        strcpy(label, "And");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -167,7 +167,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_OR:
     {
-        strcpy(label,"Or");
+        strcpy(label, "Or");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }

@@ -3,9 +3,9 @@
 #include "yapBlock.h"
 #include "yapOp.h"
 
-yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block)
+yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block)
 {
-    yapFrame *frame = (yapFrame*)yapAlloc(sizeof(yapFrame));
+    yapFrame *frame = (yapFrame *)yapAlloc(sizeof(yapFrame));
     frame->type = type;
     frame->block = block;
     yapFrameReset(frame, yFalse);

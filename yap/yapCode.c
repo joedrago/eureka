@@ -21,7 +21,7 @@ void yapCodeGrow(yapCode *code, int count)
         return;
 
     if(code->size)
-        code->ops = yapRealloc(code->ops, sizeof(yapOp) * (code->size+count));
+        code->ops = yapRealloc(code->ops, sizeof(yapOp) * (code->size + count));
     else
         code->ops = yapAlloc(sizeof(yapOp) * count);
     code->size += count;

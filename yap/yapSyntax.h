@@ -74,29 +74,29 @@ typedef struct yapSyntax
     yapSyntaxElement r;                // "right" - rvalue / simple lists
 } yapSyntax;
 
-yapSyntax * yapSyntaxCreate(yU32 type);
-yapSyntax * yapSyntaxCreateKString(struct yapToken *token);
-yapSyntax * yapSyntaxCreateKInt(struct yapToken *token);
-yapSyntax * yapSyntaxCreateIdentifier(struct yapToken *token);
-yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
-yapSyntax * yapSyntaxCreateNull();
-yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
-yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
-yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args);
-yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
-yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
-yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
-yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);
-yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr);
-yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
-yapSyntax * yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);
-yapSyntax * yapSyntaxCreateVar(yapSyntax *expr);
-yapSyntax * yapSyntaxCreateReturn(yapSyntax *expr);
-yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
-yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
-yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
-yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
-yapSyntax * yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body);
+yapSyntax *yapSyntaxCreate(yU32 type);
+yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
+yapSyntax *yapSyntaxCreateKInt(struct yapToken *token);
+yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
+yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
+yapSyntax *yapSyntaxCreateNull();
+yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
+yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args);
+yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
+yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
+yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr);
+yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateVar(yapSyntax *expr);
+yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr);
+yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
+yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
+yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
+yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
+yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);
 

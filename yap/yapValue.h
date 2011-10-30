@@ -33,13 +33,13 @@ typedef enum yapValueType
 // ---------------------------------------------------------------------------
 
 // Should return how many values it is returning on the stack
-typedef yU32 (yapCFunction)(struct yapVM *vm, yU32 argCount);
+typedef yU32(yapCFunction)(struct yapVM *vm, yU32 argCount);
 
 typedef struct yapValue
 {
     yU8 type;
-    yFlag constant:1;                  // Pointing at a constant table, do not free
-    yFlag used:1;                      // The "mark" during the GC's mark-and-sweep
+    yFlag constant: 1;                 // Pointing at a constant table, do not free
+    yFlag used: 1;                     // The "mark" during the GC's mark-and-sweep
     union
     {
         yS32 intVal;
@@ -54,7 +54,7 @@ typedef struct yapValue
 } yapValue;
 
 // yapValueCreate() is only ever called via yapValueAcquire
-yapValue * yapValueAcquire(struct yapVM *vm);
+yapValue *yapValueAcquire(struct yapVM *vm);
 void yapValueRelease(struct yapVM *vm, yapValue *p); // returns to free pool
 
 void yapValueMark(yapValue *value);    // used by yapVMGC()
@@ -63,35 +63,35 @@ void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call
 void yapValueClear(yapValue *p);
 
 void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src);
-yapValue * yapValueClone(struct yapVM *vm, yapValue *p);
-yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p); // only clones if used
+yapValue *yapValueClone(struct yapVM *vm, yapValue *p);
+yapValue *yapValuePersonalize(struct yapVM *vm, yapValue *p);  // only clones if used
 
-yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v);
-yapValue * yapValueSetKString(struct yapVM *vm, yapValue *p, char *s);
-yapValue * yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
-yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s); // grants ownership to the char*
-yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
-yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);
-yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module);
-yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref);
+yapValue *yapValueSetInt(struct yapVM *vm, yapValue *p, int v);
+yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, char *s);
+yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
+yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s);  // grants ownership to the char*
+yapValue *yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
+yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);
+yapValue *yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module);
+yapValue *yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref);
 
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 
-yapValue * yapValueArrayCreate(struct yapVM *vm);
+yapValue *yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
-yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa);
+yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa);
 
-yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
-yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
-yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b);
-yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue *yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue *yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue *yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b);
+yapValue *yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b);
 
-yapValue * yapValueToBool(struct yapVM *vm, yapValue *p);
-yapValue * yapValueToInt(struct yapVM *vm, yapValue *p);
-yapValue * yapValueToString(struct yapVM *vm, yapValue *p);
+yapValue *yapValueToBool(struct yapVM *vm, yapValue *p);
+yapValue *yapValueToInt(struct yapVM *vm, yapValue *p);
+yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
 
-yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
+yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_MODULE)    \

@@ -35,7 +35,7 @@ enum
     YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL). X == YFT_*
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
     YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop.
-                                       // (BREAK 0 = break, BREAK 1 = continue)
+    // (BREAK 0 = break, BREAK 1 = continue)
 
     YOP_ADD,                           // pops [a,b], pushes a+b
     YOP_SUB,                           // pops [a,b], pushes a-b. Leaves [a,b] on stack if X=1

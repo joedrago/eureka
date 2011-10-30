@@ -9,7 +9,7 @@ struct yapToken;
 // ---------------------------------------------------------------------------
 // Core Types
 
-typedef int	yS32;
+typedef int yS32;
 typedef unsigned int yU32;
 typedef float yF32;
 typedef char yS8;
@@ -33,10 +33,10 @@ typedef int yBool;
 // ---------------------------------------------------------------------------
 // Memory Routines
 
-void * yapAlloc(ySize bytes);
-void * yapRealloc(void *ptr, ySize bytes);
+void *yapAlloc(ySize bytes);
+void *yapRealloc(void *ptr, ySize bytes);
 void yapFree(void *ptr);
-char * yapStrdup(const char *s);
+char *yapStrdup(const char *s);
 
 // ---------------------------------------------------------------------------
 // Dynamic Array macros
@@ -65,8 +65,8 @@ typedef struct yapArray
 yOperand yapArrayPushUniqueString(yapArray *p, char *s);
 yOperand yapArrayPushUniqueToken(yapArray *p, struct yapToken *token);
 yOperand yapArrayPush(yapArray *p, void *v);
-void * yapArrayPop(yapArray *p);
-void * yapArrayTop(yapArray *p);
+void *yapArrayPop(yapArray *p);
+void *yapArrayTop(yapArray *p);
 yU32 yapArrayCount(yapArray *p);
 void yapArraySquash(yapArray *p);  // Removes all NULL entries
 void yapArrayInject(yapArray *p, void *v, int n);  // Injects v n entries from the end (0 being equivalent to Push)

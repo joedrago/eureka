@@ -8,9 +8,9 @@ typedef struct yapContext
     struct yapVM *vm;
 } yapContext;
 
-yapContext * yapContextCreate(void);
+yapContext *yapContextCreate(void);
 void yapContextFree(yapContext *context);
 
-const char * yapContextGetError(yapContext *context);
+const char *yapContextGetError(yapContext *context);
 
 #endif

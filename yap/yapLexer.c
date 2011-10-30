@@ -64,10 +64,18 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
         switch(id)
         {
-            case YTT_NEWLINE:    id = YTT_SPACE;        break;
-            case YTT_SEMI:       id = YTT_ENDSTATEMENT; break;
-            case YTT_OPENBRACE:  id = YTT_STARTBLOCK;   break;
-            case YTT_CLOSEBRACE: id = YTT_ENDBLOCK;     break;
+        case YTT_NEWLINE:
+            id = YTT_SPACE;
+            break;
+        case YTT_SEMI:
+            id = YTT_ENDSTATEMENT;
+            break;
+        case YTT_OPENBRACE:
+            id = YTT_STARTBLOCK;
+            break;
+        case YTT_CLOSEBRACE:
+            id = YTT_ENDBLOCK;
+            break;
         };
 
         if((id != YTT_SPACE) && (id != YTT_COMMENT))
@@ -93,7 +101,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     return yTrue;
 }
 
-yapToken * yapTokenClone(yapToken *token)
+yapToken *yapTokenClone(yapToken *token)
 {
     yapToken *ret = yapTokenCreate();
     *ret = *token;
@@ -104,7 +112,7 @@ char *yapTokenToString(yapToken *t)
 {
     const char *src = t->text;
     const char *end = src + t->len;
-    char *str = yapAlloc(t->len+1);
+    char *str = yapAlloc(t->len + 1);
     char *dst = str;
     yBool escaped = yFalse;
 
@@ -113,7 +121,7 @@ char *yapTokenToString(yapToken *t)
     {
         if(*src == '\"')
             src++;
-        if(*(end-1) == '\"')
+        if(*(end - 1) == '\"')
             end--;
     }
 
@@ -126,11 +134,18 @@ char *yapTokenToString(yapToken *t)
         {
             switch(*src)
             {
-                case '\\': *dst = '\\'; break;
-                case 't':  *dst = '\t'; break;
-                case 'n':  *dst = '\n'; break;
+            case '\\':
+                *dst = '\\';
+                break;
+            case 't':
+                *dst = '\t';
+                break;
+            case 'n':
+                *dst = '\n';
+                break;
 
-                default: yapTrace(("Unknown escape character %c\n", *src));
+            default:
+                yapTrace(("Unknown escape character %c\n", *src));
             }
             escaped = yFalse;
         }

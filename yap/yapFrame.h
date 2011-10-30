@@ -31,7 +31,7 @@ typedef struct yapFrame
     yU32 type;                         // YFT_*
 } yapFrame;
 
-yapFrame * yapFrameCreate(yU32 type, struct yapBlock *block);
+yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block);
 void yapFrameReset(yapFrame *frame, yBool jumpToStart);
 void yapFrameDestroy(yapFrame *frame);
 

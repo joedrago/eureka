@@ -31,24 +31,24 @@ typedef struct yapVM
     char *error;
 } yapVM;
 
-yapVM * yapVMCreate(void);
+yapVM *yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
 void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func);
-struct yapModule * yapVMLoadModule(yapVM *vm, const char *name, const char *text);
+struct yapModule *yapVMLoadModule(yapVM *vm, const char *name, const char *text);
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
 void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
 
-struct yapFrame * yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType);
-struct yapFrame * yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
+struct yapFrame *yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType);
+struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
 void yapVMLoop(yapVM *vm);
 
 void yapVMPopValues(yapVM *vm, yU32 count);
-yapValue * yapVMGetValue(yapVM *vm, yU32 howDeep); // 0 is "top of stack"
+yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep);  // 0 is "top of stack"
 
 #define yapVMGetTop(VM) yapVMGetValue(VM, 0)
 #define yapVMGetArg(VM, INDEX, ARGCOUNT) yapVMGetValue(VM, (ARGCOUNT-1) - INDEX)

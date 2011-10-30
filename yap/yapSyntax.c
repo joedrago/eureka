@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-yapSyntax * yapSyntaxCreate(yU32 type)
+yapSyntax *yapSyntaxCreate(yU32 type)
 {
     yapSyntax *syntax = (yapSyntax *)yapAlloc(sizeof(yapSyntax));
     syntax->type = type;
@@ -31,28 +31,28 @@ void yapSyntaxDestroy(yapSyntax *syntax)
     yapFree(syntax);
 }
 
-yapSyntax * yapSyntaxCreateKString(struct yapToken *token)
+yapSyntax *yapSyntaxCreateKString(struct yapToken *token)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_KSTRING);
     syntax->v.s = yapTokenToString(token);
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateKInt(struct yapToken *token)
+yapSyntax *yapSyntaxCreateKInt(struct yapToken *token)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_KINT);
     syntax->v.i = yapTokenToInt(token);
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateIdentifier(struct yapToken *token)
+yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_IDENTIFIER);
     syntax->v.s = yapTokenToString(token);
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
+yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_INDEX);
     syntax->l.p = array;
@@ -60,13 +60,13 @@ yapSyntax * yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateNull()
+yapSyntax *yapSyntaxCreateNull()
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_NULL);
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
+yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
     syntax->v.a = yapArrayCreate();
@@ -75,14 +75,14 @@ yapSyntax * yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
     return syntax;
 }
 
-yapSyntax * yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
+yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
 {
     if(expr != NULL)
         yapArrayPush(list->v.a, expr);
     return list;
 }
 
-yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args)
+yapSyntax *yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
     syntax->l.p = obj;
@@ -91,7 +91,7 @@ yapSyntax * yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSynta
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
+yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
     syntax->v.p = func;
@@ -99,7 +99,7 @@ yapSyntax * yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args)
+yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_STRINGFORMAT);
     syntax->l.p = format;
@@ -107,14 +107,14 @@ yapSyntax * yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateUnary(yU32 type, yapSyntax *expr)
+yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
     syntax->l.p = l;
@@ -122,7 +122,7 @@ yapSyntax * yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr)
 {
     yapSyntax *syntax;
 
@@ -140,7 +140,7 @@ yapSyntax * yapSyntaxCreateStatementExpr(yapSyntax *expr)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_ASSIGNMENT);
     syntax->l.p = l;
@@ -148,7 +148,7 @@ yapSyntax * yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_INHERITS);
     syntax->l.p = l;
@@ -156,21 +156,21 @@ yapSyntax * yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateVar(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateVar(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_VAR);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateReturn(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_RETURN);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody)
+yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_IFELSE);
     syntax->v.p = cond;
@@ -179,7 +179,7 @@ yapSyntax * yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax 
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body)
+yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_WHILE);
     syntax->v.p = cond;
@@ -187,7 +187,7 @@ yapSyntax * yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body)
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body)
+yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_FOR);
     syntax->v.p = vars;
@@ -196,7 +196,7 @@ yapSyntax * yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body)
+yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_FUNCTION);
     syntax->v.s = (name) ? yapTokenToString(name) : NULL;
@@ -205,7 +205,7 @@ yapSyntax * yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, 
     return syntax;
 }
 
-yapSyntax * yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body)
+yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_WITH);
     syntax->v.p = obj;

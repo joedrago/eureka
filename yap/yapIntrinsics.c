@@ -22,7 +22,7 @@ yU32 array_push(struct yapVM *vm, yU32 argCount)
     {
         int i;
         yapValue *a = yapVMGetArg(vm, 0, argCount);
-        for(i=1; i<argCount; i++)
+        for(i = 1; i < argCount; i++)
         {
             yapValue *v = yapVMGetArg(vm, i, argCount);
             yapValueArrayPush(vm, a, v);
@@ -87,14 +87,20 @@ yU32 standard_print(struct yapVM *vm, yU32 argCount)
     if(argCount)
     {
         int i;
-        for(i=0; i<argCount; i++)
+        for(i = 0; i < argCount; i++)
         {
             yapValue *v = yapVMGetArg(vm, i, argCount);
             switch(v->type)
             {
-            case YVT_STRING: printf("%s", v->stringVal); break;
-            case YVT_INT:    printf("%d", v->intVal); break;
-            default: printf("***hurrrrr***"); break;
+            case YVT_STRING:
+                printf("%s", v->stringVal);
+                break;
+            case YVT_INT:
+                printf("%d", v->intVal);
+                break;
+            default:
+                printf("***hurrrrr***");
+                break;
             };
         }
         yapVMPopValues(vm, argCount);

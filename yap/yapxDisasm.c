@@ -10,7 +10,7 @@
 void yapOpsDump(yapOp *ops, int count)
 {
     int i = 0;
-    for(i=0;i<count;i++)
+    for(i = 0; i < count; i++)
     {
         yapOp *op = &ops[i];
 
@@ -67,7 +67,8 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_COUNT, "count")
 #undef HURR
 
-            default: printf("%12s", "??");
+        default:
+            printf("%12s", "??");
         }
         printf("%3d\n", op->operand);
     }
@@ -77,17 +78,17 @@ void yapModuleDump(yapModule *module)
 {
     int i;
 
-    for(i=0; i<module->kStrings.count; i++)
+    for(i = 0; i < module->kStrings.count; i++)
     {
-        printf(".kstr %3d    \"%s\"\n", i, (char*)module->kStrings.data[i]);
+        printf(".kstr %3d    \"%s\"\n", i, (char *)module->kStrings.data[i]);
     }
 
-    for(i=0; i<module->kInts.count; i++)
+    for(i = 0; i < module->kInts.count; i++)
     {
         printf(".kint %3d    %d\n", i, module->kInts.data[i]);
     }
 
-    for(i=0; i<module->blocks.count; i++)
+    for(i = 0; i < module->blocks.count; i++)
     {
         yapBlock *block = module->blocks.data[i];
         if(block != module->block)

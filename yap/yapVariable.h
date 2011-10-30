@@ -15,7 +15,7 @@ typedef struct yapVariable
 {
     char *name;
     struct yapValue *value;
-    yFlag used:1;
+    yFlag used: 1;
 } yapVariable;
 
 yapVariable *yapVariableCreate(struct yapVM *vm, const char *name);

@@ -9,7 +9,7 @@
 yOperand yap32ArrayPushUnique(yap32Array *p, yU32 v)
 {
     int i;
-    for(i=0; i<p->count; i++)
+    for(i = 0; i < p->count; i++)
     {
         if(p->data[i] == v)
             return i;
@@ -21,7 +21,7 @@ yOperand yap32ArrayPush(yap32Array *p, yU32 v)
 {
     if(p->count == p->capacity)
     {
-        int newSize = (p->capacity) ? p->capacity*2 : 2;
+        int newSize = (p->capacity) ? p->capacity * 2 : 2;
         yapTraceMem(("                                     "
                      "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
         p->capacity = newSize;
@@ -75,7 +75,7 @@ void yapArrayInject(yapArray *p, void *v, int n)
     }
     while(index > injectIndex)
     {
-        p->data[index] = p->data[index-1];
+        p->data[index] = p->data[index - 1];
         index--;
     }
     p->data[index] = v;
@@ -84,7 +84,7 @@ void yapArrayInject(yapArray *p, void *v, int n)
 yOperand yapArrayPushUniqueString(yapArray *p, char *s)
 {
     int i;
-    for(i=0; i<p->count; i++)
+    for(i = 0; i < p->count; i++)
     {
         const char *v = (const char *)p->data[i];
         if(!strcmp(s, v))
@@ -105,28 +105,28 @@ yOperand yapArrayPush(yapArray *p, void *v)
 {
     if(p->count == p->capacity)
     {
-        int newSize = (p->capacity) ? p->capacity*2 : 2;
+        int newSize = (p->capacity) ? p->capacity * 2 : 2;
         yapTraceMem(("                                     "
                      "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
         p->capacity = newSize;
-        p->data = yapRealloc(p->data, p->capacity * sizeof(char**));
+        p->data = yapRealloc(p->data, p->capacity * sizeof(char **));
     }
     p->data[p->count++] = v;
     return (yOperand)(p->count - 1);
 }
 
-void * yapArrayPop(yapArray *p)
+void *yapArrayPop(yapArray *p)
 {
     if(!p->count)
         return NULL;
     return p->data[--p->count];
 }
 
-void * yapArrayTop(yapArray *p)
+void *yapArrayTop(yapArray *p)
 {
     if(!p->count)
         return NULL;
-    return p->data[p->count-1];
+    return p->data[p->count - 1];
 }
 
 yU32 yapArrayCount(yapArray *p)
@@ -139,7 +139,7 @@ void yapArrayClear(yapArray *p, yapDestroyCB cb)
     if(cb)
     {
         int i;
-        for(i=0; i<p->count; i++)
+        for(i = 0; i < p->count; i++)
             cb(p->data[i]);
     }
     p->count = 0;
@@ -155,14 +155,14 @@ void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
     yapFree(p);
 }
 
-void * yapAlloc(ySize bytes)
+void *yapAlloc(ySize bytes)
 {
     void *ptr = calloc(1, bytes);
     yapTraceMem(("                                     ALLOC %p [%d]\n", ptr, bytes));
     return ptr;
 }
 
-void * yapRealloc(void *ptr, ySize bytes)
+void *yapRealloc(void *ptr, ySize bytes)
 {
     void *p = realloc(ptr, bytes);
     yapTraceMem(("                                     REALLOC %p -> %p [%d]\n", ptr, p, bytes));
@@ -177,7 +177,7 @@ void yapFree(void *ptr)
     free(ptr);
 }
 
-char * yapStrdup(const char *s)
+char *yapStrdup(const char *s)
 {
     yapTraceMem(("                                     STRDUP %p\n", s));
     return strdup(s);

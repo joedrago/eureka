@@ -3,7 +3,7 @@
 #include "yapIntrinsics.h"
 #include "yapVM.h"
 
-yapContext * yapContextCreate(void)
+yapContext *yapContextCreate(void)
 {
     yapContext *context = yapAlloc(sizeof(yapContext));
     context->vm = yapVMCreate();
@@ -17,7 +17,7 @@ void yapContextFree(yapContext *context)
     yapFree(context);
 }
 
-const char * yapContextGetError(yapContext *context)
+const char *yapContextGetError(yapContext *context)
 {
     return context->vm->error;
 }

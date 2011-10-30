@@ -18,8 +18,8 @@ enum
 {
     YCO_DEFAULT = 0,
 
-    YCO_OPTIMIZE         = (1<<0),
-    YCO_KEEP_SYNTAX_TREE = (1<<1)
+    YCO_OPTIMIZE         = (1 << 0),
+    YCO_KEEP_SYNTAX_TREE = (1 << 1)
 };
 
 typedef struct yapCompiler

@@ -27,7 +27,7 @@ void yapObjectDestroy(yapObject *v)
 void yapObjectMark(yapObject *v)
 {
     int i;
-    for(i=0; i<v->entries->count; i++)
+    for(i = 0; i < v->entries->count; i++)
     {
         struct yapObjectEntry *e = v->entries->data[i];
         yapValueMark(e->val);
@@ -40,7 +40,7 @@ struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const cha
 {
     struct yapValue **ref = NULL;
     int i;
-    for(i=0; i<object->entries->count; i++)
+    for(i = 0; i < object->entries->count; i++)
     {
         struct yapObjectEntry *e = object->entries->data[i];
         if(!strcmp(e->key, key))

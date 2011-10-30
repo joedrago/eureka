@@ -16,7 +16,7 @@ static char *NULL_STRING_FORM = "[null]";
 yapValue yapValueNull = {YVT_NULL};
 yapValue *yapValueNullPtr = &yapValueNull;
 
-yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
+yapValue *yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -27,7 +27,7 @@ yapValue * yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
     return p;
 }
 
-yapValue * yapValueSetKString(struct yapVM *vm, yapValue *p, char *s)
+yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, char *s)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -39,7 +39,7 @@ yapValue * yapValueSetKString(struct yapVM *vm, yapValue *p, char *s)
     return p;
 }
 
-yapValue * yapValueSetString(struct yapVM *vm, yapValue *p, char *s)
+yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -51,7 +51,7 @@ yapValue * yapValueSetString(struct yapVM *vm, yapValue *p, char *s)
     return p;
 }
 
-yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
+yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -63,7 +63,7 @@ yapValue * yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
     return p;
 }
 
-yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block)
+yapValue *yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -74,7 +74,7 @@ yapValue * yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *b
     return p;
 }
 
-yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func)
+yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -85,7 +85,7 @@ yapValue * yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func
     return p;
 }
 
-yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module)
+yapValue *yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -96,7 +96,7 @@ yapValue * yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *mo
     return p;
 }
 
-yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref)
+yapValue *yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -107,7 +107,7 @@ yapValue * yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref)
     return p;
 }
 
-yapValue * yapValueSetObject(struct yapVM *vm, yapValue *p, struct yapObject *object)
+yapValue *yapValueSetObject(struct yapVM *vm, yapValue *p, struct yapObject *object)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(p);
@@ -180,7 +180,7 @@ yBool yapValueSetRefInherits(struct yapVM *vm, yapValue *ref, yapValue *p)
 
 // ---------------------------------------------------------------------------
 
-yapValue * yapValueArrayCreate(struct yapVM *vm)
+yapValue *yapValueArrayCreate(struct yapVM *vm)
 {
     yapValue *p = yapValueAcquire(vm);
     p->arrayVal = yapArrayCreate();
@@ -205,7 +205,7 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue * yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa)
+yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa)
 {
     yapValue *p = yapValueAcquire(vm);
     p->objectVal = yapObjectCreate(vm, isa);
@@ -243,14 +243,14 @@ void yapValueDestroy(yapValue *p)
     yapFree(p);
 }
 
-static yapValue * yapValueCreate()
+static yapValue *yapValueCreate()
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
     yapTrace(("yapValueCreate %p\n", value));
     return value;
 }
 
-yapValue * yapValueAcquire(struct yapVM *vm)
+yapValue *yapValueAcquire(struct yapVM *vm)
 {
     yapValue *value = yapArrayPop(&vm->freeValues);
     if(!value)
@@ -304,7 +304,7 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p)
     return n;
 }
 
-yapValue * yapValuePersonalize(struct yapVM *vm, yapValue *p)
+yapValue *yapValuePersonalize(struct yapVM *vm, yapValue *p)
 {
     if(p == &yapValueNull)
         return yapValueAcquire(vm);
@@ -334,7 +334,7 @@ void yapValueMark(yapValue *value)
     if(value->type == YVT_ARRAY)
     {
         int i;
-        for(i=0; i<value->arrayVal->count; i++)
+        for(i = 0; i < value->arrayVal->count; i++)
         {
             yapValue *child = (yapValue *)value->arrayVal->data[i];
             yapValueMark(child);
@@ -360,7 +360,7 @@ static char *concat(char *a, char *b)
     return newString;
 }
 
-yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
+yapValue *yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     a = yapValueToString(vm, a);
     b = yapValueToString(vm, b);
@@ -368,28 +368,34 @@ yapValue * yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
     return a;
 }
 
-yapValue * yapValueIntOp(struct yapVM *vm, yapValue *a, yapValue *b, char op)
+yapValue *yapValueIntOp(struct yapVM *vm, yapValue *a, yapValue *b, char op)
 {
     a = yapValueToInt(vm, a);
     b = yapValueToInt(vm, b);
     switch(op)
     {
-        case '+': a = yapValueSetInt(vm, a, a->intVal + b->intVal); break;
-        case '-': a = yapValueSetInt(vm, a, a->intVal - b->intVal); break;
-        case '*': a = yapValueSetInt(vm, a, a->intVal * b->intVal); break;
-        case '/': 
-            if(!b->intVal)
-            {
-                yapVMSetError(vm, "divide by zero!");
-                return NULL;
-            }
-            a = yapValueSetInt(vm, a, a->intVal / b->intVal);
-            break;
+    case '+':
+        a = yapValueSetInt(vm, a, a->intVal + b->intVal);
+        break;
+    case '-':
+        a = yapValueSetInt(vm, a, a->intVal - b->intVal);
+        break;
+    case '*':
+        a = yapValueSetInt(vm, a, a->intVal * b->intVal);
+        break;
+    case '/':
+        if(!b->intVal)
+        {
+            yapVMSetError(vm, "divide by zero!");
+            return NULL;
+        }
+        a = yapValueSetInt(vm, a, a->intVal / b->intVal);
+        break;
     };
     return a;
 }
 
-yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
+yapValue *yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     if(a->type == YVT_STRING)
         return yapValueConcat(vm, a, b);
@@ -400,7 +406,7 @@ yapValue * yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b)
     return a;
 }
 
-yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b)
+yapValue *yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     if(a->type == YVT_INT)
         a = yapValueIntOp(vm, a, b, '-');
@@ -409,7 +415,7 @@ yapValue * yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b)
     return a;
 }
 
-yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b)
+yapValue *yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     if(a->type == YVT_INT)
         a = yapValueIntOp(vm, a, b, '*');
@@ -418,7 +424,7 @@ yapValue * yapValueMul(struct yapVM *vm, yapValue *a, yapValue *b)
     return a;
 }
 
-yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
+yapValue *yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
 {
     if(a->type == YVT_INT)
         a = yapValueIntOp(vm, a, b, '/');
@@ -427,90 +433,90 @@ yapValue * yapValueDiv(struct yapVM *vm, yapValue *a, yapValue *b)
     return a;
 }
 
-yapValue * yapValueToBool(struct yapVM *vm, yapValue *p)
+yapValue *yapValueToBool(struct yapVM *vm, yapValue *p)
 {
     switch(p->type)
     {
-        case YVT_INT: 
-            break;
+    case YVT_INT:
+        break;
 
-        case YVT_NULL: 
-            p = yapValueSetInt(vm, p, 0);
-            break;
+    case YVT_NULL:
+        p = yapValueSetInt(vm, p, 0);
+        break;
 
-        case YVT_STRING: 
-            p = yapValueSetInt(vm, p, (p->stringVal[0] != 0) ? 1 : 0);
-            break;
+    case YVT_STRING:
+        p = yapValueSetInt(vm, p, (p->stringVal[0] != 0) ? 1 : 0);
+        break;
 
-        case YVT_OBJECT: 
-            p = yapValueAcquire(vm);
-            p = yapValueSetInt(vm, p, 1);
-            break;
+    case YVT_OBJECT:
+        p = yapValueAcquire(vm);
+        p = yapValueSetInt(vm, p, 1);
+        break;
 
-        default:
-            printf("yapValueToBool: unhandled case %d\n", p->type);
-            return NULL;
-            break;
+    default:
+        printf("yapValueToBool: unhandled case %d\n", p->type);
+        return NULL;
+        break;
     };
 
     return p;
 }
 
-yapValue * yapValueToInt(struct yapVM *vm, yapValue *p)
+yapValue *yapValueToInt(struct yapVM *vm, yapValue *p)
 {
     switch(p->type)
     {
-        case YVT_INT: 
-            break;
+    case YVT_INT:
+        break;
 
-        case YVT_NULL: 
-            p = yapValueSetInt(vm, p, 0);
-            break;
+    case YVT_NULL:
+        p = yapValueSetInt(vm, p, 0);
+        break;
 
-        case YVT_STRING: 
-        {
-            yapToken t = { p->stringVal, strlen(p->stringVal) };
-            p = yapValueSetInt(vm, p, yapTokenToInt(&t));
-            break;
-        }
+    case YVT_STRING:
+    {
+        yapToken t = { p->stringVal, strlen(p->stringVal) };
+        p = yapValueSetInt(vm, p, yapTokenToInt(&t));
+        break;
+    }
 
-        default:
-            printf("yapValueToInt: unhandled case %d\n", p->type);
-            return NULL;
-            break;
+    default:
+        printf("yapValueToInt: unhandled case %d\n", p->type);
+        return NULL;
+        break;
     };
 
     return p;
 }
 
-yapValue * yapValueToString(struct yapVM *vm, yapValue *p)
+yapValue *yapValueToString(struct yapVM *vm, yapValue *p)
 {
     switch(p->type)
     {
-        case YVT_STRING: 
-            break;
+    case YVT_STRING:
+        break;
 
-        case YVT_NULL: 
-            p = yapValueSetKString(vm, p, NULL_STRING_FORM);
-            break;
+    case YVT_NULL:
+        p = yapValueSetKString(vm, p, NULL_STRING_FORM);
+        break;
 
-        case YVT_INT: 
-            {
-                char temp[32];
-                sprintf(temp, "%d", p->intVal);
-                p = yapValueSetString(vm, p, temp);
-            }
-            break;
+    case YVT_INT:
+    {
+        char temp[32];
+        sprintf(temp, "%d", p->intVal);
+        p = yapValueSetString(vm, p, temp);
+    }
+    break;
 
-        default:
-            printf("yapValueToString: unhandled case %d\n", p->type);
-            return NULL;
-            break;
+    default:
+        printf("yapValueToString: unhandled case %d\n", p->type);
+        return NULL;
+        break;
     };
     return p;
 }
 
-yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount)
+yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount)
 {
     char *out = yapStrdup("");
     int outSize = 1;
@@ -538,7 +544,7 @@ yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCoun
         switch(*next)
         {
         case '\0':
-            curr = NULL; 
+            curr = NULL;
             break;
         case '%':
             out = yapRealloc(out, ++outSize);
@@ -572,7 +578,7 @@ yapValue * yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCoun
             break;
         };
 
-        curr = next+1;
+        curr = next + 1;
     }
 
     // Add the remainder of the string, if any
