@@ -81,10 +81,20 @@ void yapCompileError(yapCompiler *compiler, const char *error)
     yapArrayPush(&compiler->errors, yapStrdup(error));
 }
 
+static void appendInt(char *text, int i)
+{
+    char temp[32];
+    sprintf(temp, "%d", i);
+    strcat(text, temp);
+}
+
 void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token)
 {
     char error[64];
-    strcpy(error, "syntax error near '");
+    strcpy(error, "Line [");
+    appendInt(error, token->line);
+    strcat(error, "]: ");
+    strcat(error, "syntax error near '");
     if(token && token->text)
     {
         char temp[32];

@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-//#define PYTHON_SCOPING
-
 #define YYCTYPE char
 #define YYCURSOR l->cur
 #define YYMARKER l->marker
@@ -32,12 +30,6 @@ typedef struct yapLexer
     const char *end;
     int line;
     yBool error;
-
-#ifdef PYTHON_SCOPING
-    yap32Array indents;
-    yBool wasNewline;
-    yBool needsEndStatement;
-#endif
 } yapLexer;
 
 int getNextToken(yapLexer *l)
@@ -48,11 +40,6 @@ int getNextToken(yapLexer *l)
 
 yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *compiler)
 {
-#ifdef PYTHON_SCOPING
-    int indentTop;
-    yBool isNewline;
-#endif
-
     int id;
     int token_len;
     int tokenMax;
@@ -63,13 +50,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     l.end    = l.text + strlen(l.text);
     l.cur    = l.text;
     l.token  = l.cur;
-
-    // TODO: Comment how this all works
-
-#ifdef PYTHON_SCOPING
-    yap32ArrayPush(&l.indents, 0);
-    indentTop = l.indents.data[l.indents.count-1];
-#endif
+    l.line   = 1;
 
     while(!compiler->errors.count && ((id = getNextToken(&l)) != YTT_EOF))
     {
@@ -78,62 +59,6 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
         token_len = (int)(l.cur - l.token);
 
-#ifdef PYTHON_SCOPING
-        // Python's lexer treats wasNewlines as statement enders and
-        // indent/dedent as block delimiters.
-
-        isNewline = (id == YTT_NEWLINE);
-        if(isNewline)
-        {
-            id = YTT_COMMENT;
-        }
-
-        if(l.wasNewline)
-        {
-            int curIndent = 0;
-            if(id == YTT_SPACE)
-            {
-                curIndent = token_len;
-            }
-
-            if(isNewline && (curIndent == 0))
-            {
-                // do nothing, its just a blank line
-            }
-            else if(curIndent > indentTop)
-            {
-                yap32ArrayPush(&l.indents, token_len);
-                indentTop = l.indents.data[l.indents.count-1];
-                CALL_CB(parser, YTT_STARTBLOCK, token, compiler);
-            }
-            else if(curIndent < indentTop)
-            {
-                while(l.indents.count > 0 && curIndent < indentTop)
-                {
-                    CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
-                    CALL_CB(parser, YTT_ENDBLOCK, token, compiler);
-                    l.needsEndStatement = yTrue;
-
-                    yap32ArrayPop(&l.indents);
-                    indentTop = l.indents.data[l.indents.count-1];
-                }
-
-                if(!l.indents.count)
-                {
-                    yapCompileError(compiler, "Indent stack empty!");
-                    return yFalse;
-                }
-            }
-            else
-            {
-                token.text = NULL;
-                token.len  = 0;
-                CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
-            }
-        }
-
-        l.wasNewline = isNewline;
-#else
         // Normal C style lexers treat semi-colons as end statements
         // and braces as block delimiters. Newlines are just whitespace.
 
@@ -144,23 +69,14 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
             case YTT_OPENBRACE:  id = YTT_STARTBLOCK;   break;
             case YTT_CLOSEBRACE: id = YTT_ENDBLOCK;     break;
         };
-#endif
 
         if((id != YTT_SPACE) && (id != YTT_COMMENT))
         {
-#ifdef PYTHON_SCOPING
-            if(l.needsEndStatement)
-            {
-                if(id != YTT_ELSE)
-                    CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
-                l.needsEndStatement = yFalse;
-            }
-#endif
-
             if(token_len > 0)
             {
                 token.text = l.token;
-                token.len = token_len;
+                token.len  = token_len;
+                token.line = l.line;
 
                 CALL_CB(parser, id, token, compiler);
             }
@@ -169,18 +85,11 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         l.token = l.cur;
     }
 
-    CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler); // some files might not end with a newline
-#ifdef PYTHON_SCOPING
-
-    while(l.indents.count > 1)
+    if(!compiler->errors.count)
     {
-        yap32ArrayPop(&l.indents);
+        token.line = l.line;
         CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
-        CALL_CB(parser, YTT_ENDBLOCK, token, compiler);
     }
-    yap32ArrayClear(&l.indents);
-#endif
-
     return yTrue;
 }
 

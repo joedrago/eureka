@@ -26,6 +26,8 @@
     #define YYNOERRORRECOVERY 1
 }
 
+%fallback GROUPLEFTPAREN LEFTPAREN.
+
 %left NEWLINE.
 %left OPENBRACE.
 %left CLOSEBRACE.
@@ -52,6 +54,9 @@
 %left STRING.
 %left NOT.
 %left MOD.
+
+%left IF.
+%left ELSE.
 
 %syntax_error { yapCompileSyntaxError(compiler, &TOKEN); }
 
@@ -91,9 +96,8 @@ statement_block(B) ::= STARTBLOCK ENDBLOCK.
 statement_block(B) ::= STARTBLOCK statement_list(L) ENDBLOCK.
     { B = L; }
 
-// TODO: Reorganize grammar to allow for arbitrary scope creation and single-statement if contents
-//statement_block(B) ::= statement(S).
-//    { B = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
+statement_block(B) ::= statement(S).
+    { B = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
 // Statement
@@ -128,6 +132,24 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN st
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
 
+statement(S) ::= ENDSTATEMENT.
+    { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+
+// ---------------------------------------------------------------------------
+// Parenthesized Expression List
+
+%type paren_expr_list
+    { yapSyntax* }
+
+%destructor paren_expr_list
+    { yapSyntaxDestroy($$); }
+
+paren_expr_list(PEL) ::= LEFTPAREN expr_list(L) RIGHTPAREN.
+    { PEL = L; }
+
+paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
+    { PEL = yapSyntaxCreateList(YST_EXPRESSIONLIST, NULL); }
+
 // ---------------------------------------------------------------------------
 // Expression List
 
@@ -142,9 +164,6 @@ expr_list(EL) ::= expr_list(OL) COMMA expression(E).
 
 expr_list(EL) ::= expression(E).
     { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, E); }
-
-expr_list(EL) ::= .
-    { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, NULL); }
 
 // ---------------------------------------------------------------------------
 // Expression
@@ -182,10 +201,10 @@ expression(C) ::= expression(OC) AND expression(E).
 expression(C) ::= expression(OC) OR expression(E).
     { C = yapSyntaxCreateBinary(YST_OR, OC, E); }
 
-expression(C) ::= expression(FORMAT) MOD LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
 
-expression(C) ::= LEFTPAREN expr_list(EL) RIGHTPAREN.
+expression(C) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { C = EL; }
 
 expression(E) ::= lvalue(L) EQUALS expression(R).
@@ -234,13 +253,13 @@ lvalue(L) ::= VAR IDENTIFIER(I).
 %destructor lvalue_indexable
     { yapSyntaxDestroy($$); }
 
-lvalue_indexable(L) ::= lvalue_indexable(FUNC) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+lvalue_indexable(L) ::= lvalue_indexable(FUNC) paren_expr_list(ARGS).
     { L = yapSyntaxCreateCall(FUNC, ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
     { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
 
-lvalue_indexable(L) ::= lvalue_indexable(OBJ) COLON IDENTIFIER(MEMBER) LEFTPAREN expr_list(ARGS) RIGHTPAREN.
+lvalue_indexable(L) ::= lvalue_indexable(OBJ) COLON IDENTIFIER(MEMBER) paren_expr_list(ARGS).
     { L = yapSyntaxCreateIndexedCall(OBJ, yapSyntaxCreateKString(&MEMBER), ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).

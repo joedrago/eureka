@@ -18,6 +18,7 @@ typedef struct yapToken
 {
     const char *text;
     int len;
+    int line;
 } yapToken;
 
 #define yapTokenCreate() ((yapToken*)yapAlloc(sizeof(yapToken)))
