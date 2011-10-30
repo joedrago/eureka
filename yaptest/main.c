@@ -51,7 +51,7 @@ char *loadFile(const char *filename)
         size = ftell(f);
         fseek(f, 0, SEEK_SET);
 
-        buffer = (char*)malloc(size+1);
+        buffer = (char *)malloc(size + 1);
         fread(buffer, 1, size, f);
         buffer[size] = 0;
 
@@ -59,7 +59,7 @@ char *loadFile(const char *filename)
 
         return buffer;
     }
-    
+
     printf("cant open '%s' for read\n", filename);
     return NULL;
 }
@@ -73,7 +73,7 @@ enum
     YTM_DOT
 };
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 #ifdef PLATFORM_WIN32
     //_CrtSetBreakAlloc(212);
@@ -82,13 +82,15 @@ int main(int argc, char* argv[])
         int mode = YTM_LOADMODULE;
         int i;
         char *filename = NULL;
-        for(i=1;i<argc; i++)
+        for(i = 1; i < argc; i++)
         {
             if(argv[i][0] == '-')
             {
                 switch(argv[i][1])
                 {
-                case 'd': mode = YTM_DOT; break;
+                case 'd':
+                    mode = YTM_DOT;
+                    break;
                 };
             }
             filename = argv[i];
@@ -101,8 +103,12 @@ int main(int argc, char* argv[])
             {
                 switch(mode)
                 {
-                case YTM_LOADMODULE: loadModule(code); break;
-                case YTM_DOT:        outputDot(code);  break;
+                case YTM_LOADMODULE:
+                    loadModule(code);
+                    break;
+                case YTM_DOT:
+                    outputDot(code);
+                    break;
                 };
                 free(code);
             }
@@ -116,5 +122,5 @@ int main(int argc, char* argv[])
 #ifdef PLATFORM_WIN32
     _CrtDumpMemoryLeaks();
 #endif
-	return 0;
+    return 0;
 }
