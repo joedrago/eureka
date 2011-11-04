@@ -24,16 +24,16 @@ void yapObjectDestroy(yapObject *v)
     yapFree(v);
 }
 
-void yapObjectMark(yapObject *v)
+void yapObjectMark(yapVM *vm, yapObject *v)
 {
     int i;
     for(i = 0; i < v->entries->count; i++)
     {
         struct yapObjectEntry *e = v->entries->data[i];
-        yapValueMark(e->val);
+        yapValueMark(vm, e->val);
     }
     if(v->isa)
-        yapValueMark(v->isa); // Is this necessary?
+        yapValueMark(vm, v->isa); // Is this necessary?
 }
 
 struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const char *key, yBool create)

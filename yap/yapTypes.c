@@ -149,6 +149,17 @@ void yapArrayClear(yapArray *p, yapDestroyCB cb)
     p->capacity = 0;
 }
 
+void yapArrayClearP1(yapArray *p, yapDestroyCB1 cb, void *arg1)
+{
+    if(cb)
+    {
+        int i;
+        for(i = 0; i < p->count; i++)
+            cb(arg1, p->data[i]);
+    }
+    yapArrayClear(p, NULL);
+}
+
 void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
 {
     yapArrayClear(p, cb);

@@ -72,11 +72,16 @@ void yapArraySquash(yapArray *p);  // Removes all NULL entries
 void yapArrayInject(yapArray *p, void *v, int n);  // Injects v n entries from the end (0 being equivalent to Push)
 
 typedef void (*yapDestroyCB)(void *p);
+typedef void (*yapDestroyCB1)(void *p, void *arg1);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);
+void yapArrayClearP1(yapArray *p, yapDestroyCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
 void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
 
 // ---------------------------------------------------------------------------
 // Debug Functions
+
+#include <assert.h>
+#define yapAssert assert
 
 //#define YAP_TRACE_OPS
 

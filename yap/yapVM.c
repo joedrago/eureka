@@ -117,8 +117,8 @@ void yapVMDestroy(yapVM *vm)
     yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleDestroy);
 
     yapArrayClear(&vm->usedVariables, (yapDestroyCB)yapVariableDestroy);
-    yapArrayClear(&vm->usedValues, (yapDestroyCB)yapValueDestroy);
-    yapArrayClear(&vm->freeValues, (yapDestroyCB)yapValueDestroy);
+    yapArrayClearP1(&vm->usedValues, (yapDestroyCB1)yapValueDestroy, vm);
+    yapArrayClearP1(&vm->freeValues, (yapDestroyCB1)yapValueDestroy, vm);
 
     yapVMClearError(vm);
 
@@ -1066,26 +1066,26 @@ void yapVMGC(struct yapVM *vm)
     {
         yapVariable *variable = (yapVariable *)vm->globals.data[i];
         yapVariableMark(variable);
-        yapValueMark(variable->value);
+        yapValueMark(vm, variable->value);
     }
 
     for(i = 0; i < vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
         if(frame->with)
-            yapValueMark(frame->with);
+            yapValueMark(vm, frame->with);
         for(j = 0; j < frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];
             yapVariableMark(variable);
-            yapValueMark(variable->value);
+            yapValueMark(vm, variable->value);
         }
     }
 
     for(i = 0; i < vm->stack.count; i++)
     {
         yapValue *value = (yapValue *)vm->stack.data[i];
-        yapValueMark(value);
+        yapValueMark(vm, value);
     }
 
     for(i = 0; i < vm->modules.count; i++)
@@ -1095,7 +1095,7 @@ void yapVMGC(struct yapVM *vm)
         {
             yapVariable *variable = (yapVariable *)module->variables.data[j];
             yapVariableMark(variable);
-            yapValueMark(variable->value);
+            yapValueMark(vm, variable->value);
         }
     }
 

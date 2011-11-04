@@ -25,7 +25,7 @@ typedef struct yapObject
 
 yapObject *yapObjectCreate(struct yapVM *vm, struct yapValue *isa);
 void yapObjectDestroy(yapObject *v);
-void yapObjectMark(yapObject *v);
+void yapObjectMark(struct yapVM *vm, yapObject *v);
 
 struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *dict, const char *key, yBool create);
 

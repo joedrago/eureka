@@ -22,6 +22,7 @@
     #include <string.h>
     #include <stdlib.h>
 
+    #undef assert
     #define assert(ignoring_this_function)
     #define YYNOERRORRECOVERY 1
 }

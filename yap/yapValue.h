@@ -11,9 +11,9 @@ struct yapObject;
 
 // ---------------------------------------------------------------------------
 
-typedef enum yapValueType
+typedef enum yapValueBasicType
 {
-    YVT_NULL,
+    YVT_NULL,                          // Must stay zero, so that calloc/memset sets a yapValue to NULL 
 
     YVT_MODULE,
     YVT_BLOCK,
@@ -27,8 +27,62 @@ typedef enum yapValueType
 
     YVT_REF,                           // Variable reference
 
-    YVT_COUNT
+    YVT_COUNT,
+    YVT_CUSTOM = YVT_COUNT,            // First custom value type
+    YVT_INVALID = -1
+} yapValueBasicType;
+
+typedef enum yapValueArithmeticOp
+{
+    YVAO_ADD = 0,
+    YVAO_SUB,
+    YVAO_MUL,
+    YVAO_DIV,
+
+    YVAO_COUNT
+} yapValueArithmeticOp;
+
+#define YVT_MAXNAMELEN 15
+
+typedef void (*yapValueTypeFuncClear)(struct yapValue *p);
+typedef void (*yapValueTypeFuncClone)(struct yapVM *vm, struct yapValue *dst, struct yapValue *src);
+typedef void (*yapValueTypeFuncMark)(struct yapVM *vm, struct yapValue *value);
+typedef yBool (*yapValueTypeFuncToBool)(struct yapValue *p);
+typedef yS32 (*yapValueTypeFuncToInt)(struct yapValue *p);
+typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapVM *vm, struct yapValue *p);
+typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
+typedef yBool (*yapValueTypeFuncCmp)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult);
+
+// This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
+#define yapValueTypeFuncNotUsed ((void*)-1)
+
+typedef struct yapValueType
+{
+    int id;
+    char name[YVT_MAXNAMELEN + 1];
+
+    yapValueTypeFuncClear funcClear;
+    yapValueTypeFuncClone funcClone;
+    yapValueTypeFuncMark funcMark;
+    yapValueTypeFuncToBool funcToBool;
+    yapValueTypeFuncToInt funcToInt;
+    yapValueTypeFuncToString funcToString;
+    yapValueTypeFuncArithmetic funcArithmetic;
+    yapValueTypeFuncCmp funcCmp;
 } yapValueType;
+
+yapValueType *yapValueTypeCreate(const char *name);
+void yapValueTypeDestroy(yapValueType *type);
+int yapValueTypeRegister(struct yapVM *vm, yapValueType *newType); // takes ownership of newType (use yapAlloc), returns new type id
+
+void yapValueTypeRegisterAllBasicTypes(struct yapVM *vm);
+
+#define yapValueTypePtr(id) ((yapValueType*)vm->types.data[id])
+
+// If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro
+#define yapValueTypeSafeCall(id, funcName) \
+    (((yapValueType*)vm->types.data[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
+   : ((yapValueType*)vm->types.data[id])->func ## funcName
 
 // ---------------------------------------------------------------------------
 
@@ -57,10 +111,10 @@ typedef struct yapValue
 yapValue *yapValueAcquire(struct yapVM *vm);
 void yapValueRelease(struct yapVM *vm, yapValue *p); // returns to free pool
 
-void yapValueMark(yapValue *value);    // used by yapVMGC()
-void yapValueDestroy(yapValue *p);     // only yapVMDestroy() should -ever- call this
+void yapValueMark(struct yapVM *vm, yapValue *value); // used by yapVMGC()
+void yapValueDestroy(struct yapVM *vm, yapValue *p);  // only yapVMDestroy() should -ever- call this
 
-void yapValueClear(yapValue *p);
+void yapValueClear(struct yapVM *vm, yapValue *p);
 
 void yapValueCloneData(struct yapVM *vm, yapValue *dst, yapValue *src);
 yapValue *yapValueClone(struct yapVM *vm, yapValue *p);

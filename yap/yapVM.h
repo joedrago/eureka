@@ -13,6 +13,9 @@ struct yapVariable;
 
 typedef struct yapVM
 {
+    // type information
+    yapArray types;
+
     // things that can own values
     yapArray globals;                  // Global variables
     yapArray frames;                   // Current stack frames

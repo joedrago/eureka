@@ -7,6 +7,7 @@ yapContext *yapContextCreate(void)
 {
     yapContext *context = yapAlloc(sizeof(yapContext));
     context->vm = yapVMCreate();
+    yapValueTypeRegisterAllBasicTypes(context->vm);
     yapIntrinsicsRegister(context->vm);
     return context;
 }
