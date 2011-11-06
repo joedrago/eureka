@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapValue;
 struct yapVM;
 struct yapObject;
 
