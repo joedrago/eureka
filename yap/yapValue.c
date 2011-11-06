@@ -226,16 +226,16 @@ static struct yapValue * intFuncArithmetic(struct yapVM *vm, struct yapValue *a,
     b = yapValueToInt(vm, b);
     switch(op)
     {
-    case '+':
+    case YVAO_ADD:
         a = yapValueSetInt(vm, a, a->intVal + b->intVal);
         break;
-    case '-':
+    case YVAO_SUB:
         a = yapValueSetInt(vm, a, a->intVal - b->intVal);
         break;
-    case '*':
+    case YVAO_MUL:
         a = yapValueSetInt(vm, a, a->intVal * b->intVal);
         break;
-    case '/':
+    case YVAO_DIV:
         if(!b->intVal)
         {
             yapVMSetError(vm, "divide by zero!");
