@@ -152,14 +152,76 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_NOT:
     {
-        strcpy(label, "Not");
+        strcpy(label, "Not (logical)");
         REC_CHILD(syntax->v.p);
+    }
+    break;
+
+    case YST_BITWISE_NOT:
+    {
+        strcpy(label, "Not (bitwise)");
+        REC_CHILD(syntax->v.p);
+    }
+    break;
+
+    case YST_BITWISE_XOR:
+    {
+        if(syntax->v.i)
+            strcpy(label, "^= (xor)");
+        else
+            strcpy(label, "xor");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_BITWISE_AND:
+    {
+        if(syntax->v.i)
+            strcpy(label, "&= (bitwise and)");
+        else
+        strcpy(label, "And (bitwise)");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_BITWISE_OR:
+    {
+        if(syntax->v.i)
+            strcpy(label, "|= (bitwise or)");
+        else
+            strcpy(label, "Or (bitwise)");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_SHIFTLEFT:
+    {
+        if(syntax->v.i)
+            strcpy(label, "<<=");
+        else
+            strcpy(label, "<<");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
+    }
+    break;
+
+    case YST_SHIFTRIGHT:
+    {
+        if(syntax->v.i)
+            strcpy(label, ">>=");
+        else
+            strcpy(label, ">>");
+        REC_CHILD(syntax->l.p);
+        REC_CHILD(syntax->r.p);
     }
     break;
 
     case YST_AND:
     {
-        strcpy(label, "And");
+        strcpy(label, "And (logical)");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -167,7 +229,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_OR:
     {
-        strcpy(label, "Or");
+        strcpy(label, "Or (logical)");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -175,7 +237,10 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_ADD:
     {
-        strcpy(label, "+");
+        if(syntax->v.i)
+            strcpy(label, "+=");
+        else
+            strcpy(label, "+");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -183,7 +248,10 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_SUB:
     {
-        strcpy(label, "-");
+        if(syntax->v.i)
+            strcpy(label, "-=");
+        else
+            strcpy(label, "-");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -191,7 +259,10 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_MUL:
     {
-        strcpy(label, "*");
+        if(syntax->v.i)
+            strcpy(label, "*=");
+        else
+            strcpy(label, "*");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }
@@ -199,7 +270,10 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
     case YST_DIV:
     {
-        strcpy(label, "/");
+        if(syntax->v.i)
+            strcpy(label, "/=");
+        else
+            strcpy(label, "/");
         REC_CHILD(syntax->l.p);
         REC_CHILD(syntax->r.p);
     }

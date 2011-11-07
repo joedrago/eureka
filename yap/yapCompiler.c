@@ -250,6 +250,13 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleUnary },           // YST_TOINT
     { yapAssembleUnary },           // YST_NOT
 
+    { yapAssembleUnary },           // YST_BITWISE_NOT
+    { yapAssembleBinary },          // YST_BITWISE_XOR
+    { yapAssembleBinary },          // YST_BITWISE_AND
+    { yapAssembleBinary },          // YST_BITWISE_OR
+    { yapAssembleBinary },          // YST_SHIFTLEFT
+    { yapAssembleBinary },          // YST_SHIFTRIGHT
+
     { yapAssembleBinary },          // YST_ADD
     { yapAssembleBinary },          // YST_SUB
     { yapAssembleBinary },          // YST_MUL
@@ -439,10 +446,13 @@ asmFunc(Unary)
         yapCodeAppend(dst, YOP_TOSTRING, 0);
         break;
     case YST_TOINT:
-        yapCodeAppend(dst, YOP_TOINT,    0);
+        yapCodeAppend(dst, YOP_TOINT, 0);
         break;
     case YST_NOT:
-        yapCodeAppend(dst, YOP_NOT,      0);
+        yapCodeAppend(dst, YOP_NOT, 0);
+        break;
+    case YST_BITWISE_NOT:
+        yapCodeAppend(dst, YOP_BITWISE_NOT, 0);
         break;
     };
     return PAD(1);
@@ -452,13 +462,25 @@ asmFunc(Binary)
 {
     yapSyntax *a = syntax->l.p;
     yapSyntax *b = syntax->r.p;
+    yBool compound = syntax->v.i;
     int op = YOP_NOP;
+    int aflags = ASM_NORMAL;
 
-    asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
+    if(compound)
+        aflags = ASM_LVALUE;
+
+    asmDispatch[a->type].assemble(compiler, dst, a, 1, aflags);
+    if(compound)
+    {
+        yapCodeGrow(dst, 2);
+        yapCodeAppend(dst, YOP_DUPE, 0);
+        yapCodeAppend(dst, YOP_REFVAL, 0);
+    }
     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
 
     switch(syntax->type)
     {
+    // Legal in either compound statements or expressions
     case YST_ADD:
         op = YOP_ADD;
         break;
@@ -471,6 +493,23 @@ asmFunc(Binary)
     case YST_DIV:
         op = YOP_DIV;
         break;
+    case YST_BITWISE_XOR:
+        op = YOP_BITWISE_XOR;
+        break;
+    case YST_BITWISE_AND:
+        op = YOP_BITWISE_AND;
+        break;
+    case YST_BITWISE_OR:
+        op = YOP_BITWISE_OR;
+        break;
+    case YST_SHIFTLEFT:
+        op = YOP_SHIFTLEFT;
+        break;
+    case YST_SHIFTRIGHT:
+        op = YOP_SHIFTRIGHT;
+        break;
+
+    // Legal in expressions only
     case YST_CMP:
         op = YOP_CMP;
         break;
@@ -496,6 +535,14 @@ asmFunc(Binary)
 
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, op, 0);
+
+    if(compound)
+    {
+        yapCodeGrow(dst, 2);
+        yapCodeAppend(dst, YOP_MOVE, 1);
+        yapCodeAppend(dst, YOP_SETVAR, 0);
+        return PAD(0);
+    }
     return PAD(1);
 }
 

@@ -54,6 +54,13 @@ enum
 
     YOP_NOT,                           // pops [a], pushes ![a] (bool value)
 
+    YOP_BITWISE_NOT,                   // pops [a], pushes ~[a] (int value)
+    YOP_BITWISE_XOR,                   // pops [a,b], pushes a^b
+    YOP_BITWISE_AND,                   // pops [a,b], pushes a&b
+    YOP_BITWISE_OR,                    // pops [a,b], pushes a|b
+    YOP_SHIFTLEFT,                     // pops [a,b], pushes a<<b
+    YOP_SHIFTRIGHT,                    // pops [a,b], pushes a>>b
+
     YOP_FORMAT,                        // string format (%)
 
     YOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack

@@ -34,6 +34,13 @@ enum
     YST_TOINT,                         // r: expression to convert
     YST_NOT,                           // !v
 
+    YST_BITWISE_NOT,                   // ~v
+    YST_BITWISE_XOR,                   // l^r
+    YST_BITWISE_AND,                   // l&r
+    YST_BITWISE_OR,                    // l|r
+    YST_SHIFTLEFT,                     // l<<r
+    YST_SHIFTRIGHT,                    // l>>r
+
     YST_ADD,                           // l+r
     YST_SUB,                           // l-r
     YST_MUL,                           // l*r
@@ -94,7 +101,7 @@ yapSyntax *yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax
 yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
 yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
-yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r, yBool compound);
 yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr);
 yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
 yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);

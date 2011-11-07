@@ -28,22 +28,37 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "//"            { goto comment; }
     "#"             { goto comment; }
     "&&"            { return YTT_AND; }
+    "&="            { return YTT_BITWISE_ANDEQUALS; }
+    "&"             { return YTT_BITWISE_AND; }
     "||"            { return YTT_OR; }
+    "|="            { return YTT_BITWISE_OREQUALS; }
+    "|"             { return YTT_BITWISE_OR; }
     "<=>"           { return YTT_CMP; }
     "cmp"           { return YTT_CMP; }
     "=="            { return YTT_EQUALS; }
     "="             { return YTT_ASSIGN; }
     "!="            { return YTT_NOTEQUALS; }
     "!"             { return YTT_NOT; }
+    "^="            { return YTT_BITWISE_XOREQUALS; }
+    "^"             { return YTT_BITWISE_XOR; }
+    "~"             { return YTT_BITWISE_NOT; }
     ">="            { return YTT_GREATERTHANOREQUAL; }
     ">"             { return YTT_GREATERTHAN; }
+    "<<="           { return YTT_SHIFTLEFTEQUALS; }
+    ">>="           { return YTT_SHIFTRIGHTEQUALS; }
+    "<<"            { return YTT_SHIFTLEFT; }
+    ">>"            { return YTT_SHIFTRIGHT; }
     "<="            { return YTT_LESSTHANOREQUAL; }
     "<"             { return YTT_LESSTHAN; }
     ","             { return YTT_COMMA; }
     ";"             { return YTT_SEMI; }
+    "+="            { return YTT_PLUSEQUALS; }
     "+"             { return YTT_PLUS; }
+    "-="            { return YTT_DASHEQUALS; }
     "-"             { return YTT_DASH; }
+    "*="            { return YTT_STAREQUALS; }
     "*"             { return YTT_STAR; }
+    "/="            { return YTT_SLASHEQUALS; }
     "/"             { return YTT_SLASH; }
     "%"             { return YTT_MOD; }
     "{"             { return YTT_OPENBRACE; }

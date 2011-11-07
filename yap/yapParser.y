@@ -29,6 +29,16 @@
 
 %fallback GROUPLEFTPAREN LEFTPAREN.
 
+%left BITWISE_OREQUALS.
+%left BITWISE_ANDEQUALS.
+%left BITWISE_XOREQUALS.
+%left PLUSEQUALS.
+%left DASHEQUALS.
+%left STAREQUALS.
+%left SLASHEQUALS.
+%left SHIFTRIGHTEQUALS.
+%left SHIFTLEFTEQUALS.
+
 %left NEWLINE.
 %left OPENBRACE.
 %left CLOSEBRACE.
@@ -52,6 +62,14 @@
 %left COMMENT.
 %left SPACE.
 %left EOF.
+
+%left BITWISE_OR.
+%left BITWISE_AND.
+%left BITWISE_XOR.
+%left BITWISE_NOT.
+%left SHIFTRIGHT.
+%left SHIFTLEFT.
+
 %left PLUS.
 %left DASH.
 %left STAR.
@@ -140,6 +158,33 @@ statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN st
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
 
+statement(S) ::= lvalue(L) PLUSEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_ADD, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) DASHEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_SUB, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) STAREQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_MUL, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) SLASHEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_DIV, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) BITWISE_OREQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_BITWISE_OR, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) BITWISE_ANDEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_BITWISE_AND, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) BITWISE_XOREQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_BITWISE_XOR, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) SHIFTLEFTEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_SHIFTLEFT, L, R, yTrue); }
+
+statement(S) ::= lvalue(L) SHIFTRIGHTEQUALS expression(R).
+    { S = yapSyntaxCreateBinary(YST_SHIFTRIGHT, L, R, yTrue); }
+
 statement(S) ::= ENDSTATEMENT.
     { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
 
@@ -191,44 +236,62 @@ expression(C) ::= STRING expression(E).
 expression(C) ::= NOT expression(E).
     { C = yapSyntaxCreateUnary(YST_NOT, E); }
 
+expression(C) ::= BITWISE_NOT expression(E).
+    { C = yapSyntaxCreateUnary(YST_BITWISE_NOT, E); }
+
 expression(C) ::= expression(L) PLUS expression(R).
-    { C = yapSyntaxCreateBinary(YST_ADD, L, R); }
+    { C = yapSyntaxCreateBinary(YST_ADD, L, R, yFalse); }
 
 expression(C) ::= expression(L) DASH expression(R).
-    { C = yapSyntaxCreateBinary(YST_SUB, L, R); }
+    { C = yapSyntaxCreateBinary(YST_SUB, L, R, yFalse); }
 
 expression(C) ::= expression(L) STAR expression(R).
-    { C = yapSyntaxCreateBinary(YST_MUL, L, R); }
+    { C = yapSyntaxCreateBinary(YST_MUL, L, R, yFalse); }
 
 expression(C) ::= expression(L) SLASH expression(R).
-    { C = yapSyntaxCreateBinary(YST_DIV, L, R); }
+    { C = yapSyntaxCreateBinary(YST_DIV, L, R, yFalse); }
 
 expression(C) ::= expression(L) AND expression(R).
-    { C = yapSyntaxCreateBinary(YST_AND, L, R); }
+    { C = yapSyntaxCreateBinary(YST_AND, L, R, yFalse); }
 
 expression(C) ::= expression(L) OR expression(R).
-    { C = yapSyntaxCreateBinary(YST_OR, L, R); }
+    { C = yapSyntaxCreateBinary(YST_OR, L, R, yFalse); }
 
 expression(C) ::= expression(L) CMP expression(R).
-    { C = yapSyntaxCreateBinary(YST_CMP, L, R); }
+    { C = yapSyntaxCreateBinary(YST_CMP, L, R, yFalse); }
 
 expression(C) ::= expression(L) EQUALS expression(R).
-    { C = yapSyntaxCreateBinary(YST_EQUALS, L, R); }
+    { C = yapSyntaxCreateBinary(YST_EQUALS, L, R, yFalse); }
 
 expression(C) ::= expression(L) NOTEQUALS expression(R).
-    { C = yapSyntaxCreateBinary(YST_NOTEQUALS, L, R); }
+    { C = yapSyntaxCreateBinary(YST_NOTEQUALS, L, R, yFalse); }
 
 expression(C) ::= expression(L) GREATERTHAN expression(R).
-    { C = yapSyntaxCreateBinary(YST_GREATERTHAN, L, R); }
+    { C = yapSyntaxCreateBinary(YST_GREATERTHAN, L, R, yFalse); }
 
 expression(C) ::= expression(L) GREATERTHANOREQUAL expression(R).
-    { C = yapSyntaxCreateBinary(YST_GREATERTHANOREQUAL, L, R); }
+    { C = yapSyntaxCreateBinary(YST_GREATERTHANOREQUAL, L, R, yFalse); }
 
 expression(C) ::= expression(L) LESSTHAN expression(R).
-    { C = yapSyntaxCreateBinary(YST_LESSTHAN, L, R); }
+    { C = yapSyntaxCreateBinary(YST_LESSTHAN, L, R, yFalse); }
 
 expression(C) ::= expression(L) LESSTHANOREQUAL expression(R).
-    { C = yapSyntaxCreateBinary(YST_LESSTHANOREQUAL, L, R); }
+    { C = yapSyntaxCreateBinary(YST_LESSTHANOREQUAL, L, R, yFalse); }
+
+expression(C) ::= expression(L) BITWISE_XOR expression(R).
+    { C = yapSyntaxCreateBinary(YST_BITWISE_XOR, L, R, yFalse); }
+
+expression(C) ::= expression(L) BITWISE_AND expression(R).
+    { C = yapSyntaxCreateBinary(YST_BITWISE_AND, L, R, yFalse); }
+
+expression(C) ::= expression(L) BITWISE_OR expression(R).
+    { C = yapSyntaxCreateBinary(YST_BITWISE_OR, L, R, yFalse); }
+
+expression(C) ::= expression(L) SHIFTLEFT expression(R).
+    { C = yapSyntaxCreateBinary(YST_SHIFTLEFT, L, R, yFalse); }
+
+expression(C) ::= expression(L) SHIFTRIGHT expression(R).
+    { C = yapSyntaxCreateBinary(YST_SHIFTRIGHT, L, R, yFalse); }
 
 expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }

@@ -114,11 +114,12 @@ yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr)
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r, yBool compound)
 {
     yapSyntax *syntax = yapSyntaxCreate(type);
     syntax->l.p = l;
     syntax->r.p = r;
+    syntax->v.i = compound;
     return syntax;
 }
 

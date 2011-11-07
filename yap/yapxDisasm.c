@@ -63,6 +63,13 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_NOT, "not")
 
+            HURR(YOP_BITWISE_NOT, "bnot")
+            HURR(YOP_BITWISE_XOR, "xor")
+            HURR(YOP_BITWISE_AND, "band")
+            HURR(YOP_BITWISE_OR, "bor")
+            HURR(YOP_SHIFTLEFT, "shl")
+            HURR(YOP_SHIFTRIGHT, "shr")
+
             HURR(YOP_FORMAT, "format")
 
             HURR(YOP_VARREG_KS, "varreg_ks")

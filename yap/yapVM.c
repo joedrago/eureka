@@ -360,6 +360,22 @@ struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
     return frame;
 }
 
+static yS32 yapVMPopInts(yapVM *vm, int count, int *output)
+{
+    yS32 i;
+    for(i=0; i<count; i++)
+    {
+        yapValue *v = yapArrayPop(&vm->stack);
+        if(!v)
+            return i;
+        v = yapValueToInt(vm, v);
+        if(!v)
+            return i;
+        output[i] = v->intVal;
+    }
+    return i;
+}
+
 void yapVMLoop(yapVM *vm)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
@@ -924,6 +940,36 @@ void yapVMLoop(yapVM *vm)
             value = yapValueToBool(vm, value);
             value = yapValueSetInt(vm, value, !value->intVal); // Double temporary?
             yapArrayPush(&vm->stack, value);
+        }
+        break;
+
+        case YOP_SHIFTLEFT:
+        case YOP_SHIFTRIGHT:
+        case YOP_BITWISE_NOT:
+        case YOP_BITWISE_XOR:
+        case YOP_BITWISE_AND:
+        case YOP_BITWISE_OR:
+        {
+            int i[2];
+            int ret;
+            int argsNeeded = (opcode == YOP_BITWISE_NOT) ? 1 : 2;
+            if(yapVMPopInts(vm, argsNeeded, i) != argsNeeded)
+            {
+                yapVMSetError(vm, "Bitwise operations require integer friendly arguments");
+                continueLooping = yFalse;
+                break;
+            }
+
+            switch(opcode)
+            {
+                case YOP_SHIFTLEFT:   ret =  i[0] << i[1]; break;
+                case YOP_SHIFTRIGHT:  ret =  i[0] >> i[1]; break;
+                case YOP_BITWISE_NOT: ret = ~i[0];         break;
+                case YOP_BITWISE_XOR: ret =  i[0] ^  i[1]; break;
+                case YOP_BITWISE_AND: ret =  i[0] &  i[1]; break;
+                case YOP_BITWISE_OR:  ret =  i[0] |  i[1]; break;
+            }
+            yapArrayPush(&vm->stack, yapValueSetInt(vm, yapValueAcquire(vm), ret));
         }
         break;
 
