@@ -13,7 +13,7 @@
 void loadChunk(const char *code)
 {
     yapContext *context = yapContextCreate();
-    yapVMExec(context->vm, code, 0);
+    yapVMEval(context->vm, code, 0);
     if(yapContextGetError(context))
     {
         printf("VM Bailed out: %s\n", yapContextGetError(context));

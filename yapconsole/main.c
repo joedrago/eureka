@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
                 int opts = YEO_DEFAULT;
                 if(dump)
                     opts = YEO_DUMP;
-                yapVMExec(context->vm, code, opts);
+                yapVMEval(context->vm, code, opts);
                 if(yapContextGetError(context))
                 {
                     printf("Errors:\n%s\n", yapContextGetError(context));

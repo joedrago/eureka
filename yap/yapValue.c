@@ -205,7 +205,7 @@ static struct yapValue * intFuncArithmetic(struct yapVM *vm, struct yapValue *a,
     case YVAO_DIV:
         if(!b->intVal)
         {
-            yapVMSetError(vm, "divide by zero!");
+            yapVMSetError(vm, YVE_RUNTIME, "divide by zero!");
             return NULL;
         }
         a = yapValueSetInt(vm, a, a->intVal / b->intVal);
@@ -551,22 +551,22 @@ static yBool yapValueCheckRef(struct yapVM *vm, yapValue *ref, yapValue *p)
 {
     if(!p)
     {
-        yapVMSetError(vm, "yapValueSetRefVal: empty stack!");
+        yapVMSetError(vm, YVE_RUNTIME, "yapValueSetRefVal: empty stack!");
         return yFalse;
     }
     if(!ref)
     {
-        yapVMSetError(vm, "yapValueSetRefVal: empty stack!");
+        yapVMSetError(vm, YVE_RUNTIME, "yapValueSetRefVal: empty stack!");
         return yFalse;
     }
     if(!(*ref->refVal))
     {
-        yapVMSetError(vm, "yapValueSetRefVal: missing ref!");
+        yapVMSetError(vm, YVE_RUNTIME, "yapValueSetRefVal: missing ref!");
         return yFalse;
     }
     if(ref->type != YVT_REF)
     {
-        yapVMSetError(vm, "yapValueSetRefVal: value on top of stack, ref underneath");
+        yapVMSetError(vm, YVE_RUNTIME, "yapValueSetRefVal: value on top of stack, ref underneath");
         return yFalse;
     }
     return yTrue;
@@ -596,7 +596,7 @@ yBool yapValueSetRefInherits(struct yapVM *vm, yapValue *ref, yapValue *p)
 
     if((*(ref->refVal))->type != YVT_OBJECT)
     {
-        yapVMSetError(vm, "yapValueSetRefInherits: non-objects cannot inherit");
+        yapVMSetError(vm, YVE_RUNTIME, "yapValueSetRefInherits: non-objects cannot inherit");
         return yFalse;
     }
 

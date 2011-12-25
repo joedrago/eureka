@@ -11,6 +11,16 @@ struct yapVariable;
 
 // ---------------------------------------------------------------------------
 
+// VM Error Types
+enum
+{
+    YVE_NONE = 0,
+    YVE_RUNTIME,
+    YVE_COMPILE,
+
+    YVE_COUNT
+};
+
 typedef struct yapVM
 {
     // type information
@@ -31,6 +41,7 @@ typedef struct yapVM
     int lastRet;
 
     // error data
+    yU32 errorType;
     char *error;
 } yapVM;
 
@@ -39,17 +50,17 @@ void yapVMDestroy(yapVM *vm);
 
 void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func);
 
-// Yap Compile Options
+// Yap Eval Options
 enum
 {
     YEO_DEFAULT = 0,
 
     YEO_DUMP = (1 << 0)
 };
-void yapVMExec(yapVM *vm, const char *text, yU32 execOpts);
+void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts);
 void yapVMRecover(yapVM *vm); // cleans out frames, clears error
 
-void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
+void yapVMSetError(yapVM *vm, yU32 errorType, const char *errorFormat, ...);
 void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
@@ -57,7 +68,7 @@ void yapVMGC(struct yapVM *vm);
 struct yapFrame *yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType);
 struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
-void yapVMLoop(yapVM *vm);
+void yapVMLoop(yapVM *vm, yBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
 
 void yapVMPopValues(yapVM *vm, yU32 count);
 yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep);  // 0 is "top of stack"

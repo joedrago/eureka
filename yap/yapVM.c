@@ -31,7 +31,7 @@ static yBool yapChunkCanBeTemporary(yapChunk *chunk)
     return !chunk->hasFuncs;
 }
 
-void yapVMExec(yapVM *vm, const char *text, yU32 execOpts)
+void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
 {
     yapChunk *chunk;
     yapVariable *chunkRef;
@@ -58,7 +58,7 @@ void yapVMExec(yapVM *vm, const char *text, yU32 execOpts)
                 strcat(s, error);
                 strcat(s, "\n");
             }
-            yapVMSetError(vm, s);
+            yapVMSetError(vm, YVE_COMPILE, s);
             yapFree(s);
         }
     }
@@ -75,7 +75,7 @@ void yapVMExec(yapVM *vm, const char *text, yU32 execOpts)
         {
             chunk->temporary = yapChunkCanBeTemporary(chunk);
 
-            if(execOpts & YEO_DUMP)
+            if(evalOpts & YEO_DUMP)
             {
                 yapChunkDump(chunk);
             }
@@ -84,8 +84,8 @@ void yapVMExec(yapVM *vm, const char *text, yU32 execOpts)
             printf("--- begin chunk execution ---\n");
 #endif
             // Execute the chunk's block
-            yapVMPushFrame(vm, chunk->block, 0, YFT_FUNC);
-            yapVMLoop(vm);
+            yapVMPushFrame(vm, chunk->block, 0, YFT_FUNC|YFT_CHUNK);
+            yapVMLoop(vm, yTrue);
 
 #ifdef YAP_TRACE_OPS
             printf("---  end  chunk execution ---\n");
@@ -112,14 +112,25 @@ yapVM *yapVMCreate(void)
 
 void yapVMRecover(yapVM *vm)
 {
-    yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameDestroy);
-    yapArrayClear(&vm->stack, NULL);
+    if(vm->errorType == YVE_RUNTIME)
+    {
+        int prevStackCount = 0;
 
-    yapVMGC(vm);
+        yapFrame *frame = yapVMPopFrames(vm, YFT_CHUNK, yTrue);
+        if(frame) // recovery should work on an empty frame stack
+        {
+            prevStackCount = frame->prevStackCount;
+            yapVMPopFrames(vm, YFT_CHUNK, yFalse);
+        }
+        printf("I should pop until the stack size is %d\n", prevStackCount);
+        yapArrayShrink(&vm->stack, prevStackCount, NULL);
+
+        yapVMGC(vm);
+    }
     yapVMClearError(vm);
 }
 
-void yapVMSetError(yapVM *vm, const char *errorFormat, ...)
+void yapVMSetError(yapVM *vm, yU32 errorType, const char *errorFormat, ...)
 {
     va_list args;
     char tempStr[MAX_ERROR_LENGTH + 1];
@@ -129,6 +140,7 @@ void yapVMSetError(yapVM *vm, const char *errorFormat, ...)
     vsprintf(tempStr, errorFormat, args);
     va_end(args);
 
+    vm->errorType = errorType;
     vm->error = yapStrdup(tempStr);
 }
 
@@ -139,6 +151,7 @@ void yapVMClearError(yapVM *vm)
         yapFree(vm->error);
         vm->error = NULL;
     }
+    vm->errorType = YVE_NONE;
 }
 
 void yapVMDestroy(yapVM *vm)
@@ -217,7 +230,7 @@ yapFrame *yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTyp
             yapArrayPush(&vm->stack, &yapValueNull);
     }
 
-    frame = yapFrameCreate(frameType, block);
+    frame = yapFrameCreate(frameType, block, vm->stack.count);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
@@ -230,7 +243,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
 {
     if(!callable)
     {
-        yapVMSetError(vm, "YOP_CALL: empty stack!");
+        yapVMSetError(vm, YVE_RUNTIME, "YOP_CALL: empty stack!");
         return yFalse;
     }
     if(callable->type == YVT_REF)
@@ -239,7 +252,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     }
     if(!yapValueIsCallable(callable))
     {
-        yapVMSetError(vm, "YOP_CALL: variable not callable");
+        yapVMSetError(vm, YVE_RUNTIME, "YOP_CALL: variable not callable");
         return yFalse;
     }
     if(callable->type == YVT_CFUNCTION)
@@ -295,6 +308,7 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
     return ret;
 }
 
+// TODO: this needs to protect against variable masking/shadowing
 static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
@@ -323,7 +337,7 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL);
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);
@@ -362,7 +376,7 @@ struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
 
     if(frameTypeToFind != YFT_ANY)
     {
-        while(frame && frame->type != frameTypeToFind)
+        while(frame && !(frame->type & frameTypeToFind))
         {
             yapFrameDestroy(frame);
             frame = yapArrayPop(&vm->frames);
@@ -395,23 +409,27 @@ static yS32 yapVMPopInts(yapVM *vm, int count, int *output)
     return i;
 }
 
-void yapVMLoop(yapVM *vm)
+void yapVMLoop(yapVM *vm, yBool stopAtPop)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
     yBool continueLooping = yTrue;
     yBool newFrame;
     yU16 opcode;
     yU16 operand;
+    yU32 startingFrameCount = vm->frames.count;
 
     if(!frame)
     {
-        yapVMSetError(vm, "yapVMLoop(): No stack frame!");
+        yapVMSetError(vm, YVE_RUNTIME, "yapVMLoop(): No stack frame!");
         return;
     }
 
     // Main VM loop!
     while(continueLooping && !vm->error)
     {
+        if(stopAtPop && (vm->frames.count < startingFrameCount))
+            break;
+
         newFrame = yFalse;
 
         // These are put into temporary variables for future ntohs() cross-platform safety
@@ -439,7 +457,7 @@ void yapVMLoop(yapVM *vm)
             yBool performSkip = yFalse;
             if(!performSkipValue)
             {
-                yapVMSetError(vm, "YOP_SKIP: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_SKIP: empty stack!");
                 continueLooping = yFalse;
             }
             performSkipValue = yapValueToBool(vm, performSkipValue);
@@ -524,7 +542,7 @@ void yapVMLoop(yapVM *vm)
             }
             else
             {
-                yapVMSetError(vm, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings.data[operand]);
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings.data[operand]);
                 continueLooping = yFalse;
             }
         }
@@ -535,13 +553,13 @@ void yapVMLoop(yapVM *vm)
             yapValue *value = yapArrayPop(&vm->stack);
             if(!value)
             {
-                yapVMSetError(vm, "YOP_REFVAL: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_REFVAL: empty stack!");
                 continueLooping = yFalse;
                 break;
             };
             if(value->type != YVT_REF)
             {
-                yapVMSetError(vm, "YOP_REFVAL: requires ref on top of stack");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_REFVAL: requires ref on top of stack");
                 continueLooping = yFalse;
                 break;
             }
@@ -692,7 +710,7 @@ void yapVMLoop(yapVM *vm)
                     }
                     else
                     {
-                        yapVMSetError(vm, "YOP_INDEX: Index out of range!");
+                        yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: Index out of range!");
                         continueLooping = yFalse;
                     }
                 }
@@ -709,13 +727,13 @@ void yapVMLoop(yapVM *vm)
                 }
                 else
                 {
-                    yapVMSetError(vm, "YOP_INDEX: Attempting to index into scalar");
+                    yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: Attempting to index into scalar");
                     continueLooping = yFalse;
                 }
             }
             else
             {
-                yapVMSetError(vm, "YOP_INDEX: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: empty stack!");
                 continueLooping = yFalse;
             }
         }
@@ -740,7 +758,7 @@ void yapVMLoop(yapVM *vm)
             }
             else
             {
-                yapVMSetError(vm, "%s: impossible index", (opcode == YOP_DUPE) ? "YOP_DUPE" : "YOP_MOVE");
+                yapVMSetError(vm, YVE_RUNTIME, "%s: impossible index", (opcode == YOP_DUPE) ? "YOP_DUPE" : "YOP_MOVE");
                 continueLooping = yFalse;
             }
         }
@@ -867,7 +885,7 @@ void yapVMLoop(yapVM *vm)
                         frame->with = yapArrayPop(&vm->stack);
                         if(frame->with->type != YVT_OBJECT)
                         {
-                            yapVMSetError(vm, "'with' expression does not evaluate to an object");
+                            yapVMSetError(vm, YVE_RUNTIME, "'with' expression does not evaluate to an object");
                             continueLooping = yFalse;
                         }
                     }
@@ -877,7 +895,7 @@ void yapVMLoop(yapVM *vm)
             }
             else
             {
-                yapVMSetError(vm, "hurr");
+                yapVMSetError(vm, YVE_RUNTIME, "hurr");
                 continueLooping = yFalse;
             }
         }
@@ -931,7 +949,7 @@ void yapVMLoop(yapVM *vm)
             yapValue *value = yapArrayPop(&vm->stack);
             if(!value)
             {
-                yapVMSetError(vm, "YOP_TOSTRING: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_TOSTRING: empty stack!");
                 continueLooping = yFalse;
                 break;
             };
@@ -944,7 +962,7 @@ void yapVMLoop(yapVM *vm)
             yapValue *value = yapArrayPop(&vm->stack);
             if(!value)
             {
-                yapVMSetError(vm, "YOP_TOINT: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_TOINT: empty stack!");
                 continueLooping = yFalse;
                 break;
             };
@@ -957,7 +975,7 @@ void yapVMLoop(yapVM *vm)
             yapValue *value = yapArrayPop(&vm->stack);
             if(!value)
             {
-                yapVMSetError(vm, "YOP_NOT: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_NOT: empty stack!");
                 continueLooping = yFalse;
                 break;
             };
@@ -979,7 +997,7 @@ void yapVMLoop(yapVM *vm)
             int argsNeeded = (opcode == YOP_BITWISE_NOT) ? 1 : 2;
             if(yapVMPopInts(vm, argsNeeded, i) != argsNeeded)
             {
-                yapVMSetError(vm, "Bitwise operations require integer friendly arguments");
+                yapVMSetError(vm, YVE_RUNTIME, "Bitwise operations require integer friendly arguments");
                 continueLooping = yFalse;
                 break;
             }
@@ -1003,14 +1021,14 @@ void yapVMLoop(yapVM *vm)
             yapValue *val;
             if(!format)
             {
-                yapVMSetError(vm, "YOP_FORMAT: empty stack!");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_FORMAT: empty stack!");
                 continueLooping = yFalse;
                 break;
             };
             val = yapValueStringFormat(vm, format, operand);
             if(!val)
             {
-                yapVMSetError(vm, "YOP_FORMAT: bad format");
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_FORMAT: bad format");
                 continueLooping = yFalse;
                 break;
             };
@@ -1032,7 +1050,7 @@ void yapVMLoop(yapVM *vm)
                 }
                 else
                 {
-                    yapVMSetError(vm, "YOP_NTH: index out of range");
+                    yapVMSetError(vm, YVE_RUNTIME, "YOP_NTH: index out of range");
                     continueLooping = yFalse;
                     break;
                 }
@@ -1043,7 +1061,7 @@ void yapVMLoop(yapVM *vm)
                 yapValue *getFunc = yapFindFunc(vm, val, "get");
                 if(!getFunc)
                 {
-                    yapVMSetError(vm, "YVT_NTH: iterable does not have a get() function");
+                    yapVMSetError(vm, YVE_RUNTIME, "YVT_NTH: iterable does not have a get() function");
                     continueLooping = yFalse;
                     break;
                 }
@@ -1054,7 +1072,7 @@ void yapVMLoop(yapVM *vm)
             }
             else
             {
-                yapVMSetError(vm, "YOP_NTH: Invalid value type %d", val->type);
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_NTH: Invalid value type %d", val->type);
                 continueLooping = yFalse;
                 break;
             }
@@ -1077,7 +1095,7 @@ void yapVMLoop(yapVM *vm)
                 yapValue *countFunc = yapFindFunc(vm, val, "count");
                 if(!countFunc)
                 {
-                    yapVMSetError(vm, "YVT_COUNT: iterable does not have a count() function");
+                    yapVMSetError(vm, YVE_RUNTIME, "YVT_COUNT: iterable does not have a count() function");
                     continueLooping = yFalse;
                     break;
                 }
@@ -1088,7 +1106,7 @@ void yapVMLoop(yapVM *vm)
             }
             else
             {
-                yapVMSetError(vm, "YVT_COUNT: Invalid value type %d", val->type);
+                yapVMSetError(vm, YVE_RUNTIME, "YVT_COUNT: Invalid value type %d", val->type);
                 continueLooping = yFalse;
                 break;
             }
@@ -1096,7 +1114,7 @@ void yapVMLoop(yapVM *vm)
         break;
 
         default:
-            yapVMSetError(vm, "Unknown VM Opcode: %d", opcode);
+            yapVMSetError(vm, YVE_RUNTIME, "Unknown VM Opcode: %d", opcode);
             continueLooping = yFalse;
             break;
         }

@@ -79,6 +79,41 @@ yU32 super(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
+static yU32 eval(struct yapVM *vm, yU32 argCount)
+{
+    yapValue *ret = NULL;
+    if(argCount)
+    {
+        int i;
+        yapValue *v = yapVMGetArg(vm, 0, argCount);
+        for(i = 0; i < argCount; i++)
+        {
+            yapValue *v = yapVMGetArg(vm, i, argCount);
+            if(v->type == YVT_STRING)
+            {
+                yapVMEval(vm, v->stringVal, 0);
+                if(vm->error)
+                {
+                    // steal the error from the VM so we can recover and THEN give it back as a yapValue
+                    char *error = vm->error;
+                    vm->error = NULL;
+
+                    yapVMRecover(vm);
+                    ret = yapValueSetString(vm, yapValueAcquire(vm), error);
+                    yapFree(error);
+                }
+            }
+        }
+        yapVMPopValues(vm, argCount);
+    }
+    if(!ret)
+    {
+        ret = yapValueSetInt(vm, yapValueAcquire(vm), 0);
+    }
+    yapArrayPush(&vm->stack, ret);
+    return 1;
+}
+
 // ---------------------------------------------------------------------------
 // global print() funcs -- someday to be moved into an optional lib
 
@@ -119,6 +154,7 @@ void yapIntrinsicsRegister(struct yapVM *vm)
     yapVMRegisterIntrinsic(vm, "length", array_length);
     yapVMRegisterIntrinsic(vm, "object", make_object);
     yapVMRegisterIntrinsic(vm, "super", super);
+    yapVMRegisterIntrinsic(vm, "eval", eval);
 
     // TODO: Move this out of here
     yapVMRegisterIntrinsic(vm, "print", standard_print);

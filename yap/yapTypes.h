@@ -76,6 +76,7 @@ typedef void (*yapDestroyCB1)(void *p, void *arg1);
 void yapArrayClear(yapArray *p, yapDestroyCB cb);
 void yapArrayClearP1(yapArray *p, yapDestroyCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
 void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
+void yapArrayShrink(yapArray *p, int n, yapDestroyCB cb); // Causes array to be at-most n in size
 
 // ---------------------------------------------------------------------------
 // Debug Functions

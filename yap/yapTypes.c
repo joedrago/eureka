@@ -81,6 +81,16 @@ void yapArrayInject(yapArray *p, void *v, int n)
     p->data[index] = v;
 }
 
+void yapArrayShrink(yapArray *p, int n, yapDestroyCB cb)
+{
+    while(p->count > n)
+    {
+        if(cb)
+            cb(p->data[p->count-1]);
+        p->count--;
+    }
+}
+
 yOperand yapArrayPushUniqueString(yapArray *p, char *s)
 {
     int i;
