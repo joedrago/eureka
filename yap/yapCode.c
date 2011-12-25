@@ -2,7 +2,7 @@
 
 #include "yapCompiler.h"
 #include "yapLexer.h"
-#include "yapModule.h"
+#include "yapChunk.h"
 #include "yapOp.h"
 
 #include <string.h>

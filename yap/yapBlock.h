@@ -12,7 +12,7 @@ struct yapCode;
 
 typedef struct yapBlock
 {
-    struct yapModule *module;
+    struct yapChunk *chunk;
     struct yapOp *ops;
     int opCount;
     int argCount;
@@ -21,6 +21,6 @@ typedef struct yapBlock
 #define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
 void yapBlockDestroy(yapBlock *block);
 
-yOperand yapBlockConvertCode(struct yapCode *code, struct yapModule *owner, int argCount);
+yOperand yapBlockConvertCode(struct yapCode *code, struct yapChunk *owner, int argCount);
 
 #endif

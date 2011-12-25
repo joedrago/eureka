@@ -4,13 +4,13 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yapModule;
+struct yapChunk;
 struct yapOp;
 
 // ---------------------------------------------------------------------------
 
 void yapOpsDump(struct yapOp *ops, int count);
 
-void yapModuleDump(struct yapModule *module);
+void yapChunkDump(struct yapChunk *chunk);
 
 #endif

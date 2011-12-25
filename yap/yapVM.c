@@ -4,7 +4,7 @@
 #include "yapCompiler.h"
 #include "yapObject.h"
 #include "yapFrame.h"
-#include "yapModule.h"
+#include "yapChunk.h"
 #include "yapOp.h"
 #include "yapValue.h"
 #include "yapVariable.h"
@@ -23,10 +23,18 @@ void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func)
     yapArrayPush(&vm->globals, intrinsic);
 }
 
-yapModule *yapVMLoadModule(yapVM *vm, const char *name, const char *text)
+static yBool yapChunkCanBeTemporary(yapChunk *chunk)
 {
-    yapModule *module;
-    yapVariable *moduleRef;
+    // A simple test ... if there aren't any functions in this chunk and all ktable lookups
+    // are duped (chunk flagged as temporary), than the chunk can safely go away in between
+    // calls to yapVMLoop (assuming zero yapFrames on the stack).
+    return !chunk->hasFuncs;
+}
+
+void yapVMExec(yapVM *vm, const char *text, yU32 execOpts)
+{
+    yapChunk *chunk;
+    yapVariable *chunkRef;
 
     yapCompiler *compiler = yapCompilerCreate();
     yapCompile(compiler, text, YCO_DEFAULT);
@@ -34,57 +42,81 @@ yapModule *yapVMLoadModule(yapVM *vm, const char *name, const char *text)
     if(compiler->errors.count)
     {
         int i;
+        int total = 0;
         for(i = 0; i < compiler->errors.count; i++)
         {
             char *error = (char *)compiler->errors.data[i];
-
-            // TODO: set vm->error instead of printf
-            printf("Error: %s\n", error);
+            total += strlen(error) + 3; // "* " + newline
+        }
+        if(total > 0)
+        {
+            char *s = (char *)yapAlloc(total+1);
+            for(i = 0; i < compiler->errors.count; i++)
+            {
+                char *error = (char *)compiler->errors.data[i];
+                strcat(s, "* ");
+                strcat(s, error);
+                strcat(s, "\n");
+            }
+            yapVMSetError(vm, s);
+            yapFree(s);
         }
     }
 
-    // take ownership of the module
-    module = compiler->module;
-    compiler->module = NULL;
+    // take ownership of the chunk
+    chunk = compiler->chunk;
+    compiler->chunk = NULL;
 
     yapCompilerDestroy(compiler);
 
-    if(module)
+    if(chunk)
     {
-        if(module->block)
+        if(chunk->block)
         {
-            // Alloc the global variable "main"
-            moduleRef = yapVariableCreate(vm, name);
-            moduleRef->value = yapValueSetModule(vm, yapValueAcquire(vm), module);
-            yapArrayPush(&vm->globals, moduleRef);
+            chunk->temporary = yapChunkCanBeTemporary(chunk);
 
-            yapArrayPush(&vm->modules, module);
+            if(execOpts & YEO_DUMP)
+            {
+                yapChunkDump(chunk);
+            }
 
 #ifdef YAP_TRACE_OPS
-            printf("--- begin module execution ---\n");
+            printf("--- begin chunk execution ---\n");
 #endif
-            // Execute the module's block
-            yapVMPushFrame(vm, module->block, 0, YFT_FUNC);
+            // Execute the chunk's block
+            yapVMPushFrame(vm, chunk->block, 0, YFT_FUNC);
             yapVMLoop(vm);
 
 #ifdef YAP_TRACE_OPS
-            printf("---  end  module execution ---\n");
+            printf("---  end  chunk execution ---\n");
 #endif
+            if(!chunk->temporary)
+            {
+                yapArrayPush(&vm->chunks, chunk);
+                chunk = NULL; // forget the ptr
+            }
         }
-        else
+
+        if(chunk)
         {
-            yapModuleDestroy(module);
-            module = NULL;
+            yapChunkDestroy(chunk);
         }
     }
-
-    return module;
 }
 
 yapVM *yapVMCreate(void)
 {
     yapVM *vm = yapAlloc(sizeof(yapVM));
     return vm;
+}
+
+void yapVMRecover(yapVM *vm)
+{
+    yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameDestroy);
+    yapArrayClear(&vm->stack, NULL);
+
+    yapVMGC(vm);
+    yapVMClearError(vm);
 }
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...)
@@ -114,7 +146,7 @@ void yapVMDestroy(yapVM *vm)
     yapArrayClear(&vm->globals, NULL);
     yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(&vm->stack, NULL);
-    yapArrayClear(&vm->modules, (yapDestroyCB)yapModuleDestroy);
+    yapArrayClear(&vm->chunks, (yapDestroyCB)yapChunkDestroy);
 
     yapArrayClear(&vm->usedVariables, (yapDestroyCB)yapVariableDestroy);
     yapArrayClearP1(&vm->usedValues, (yapDestroyCB1)yapValueDestroy, vm);
@@ -142,7 +174,6 @@ static yapVariable *yapArrayFindVariableByName(yapArray *a, const char *name)
 static yapVariable *yapVMResolveVariable(yapVM *vm, const char *name)
 {
     int i;
-    yapModule *module;
     yapFrame *frame;
     yapVariable *v;
 
@@ -158,15 +189,7 @@ static yapVariable *yapVMResolveVariable(yapVM *vm, const char *name)
             break;
     }
 
-    // Next: Check the variables in the module this block is from
-    module = frame->block->module;
-    if(module)
-    {
-        v = yapArrayFindVariableByName(&module->variables, name);
-        if(v) return v;
-    }
-
-    // Then check global vars as a last ditch effort
+    // check global vars
     v = yapArrayFindVariableByName(&vm->globals, name);
     if(v) return v;
 
@@ -230,11 +253,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     }
     else
     {
-        yapBlock *block = (callable->type == YVT_MODULE)
-                          ? callable->moduleVal->block
-                          : callable->blockVal;
-
-        *framePtr = yapVMPushFrame(vm, block, argCount, YFT_FUNC);
+        *framePtr = yapVMPushFrame(vm, callable->blockVal, argCount, YFT_FUNC);
     }
     return yTrue;
 }
@@ -282,11 +301,11 @@ static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
     if(!frame)
         return;
 
-    if(frame->block == frame->block->module->block)
+    if(frame->block == frame->block->chunk->block)
     {
-        // If we're in the module's "main" function, all variable
-        // registration goes in the module's "global table"
-        yapArrayPush(&frame->block->module->variables, variable);
+        // If we're in the chunk's "main" function, all variable
+        // registration goes into the globals
+        yapArrayPush(&vm->globals, variable);
     }
     else
     {
@@ -453,21 +472,26 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_PUSHLBLOCK:
         {
-            yapValue *value = yapValueSetFunction(vm, yapValueAcquire(vm), frame->block->module->blocks.data[operand]);
+            yapValue *value = yapValueSetFunction(vm, yapValueAcquire(vm), frame->block->chunk->blocks.data[operand]);
             yapArrayPush(&vm->stack, value);
         }
         break;
 
         case YOP_PUSH_KI:
         {
-            yapValue *value = yapValueSetInt(vm, yapValueAcquire(vm), frame->block->module->kInts.data[operand]);
+            yapValue *value = yapValueSetInt(vm, yapValueAcquire(vm), frame->block->chunk->kInts.data[operand]);
             yapArrayPush(&vm->stack, value);
         }
         break;
 
         case YOP_PUSH_KS:
         {
-            yapValue *value = yapValueSetKString(vm, yapValueAcquire(vm), frame->block->module->kStrings.data[operand]);
+            yapValue *value;
+            if(frame->block->chunk->temporary)
+                value = yapValueSetString(vm, yapValueAcquire(vm), frame->block->chunk->kStrings.data[operand]);
+            else
+                value = yapValueSetKString(vm, yapValueAcquire(vm), frame->block->chunk->kStrings.data[operand]);
+
             yapArrayPush(&vm->stack, value);
         }
         break;
@@ -478,13 +502,13 @@ void yapVMLoop(yapVM *vm)
             {
                 // Inside a with block, all variables registered become a part of the object.
                 // Is this dumb or cool?
-                yapValue **ref = yapObjectGetRef(vm, frame->with->objectVal, frame->block->module->kStrings.data[operand], yTrue);
+                yapValue **ref = yapObjectGetRef(vm, frame->with->objectVal, frame->block->chunk->kStrings.data[operand], yTrue);
                 yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), ref);
                 yapArrayPush(&vm->stack, value);
             }
             else
             {
-                yapVariable *variable = yapVariableCreate(vm, frame->block->module->kStrings.data[operand]);
+                yapVariable *variable = yapVariableCreate(vm, frame->block->chunk->kStrings.data[operand]);
                 yapVMRegisterVariable(vm, variable);
                 yapVMPushRef(vm, variable);
             }
@@ -493,14 +517,14 @@ void yapVMLoop(yapVM *vm)
 
         case YOP_VARREF_KS:
         {
-            yapVariable *variable = yapVMResolveVariable(vm, frame->block->module->kStrings.data[operand]);
+            yapVariable *variable = yapVMResolveVariable(vm, frame->block->chunk->kStrings.data[operand]);
             if(variable)
             {
                 yapVMPushRef(vm, variable);
             }
             else
             {
-                yapVMSetError(vm, "YOP_GETVAR_KS: no variable named '%s'", frame->block->module->kStrings.data[operand]);
+                yapVMSetError(vm, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings.data[operand]);
                 continueLooping = yFalse;
             }
         }
@@ -1132,17 +1156,6 @@ void yapVMGC(struct yapVM *vm)
     {
         yapValue *value = (yapValue *)vm->stack.data[i];
         yapValueMark(vm, value);
-    }
-
-    for(i = 0; i < vm->modules.count; i++)
-    {
-        yapModule *module = (yapModule *)vm->modules.data[i];
-        for(j = 0; j < module->variables.count; j++)
-        {
-            yapVariable *variable = (yapVariable *)module->variables.data[j];
-            yapVariableMark(variable);
-            yapValueMark(vm, variable->value);
-        }
     }
 
     // -----------------------------------------------------------------------

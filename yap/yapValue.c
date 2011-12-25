@@ -98,39 +98,6 @@ static void nullFuncRegister(struct yapVM *vm)
 }
 
 // ---------------------------------------------------------------------------
-// YVT_MODULE Funcs
-
-static void moduleFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
-{
-    dst->moduleVal = src->moduleVal;
-}
-
-static yBool moduleFuncToBool(struct yapValue *p)
-{
-    return yTrue;
-}
-
-static yS32 moduleFuncToInt(struct yapValue *p)
-{
-    return 1; // ?
-}
-
-static void moduleFuncRegister(struct yapVM *vm)
-{
-    yapValueType *type = yapValueTypeCreate("module");
-    type->funcClear      = yapValueTypeFuncNotUsed;
-    type->funcClone      = moduleFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
-    type->funcToBool     = moduleFuncToBool;
-    type->funcToInt      = moduleFuncToInt;
-    type->funcToString   = yapValueTypeFuncNotUsed;
-    type->funcArithmetic = yapValueTypeFuncNotUsed;
-    type->funcCmp        = yapValueTypeFuncNotUsed;
-    yapValueTypeRegister(vm, type);
-    yapAssert(type->id == YVT_MODULE);
-}
-
-// ---------------------------------------------------------------------------
 // YVT_BLOCK Funcs
 
 static void blockFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
@@ -475,7 +442,6 @@ static void refFuncRegister(struct yapVM *vm)
 void yapValueTypeRegisterAllBasicTypes(struct yapVM *vm)
 {
     nullFuncRegister(vm);
-    moduleFuncRegister(vm);
     blockFuncRegister(vm);
     cfunctionFuncRegister(vm);
     intFuncRegister(vm);
@@ -556,17 +522,6 @@ yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func)
     p->cFuncVal = func;
     p->used = yTrue;
     yapTrace(("yapValueSetCFunction %p\n", p));
-    return p;
-}
-
-yapValue *yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module)
-{
-    p = yapValuePersonalize(vm, p);
-    yapValueClear(vm, p);
-    p->type = YVT_MODULE;
-    p->moduleVal = module;
-    p->used = yTrue;
-    yapTrace(("yapValueSetModule %p\n", p));
     return p;
 }
 

@@ -12,7 +12,7 @@ enum
 
     YOP_PUSHNULL,                      // push null value on top of stack
     YOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
-    YOP_PUSHLBLOCK,                    // push reference to local (to module) block
+    YOP_PUSHLBLOCK,                    // push reference to local (to chunk) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack

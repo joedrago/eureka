@@ -1,7 +1,7 @@
 #include "yapxDisasm.h"
 
 #include "yapBlock.h"
-#include "yapModule.h"
+#include "yapChunk.h"
 #include "yapOp.h"
 
 #include <string.h>
@@ -89,24 +89,24 @@ void yapOpsDump(yapOp *ops, int count)
     }
 }
 
-void yapModuleDump(yapModule *module)
+void yapChunkDump(yapChunk *chunk)
 {
     int i;
 
-    for(i = 0; i < module->kStrings.count; i++)
+    for(i = 0; i < chunk->kStrings.count; i++)
     {
-        printf(".kstr %3d    \"%s\"\n", i, (char *)module->kStrings.data[i]);
+        printf(".kstr %3d    \"%s\"\n", i, (char *)chunk->kStrings.data[i]);
     }
 
-    for(i = 0; i < module->kInts.count; i++)
+    for(i = 0; i < chunk->kInts.count; i++)
     {
-        printf(".kint %3d    %d\n", i, module->kInts.data[i]);
+        printf(".kint %3d    %d\n", i, chunk->kInts.data[i]);
     }
 
-    for(i = 0; i < module->blocks.count; i++)
+    for(i = 0; i < chunk->blocks.count; i++)
     {
-        yapBlock *block = module->blocks.data[i];
-        if(block != module->block)
+        yapBlock *block = chunk->blocks.data[i];
+        if(block != chunk->block)
         {
             printf("\n.block %d\n", i);
             yapOpsDump(block->ops, block->opCount);
@@ -114,6 +114,6 @@ void yapModuleDump(yapModule *module)
     }
 
     printf("\n.main\n");
-    yapOpsDump(module->block->ops, module->block->opCount);
+    yapOpsDump(chunk->block->ops, chunk->block->opCount);
     printf("\n");
 }

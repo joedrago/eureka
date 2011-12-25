@@ -8,25 +8,25 @@ if(UNIX)
 endif()
 
 if(MSVC)
-	set(CMAKE_C_FLAGS /wd4996)
+    set(CMAKE_C_FLAGS /wd4996)
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/yap)
 
 if(APPLE)
-	add_definitions(-DPLATFORM_OSX)
+    add_definitions(-DPLATFORM_OSX)
 else()
-	if(UNIX)
-		add_definitions(-DPLATFORM_LINUX)
-	endif()
+    if(UNIX)
+        add_definitions(-DPLATFORM_LINUX)
+    endif()
 
-	if(MSVC)
-		add_definitions(-DPLATFORM_WIN32)
-	endif()
-
+    if(MSVC)
+        add_definitions(-DPLATFORM_WIN32)
+    endif()
 endif()
 
 add_subdirectory(lemon)
 add_subdirectory(yap)
 add_subdirectory(yaptest)
+add_subdirectory(yapconsole)
 

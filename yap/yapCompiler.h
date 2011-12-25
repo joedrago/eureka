@@ -7,7 +7,7 @@
 // Forwards
 
 struct yapCode;
-struct yapModule;
+struct yapChunk;
 struct yapSyntax;
 struct yapToken;
 
@@ -25,7 +25,7 @@ enum
 typedef struct yapCompiler
 {
     struct yapSyntax *root;
-    struct yapModule *module;
+    struct yapChunk *chunk;
     struct yapCode *code;
     yapArray errors;
 } yapCompiler;

@@ -20,7 +20,7 @@ typedef struct yapVM
     yapArray globals;                  // Global variables
     yapArray frames;                   // Current stack frames
     yapArray stack;                    // Value stack
-    yapArray modules;                  // the VM owns all modules, making cheap vars
+    yapArray chunks;                  // the VM owns all chunks, making cheap vars
 
     // GC data
     yapArray usedValues;               // All values used by the system
@@ -38,7 +38,16 @@ yapVM *yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
 void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func);
-struct yapModule *yapVMLoadModule(yapVM *vm, const char *name, const char *text);
+
+// Yap Compile Options
+enum
+{
+    YEO_DEFAULT = 0,
+
+    YEO_DUMP = (1 << 0)
+};
+void yapVMExec(yapVM *vm, const char *text, yU32 execOpts);
+void yapVMRecover(yapVM *vm); // cleans out frames, clears error
 
 void yapVMSetError(yapVM *vm, const char *errorFormat, ...);
 void yapVMClearError(yapVM *vm);

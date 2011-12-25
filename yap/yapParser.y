@@ -87,9 +87,9 @@
 %syntax_error { yapCompileSyntaxError(compiler, &TOKEN); }
 
 // ---------------------------------------------------------------------------
-// Module
+// Chunk
 
-module ::= statement_list(L).
+chunk ::= statement_list(L).
     { compiler->root = L; }
 
 // ---------------------------------------------------------------------------

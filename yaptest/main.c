@@ -1,6 +1,6 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
-#include "yapModule.h"
+#include "yapChunk.h"
 #include "yapxDisasm.h"
 #include "yapxDot.h"
 #include "yapVM.h"
@@ -10,13 +10,10 @@
 
 // ---------------------------------------------------------------------------
 
-void loadModule(const char *code)
+void loadChunk(const char *code)
 {
-    yapModule *module;
     yapContext *context = yapContextCreate();
-    module = yapVMLoadModule(context->vm, "main", code);
-    if(module)
-        yapModuleDump(module);
+    yapVMExec(context->vm, code, 0);
     if(yapContextGetError(context))
     {
         printf("VM Bailed out: %s\n", yapContextGetError(context));
@@ -69,7 +66,7 @@ char *loadFile(const char *filename)
 // Yap Test Mode
 enum
 {
-    YTM_LOADMODULE,
+    YTM_LOADCHUNK,
     YTM_DOT
 };
 
@@ -79,7 +76,7 @@ int main(int argc, char *argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        int mode = YTM_LOADMODULE;
+        int mode = YTM_LOADCHUNK;
         int i;
         char *filename = NULL;
         for(i = 1; i < argc; i++)
@@ -103,8 +100,8 @@ int main(int argc, char *argv[])
             {
                 switch(mode)
                 {
-                case YTM_LOADMODULE:
-                    loadModule(code);
+                case YTM_LOADCHUNK:
+                    loadChunk(code);
                     break;
                 case YTM_DOT:
                     outputDot(code);

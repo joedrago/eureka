@@ -16,7 +16,6 @@ typedef enum yapValueBasicType
 {
     YVT_NULL,                          // Must stay zero, so that calloc/memset sets a yapValue to NULL 
 
-    YVT_MODULE,
     YVT_BLOCK,
     YVT_CFUNCTION,
 
@@ -98,7 +97,6 @@ typedef struct yapValue
     union
     {
         yS32 intVal;
-        struct yapModule *moduleVal;
         struct yapBlock *blockVal;     // Hurr, Shield Slam
         char *stringVal;
         struct yapValue **refVal;
@@ -127,7 +125,6 @@ yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
 yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s);  // grants ownership to the char*
 yapValue *yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
 yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);
-yapValue *yapValueSetModule(struct yapVM *vm, yapValue *p, struct yapModule *module);
 yapValue *yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref);
 
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
@@ -151,8 +148,7 @@ yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
 yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
 
 #define yapValueIsCallable(VAL)     \
-    (  (VAL->type == YVT_MODULE)    \
-    || (VAL->type == YVT_OBJECT)    \
+    (  (VAL->type == YVT_OBJECT)    \
     || (VAL->type == YVT_BLOCK)     \
     || (VAL->type == YVT_CFUNCTION))
 

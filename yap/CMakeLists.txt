@@ -43,6 +43,8 @@ project(yap)
 set(yap_src
     yapBlock.h
     yapBlock.c
+    yapChunk.h
+    yapChunk.c
     yapCode.h
     yapCode.c
     yapCompiler.h
@@ -58,8 +60,6 @@ set(yap_src
     yapLexer.c
     yapLexer.h
     yapLexer.re
-    yapModule.h
-    yapModule.c
     yapOp.h
     yapOp.c
     yapParser.y

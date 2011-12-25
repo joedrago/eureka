@@ -4,7 +4,7 @@
 #include "yapCode.h"
 #include "yapFrame.h"
 #include "yapLexer.h"
-#include "yapModule.h"
+#include "yapChunk.h"
 #include "yapOp.h"
 #include "yapParser.h"
 #include "yapSyntax.h"
@@ -26,8 +26,8 @@ yBool yapAssemble(yapCompiler *compiler);
 
 void yapCompilerDestroy(yapCompiler *compiler)
 {
-    if(compiler->module)
-        yapModuleDestroy(compiler->module);
+    if(compiler->chunk)
+        yapChunkDestroy(compiler->chunk);
     if(compiler->root)
         yapSyntaxDestroy(compiler->root);
     yapArrayClear(&compiler->errors, (yapDestroyCB)yapFree);
@@ -41,7 +41,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
     void *parser;
 
     yapTraceMem(("\n                                     "
-                 "--- start module compile ---\n"));
+                 "--- start chunk compile ---\n"));
 
     parser = yapParseAlloc();
     compiler->root = NULL;
@@ -71,7 +71,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
     yapParseFree(parser);
 
     yapTraceMem(("                                     "
-                 "---  end  module compile ---\n\n"));
+                 "---  end  chunk compile ---\n\n"));
 
     return success;
 }
@@ -323,14 +323,14 @@ asmFunc(Nop)
 asmFunc(KString)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(syntax->v.s)));
+    yapCodeAppend(dst, YOP_PUSH_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)));
     return PAD(1);
 }
 
 asmFunc(KInt)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->module->kInts, syntax->v.i));
+    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->chunk->kInts, syntax->v.i));
     return PAD(1);
 }
 
@@ -340,7 +340,7 @@ asmFunc(Identifier)
     if(flags & ASM_VAR)
         opcode = YOP_VARREG_KS;
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, opcode, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(syntax->v.s)));
+    yapCodeAppend(dst, opcode, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)));
     if(!(flags & ASM_LVALUE))
     {
         yapCodeGrow(dst, 1);
@@ -625,7 +625,7 @@ asmFunc(IfElse)
         asmDispatch[elseBody->type].assemble(compiler, elseCode, elseBody, 0, ASM_NORMAL);
         yapCodeGrow(elseCode, 1);
         yapCodeAppend(elseCode, YOP_LEAVE, 0);
-        index = yapBlockConvertCode(elseCode, compiler->module, 0);
+        index = yapBlockConvertCode(elseCode, compiler->chunk, 0);
         yapCodeGrow(dst, 1);
         yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
     }
@@ -633,7 +633,7 @@ asmFunc(IfElse)
     asmDispatch[ifBody->type].assemble(compiler, ifCode, ifBody, 0, ASM_NORMAL);
     yapCodeGrow(ifCode, 1);
     yapCodeAppend(ifCode, YOP_LEAVE, 0);
-    index = yapBlockConvertCode(ifCode, compiler->module, 0);
+    index = yapBlockConvertCode(ifCode, compiler->chunk, 0);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
 
@@ -665,7 +665,7 @@ asmFunc(While)
     yapCodeGrow(loop, 1);
     yapCodeAppend(loop, YOP_BREAK, 1);
 
-    index = yapBlockConvertCode(loop, compiler->module, 0);
+    index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
@@ -720,7 +720,7 @@ asmFunc(For)
     yapCodeAppend(loop, YOP_ADD, 0);
     yapCodeAppend(loop, YOP_BREAK, 1);
 
-    index = yapBlockConvertCode(loop, compiler->module, 0);
+    index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
@@ -738,6 +738,8 @@ asmFunc(Function)
     yapCode *code = yapCodeCreate();
     yOperand index;
 
+    compiler->chunk->hasFuncs = yTrue;
+
     // If a name is used ("func name()" vs "func()"), the
     // generated code will consume the block left on the stack
     // with a setvar, effectively compiling "func name()" into
@@ -749,7 +751,7 @@ asmFunc(Function)
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_RET, 0);
-    index = yapBlockConvertCode(code, compiler->module, argCount);
+    index = yapBlockConvertCode(code, compiler->chunk, argCount);
 
     if(name)
     {
@@ -760,7 +762,7 @@ asmFunc(Function)
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);    // Push the new block on the stack
     if(name)
     {
-        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->module->kStrings, yapStrdup(name)));
+        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(name)));
         yapCodeAppend(dst, YOP_SETVAR, 0);
     };
     return PAD(valuesLeftOnStack);
@@ -780,7 +782,7 @@ asmFunc(With)
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_LEAVE, 0);
-    index = yapBlockConvertCode(code, compiler->module, 0);
+    index = yapBlockConvertCode(code, compiler->chunk, 0);
 
     // enter the newly created block from the parent block, flagging the frame as type WITH
     // this will cause the object reference to be popped and associated with the frame
@@ -829,13 +831,13 @@ yBool yapAssemble(yapCompiler *compiler)
     if(compiler->root && (compiler->root->type == YST_STATEMENTLIST))
     {
         int blockIndex;
-        compiler->module = yapModuleCreate();
+        compiler->chunk = yapChunkCreate();
         compiler->code   = yapCodeCreate();
         yapAssembleStatementList(compiler, compiler->code, compiler->root, 0, ASM_NORMAL);
         yapCodeGrow(compiler->code, 1);
         yapCodeAppend(compiler->code, YOP_RET, 0);
-        blockIndex = yapBlockConvertCode(compiler->code, compiler->module, 0);
-        compiler->module->block = (yapBlock *)compiler->module->blocks.data[blockIndex];
+        blockIndex = yapBlockConvertCode(compiler->code, compiler->chunk, 0);
+        compiler->chunk->block = (yapBlock *)compiler->chunk->blocks.data[blockIndex];
     }
     return yTrue;
 }
