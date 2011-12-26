@@ -227,6 +227,7 @@ asmFunc(While);
 asmFunc(For);
 asmFunc(Function);
 asmFunc(With);
+asmFunc(Scope);
 
 static yapAssembleInfo asmDispatch[YST_COUNT] =
 {
@@ -287,6 +288,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
     { yapAssembleWith },            // YST_WITH
+    { yapAssembleScope },           // YST_SCOPE
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -803,6 +805,28 @@ asmFunc(With)
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_ENTER, YFT_WITH);
+
+    return PAD(0);
+}
+
+asmFunc(Scope)
+{
+    yapSyntax *body = syntax->v.p;
+    yapCode   *code = yapCodeCreate();
+    int index;
+
+    // create new block from "body"
+    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
+    yapCodeGrow(code, 1);
+    yapCodeAppend(code, YOP_LEAVE, 0);
+    index = yapBlockConvertCode(code, compiler->chunk, 0);
+
+    // enter the newly created block from the parent block, flagging the frame as type WITH
+    // this will cause the object reference to be popped and associated with the frame
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_ENTER, YFT_SCOPE);
 
     return PAD(0);
 }

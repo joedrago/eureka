@@ -28,6 +28,7 @@
 }
 
 %fallback GROUPLEFTPAREN LEFTPAREN.
+%fallback SCOPESTARTBLOCK STARTBLOCK.
 
 %left BITWISE_OREQUALS.
 %left BITWISE_ANDEQUALS.
@@ -188,6 +189,12 @@ statement(S) ::= lvalue(L) SHIFTRIGHTEQUALS expression(R).
 
 statement(S) ::= ENDSTATEMENT.
     { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+
+statement(S) ::= SCOPESTARTBLOCK ENDBLOCK.
+    { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+
+statement(S) ::= SCOPESTARTBLOCK statement_list(L) ENDBLOCK.
+    { S = yapSyntaxCreateScope(L); }
 
 // ---------------------------------------------------------------------------
 // Parenthesized Expression List

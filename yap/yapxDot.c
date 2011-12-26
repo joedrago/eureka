@@ -431,6 +431,14 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
         REC_CHILD(syntax->r.p);
     }
     break;
+
+    case YST_SCOPE:
+    {
+        sprintf(label, "SCOPE");
+        childLineOpts = "label=body";
+        REC_CHILD(syntax->v.p);
+    }
+    break;
     };
 
     if(parent)

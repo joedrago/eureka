@@ -72,6 +72,8 @@ enum
 
     YST_WITH,                          // with(v) { body r }
 
+    YST_SCOPE,                         // arbitrary scope block executing v.p statement list
+
     YST_COUNT
 };
 
@@ -116,6 +118,7 @@ yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
 yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body);
+yapSyntax *yapSyntaxCreateScope(yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);
 

@@ -220,3 +220,10 @@ yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body)
     syntax->r.p = body;
     return syntax;
 }
+
+yapSyntax *yapSyntaxCreateScope(yapSyntax *body)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_SCOPE);
+    syntax->v.p = body;
+    return syntax;
+}
