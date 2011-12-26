@@ -73,6 +73,8 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop); // stopAtPop means to stop processin
 void yapVMPopValues(yapVM *vm, yU32 count);
 yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep);  // 0 is "top of stack"
 
+yBool yapVMCallFuncByName(yapVM *vm, const char *name, int argCount); // returns whether or not it found it
+
 #define yapVMGetTop(VM) yapVMGetValue(VM, 0)
 #define yapVMGetArg(VM, INDEX, ARGCOUNT) yapVMGetValue(VM, (ARGCOUNT-1) - INDEX)
 

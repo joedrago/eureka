@@ -29,4 +29,7 @@ add_subdirectory(lemon)
 add_subdirectory(yap)
 add_subdirectory(yaptest)
 add_subdirectory(yapconsole)
+if(APPLE)
+    add_subdirectory(yapgame)
+endif()
 

@@ -288,6 +288,20 @@ static yapValue *yapFindFunc(yapVM *vm, yapValue *object, const char *name)
     return v;
 }
 
+yBool yapVMCallFuncByName(yapVM *vm, const char *name, int argCount)
+{
+    yapFrame *frame = NULL;
+    yapVariable *func = yapVMResolveVariable(vm, name);
+    if(!func)
+        return yFalse;
+    if(yapVMCall(vm, &frame, func->value, argCount))
+    {
+        yapVMLoop(vm, yTrue);
+        return yTrue;
+    }
+    return yFalse;
+}
+
 static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, int argCount)
 {
     yBool ret = yTrue;
