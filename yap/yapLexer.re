@@ -76,6 +76,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "if"            { return YTT_IF; }
     "else"          { return YTT_ELSE; }
     "int"           { return YTT_INT; }
+    "float"         { return YTT_FLOAT; }
     "string"        { return YTT_STRING; }
     "and"           { return YTT_AND; }
     "or"            { return YTT_OR; }
@@ -93,6 +94,9 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
     (['] (EscapeSequence|any\[\n\r\\']|UniversalChar)+ ['])
         { return YTT_LITERALSTRING; }
+
+    ((FractionalConstant ExponentPart?) | (Digit+ ExponentPart)) FloatingSuffix?
+        { return YTT_FLOATNUM; }
 
     Integer
         { return YTT_INTEGER; }

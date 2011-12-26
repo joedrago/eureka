@@ -5,6 +5,7 @@
 #include "yapSyntax.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define YYCTYPE char
@@ -145,7 +146,7 @@ char *yapTokenToString(yapToken *t)
                 break;
 
             default:
-                yapTrace(("Unknown escape character %c\n", *src));
+                *dst = *src; // anything else should just be pass-through, such as \"
             }
             escaped = yFalse;
         }
@@ -187,5 +188,20 @@ int yapTokenToInt(yapToken *t)
             base = 8;
 
     return strtol(temp, NULL, base);
+}
+
+float yapTokenToFloat(yapToken *t)
+{
+    char temp[32];
+    char *endptr;
+    double d;
+
+    int len = t->len;
+    if(len > 31) len = 31;
+    strncpy(temp, t->text, len);
+    temp[len] = 0;
+
+    d = strtod(temp, &endptr);
+    return (yF32)d;
 }
 

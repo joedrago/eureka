@@ -205,6 +205,7 @@ typedef struct yapAssembleInfo
 asmFunc(Nop);
 asmFunc(KString);
 asmFunc(KInt);
+asmFunc(KFloat);
 asmFunc(Identifier);
 asmFunc(Index);
 asmFunc(StatementExpr);
@@ -233,6 +234,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
 
     { yapAssembleKString },         // YST_KSTRING
     { yapAssembleKInt },            // YST_KINT
+    { yapAssembleKFloat },          // YST_KFLOAT
     { yapAssembleIdentifier },      // YST_IDENTIFIER
 
     { yapAssembleIndex },           // YST_INDEX
@@ -248,6 +250,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
 
     { yapAssembleUnary },           // YST_TOSTRING
     { yapAssembleUnary },           // YST_TOINT
+    { yapAssembleUnary },           // YST_TOFLOAT
     { yapAssembleUnary },           // YST_NOT
 
     { yapAssembleUnary },           // YST_BITWISE_NOT
@@ -330,7 +333,14 @@ asmFunc(KString)
 asmFunc(KInt)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->chunk->kInts, syntax->v.i));
+    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->chunk->kInts, &syntax->v.i));
+    return PAD(1);
+}
+
+asmFunc(KFloat)
+{
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSH_KF, yap32ArrayPushUnique(&compiler->chunk->kFloats, (yU32*)&syntax->v.f));
     return PAD(1);
 }
 
@@ -447,6 +457,9 @@ asmFunc(Unary)
         break;
     case YST_TOINT:
         yapCodeAppend(dst, YOP_TOINT, 0);
+        break;
+    case YST_TOFLOAT:
+        yapCodeAppend(dst, YOP_TOFLOAT, 0);
         break;
     case YST_NOT:
         yapCodeAppend(dst, YOP_NOT, 0);

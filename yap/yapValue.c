@@ -66,6 +66,7 @@ int yapValueTypeRegister(struct yapVM *vm, yapValueType *newType)
     yapAssert(newType->funcMark);
     yapAssert(newType->funcToBool);
     yapAssert(newType->funcToInt);
+    yapAssert(newType->funcToFloat);
     yapAssert(newType->funcToString);
     yapAssert(newType->funcArithmetic);
     yapAssert(newType->funcCmp);
@@ -90,6 +91,7 @@ static void nullFuncRegister(struct yapVM *vm)
     type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = yapValueTypeFuncNotUsed;
     type->funcToInt      = yapValueTypeFuncNotUsed;
+    type->funcToFloat    = yapValueTypeFuncNotUsed;
     type->funcToString   = nullFuncToString;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -115,6 +117,11 @@ static yS32 blockFuncToInt(struct yapValue *p)
     return 1; // ?
 }
 
+static yF32 blockFuncToFloat(struct yapValue *p)
+{
+    return 1.0f; // ?
+}
+
 static void blockFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("block");
@@ -123,6 +130,7 @@ static void blockFuncRegister(struct yapVM *vm)
     type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = blockFuncToBool;
     type->funcToInt      = blockFuncToInt;
+    type->funcToFloat    = blockFuncToFloat;
     type->funcToString   = yapValueTypeFuncNotUsed;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -148,6 +156,11 @@ static yS32 cfunctionFuncToInt(struct yapValue *p)
     return 1; // ?
 }
 
+static yF32 cfunctionFuncToFloat(struct yapValue *p)
+{
+    return 1.0f; // ?
+}
+
 static void cfunctionFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("cfunction");
@@ -156,6 +169,7 @@ static void cfunctionFuncRegister(struct yapVM *vm)
     type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = cfunctionFuncToBool;
     type->funcToInt      = cfunctionFuncToInt;
+    type->funcToFloat    = cfunctionFuncToFloat;
     type->funcToString   = yapValueTypeFuncNotUsed;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -179,6 +193,11 @@ static yBool intFuncToBool(struct yapValue *p)
 static yS32 intFuncToInt(struct yapValue *p)
 {
     return p->intVal;
+}
+
+static yF32 intFuncToFloat(struct yapValue *p)
+{
+    return (yF32)p->intVal;
 }
 
 static struct yapValue * intFuncToString(struct yapVM *vm, struct yapValue *p)
@@ -216,7 +235,17 @@ static struct yapValue * intFuncArithmetic(struct yapVM *vm, struct yapValue *a,
 
 static yBool intFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult)
 {
-    if(b->type == YVT_INT)
+    if(b->type == YVT_FLOAT)
+    {
+        if((yF32)a->intVal > b->floatVal)
+            *cmpResult = 1;
+        else if((yF32)a->intVal < b->floatVal)
+            *cmpResult = -1;
+        else
+            *cmpResult = 0;
+        return yTrue;
+    }
+    else if(b->type == YVT_INT)
     {
         *cmpResult = a->intVal - b->intVal;
         return yTrue;
@@ -232,11 +261,109 @@ static void intFuncRegister(struct yapVM *vm)
     type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = intFuncToBool;
     type->funcToInt      = intFuncToInt;
+    type->funcToFloat    = intFuncToFloat;
     type->funcToString   = intFuncToString;
     type->funcArithmetic = intFuncArithmetic;
     type->funcCmp        = intFuncCmp;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_INT);
+}
+
+// ---------------------------------------------------------------------------
+// YVT_FLOAT Funcs
+
+static void floatFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
+{
+    dst->floatVal = src->floatVal;
+}
+
+static yBool floatFuncToBool(struct yapValue *p)
+{
+    return (p->floatVal != 0.0f) ? yTrue : yFalse;
+}
+
+static yS32 floatFuncToInt(struct yapValue *p)
+{
+    return (yS32)p->floatVal;
+}
+
+static yF32 floatFuncToFloat(struct yapValue *p)
+{
+    return p->floatVal;
+}
+
+static struct yapValue * floatFuncToString(struct yapVM *vm, struct yapValue *p)
+{
+    char temp[64];
+    sprintf(temp, "%f", p->floatVal);
+    return yapValueSetString(vm, p, temp);
+}
+
+static struct yapValue * floatFuncArithmetic(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
+{
+    b = yapValueToFloat(vm, b);
+    switch(op)
+    {
+    case YVAO_ADD:
+        a = yapValueSetFloat(vm, a, a->floatVal + b->floatVal);
+        break;
+    case YVAO_SUB:
+        a = yapValueSetFloat(vm, a, a->floatVal - b->floatVal);
+        break;
+    case YVAO_MUL:
+        a = yapValueSetFloat(vm, a, a->floatVal * b->floatVal);
+        break;
+    case YVAO_DIV:
+        if(b->floatVal == 0.0f)
+        {
+            yapVMSetError(vm, YVE_RUNTIME, "divide by zero!");
+            return NULL;
+        }
+        a = yapValueSetFloat(vm, a, a->floatVal / b->floatVal);
+        break;
+    };
+    return a;
+}
+
+static yBool floatFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult)
+{
+    if(b->type == YVT_INT)
+    {
+        if(a->floatVal > (yF32)b->intVal)
+            *cmpResult = 1;
+        else if(a->floatVal < (yF32)b->intVal)
+            *cmpResult = -1;
+        else
+            *cmpResult = 0;
+        return yTrue;
+    }
+    else if(b->type == YVT_FLOAT)
+    {
+        if(a->floatVal > b->floatVal)
+            *cmpResult = 1;
+        else if(a->floatVal < b->floatVal)
+            *cmpResult = -1;
+        else
+            *cmpResult = 0;
+        return yTrue;
+    }
+    return yFalse;
+}
+
+static void floatFuncRegister(struct yapVM *vm)
+{
+    yapValueType *type = yapValueTypeCreate("float");
+    type->funcClear      = yapValueTypeFuncNotUsed;
+    type->funcClone      = floatFuncClone;
+    type->funcMark       = yapValueTypeFuncNotUsed;
+    type->funcToBool     = floatFuncToBool;
+    type->funcToInt      = floatFuncToInt;
+    type->funcToFloat    = floatFuncToFloat;
+    type->funcToString   = floatFuncToString;
+    type->funcArithmetic = floatFuncArithmetic;
+    type->funcCmp        = floatFuncCmp;
+    yapValueTypeRegister(vm, type);
+    yapAssert(type->id == YVT_FLOAT);
 }
 
 // ---------------------------------------------------------------------------
@@ -265,6 +392,12 @@ static yS32 stringFuncToInt(struct yapValue *p)
 {
     yapToken t = { p->stringVal, strlen(p->stringVal) };
     return yapTokenToInt(&t);
+}
+
+static yF32 stringFuncToFloat(struct yapValue *p)
+{
+    yapToken t = { p->stringVal, strlen(p->stringVal) };
+    return yapTokenToFloat(&t);
 }
 
 struct yapValue * stringFuncToString(struct yapVM *vm, struct yapValue *p)
@@ -298,6 +431,7 @@ static void stringFuncRegister(struct yapVM *vm)
     type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = stringFuncToBool;
     type->funcToInt      = stringFuncToInt;
+    type->funcToFloat    = stringFuncToFloat;
     type->funcToString   = stringFuncToString;
     type->funcArithmetic = stringFuncArithmetic;
     type->funcCmp        = stringFuncCmp;
@@ -338,6 +472,11 @@ static yS32 arrayFuncToInt(struct yapValue *p)
     return (p->arrayVal) ? p->arrayVal->count : 0;
 }
 
+static yF32 arrayFuncToFloat(struct yapValue *p)
+{
+    return (p->arrayVal) ? (yF32)p->arrayVal->count : 0;
+}
+
 static void arrayFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("array");
@@ -346,6 +485,7 @@ static void arrayFuncRegister(struct yapVM *vm)
     type->funcMark       = arrayFuncMark;
     type->funcToBool     = arrayFuncToBool;
     type->funcToInt      = arrayFuncToInt;
+    type->funcToFloat    = arrayFuncToFloat;
     type->funcToString   = yapValueTypeFuncNotUsed;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -381,6 +521,11 @@ static yS32 objectFuncToInt(struct yapValue *p)
     return 1; // ?
 }
 
+static yF32 objectFuncToFloat(struct yapValue *p)
+{
+    return 1.0f; // ?
+}
+
 static void objectFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("object");
@@ -389,6 +534,7 @@ static void objectFuncRegister(struct yapVM *vm)
     type->funcMark       = objectFuncMark;
     type->funcToBool     = objectFuncToBool;
     type->funcToInt      = objectFuncToInt;
+    type->funcToFloat    = objectFuncToFloat;
     type->funcToString   = yapValueTypeFuncNotUsed;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -422,6 +568,11 @@ static yS32 refFuncToInt(struct yapValue *p)
     return 1; // ?
 }
 
+static yF32 refFuncToFloat(struct yapValue *p)
+{
+    return 1.0f; // ?
+}
+
 static void refFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("ref");
@@ -430,6 +581,7 @@ static void refFuncRegister(struct yapVM *vm)
     type->funcMark       = refFuncMark;
     type->funcToBool     = refFuncToBool;
     type->funcToInt      = refFuncToInt;
+    type->funcToFloat    = refFuncToFloat;
     type->funcToString   = yapValueTypeFuncNotUsed;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
@@ -445,6 +597,7 @@ void yapValueTypeRegisterAllBasicTypes(struct yapVM *vm)
     blockFuncRegister(vm);
     cfunctionFuncRegister(vm);
     intFuncRegister(vm);
+    floatFuncRegister(vm);
     stringFuncRegister(vm);
     arrayFuncRegister(vm);
     objectFuncRegister(vm);
@@ -464,6 +617,17 @@ yapValue *yapValueSetInt(struct yapVM *vm, yapValue *p, int v)
     p->intVal = v;
     p->used = yTrue;
     yapTrace(("yapValueSetInt %p [%d]\n", p, v));
+    return p;
+}
+
+yapValue *yapValueSetFloat(struct yapVM *vm, yapValue *p, yF32 v)
+{
+    p = yapValuePersonalize(vm, p);
+    yapValueClear(vm, p);
+    p->type = YVT_FLOAT;
+    p->floatVal = v;
+    p->used = yTrue;
+    yapTrace(("yapValueSetFloat %p [%f]\n", p, v));
     return p;
 }
 
@@ -784,6 +948,12 @@ yapValue *yapValueToInt(struct yapVM *vm, yapValue *p)
     return yapValueSetInt(vm, yapValueAcquire(vm), intVal);
 }
 
+yapValue *yapValueToFloat(struct yapVM *vm, yapValue *p)
+{
+    yF32 floatVal = yapValueTypeSafeCall(p->type, ToFloat)(p);
+    return yapValueSetFloat(vm, yapValueAcquire(vm), floatVal);
+}
+
 yapValue *yapValueToString(struct yapVM *vm, yapValue *p)
 {
     yapValue *value = yapValueTypeSafeCall(p->type, ToString)(vm, p);
@@ -847,6 +1017,20 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
                 char temp[32];
                 arg = yapValueToInt(vm, arg);
                 sprintf(temp, "%d", arg->intVal);
+                addLen = strlen(temp);
+                outSize += addLen;
+                out = yapRealloc(out, outSize);
+                memcpy(&out[outPos], temp, addLen);
+                outPos += addLen;
+            }
+            break;
+        case 'f':
+            arg = yapVMGetArg(vm, argIndex++, argCount);
+            if(arg)
+            {
+                char temp[32];
+                arg = yapValueToFloat(vm, arg);
+                sprintf(temp, "%f", arg->floatVal);
                 addLen = strlen(temp);
                 outSize += addLen;
                 out = yapRealloc(out, outSize);

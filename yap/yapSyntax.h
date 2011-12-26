@@ -17,6 +17,7 @@ enum
 
     YST_KSTRING,                       // s
     YST_KINT,                          // i
+    YST_KFLOAT,                        // f
     YST_IDENTIFIER,                    // s
 
     YST_INDEX,                         // l[r]
@@ -32,6 +33,7 @@ enum
 
     YST_TOSTRING,                      // r: expression to convert
     YST_TOINT,                         // r: expression to convert
+    YST_TOFLOAT,                       // r: expression to convert
     YST_NOT,                           // !v
 
     YST_BITWISE_NOT,                   // ~v
@@ -78,6 +80,7 @@ typedef struct yapSyntaxElement
     struct yapSyntax *p;               // ptr to syntax value
     char *s;                           // string value
     int   i;                           // int value
+    yF32  f;                           // float value
     yapArray *a;                       // array value
 } yapSyntaxElement;
 
@@ -92,6 +95,7 @@ typedef struct yapSyntax
 yapSyntax *yapSyntaxCreate(yU32 type);
 yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
 yapSyntax *yapSyntaxCreateKInt(struct yapToken *token);
+yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token);
 yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
 yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
 yapSyntax *yapSyntaxCreateNull();

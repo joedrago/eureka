@@ -24,6 +24,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_PUSHLBLOCK, "pushlblock")
 
             HURR(YOP_PUSH_KI, "push_ki")
+            HURR(YOP_PUSH_KF, "push_kf")
             HURR(YOP_PUSH_KS, "push_ks")
 
             HURR(YOP_INDEX, "index")
@@ -60,6 +61,7 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_TOSTRING, "tostring")
             HURR(YOP_TOINT, "toint")
+            HURR(YOP_TOFLOAT, "tofloat")
 
             HURR(YOP_NOT, "not")
 
@@ -101,6 +103,11 @@ void yapChunkDump(yapChunk *chunk)
     for(i = 0; i < chunk->kInts.count; i++)
     {
         printf(".kint %3d    %d\n", i, chunk->kInts.data[i]);
+    }
+
+    for(i = 0; i < chunk->kFloats.count; i++)
+    {
+        printf(".kfloat %3d    %f\n", i, *((yF32*)&chunk->kFloats.data[i]));
     }
 
     for(i = 0; i < chunk->blocks.count; i++)

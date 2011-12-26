@@ -15,6 +15,7 @@ enum
     YOP_PUSHLBLOCK,                    // push reference to local (to chunk) block
 
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
+    YOP_PUSH_KF,                       // push constant float kf[X] on top of stack
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
     YOP_INDEX,                         // pops [array,index], pushes array[index]. if X, push lvalue instead rvalue
@@ -51,6 +52,7 @@ enum
 
     YOP_TOSTRING,                      // type conversion: string
     YOP_TOINT,                         // type conversion: int
+    YOP_TOFLOAT,                       // type conversion: float
 
     YOP_NOT,                           // pops [a], pushes ![a] (bool value)
 

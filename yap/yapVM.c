@@ -502,6 +502,13 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         }
         break;
 
+        case YOP_PUSH_KF:
+        {
+            yapValue *value = yapValueSetFloat(vm, yapValueAcquire(vm), *((yF32*)&frame->block->chunk->kFloats.data[operand]));
+            yapArrayPush(&vm->stack, value);
+        }
+        break;
+
         case YOP_PUSH_KS:
         {
             yapValue *value;
@@ -967,6 +974,19 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
                 break;
             };
             yapArrayPush(&vm->stack, yapValueToInt(vm, value));
+        }
+        break;
+
+        case YOP_TOFLOAT:
+        {
+            yapValue *value = yapArrayPop(&vm->stack);
+            if(!value)
+            {
+                yapVMSetError(vm, YVE_RUNTIME, "YOP_TOFLOAT: empty stack!");
+                continueLooping = yFalse;
+                break;
+            };
+            yapArrayPush(&vm->stack, yapValueToFloat(vm, value));
         }
         break;
 

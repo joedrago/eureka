@@ -20,6 +20,7 @@ typedef enum yapValueBasicType
     YVT_CFUNCTION,
 
     YVT_INT,
+    YVT_FLOAT,
     YVT_STRING,
 
     YVT_ARRAY,
@@ -49,6 +50,7 @@ typedef void (*yapValueTypeFuncClone)(struct yapVM *vm, struct yapValue *dst, st
 typedef void (*yapValueTypeFuncMark)(struct yapVM *vm, struct yapValue *value);
 typedef yBool (*yapValueTypeFuncToBool)(struct yapValue *p);
 typedef yS32 (*yapValueTypeFuncToInt)(struct yapValue *p);
+typedef yF32 (*yapValueTypeFuncToFloat)(struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapVM *vm, struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
 typedef yBool (*yapValueTypeFuncCmp)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult);
@@ -66,6 +68,7 @@ typedef struct yapValueType
     yapValueTypeFuncMark funcMark;
     yapValueTypeFuncToBool funcToBool;
     yapValueTypeFuncToInt funcToInt;
+    yapValueTypeFuncToFloat funcToFloat;
     yapValueTypeFuncToString funcToString;
     yapValueTypeFuncArithmetic funcArithmetic;
     yapValueTypeFuncCmp funcCmp;
@@ -97,6 +100,7 @@ typedef struct yapValue
     union
     {
         yS32 intVal;
+        yF32 floatVal;
         struct yapBlock *blockVal;     // Hurr, Shield Slam
         char *stringVal;
         struct yapValue **refVal;
@@ -120,6 +124,7 @@ yapValue *yapValueClone(struct yapVM *vm, yapValue *p);
 yapValue *yapValuePersonalize(struct yapVM *vm, yapValue *p);  // only clones if used
 
 yapValue *yapValueSetInt(struct yapVM *vm, yapValue *p, int v);
+yapValue *yapValueSetFloat(struct yapVM *vm, yapValue *p, yF32 v);
 yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, char *s);
 yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
 yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s);  // grants ownership to the char*
@@ -143,6 +148,7 @@ yS32 yapValueCmp(struct yapVM *vm, yapValue *a, yapValue *b);
 
 yapValue *yapValueToBool(struct yapVM *vm, yapValue *p);
 yapValue *yapValueToInt(struct yapVM *vm, yapValue *p);
+yapValue *yapValueToFloat(struct yapVM *vm, yapValue *p);
 yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
 
 yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);

@@ -45,6 +45,13 @@ yapSyntax *yapSyntaxCreateKInt(struct yapToken *token)
     return syntax;
 }
 
+yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_KFLOAT);
+    syntax->v.f = yapTokenToFloat(token);
+    return syntax;
+}
+
 yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_IDENTIFIER);

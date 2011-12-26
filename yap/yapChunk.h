@@ -13,6 +13,7 @@ typedef struct yapChunk
     // constants
     yapArray kStrings;                 // constant string table
     yap32Array kInts;                  // constant integer table
+    yap32Array kFloats;                // constant float table
 
     yBool hasFuncs;                    // at least one of the blocks represents a function
     yBool temporary;                   // signifies that the ktables aren't sticking around, and to dupe into values

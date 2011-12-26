@@ -133,6 +133,9 @@ yU32 standard_print(struct yapVM *vm, yU32 argCount)
             case YVT_INT:
                 printf("%d", v->intVal);
                 break;
+            case YVT_FLOAT:
+                printf("%f", v->floatVal);
+                break;
             default:
                 printf("***hurrrrr***");
                 break;

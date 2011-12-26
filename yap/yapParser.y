@@ -77,6 +77,7 @@
 %left AND.
 %left OR.
 %left INT.
+%left FLOAT.
 %left STRING.
 %left NOT.
 %left MOD.
@@ -230,6 +231,9 @@ expr_list(EL) ::= expression(E).
 expression(C) ::= INT expression(E).
     { C = yapSyntaxCreateUnary(YST_TOINT, E); }
 
+expression(C) ::= FLOAT expression(E).
+    { C = yapSyntaxCreateUnary(YST_TOFLOAT, E); }
+
 expression(C) ::= STRING expression(E).
     { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
 
@@ -310,6 +314,9 @@ expression(E) ::= lvalue(LV).
 
 expression(E) ::= INTEGER(I).
     { E = yapSyntaxCreateKInt(&I); }
+
+expression(E) ::= FLOATNUM(F).
+    { E = yapSyntaxCreateKFloat(&F); }
 
 expression(E) ::= LITERALSTRING(L).
     { E = yapSyntaxCreateKString(&L); }

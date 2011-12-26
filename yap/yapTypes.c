@@ -6,15 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-yOperand yap32ArrayPushUnique(yap32Array *p, yU32 v)
+yOperand yap32ArrayPushUnique(yap32Array *p, yU32 *v)
 {
     int i;
     for(i = 0; i < p->count; i++)
     {
-        if(p->data[i] == v)
+        if(p->data[i] == *v)
             return i;
     }
-    return yap32ArrayPush(p, v);
+    return yap32ArrayPush(p, *v);
 }
 
 yOperand yap32ArrayPush(yap32Array *p, yU32 v)
