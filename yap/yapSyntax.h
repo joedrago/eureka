@@ -94,10 +94,17 @@ typedef struct yapSyntax
     yapSyntaxElement r;                // "right" - rvalue / simple lists
 } yapSyntax;
 
+// Create KTable Options
+enum
+{
+    CKO_NONE = 0,
+    CKO_NEGATIVE = (1 << 0)
+};
+
 yapSyntax *yapSyntaxCreate(yU32 type);
 yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
-yapSyntax *yapSyntaxCreateKInt(struct yapToken *token);
-yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token);
+yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts);
+yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts);
 yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
 yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
 yapSyntax *yapSyntaxCreateNull();

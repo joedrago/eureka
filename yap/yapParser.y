@@ -29,6 +29,7 @@
 
 %fallback GROUPLEFTPAREN LEFTPAREN.
 %fallback SCOPESTARTBLOCK STARTBLOCK.
+%fallback NEGATIVE DASH.
 
 %left BITWISE_OREQUALS.
 %left BITWISE_ANDEQUALS.
@@ -320,10 +321,16 @@ expression(E) ::= lvalue(LV).
     { E = LV; }
 
 expression(E) ::= INTEGER(I).
-    { E = yapSyntaxCreateKInt(&I); }
+    { E = yapSyntaxCreateKInt(&I, 0); }
+
+expression(E) ::= NEGATIVE INTEGER(I).
+    { E = yapSyntaxCreateKInt(&I, CKO_NEGATIVE); }
 
 expression(E) ::= FLOATNUM(F).
-    { E = yapSyntaxCreateKFloat(&F); }
+    { E = yapSyntaxCreateKFloat(&F, 0); }
+
+expression(E) ::= NEGATIVE FLOATNUM(F).
+    { E = yapSyntaxCreateKFloat(&F, CKO_NEGATIVE); }
 
 expression(E) ::= LITERALSTRING(L).
     { E = yapSyntaxCreateKString(&L); }

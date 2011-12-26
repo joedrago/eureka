@@ -38,17 +38,21 @@ yapSyntax *yapSyntaxCreateKString(struct yapToken *token)
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateKInt(struct yapToken *token)
+yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_KINT);
     syntax->v.i = yapTokenToInt(token);
+    if(opts & CKO_NEGATIVE)
+        syntax->v.i *= -1;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token)
+yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_KFLOAT);
     syntax->v.f = yapTokenToFloat(token);
+    if(opts & CKO_NEGATIVE)
+        syntax->v.f *= -1;
     return syntax;
 }
 
