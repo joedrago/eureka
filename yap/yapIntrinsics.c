@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-yU32 make_array(struct yapVM *vm, yU32 argCount)
+static yU32 make_array(struct yapVM *vm, yU32 argCount)
 {
     yapValue *v;
     yapVMPopValues(vm, argCount);
@@ -16,7 +16,7 @@ yU32 make_array(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
-yU32 array_push(struct yapVM *vm, yU32 argCount)
+static yU32 array_push(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
@@ -32,7 +32,7 @@ yU32 array_push(struct yapVM *vm, yU32 argCount)
     return 0;
 }
 
-yU32 array_length(struct yapVM *vm, yU32 argCount)
+static yU32 array_length(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
@@ -44,7 +44,7 @@ yU32 array_length(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
-yU32 make_object(struct yapVM *vm, yU32 argCount)
+static yU32 make_object(struct yapVM *vm, yU32 argCount)
 {
     yapValue *v;
     yapVMPopValues(vm, argCount);
@@ -53,7 +53,7 @@ yU32 make_object(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
-yU32 super(struct yapVM *vm, yU32 argCount)
+static yU32 super(struct yapVM *vm, yU32 argCount)
 {
     yapObject *object = NULL;
     if(argCount)
@@ -117,7 +117,7 @@ static yU32 eval(struct yapVM *vm, yU32 argCount)
 // ---------------------------------------------------------------------------
 // global print() funcs -- someday to be moved into an optional lib
 
-yU32 standard_print(struct yapVM *vm, yU32 argCount)
+static yU32 standard_print(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
@@ -150,6 +150,74 @@ yU32 standard_print(struct yapVM *vm, yU32 argCount)
     return 0;
 }
 
+// ---------------------------------------------------------------------------
+// import()
+
+static char *loadFile(const char *filename)
+{
+    FILE *f = fopen(filename, "rb");
+    if(f)
+    {
+        int size;
+        char *buffer;
+
+        fseek(f, 0, SEEK_END);
+        size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        buffer = (char *)yapAlloc(size + 1);
+        fread(buffer, 1, size, f);
+        buffer[size] = 0;
+
+        fclose(f);
+
+        return buffer;
+    }
+    return NULL;
+}
+
+static yU32 import(struct yapVM *vm, yU32 argCount)
+{
+    yU32 ret;
+    char *code;
+    yapValue *filenameValue = NULL;
+    yapValue *codeValue = NULL;
+
+    if(argCount)
+    {
+        filenameValue = yapVMGetArg(vm, 0, argCount);
+        if(filenameValue->type != YVT_STRING)
+            filenameValue = NULL;
+    }
+
+    if(filenameValue)
+        code = loadFile(filenameValue->stringVal);
+
+    yapVMPopValues(vm, argCount);
+
+    if(!filenameValue)
+    {
+        yapValue *reason = yapValueSetString(vm, yapValueAcquire(vm), "import() takes a single string argument");
+        yapArrayPush(&vm->stack, reason);
+        return 1;
+    }
+
+    if(!code)
+    {
+        yapValue *reason = yapValueSetString(vm, yapValueAcquire(vm), "can't read file");
+        yapArrayPush(&vm->stack, reason);
+        return 1;
+    }
+
+    codeValue = yapValueSetKString(vm, yapValueAcquire(vm), code);
+    yapArrayPush(&vm->stack, codeValue);
+    ret = eval(vm, 1);
+    yapFree(code);
+    return ret;
+}
+
+// ---------------------------------------------------------------------------
+
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
     yapVMRegisterIntrinsic(vm, "push", array_push);
@@ -159,6 +227,7 @@ void yapIntrinsicsRegister(struct yapVM *vm)
     yapVMRegisterIntrinsic(vm, "super", super);
     yapVMRegisterIntrinsic(vm, "eval", eval);
 
-    // TODO: Move this out of here
+    // TODO: Move these out of here
     yapVMRegisterIntrinsic(vm, "print", standard_print);
+    yapVMRegisterIntrinsic(vm, "import", import);
 }
