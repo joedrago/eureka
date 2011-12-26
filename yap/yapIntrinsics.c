@@ -9,10 +9,19 @@
 
 static yU32 make_array(struct yapVM *vm, yU32 argCount)
 {
-    yapValue *v;
-    yapVMPopValues(vm, argCount);
-    v = yapValueArrayCreate(vm);
-    yapArrayPush(&vm->stack, v);
+    yapValue *a;
+    a = yapValueArrayCreate(vm);
+    if(argCount)
+    {
+        int i;
+        for(i = 0; i < argCount; i++)
+        {
+            yapValue *v = yapVMGetArg(vm, i, argCount);
+            yapValueArrayPush(vm, a, v);
+        }
+        yapVMPopValues(vm, argCount);
+    }
+    yapArrayPush(&vm->stack, a);
     return 1;
 }
 
