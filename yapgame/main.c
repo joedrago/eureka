@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
                     exit(0);
                 }
 
-                yapVMRegisterIntrinsic(context->vm, "drawBox", drawBox);
+                yapVMRegisterGlobalFunction(context->vm, "drawBox", drawBox);
 
                 glutDisplayFunc(renderScene);
                 glutIdleFunc(renderScene);

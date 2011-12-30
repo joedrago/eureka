@@ -108,7 +108,7 @@ static yU32 keys(struct yapVM *vm, yU32 argCount)
 
     info.vm = vm;
     info.arrayVal = yapValueArrayCreate(vm);
-    yapHashIterateP1(object->objectVal->hash, yapAppendKey, &info);
+    yapHashIterateP1(object->objectVal->hash, (yapIterateCB1)yapAppendKey, &info);
 
     //    int i;
     //    for(i=0; i<argCount; i+=2)
