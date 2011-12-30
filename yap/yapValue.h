@@ -1,7 +1,7 @@
 #ifndef YAPVALUE_H
 #define YAPVALUE_H
 
-#include "yapTypes.h"
+#include "yapArray.h"
 
 // ---------------------------------------------------------------------------
 // Forwards

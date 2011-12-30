@@ -48,7 +48,7 @@ typedef struct yapVM
 yapVM *yapVMCreate(void);
 void yapVMDestroy(yapVM *vm);
 
-void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func);
+void yapVMRegisterGlobalFunction(yapVM *vm, const char *name, yapCFunction func);
 
 // Yap Eval Options
 enum

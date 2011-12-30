@@ -16,7 +16,7 @@
 
 #define MAX_ERROR_LENGTH 1023
 
-void yapVMRegisterIntrinsic(yapVM *vm, const char *name, yapCFunction func)
+void yapVMRegisterGlobalFunction(yapVM *vm, const char *name, yapCFunction func)
 {
     yapVariable *intrinsic = yapVariableCreate(vm, name);
     intrinsic->value = yapValueSetCFunction(vm, yapValueAcquire(vm), func);

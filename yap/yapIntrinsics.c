@@ -56,8 +56,26 @@ static yU32 array_length(struct yapVM *vm, yU32 argCount)
 static yU32 make_object(struct yapVM *vm, yU32 argCount)
 {
     yapValue *v;
-    yapVMPopValues(vm, argCount);
     v = yapValueObjectCreate(vm, NULL);
+    if(argCount)
+    {
+        int i;
+        for(i=0; i<argCount; i+=2)
+        {
+            yapValue **ref;
+            yapValue *key = yapVMGetArg(vm, i, argCount);
+            yapValue *val = yapValueNullPtr;
+            int valueArg = i+1;
+            if(valueArg < argCount)
+            {
+                val = yapVMGetArg(vm, valueArg, argCount);
+            }
+            key = yapValueToString(vm, key);
+            ref = yapObjectGetRef(vm, v->objectVal, key->stringVal, yTrue);
+            *ref = val;
+        }
+    }
+    yapVMPopValues(vm, argCount);
     yapArrayPush(&vm->stack, v);
     return 1;
 }
@@ -229,14 +247,15 @@ static yU32 import(struct yapVM *vm, yU32 argCount)
 
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
-    yapVMRegisterIntrinsic(vm, "push", array_push);
-    yapVMRegisterIntrinsic(vm, "array", make_array);
-    yapVMRegisterIntrinsic(vm, "length", array_length);
-    yapVMRegisterIntrinsic(vm, "object", make_object);
-    yapVMRegisterIntrinsic(vm, "super", super);
-    yapVMRegisterIntrinsic(vm, "eval", eval);
+    yapVMRegisterGlobalFunction(vm, "push", array_push);
+    yapVMRegisterGlobalFunction(vm, "array", make_array);
+    yapVMRegisterGlobalFunction(vm, "length", array_length);
+    yapVMRegisterGlobalFunction(vm, "object", make_object);
+    yapVMRegisterGlobalFunction(vm, "dict", make_object); // alias
+    yapVMRegisterGlobalFunction(vm, "super", super);
+    yapVMRegisterGlobalFunction(vm, "eval", eval);
 
     // TODO: Move these out of here
-    yapVMRegisterIntrinsic(vm, "print", standard_print);
-    yapVMRegisterIntrinsic(vm, "import", import);
+    yapVMRegisterGlobalFunction(vm, "print", standard_print);
+    yapVMRegisterGlobalFunction(vm, "import", import);
 }

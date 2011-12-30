@@ -6,27 +6,20 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapHash;
 struct yapValue;
 struct yapVM;
-
-// ---------------------------------------------------------------------------
-
-typedef struct yapObjectEntry
-{
-    char *key;
-    struct yapValue *val;
-} yapObjectEntry;
 
 typedef struct yapObject
 {
     struct yapValue *isa; // "is a": what this object is derived from. Can be NULL.
-    yapArray *entries;
+    struct yapHash *hash;
 } yapObject;
 
 yapObject *yapObjectCreate(struct yapVM *vm, struct yapValue *isa);
 void yapObjectDestroy(yapObject *v);
 void yapObjectMark(struct yapVM *vm, yapObject *v);
 
-struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *dict, const char *key, yBool create);
+struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const char *key, yBool create);
 
 #endif

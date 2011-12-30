@@ -4,6 +4,7 @@
 #include "yapxDisasm.h"
 #include "yapxDot.h"
 #include "yapVM.h"
+#include "yapHash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@
 void loadChunk(const char *code)
 {
     yapContext *context = yapContextCreate();
-    yapVMEval(context->vm, code, 0);
+    yapVMEval(context->vm, code, YEO_DUMP);
     if(yapContextGetError(context))
     {
         printf("VM Bailed out: %s\n", yapContextGetError(context));

@@ -1,7 +1,7 @@
 #ifndef YAPCHUNK_H
 #define YAPCHUNK_H
 
-#include "yapTypes.h"
+#include "yapArray.h"
 
 typedef struct yapChunk
 {

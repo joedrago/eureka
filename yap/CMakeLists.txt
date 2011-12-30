@@ -41,6 +41,8 @@ ENDMACRO(add_re2c_files)
 
 project(yap)
 set(yap_src
+    yapArray.h
+    yapArray.c
     yapBlock.h
     yapBlock.c
     yapChunk.h
@@ -55,6 +57,8 @@ set(yap_src
     yapObject.c
     yapFrame.h
     yapFrame.c
+    yapHash.h
+    yapHash.c
     yapIntrinsics.c
     yapIntrinsics.h
     yapLexer.c

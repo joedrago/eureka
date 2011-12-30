@@ -753,8 +753,6 @@ asmFunc(Function)
     yapCode *code = yapCodeCreate();
     yOperand index;
 
-    compiler->chunk->hasFuncs = yTrue;
-
     // If a name is used ("func name()" vs "func()"), the
     // generated code will consume the block left on the stack
     // with a setvar, effectively compiling "func name()" into
@@ -780,6 +778,7 @@ asmFunc(Function)
         yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(name)));
         yapCodeAppend(dst, YOP_SETVAR, 0);
     };
+    compiler->chunk->hasFuncs = yTrue;
     return PAD(valuesLeftOnStack);
 }
 

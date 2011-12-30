@@ -1,7 +1,7 @@
 #ifndef YAPPARSER_H
 #define YAPPARSER_H
 
-#include "yapTypes.h"
+#include "yapArray.h"
 
 // ---------------------------------------------------------------------------
 // Forwards

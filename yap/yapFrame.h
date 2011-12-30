@@ -1,7 +1,7 @@
 #ifndef YAPFRAME_H
 #define YAPFRAME_H
 
-#include "yapTypes.h"
+#include "yapArray.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
