@@ -1,6 +1,7 @@
 #include "yapIntrinsics.h"
 
 #include "yapTypes.h"
+#include "yapHash.h"
 #include "yapObject.h"
 #include "yapValue.h"
 #include "yapVM.h"
@@ -77,6 +78,56 @@ static yU32 make_object(struct yapVM *vm, yU32 argCount)
     }
     yapVMPopValues(vm, argCount);
     yapArrayPush(&vm->stack, v);
+    return 1;
+}
+
+struct keyIterateInfo
+{
+    struct yapVM *vm;
+    struct yapValue *arrayVal;
+};
+
+static void yapAppendKey(struct keyIterateInfo *info, yapHashEntry *entry)
+{
+    yapValue *keyVal = yapValueSetString(info->vm, yapValueAcquire(info->vm), entry->key);
+    yapValueArrayPush(info->vm, info->arrayVal, keyVal);
+}
+
+static yU32 keys(struct yapVM *vm, yU32 argCount)
+{
+    yapValue *object = NULL;
+    struct keyIterateInfo info;
+    if(argCount)
+        object = yapVMGetArg(vm, 0, argCount);
+    if(!object || object->type != YVT_OBJECT)
+    {
+        yapVMSetError(vm, YVE_RUNTIME, "keys() takes a single argument of type object");
+        yapVMPopValues(vm, argCount);
+        return 0;
+    }
+
+    info.vm = vm;
+    info.arrayVal = yapValueArrayCreate(vm);
+    yapHashIterateP1(object->objectVal->hash, yapAppendKey, &info);
+
+    //    int i;
+    //    for(i=0; i<argCount; i+=2)
+    //    {
+    //        yapValue **ref;
+    //        yapValue *key = yapVMGetArg(vm, i, argCount);
+    //        yapValue *val = yapValueNullPtr;
+    //        int valueArg = i+1;
+    //        if(valueArg < argCount)
+    //        {
+    //            val = yapVMGetArg(vm, valueArg, argCount);
+    //        }
+    //        key = yapValueToString(vm, key);
+    //        ref = yapObjectGetRef(vm, v->objectVal, key->stringVal, yTrue);
+    //        *ref = val;
+    //    }
+    //}
+    yapVMPopValues(vm, argCount);
+    yapArrayPush(&vm->stack, info.arrayVal);
     return 1;
 }
 
@@ -252,6 +303,7 @@ void yapIntrinsicsRegister(struct yapVM *vm)
     yapVMRegisterGlobalFunction(vm, "length", array_length);
     yapVMRegisterGlobalFunction(vm, "object", make_object);
     yapVMRegisterGlobalFunction(vm, "dict", make_object); // alias
+    yapVMRegisterGlobalFunction(vm, "keys", keys);
     yapVMRegisterGlobalFunction(vm, "super", super);
     yapVMRegisterGlobalFunction(vm, "eval", eval);
 

@@ -526,6 +526,13 @@ static yF32 objectFuncToFloat(struct yapValue *p)
     return 1.0f; // ?
 }
 
+static struct yapValue * objectFuncToString(struct yapVM *vm, struct yapValue *p)
+{
+    char temp[32];
+    sprintf(temp, "[object:%p]", p->objectVal);
+    return yapValueSetString(vm, yapValueAcquire(vm), temp);
+}
+
 static void objectFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("object");
@@ -535,7 +542,7 @@ static void objectFuncRegister(struct yapVM *vm)
     type->funcToBool     = objectFuncToBool;
     type->funcToInt      = objectFuncToInt;
     type->funcToFloat    = objectFuncToFloat;
-    type->funcToString   = yapValueTypeFuncNotUsed;
+    type->funcToString   = objectFuncToString;
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     yapValueTypeRegister(vm, type);
