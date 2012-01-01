@@ -5,7 +5,11 @@
 
 yapContext *yapContextCreate(void)
 {
-    yapContext *context = yapAlloc(sizeof(yapContext));
+    yapContext *context;
+#ifdef YAP_ENABLE_MEMORY_STATS
+    yapMemoryStatsPrint("yapContextCreate: ");
+#endif
+    context = yapAlloc(sizeof(yapContext));
     context->vm = yapVMCreate();
     yapValueTypeRegisterAllBasicTypes(context->vm);
     yapIntrinsicsRegister(context->vm);
@@ -16,6 +20,11 @@ void yapContextFree(yapContext *context)
 {
     yapVMDestroy(context->vm);
     yapFree(context);
+
+#ifdef YAP_ENABLE_MEMORY_STATS
+    yapMemoryStatsPrint("yapContextFree: ");
+    yapMemoryStatsDumpLeaks();
+#endif
 }
 
 const char *yapContextGetError(yapContext *context)

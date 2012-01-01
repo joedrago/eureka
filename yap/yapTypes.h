@@ -41,6 +41,16 @@ char *yapStrdup(const char *s);
 typedef void (*yapDestroyCB)(void *p);
 typedef void (*yapDestroyCB1)(void *arg1, void *p);
 
+//#define YAP_ENABLE_MEMORY_STATS
+#ifdef YAP_ENABLE_MEMORY_STATS
+void yapMemoryStatsReset();
+void yapMemoryStatsPrint(const char *prefix);
+void yapMemoryStatsDumpLeaks();
+#define yapTraceMem(ARGS) printf ARGS
+#else
+#define yapTraceMem(ARGS)
+#endif
+
 // ---------------------------------------------------------------------------
 // Debug Functions
 
@@ -51,9 +61,6 @@ typedef void (*yapDestroyCB1)(void *arg1, void *p);
 
 #define yapTrace(ARGS)
 //#define yapTrace(ARGS) printf ARGS
-
-#define yapTraceMem(ARGS)
-//#define yapTraceMem(ARGS) printf ARGS
 
 // ---------------------------------------------------------------------------
 

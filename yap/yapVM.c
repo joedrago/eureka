@@ -35,8 +35,13 @@ void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
 {
     yapChunk *chunk;
     yapVariable *chunkRef;
+    yapCompiler *compiler;
 
-    yapCompiler *compiler = yapCompilerCreate();
+#ifdef YAP_ENABLE_MEMORY_STATS
+    yapMemoryStatsReset();
+#endif
+
+    compiler = yapCompilerCreate();
     yapCompile(compiler, text, YCO_DEFAULT);
 
     if(compiler->errors.count)
@@ -102,6 +107,10 @@ void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
             yapChunkDestroy(chunk);
         }
     }
+
+#ifdef YAP_ENABLE_MEMORY_STATS
+    yapMemoryStatsPrint("yapVMEval: ");
+#endif
 }
 
 yapVM *yapVMCreate(void)
@@ -165,6 +174,7 @@ void yapVMDestroy(yapVM *vm)
     yapArrayClearP1(&vm->usedValues, (yapDestroyCB1)yapValueDestroy, vm);
     yapArrayClearP1(&vm->freeValues, (yapDestroyCB1)yapValueDestroy, vm);
 
+    yapArrayClear(&vm->types, (yapDestroyCB)yapValueTypeDestroy);
     yapVMClearError(vm);
 
     yapFree(vm);
