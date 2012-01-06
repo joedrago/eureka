@@ -146,6 +146,7 @@ yapValue *yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
 yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa);
+void yapValueObjectSetMember(struct yapVM *vm, struct yapValue *object, const char *name, struct yapValue *value);
 
 yapValue *yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
 yapValue *yapValueSub(struct yapVM *vm, yapValue *a, yapValue *b);

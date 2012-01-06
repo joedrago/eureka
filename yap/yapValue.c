@@ -899,6 +899,15 @@ yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa)
     return p;
 }
 
+void yapValueObjectSetMember(struct yapVM *vm, struct yapValue *object, const char *name, struct yapValue *value)
+{
+    yapValue **ref = NULL;
+    yapAssert(object->type == YVT_OBJECT);
+    ref = yapObjectGetRef(vm, object->objectVal, name, yTrue);
+    yapAssert(ref);
+    *ref = value;
+}
+
 // ---------------------------------------------------------------------------
 
 void yapValueClear(struct yapVM *vm, yapValue *p)

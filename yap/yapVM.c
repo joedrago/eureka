@@ -16,11 +16,16 @@
 
 #define MAX_ERROR_LENGTH 1023
 
+void yapVMRegisterGlobal(yapVM *vm, const char *name, yapValue *value)
+{
+    yapVariable *global = yapVariableCreate(vm, name);
+    global->value = value;
+    yapArrayPush(&vm->globals, global);
+}
+
 void yapVMRegisterGlobalFunction(yapVM *vm, const char *name, yapCFunction func)
 {
-    yapVariable *intrinsic = yapVariableCreate(vm, name);
-    intrinsic->value = yapValueSetCFunction(vm, yapValueAcquire(vm), func);
-    yapArrayPush(&vm->globals, intrinsic);
+    yapVMRegisterGlobal(vm, name, yapValueSetCFunction(vm, yapValueAcquire(vm), func));
 }
 
 static yBool yapChunkCanBeTemporary(yapChunk *chunk)
