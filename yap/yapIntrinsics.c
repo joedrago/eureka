@@ -26,7 +26,7 @@ static yU32 make_array(struct yapVM *vm, yU32 argCount)
     return 1;
 }
 
-static yU32 array_push(struct yapVM *vm, yU32 argCount)
+yU32 array_push(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {
@@ -42,7 +42,7 @@ static yU32 array_push(struct yapVM *vm, yU32 argCount)
     return 0;
 }
 
-static yU32 array_length(struct yapVM *vm, yU32 argCount)
+yU32 array_length(struct yapVM *vm, yU32 argCount)
 {
     if(argCount)
     {

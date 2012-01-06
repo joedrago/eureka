@@ -45,6 +45,9 @@ typedef enum yapValueArithmeticOp
 
 #define YVT_MAXNAMELEN 15
 
+struct yapValueType;
+typedef void (*yapValueTypeDestroyUserData)(struct yapValueType *valueType);
+
 typedef void (*yapValueTypeFuncClear)(struct yapValue *p);
 typedef void (*yapValueTypeFuncClone)(struct yapVM *vm, struct yapValue *dst, struct yapValue *src);
 typedef void (*yapValueTypeFuncMark)(struct yapVM *vm, struct yapValue *value);
@@ -54,6 +57,7 @@ typedef yF32 (*yapValueTypeFuncToFloat)(struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapVM *vm, struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
 typedef yBool (*yapValueTypeFuncCmp)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult);
+typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapVM *vm, struct yapValue *p, struct yapValue *index, int lvalue);
 
 // This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
 #define yapValueTypeFuncNotUsed ((void*)-1)
@@ -62,6 +66,9 @@ typedef struct yapValueType
 {
     int id;
     char name[YVT_MAXNAMELEN + 1];
+
+    void *userData;                                  // per-type global structure used to hold any static data a type needs
+    yapValueTypeDestroyUserData funcDestroyUserData; // optional destructor for userdata
 
     yapValueTypeFuncClear funcClear;
     yapValueTypeFuncClone funcClone;
@@ -72,6 +79,7 @@ typedef struct yapValueType
     yapValueTypeFuncToString funcToString;
     yapValueTypeFuncArithmetic funcArithmetic;
     yapValueTypeFuncCmp funcCmp;
+    yapValueTypeFuncIndex funcIndex;
 } yapValueType;
 
 yapValueType *yapValueTypeCreate(const char *name);
@@ -152,6 +160,10 @@ yapValue *yapValueToFloat(struct yapVM *vm, yapValue *p);
 yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
 
 yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
+
+yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, int lvalue);
+
+const char *yapValueTypeName(struct yapVM *vm, int type); // used in error reporting
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_OBJECT)    \

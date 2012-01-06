@@ -131,7 +131,6 @@ void yapVMRecover(yapVM *vm)
             prevStackCount = frame->prevStackCount;
             yapVMPopFrames(vm, YFT_CHUNK, yFalse);
         }
-        printf("I should pop until the stack size is %d\n", prevStackCount);
         yapArrayShrink(&vm->stack, prevStackCount, NULL);
 
         yapVMGC(vm);
@@ -726,40 +725,15 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
             if(value && index)
             {
                 int lvalue = operand;
-                yapValue **ref = NULL;
-                if(value->type == YVT_ARRAY)
+                yapValue *ret = yapValueIndex(vm, value, index, lvalue);
+                if(ret)
                 {
-                    index = yapValueToInt(vm, index);
-                    if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
-                    {
-                        ref = (yapValue **) & (value->arrayVal->data[index->intVal]);
-
-                        // if lvalue, push reference to index, otherwise push value
-                        if(lvalue)
-                            yapArrayPush(&vm->stack, yapValueSetRef(vm, yapValueAcquire(vm), ref));
-                        else
-                            yapArrayPush(&vm->stack, *ref);
-                    }
-                    else
-                    {
-                        yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: Index out of range!");
-                        continueLooping = yFalse;
-                    }
-                }
-                else if(value->type == YVT_OBJECT)
-                {
-                    index = yapValueToString(vm, index);
-                    ref = yapObjectGetRef(vm, value->objectVal, index->stringVal, lvalue /* create? */);
-
-                    // if lvalue, push reference to index, otherwise push value
-                    if(lvalue)
-                        yapArrayPush(&vm->stack, yapValueSetRef(vm, yapValueAcquire(vm), ref));
-                    else
-                        yapArrayPush(&vm->stack, *ref);
+                    yapArrayPush(&vm->stack, ret);
                 }
                 else
                 {
-                    yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: Attempting to index into scalar");
+                    if(vm->errorType == YVE_NONE)
+                        yapVMSetError(vm, YVE_RUNTIME, "YOP_INDEX: Failed attempt to index into type %s", yapValueTypeName(vm, value->type));
                     continueLooping = yFalse;
                 }
             }
