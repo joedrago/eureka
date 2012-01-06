@@ -84,7 +84,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "not"           { return YTT_NOT; }
     "for"           { return YTT_FOR; }
     "in"            { return YTT_IN; }
-    "with"          { return YTT_WITH; }
     "inherits"      { return YTT_INHERITS; }
 
     "("             { return YTT_LEFTPAREN; }

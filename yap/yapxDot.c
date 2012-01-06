@@ -419,19 +419,6 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
-    case YST_WITH:
-    {
-        sprintf(label, "WITH");
-        if(syntax->v.p)
-        {
-            childLineOpts = "style=dotted,label=object";
-            REC_CHILD(syntax->v.p);
-        }
-        childLineOpts = "label=body";
-        REC_CHILD(syntax->r.p);
-    }
-    break;
-
     case YST_SCOPE:
     {
         sprintf(label, "SCOPE");

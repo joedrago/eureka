@@ -217,14 +217,6 @@ yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, y
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body)
-{
-    yapSyntax *syntax = yapSyntaxCreate(YST_WITH);
-    syntax->v.p = obj;
-    syntax->r.p = body;
-    return syntax;
-}
-
 yapSyntax *yapSyntaxCreateScope(yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_SCOPE);

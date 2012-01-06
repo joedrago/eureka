@@ -149,9 +149,6 @@ statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
     { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
 
-statement(S) ::= WITH expr_list(OBJ) statement_block(BODY).
-    { S = yapSyntaxCreateWith(OBJ, BODY); }
-
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
     { S = yapSyntaxCreateWhile(COND, BODY); }
 

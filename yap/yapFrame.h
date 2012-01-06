@@ -18,8 +18,7 @@ enum
     YFT_FUNC  = (1 << 1),              // Function scope
     YFT_COND  = (1 << 2),              // Conditional (if/else) scope
     YFT_LOOP  = (1 << 3),              // Loop (while/for) scope
-    YFT_WITH  = (1 << 4),              // "with" scope: convenient way to add lots of things to an object
-    YFT_SCOPE = (1 << 5),              // arbitrary scope not tied to anything specific
+    YFT_SCOPE = (1 << 4),              // arbitrary scope not tied to anything specific
 
     YFT_COUNT
 };
@@ -29,7 +28,7 @@ typedef struct yapFrame
     yapArray variables;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
-    struct yapValue *with;             // Used in WITH blocks, represents the "with object"
+    struct yapValue *thisVal;          // In function scope, it is "this"
     yU32 type;                         // YFT_*
     yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
 } yapFrame;

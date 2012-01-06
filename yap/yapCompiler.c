@@ -287,7 +287,6 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleWhile },           // YST_WHILE
     { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
-    { yapAssembleWith },            // YST_WITH
     { yapAssembleScope },           // YST_SCOPE
 };
 
@@ -782,32 +781,6 @@ asmFunc(Function)
     return PAD(valuesLeftOnStack);
 }
 
-asmFunc(With)
-{
-    yapSyntax *obj  = syntax->v.p;
-    yapSyntax *body = syntax->r.p;
-    yapCode   *code = yapCodeCreate();
-    int index;
-
-    // "obj" expression should ultimately leave a reference to an object on the stack
-    asmDispatch[obj->type].assemble(compiler, dst, obj, 1, ASM_VAR | ASM_LVALUE);
-
-    // create new block from "body"
-    asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
-    yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_LEAVE, 0);
-    index = yapBlockConvertCode(code, compiler->chunk, 0);
-
-    // enter the newly created block from the parent block, flagging the frame as type WITH
-    // this will cause the object reference to be popped and associated with the frame
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, YFT_WITH);
-
-    return PAD(0);
-}
-
 asmFunc(Scope)
 {
     yapSyntax *body = syntax->v.p;
@@ -820,8 +793,6 @@ asmFunc(Scope)
     yapCodeAppend(code, YOP_LEAVE, 0);
     index = yapBlockConvertCode(code, compiler->chunk, 0);
 
-    // enter the newly created block from the parent block, flagging the frame as type WITH
-    // this will cause the object reference to be popped and associated with the frame
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
     yapCodeGrow(dst, 1);

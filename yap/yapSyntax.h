@@ -70,8 +70,6 @@ enum
     YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
 
-    YST_WITH,                          // with(v) { body r }
-
     YST_SCOPE,                         // arbitrary scope block executing v.p statement list
 
     YST_COUNT
@@ -124,7 +122,6 @@ yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *
 yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
-yapSyntax *yapSyntaxCreateWith(yapSyntax *obj, yapSyntax *body);
 yapSyntax *yapSyntaxCreateScope(yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);

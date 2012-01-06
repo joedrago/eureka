@@ -552,20 +552,9 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
 
         case YOP_VARREG_KS:
         {
-            if(frame->type == YFT_WITH)
-            {
-                // Inside a with block, all variables registered become a part of the object.
-                // Is this dumb or cool?
-                yapValue **ref = yapObjectGetRef(vm, frame->with->objectVal, frame->block->chunk->kStrings.data[operand], yTrue);
-                yapValue *value = yapValueSetRef(vm, yapValueAcquire(vm), ref);
-                yapArrayPush(&vm->stack, value);
-            }
-            else
-            {
-                yapVariable *variable = yapVariableCreate(vm, frame->block->chunk->kStrings.data[operand]);
-                yapVMRegisterVariable(vm, variable);
-                yapVMPushRef(vm, variable);
-            }
+            yapVariable *variable = yapVariableCreate(vm, frame->block->chunk->kStrings.data[operand]);
+            yapVMRegisterVariable(vm, variable);
+            yapVMPushRef(vm, variable);
         }
         break;
 
@@ -888,19 +877,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
                 yU32 frameType = operand;
                 frame = yapVMPushFrame(vm, blockRef->blockVal, 0, frameType);
                 if(frame)
-                {
                     newFrame = yTrue;
-                    if(frameType == YFT_WITH)
-                    {
-                        // pop the "with object" from the stack
-                        frame->with = yapArrayPop(&vm->stack);
-                        if(frame->with->type != YVT_OBJECT)
-                        {
-                            yapVMSetError(vm, YVE_RUNTIME, "'with' expression does not evaluate to an object");
-                            continueLooping = yFalse;
-                        }
-                    }
-                }
                 else
                     continueLooping = yFalse;
             }
@@ -1184,8 +1161,6 @@ void yapVMGC(struct yapVM *vm)
     for(i = 0; i < vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
-        if(frame->with)
-            yapValueMark(vm, frame->with);
         for(j = 0; j < frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];
