@@ -403,7 +403,8 @@ struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
         while(frame && !(frame->type & frameTypeToFind))
         {
             yapFrameDestroy(frame);
-            frame = yapArrayPop(&vm->frames);
+            yapArrayPop(&vm->frames);
+            frame = yapArrayTop(&vm->frames);
         };
     }
 
