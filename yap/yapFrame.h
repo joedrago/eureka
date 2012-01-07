@@ -33,7 +33,7 @@ typedef struct yapFrame
     yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
 } yapFrame;
 
-yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block, yU32 prevStackCount);
+yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block, yU32 prevStackCount, struct yapValue *thisVal);
 void yapFrameReset(yapFrame *frame, yBool jumpToStart);
 void yapFrameDestroy(yapFrame *frame);
 

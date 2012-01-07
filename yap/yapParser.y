@@ -58,7 +58,7 @@
 %left INHERITS.
 %left PERIOD.
 %left LEFTPAREN.
-%left COLON.
+%left COLONCOLON.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -81,6 +81,7 @@
 %left INT.
 %left FLOAT.
 %left STRING.
+%left THIS.
 %left NOT.
 %left MOD.
 
@@ -363,17 +364,20 @@ lvalue(L) ::= VAR IDENTIFIER(I).
 %destructor lvalue_indexable
     { yapSyntaxDestroy($$); }
 
+lvalue_indexable(L) ::= THIS.
+    { L = yapSyntaxCreateThis(); }
+
 lvalue_indexable(L) ::= lvalue_indexable(FUNC) paren_expr_list(ARGS).
     { L = yapSyntaxCreateCall(FUNC, ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
-    { L = yapSyntaxCreateIndex(ARRAY, INDEX); }
-
-lvalue_indexable(L) ::= lvalue_indexable(OBJ) COLON IDENTIFIER(MEMBER) paren_expr_list(ARGS).
-    { L = yapSyntaxCreateIndexedCall(OBJ, yapSyntaxCreateKString(&MEMBER), ARGS); }
+    { L = yapSyntaxCreateIndex(ARRAY, INDEX, yFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
-    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER)); }
+    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER), yFalse); }
+
+lvalue_indexable(L) ::= lvalue_indexable(OBJECT) COLONCOLON IDENTIFIER(MEMBER).
+    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER), yTrue); }
 
 lvalue_indexable(L) ::= IDENTIFIER(I).
     { L = yapSyntaxCreateIdentifier(&I); }

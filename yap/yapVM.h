@@ -66,15 +66,16 @@ void yapVMClearError(yapVM *vm);
 
 void yapVMGC(struct yapVM *vm);
 
-struct yapFrame *yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType);
+struct yapFrame *yapVMPushFrame(yapVM *vm, struct yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal);
 struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt);
 
 void yapVMLoop(yapVM *vm, yBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
 
 void yapVMPopValues(yapVM *vm, yU32 count);
 yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep);  // 0 is "top of stack"
+yapValue * yapVMThis(yapVM *vm); // returns 'this' in current context
 
-yBool yapVMCallFuncByName(yapVM *vm, const char *name, int argCount); // returns whether or not it found it
+yBool yapVMCallFuncByName(yapVM *vm, yapValue *thisVal, const char *name, int argCount); // returns whether or not it found it
 
 #define yapVMGetTop(VM) yapVMGetValue(VM, 0)
 #define yapVMGetArg(VM, INDEX, ARGCOUNT) yapVMGetValue(VM, (ARGCOUNT-1) - INDEX)

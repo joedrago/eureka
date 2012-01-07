@@ -63,9 +63,10 @@ yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token)
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
+yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushThis)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_INDEX);
+    syntax->v.i = pushThis;
     syntax->l.p = array;
     syntax->r.p = index;
     return syntax;
@@ -74,6 +75,12 @@ yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index)
 yapSyntax *yapSyntaxCreateNull()
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_NULL);
+    return syntax;
+}
+
+yapSyntax *yapSyntaxCreateThis()
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_THIS);
     return syntax;
 }
 
@@ -91,15 +98,6 @@ yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
     if(expr != NULL)
         yapArrayPush(list->v.a, expr);
     return list;
-}
-
-yapSyntax *yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args)
-{
-    yapSyntax *syntax = yapSyntaxCreate(YST_CALL);
-    syntax->l.p = obj;
-    syntax->v.p = func;
-    syntax->r.p = args;
-    return syntax;
 }
 
 yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)

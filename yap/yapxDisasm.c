@@ -20,6 +20,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_NOP, "nop")
 
             HURR(YOP_PUSHNULL, "pushnull")
+            HURR(YOP_PUSHTHIS, "pushthis")
             HURR(YOP_PUSHI, "pushi")
             HURR(YOP_PUSHLBLOCK, "pushlblock")
 

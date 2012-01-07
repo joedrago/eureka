@@ -496,7 +496,7 @@ static yF32 arrayFuncToFloat(struct yapValue *p)
     return (p->arrayVal) ? (yF32)p->arrayVal->count : 0;
 }
 
-static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, int lvalue)
+static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
     if(index->type == YVT_STRING)
@@ -603,7 +603,7 @@ static struct yapValue * objectFuncToString(struct yapVM *vm, struct yapValue *p
     return yapValueSetString(vm, yapValueAcquire(vm), temp);
 }
 
-static struct yapValue * objectFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, int lvalue)
+static struct yapValue * objectFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
     yapValue **ref = NULL;
@@ -847,7 +847,7 @@ yBool yapValueSetRefInherits(struct yapVM *vm, yapValue *ref, yapValue *p)
 
     if(*(ref->refVal) == &yapValueNull)
     {
-        *(ref->refVal) = yapValueObjectCreate(vm, p);
+        *(ref->refVal) = yapValueObjectCreate(vm, p, 0);
     }
 
     if((*(ref->refVal))->type != YVT_OBJECT)
@@ -890,12 +890,32 @@ void yapValueArrayPush(yapVM *vm, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa)
+yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa, int argCount)
 {
     yapValue *p = yapValueAcquire(vm);
     p->objectVal = yapObjectCreate(vm, isa);
     p->type = YVT_OBJECT;
     p->used = yTrue;
+
+    if(argCount)
+    {
+        int i;
+        for(i=0; i<argCount; i+=2)
+        {
+            yapValue **ref;
+            yapValue *key = yapVMGetArg(vm, i, argCount);
+            yapValue *val = yapValueNullPtr;
+            int valueArg = i+1;
+            if(valueArg < argCount)
+            {
+                val = yapVMGetArg(vm, valueArg, argCount);
+            }
+            key = yapValueToString(vm, key);
+            ref = yapObjectGetRef(vm, p->objectVal, key->stringVal, yTrue);
+            *ref = val;
+        }
+        yapVMPopValues(vm, argCount);
+    }
     return p;
 }
 
@@ -1165,7 +1185,7 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
     return format;
 }
 
-yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, int lvalue)
+yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, yBool lvalue)
 {
     return yapValueTypeSafeCall(p->type, Index)(vm, p, index, lvalue);
 }

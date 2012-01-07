@@ -15,7 +15,7 @@ static yU32 make_array(struct yapVM *vm, yU32 argCount)
     if(argCount)
     {
         int i;
-        for(i = 1; i < argCount; i++) // starting with 1 to ignore "self"
+        for(i = 0; i < argCount; i++)
         {
             yapValue *v = yapVMGetArg(vm, i, argCount);
             yapValueArrayPush(vm, a, v);
@@ -28,55 +28,37 @@ static yU32 make_array(struct yapVM *vm, yU32 argCount)
 
 yU32 array_push(struct yapVM *vm, yU32 argCount)
 {
-    if(argCount)
+    yapValue *a = yapVMThis(vm);
+    if(a && (a->type == YVT_ARRAY))
     {
         int i;
-        yapValue *a = yapVMGetArg(vm, 0, argCount);
-        for(i = 1; i < argCount; i++)
+        for(i=0; i < argCount; i++)
         {
             yapValue *v = yapVMGetArg(vm, i, argCount);
             yapValueArrayPush(vm, a, v);
         }
-        yapVMPopValues(vm, argCount);
     }
+    yapVMPopValues(vm, argCount);
     return 0;
 }
 
 yU32 array_length(struct yapVM *vm, yU32 argCount)
 {
-    if(argCount)
+    yapValue *a = yapVMThis(vm);
+    yapVMPopValues(vm, argCount);
+    if(a && (a->type == YVT_ARRAY))
     {
-        yapValue *a = yapVMGetArg(vm, 0, argCount);
         yapValue *c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
-        yapVMPopValues(vm, argCount);
         yapArrayPush(&vm->stack, c);
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 static yU32 make_object(struct yapVM *vm, yU32 argCount)
 {
     yapValue *v;
-    v = yapValueObjectCreate(vm, NULL);
-    if(argCount)
-    {
-        int i;
-        for(i=0; i<argCount; i+=2)
-        {
-            yapValue **ref;
-            yapValue *key = yapVMGetArg(vm, i, argCount);
-            yapValue *val = yapValueNullPtr;
-            int valueArg = i+1;
-            if(valueArg < argCount)
-            {
-                val = yapVMGetArg(vm, valueArg, argCount);
-            }
-            key = yapValueToString(vm, key);
-            ref = yapObjectGetRef(vm, v->objectVal, key->stringVal, yTrue);
-            *ref = val;
-        }
-    }
-    yapVMPopValues(vm, argCount);
+    v = yapValueObjectCreate(vm, NULL, argCount);
     yapArrayPush(&vm->stack, v);
     return 1;
 }
@@ -298,7 +280,7 @@ static yU32 import(struct yapVM *vm, yU32 argCount)
 
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
-    yapValue *arrayGlobal = yapValueObjectCreate(vm, NULL);
+    yapValue *arrayGlobal = yapValueObjectCreate(vm, NULL, 0);
     yapValueObjectSetMember(vm, arrayGlobal, "init", yapValueSetCFunction(vm, yapValueAcquire(vm), make_array));
     yapValueObjectSetMember(vm, arrayGlobal, "length", yapValueSetCFunction(vm, yapValueAcquire(vm), array_length));
     yapValueObjectSetMember(vm, arrayGlobal, "push", yapValueSetCFunction(vm, yapValueAcquire(vm), array_push));

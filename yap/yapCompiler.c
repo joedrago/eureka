@@ -214,6 +214,7 @@ asmFunc(ExpressionList);
 asmFunc(IdentifierList);
 asmFunc(Call);
 asmFunc(Null);
+asmFunc(This);
 asmFunc(StringFormat);
 asmFunc(Unary);
 asmFunc(Binary);
@@ -248,6 +249,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleStringFormat },    // YST_STRINGFORMAT
 
     { yapAssembleNull },            // YST_NULL
+    { yapAssembleThis },            // YST_THIS
 
     { yapAssembleUnary },           // YST_TOSTRING
     { yapAssembleUnary },           // YST_TOINT
@@ -362,13 +364,23 @@ asmFunc(Identifier)
 
 asmFunc(Index)
 {
+    yS32 offerCount = 1;
+    yOperand opFlags = 0;
+    yBool pushThis = (syntax->v.i) ? yTrue : yFalse;
     yapSyntax *a = syntax->l.p;
     yapSyntax *b = syntax->r.p;
     asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
+    if(flags & ASM_LVALUE)
+        opFlags |= YOF_LVALUE;
+    if(keep > 1)
+    {
+        opFlags |= (pushThis) ? YOF_PUSHTHIS : YOF_PUSHOBJ;
+        offerCount++;
+    }
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_INDEX, (flags & ASM_LVALUE) ? 1 : 0);
-    return PAD(1);
+    yapCodeAppend(dst, YOP_INDEX, opFlags);
+    return PAD(offerCount);
 }
 
 asmFunc(IdentifierList)
@@ -399,31 +411,16 @@ asmFunc(IdentifierList)
 
 asmFunc(Call)
 {
-    yapSyntax *obj  = syntax->l.p;
     yapSyntax *func = syntax->v.p;
     yapSyntax *args = syntax->r.p;
     int argCount;
 
-    if(obj)
-    {
-        asmDispatch[obj->type].assemble(compiler, dst, obj, 1, ASM_NORMAL);
-        yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_DUPE, 0); // dupe object
-        asmDispatch[func->type].assemble(compiler, dst, func, 1, ASM_NORMAL);
-        yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_INDEX, 0);
-    }
-    else
-    {
-        asmDispatch[func->type].assemble(compiler, dst, func, 1, ASM_NORMAL);
-    }
-    // at this point, stack is either T[funcref, obj] or T[funcref]
-
     argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
-    yapCodeGrow(dst, 3);
-    if(argCount)
-        yapCodeAppend(dst, YOP_MOVE, argCount); // should move the funcref above the args
-    yapCodeAppend(dst, YOP_CALL, argCount + ((obj) ? 1 : 0));
+
+    asmDispatch[func->type].assemble(compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
+
+    yapCodeGrow(dst, 2);
+    yapCodeAppend(dst, YOP_CALL, argCount);
     yapCodeAppend(dst, YOP_KEEP, keep);
     return PAD(keep);
 }
@@ -432,6 +429,13 @@ asmFunc(Null)
 {
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_PUSHNULL, 0);
+    return PAD(1);
+}
+
+asmFunc(This)
+{
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_PUSHTHIS, 0);
     return PAD(1);
 }
 

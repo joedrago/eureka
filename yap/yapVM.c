@@ -94,7 +94,7 @@ void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
             printf("--- begin chunk execution ---\n");
 #endif
             // Execute the chunk's block
-            yapVMPushFrame(vm, chunk->block, 0, YFT_FUNC|YFT_CHUNK);
+            yapVMPushFrame(vm, chunk->block, 0, YFT_FUNC|YFT_CHUNK, yapValueNullPtr);
             yapVMLoop(vm, yTrue);
 
 #ifdef YAP_TRACE_OPS
@@ -223,10 +223,13 @@ static yapVariable *yapVMResolveVariable(yapVM *vm, const char *name)
     return NULL;
 }
 
-yapFrame *yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameType)
+yapFrame *yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal)
 {
     yapFrame *frame;
     int i;
+
+    if(thisVal == NULL)
+        thisVal = yapValueNullPtr;
 
     // accomodate the function's arglist by padding/removing stack entries
     if(argCount > block->argCount)
@@ -244,16 +247,16 @@ yapFrame *yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTyp
             yapArrayPush(&vm->stack, &yapValueNull);
     }
 
-    frame = yapFrameCreate(frameType, block, vm->stack.count);
+    frame = yapFrameCreate(frameType, block, vm->stack.count, thisVal);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
 }
 
-static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount);
+static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal);
 static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, int argCount);
 
-static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int argCount)
+static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *thisVal, yapValue *callable, int argCount)
 {
     if(!callable)
     {
@@ -271,7 +274,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     }
     if(callable->type == YVT_CFUNCTION)
     {
-        if(!yapVMCallCFunction(vm, *callable->cFuncVal, argCount))
+        if(!yapVMCallCFunction(vm, *callable->cFuncVal, argCount, thisVal))
             return yFalse;
     }
     else if(callable->type == YVT_OBJECT)
@@ -280,7 +283,7 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *callable, int a
     }
     else
     {
-        *framePtr = yapVMPushFrame(vm, callable->blockVal, argCount, YFT_FUNC);
+        *framePtr = yapVMPushFrame(vm, callable->blockVal, argCount, YFT_FUNC, thisVal);
     }
     return yTrue;
 }
@@ -302,13 +305,13 @@ static yapValue *yapFindFunc(yapVM *vm, yapValue *object, const char *name)
     return v;
 }
 
-yBool yapVMCallFuncByName(yapVM *vm, const char *name, int argCount)
+yBool yapVMCallFuncByName(yapVM *vm, yapValue *thisVal, const char *name, int argCount)
 {
     yapFrame *frame = NULL;
     yapVariable *func = yapVMResolveVariable(vm, name);
     if(!func)
         return yFalse;
-    if(yapVMCall(vm, &frame, func->value, argCount))
+    if(yapVMCall(vm, &frame, thisVal, func->value, argCount))
     {
         yapVMLoop(vm, yTrue);
         return yTrue;
@@ -320,18 +323,11 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
 {
     yBool ret = yTrue;
     yapValue *initFunc = yapFindFunc(vm, isa, "init");
-    yapValue *newObject = yapValueObjectCreate(vm, isa);
+    yapValue *newObject = yapValueObjectCreate(vm, isa, (initFunc) ? 0 : argCount);
 
     if(initFunc)
-    {
-        yapArrayInject(&vm->stack, newObject, argCount);
-        return yapVMCall(vm, framePtr, initFunc, argCount + 1);
-    }
+        return yapVMCall(vm, framePtr, newObject, initFunc, argCount);
 
-    // TODO: initFunc needs to be the noop call if its not there
-
-    // No init, just throw out any arguments and push the new object
-    yapVMPopValues(vm, argCount);
     yapArrayPush(&vm->stack, newObject);
     return ret;
 }
@@ -362,10 +358,10 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 }
 
 // TODO: merge this function with PushFrame and _RET
-static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount)
+static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count);
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count, thisVal);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);
@@ -436,6 +432,18 @@ static yS32 yapVMPopInts(yapVM *vm, int count, int *output)
         output[i] = v->intVal;
     }
     return i;
+}
+
+yapValue * yapVMThis(yapVM *vm)
+{
+    int i = vm->frames.count - 1;
+    while(i >= 0)
+    {
+        yapFrame *frame = (yapFrame *)vm->frames.data[i];
+        if(frame->type & YFT_FUNC)
+            return frame->thisVal;
+    }
+    return yapValueNullPtr;
 }
 
 void yapVMLoop(yapVM *vm, yBool stopAtPop)
@@ -510,6 +518,13 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
             yapArrayPush(&vm->stack, &yapValueNull);
         }
         break;
+
+        case YOP_PUSHTHIS:
+        {
+            yapArrayPush(&vm->stack, yapVMThis(vm));
+        }
+        break;
+
         case YOP_PUSHI:
         {
             yapValue *value = yapValueSetInt(vm, yapValueAcquire(vm), operand);
@@ -718,11 +733,15 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
             yapValue *value = yapArrayPop(&vm->stack);
             if(value && index)
             {
-                int lvalue = operand;
-                yapValue *ret = yapValueIndex(vm, value, index, lvalue);
+                int opFlags = operand;
+                yapValue *ret = yapValueIndex(vm, value, index, (opFlags & YOF_LVALUE) ? yTrue : yFalse);
                 if(ret)
                 {
                     yapArrayPush(&vm->stack, ret);
+                    if(opFlags & YOF_PUSHOBJ)
+                        yapArrayPush(&vm->stack, value);
+                    else if(opFlags & YOF_PUSHTHIS)
+                        yapArrayPush(&vm->stack, yapVMThis(vm));
                 }
                 else
                 {
@@ -776,9 +795,9 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         {
             int argCount = operand;
             yapFrame *oldFrame = frame;
-            yapValue *callable;
-            callable = yapArrayPop(&vm->stack);
-            continueLooping = yapVMCall(vm, &frame, callable, argCount);
+            yapValue *thisVal = yapArrayPop(&vm->stack);
+            yapValue *callable = yapArrayPop(&vm->stack);
+            continueLooping = yapVMCall(vm, &frame, thisVal, callable, argCount);
             if(frame != oldFrame)
                 newFrame = yTrue;
         }
@@ -859,7 +878,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
 
             if(block)
             {
-                frame = yapVMPushFrame(vm, block, 0, YFT_COND);
+                frame = yapVMPushFrame(vm, block, 0, YFT_COND, NULL);
                 if(frame)
                     newFrame = yTrue;
                 else
@@ -875,7 +894,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
             if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
             {
                 yU32 frameType = operand;
-                frame = yapVMPushFrame(vm, blockRef->blockVal, 0, frameType);
+                frame = yapVMPushFrame(vm, blockRef->blockVal, 0, frameType, NULL);
                 if(frame)
                     newFrame = yTrue;
                 else
@@ -1066,8 +1085,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
                     continueLooping = yFalse;
                     break;
                 }
-                yapArrayInject(&vm->stack, val, 1);
-                continueLooping = yapVMCall(vm, &frame, getFunc, 2 /*obj, index*/);
+                continueLooping = yapVMCall(vm, &frame, val, getFunc, 1 /* the index */);
                 if(frame != oldFrame)
                     newFrame = yTrue;
             }
@@ -1100,8 +1118,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
                     continueLooping = yFalse;
                     break;
                 }
-                yapArrayPush(&vm->stack, val);
-                continueLooping = yapVMCall(vm, &frame, countFunc, 1);
+                continueLooping = yapVMCall(vm, &frame, val, countFunc, 0);
                 if(frame != oldFrame)
                     newFrame = yTrue;
             }
@@ -1161,6 +1178,8 @@ void yapVMGC(struct yapVM *vm)
     for(i = 0; i < vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
+        if(frame->thisVal)
+            yapValueMark(vm, frame->thisVal);
         for(j = 0; j < frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];

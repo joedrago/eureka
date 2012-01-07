@@ -67,8 +67,9 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "["             { return YTT_OPENBRACKET; }
     "]"             { return YTT_CLOSEBRACKET; }
     "."             { return YTT_PERIOD; }
-    ":"             { return YTT_COLON; }
+    "::"            { return YTT_COLONCOLON; }
 
+    "this"          { return YTT_THIS; }
     "while"         { return YTT_WHILE; }
     "var"           { return YTT_VAR; }
     "null"          { return YTT_NULL; }

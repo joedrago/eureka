@@ -3,6 +3,14 @@
 
 #include "yapTypes.h"
 
+// Operand Flags (used with INDEX)
+enum
+{
+    YOF_LVALUE   = (1 << 0), // INDEX lookup needs to be lvaluable
+    YOF_PUSHOBJ  = (1 << 1), // After the INDEX lookup, push the object that was indexed on top
+    YOF_PUSHTHIS = (1 << 2)  // After the INDEX lookup, push 'this' on top
+};
+
 // ---------------------------------------------------------------------------
 // In the comments below, X is the operand, and the k tables are owned by translation blocks.
 
@@ -11,6 +19,7 @@ enum
     YOP_NOP = 0,                      // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
+    YOP_PUSHTHIS,                      // push 'this' value on top of stack
     YOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
     YOP_PUSHLBLOCK,                    // push reference to local (to chunk) block
 

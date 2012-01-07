@@ -20,7 +20,7 @@ enum
     YST_KFLOAT,                        // f
     YST_IDENTIFIER,                    // s
 
-    YST_INDEX,                         // l[r]
+    YST_INDEX,                         // l[r]  (v.i is whether to push 'this' instead of the object, if a call is requested)
 
     YST_STATEMENTLIST,                 // v.a: array of syntax
     YST_EXPRESSIONLIST,                // v.a: array of syntax
@@ -30,6 +30,7 @@ enum
     YST_STRINGFORMAT,                  // l: format expr, r: array of arg exprs
 
     YST_NULL,
+    YST_THIS,
 
     YST_TOSTRING,                      // r: expression to convert
     YST_TOINT,                         // r: expression to convert
@@ -104,11 +105,11 @@ yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
 yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts);
 yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts);
 yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
-yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index);
+yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushThis);
 yapSyntax *yapSyntaxCreateNull();
+yapSyntax *yapSyntaxCreateThis();
 yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
-yapSyntax *yapSyntaxCreateIndexedCall(yapSyntax *obj, yapSyntax *func, yapSyntax *args);
 yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
 yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);

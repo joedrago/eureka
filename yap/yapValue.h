@@ -57,7 +57,7 @@ typedef yF32 (*yapValueTypeFuncToFloat)(struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapVM *vm, struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
 typedef yBool (*yapValueTypeFuncCmp)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult);
-typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapVM *vm, struct yapValue *p, struct yapValue *index, int lvalue);
+typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapVM *vm, struct yapValue *p, struct yapValue *index, yBool lvalue);
 
 // This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
 #define yapValueTypeFuncNotUsed ((void*)-1)
@@ -145,7 +145,7 @@ yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
 yapValue *yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);
 
-yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa);
+yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa, int argCount);
 void yapValueObjectSetMember(struct yapVM *vm, struct yapValue *object, const char *name, struct yapValue *value);
 
 yapValue *yapValueAdd(struct yapVM *vm, yapValue *a, yapValue *b);
@@ -162,7 +162,7 @@ yapValue *yapValueToString(struct yapVM *vm, yapValue *p);
 
 yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount);
 
-yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, int lvalue);
+yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, yBool lvalue);
 
 const char *yapValueTypeName(struct yapVM *vm, int type); // used in error reporting
 

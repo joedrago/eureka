@@ -136,6 +136,13 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_THIS:
+    {
+        myOpts = "shape=house,color=blueviolet";
+        strcpy(label, "this");
+    }
+    break;
+
     case YST_TOSTRING:
     {
         strcpy(label, "ToString");
