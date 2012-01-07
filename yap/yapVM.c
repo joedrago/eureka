@@ -284,6 +284,13 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *thisVal, yapVal
     else
     {
         *framePtr = yapVMPushFrame(vm, callable->blockVal, argCount, YFT_FUNC, thisVal);
+        if(*framePtr && callable->closureVars)
+        {
+            // Hand over all closure variables into the new local scope
+            int i;
+            for(i=0; i<callable->closureVars->count; i++)
+                yapArrayPush(&((*framePtr)->variables), callable->closureVars->data[i]);
+        }
     }
     return yTrue;
 }
@@ -532,7 +539,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         }
         break;
 
-        case YOP_PUSHLBLOCK:
+        case YOP_PUSH_KB:
         {
             yapValue *value = yapValueSetFunction(vm, yapValueAcquire(vm), frame->block->chunk->blocks.data[operand]);
             yapArrayPush(&vm->stack, value);
@@ -857,6 +864,13 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         }
         break;
 
+        case YOP_CLOSE:
+        {
+            yapValue *v = yapArrayTop(&vm->stack);
+            yapValueAddClosureVars(vm, v);
+        }
+        break;
+
         case YOP_IF:
         {
             yapBlock *block = NULL;
@@ -1171,8 +1185,7 @@ void yapVMGC(struct yapVM *vm)
     for(i = 0; i < vm->globals.count; i++)
     {
         yapVariable *variable = (yapVariable *)vm->globals.data[i];
-        yapVariableMark(variable);
-        yapValueMark(vm, variable->value);
+        yapVariableMark(vm, variable);
     }
 
     for(i = 0; i < vm->frames.count; i++)
@@ -1183,8 +1196,7 @@ void yapVMGC(struct yapVM *vm)
         for(j = 0; j < frame->variables.count; j++)
         {
             yapVariable *variable = (yapVariable *)frame->variables.data[j];
-            yapVariableMark(variable);
-            yapValueMark(vm, variable->value);
+            yapVariableMark(vm, variable);
         }
     }
 

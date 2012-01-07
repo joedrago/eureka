@@ -21,8 +21,8 @@ enum
     YOP_PUSHNULL,                      // push null value on top of stack
     YOP_PUSHTHIS,                      // push 'this' value on top of stack
     YOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
-    YOP_PUSHLBLOCK,                    // push reference to local (to chunk) block
 
+    YOP_PUSH_KB,                       // push constant block kb[X] on top of stack
     YOP_PUSH_KI,                       // push constant int ki[X] on top of stack
     YOP_PUSH_KF,                       // push constant float kf[X] on top of stack
     YOP_PUSH_KS,                       // push constant string ks[X] on top of stack
@@ -36,13 +36,14 @@ enum
     YOP_CALL,                          // calls function with X args, using the current frame's stack pushes as args
     YOP_RET,                           // leave current call, returning X items on the stack
     YOP_KEEP,                          // Pad/trim most recent RET to X args
+    YOP_CLOSE,                         // add closure variables to the YVT_BLOCK on top of the stack (harvested from frame stack)
 
     YOP_START,                         // no-op, marks the beginning of a loop for yapFrameReset
     YOP_AND,                           // skips over the next X ops if top of stack is false (skipping leaves value on stack)
     YOP_OR,                            // skips over the next X ops if top of stack is true  (skipping leaves value on stack)
 
-    YOP_IF,                            // pop value, then X+1 LBLOCKs. run 0 if true, 1 if false and present
-    YOP_ENTER,                         // pops LBLOCK, pushes frame and enters new scope (a non-function CALL). X == YFT_*
+    YOP_IF,                            // pop value, then X+1 blocks. run 0 if true, 1 if false and present
+    YOP_ENTER,                         // pops block, pushes frame and enters new scope (a non-function CALL). X == YFT_*
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
     YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop. (BREAK 0 = break, BREAK 1 = continue)
 

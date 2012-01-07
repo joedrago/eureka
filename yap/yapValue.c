@@ -1,5 +1,6 @@
 #include "yapValue.h"
 
+#include "yapFrame.h"
 #include "yapHash.h"
 #include "yapIntrinsics.h"
 #include "yapObject.h"
@@ -116,9 +117,25 @@ static void nullFuncRegister(struct yapVM *vm)
 // ---------------------------------------------------------------------------
 // YVT_BLOCK Funcs
 
+static void blockFuncClear(struct yapValue *p)
+{
+    if(p->closureVars)
+        yapArrayDestroy(p->closureVars, NULL);
+}
+
 static void blockFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
 {
     dst->blockVal = src->blockVal;
+}
+
+static void blockFuncMark(struct yapVM *vm, struct yapValue *value)
+{
+    if(value->closureVars)
+    {
+        int i;
+        for(i=0; i<value->closureVars->count; i++)
+            yapVariableMark(vm, value->closureVars->data[i]);
+    }
 }
 
 static yBool blockFuncToBool(struct yapValue *p)
@@ -139,9 +156,9 @@ static yF32 blockFuncToFloat(struct yapValue *p)
 static void blockFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("block");
-    type->funcClear      = yapValueTypeFuncNotUsed;
+    type->funcClear      = blockFuncClear;
     type->funcClone      = blockFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
+    type->funcMark       = blockFuncMark;
     type->funcToBool     = blockFuncToBool;
     type->funcToInt      = blockFuncToInt;
     type->funcToFloat    = blockFuncToFloat;
@@ -759,11 +776,52 @@ yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
     return p;
 }
 
+void yapValueAddClosureVars(struct yapVM *vm, yapValue *p)
+{
+    yapFrame *frame;
+    int frameIndex;
+
+    if(p->type != YVT_BLOCK)
+    {
+        // TODO: add impossibly catastrophic error here? (can't happen?)
+        return;
+    }
+
+    yapAssert(p->closureVars == NULL);
+
+    for(frameIndex = vm->frames.count - 1; frameIndex >= 0; frameIndex--)
+    {
+        frame = vm->frames.data[frameIndex];
+        if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC) // we are inside of an actual function!
+            break;
+    }
+
+    if(frameIndex >= 0)
+    {
+        for( ; frameIndex < vm->frames.count; frameIndex++)
+        {
+            frame = vm->frames.data[frameIndex];
+            if(frame->variables.count)
+            {
+                int i;
+                if(!p->closureVars)
+                    p->closureVars = yapArrayCreate();
+                for(i=0; i < frame->variables.count; i++)
+                {
+                    yapVariable *variable = (yapVariable *)frame->variables.data[i];
+                    yapArrayPush(p->closureVars, variable);
+                }
+            }
+        }
+    }
+}
+
 yapValue *yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(vm, p);
     p->type = YVT_BLOCK;
+    p->closureVars = NULL;
     p->blockVal = block;
     p->used = yTrue;
     yapTrace(("yapValueSetFunction %p\n", p));

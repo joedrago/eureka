@@ -21,6 +21,6 @@ typedef struct yapVariable
 yapVariable *yapVariableCreate(struct yapVM *vm, const char *name);
 void yapVariableDestroy(yapVariable *v);
 
-void yapVariableMark(yapVariable *variable); // used by yapVMGC()
+void yapVariableMark(struct yapVM *vm, yapVariable *variable); // used by yapVMGC()
 
 #endif

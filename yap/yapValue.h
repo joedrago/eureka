@@ -109,7 +109,10 @@ typedef struct yapValue
     {
         yS32 intVal;
         yF32 floatVal;
-        struct yapBlock *blockVal;     // Hurr, Shield Slam
+        struct {
+            yapArray *closureVars;         // Populated at runtime when a reference to a new function() is created
+            struct yapBlock *blockVal;     // Hurr, Shield Slam
+        };
         char *stringVal;
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
@@ -141,6 +144,8 @@ yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func)
 yapValue *yapValueSetRef(struct yapVM *vm, yapValue *p, struct yapValue **ref);
 
 yBool yapValueSetRefVal(struct yapVM *vm, yapValue *ref, yapValue *p);
+
+void yapValueAddClosureVars(struct yapVM *vm, yapValue *p);
 
 yapValue *yapValueArrayCreate(struct yapVM *vm);
 void yapValueArrayPush(struct yapVM *vm, yapValue *p, yapValue *v);

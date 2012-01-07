@@ -19,7 +19,8 @@ void yapVariableDestroy(yapVariable *v)
     yapFree(v);
 }
 
-void yapVariableMark(yapVariable *variable)
+void yapVariableMark(struct yapVM *vm, yapVariable *variable)
 {
     variable->used = yTrue;
+    yapValueMark(vm, variable->value);
 }

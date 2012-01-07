@@ -645,7 +645,7 @@ asmFunc(IfElse)
         yapCodeAppend(elseCode, YOP_LEAVE, 0);
         index = yapBlockConvertCode(elseCode, compiler->chunk, 0);
         yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+        yapCodeAppend(dst, YOP_PUSH_KB, index);
     }
 
     asmDispatch[ifBody->type].assemble(compiler, ifCode, ifBody, 0, ASM_NORMAL);
@@ -653,7 +653,7 @@ asmFunc(IfElse)
     yapCodeAppend(ifCode, YOP_LEAVE, 0);
     index = yapBlockConvertCode(ifCode, compiler->chunk, 0);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index);
 
     // Only keeps the value of the first expression on the stack for bool testing
     asmDispatch[cond->type].assemble(compiler, dst, cond, 1, ASM_NORMAL);
@@ -686,7 +686,7 @@ asmFunc(While)
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
 
@@ -741,7 +741,7 @@ asmFunc(For)
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
 
@@ -774,8 +774,9 @@ asmFunc(Function)
         additionalOpsForNaming = 2;
         valuesLeftOnStack = 0;
     }
-    yapCodeGrow(dst, 1 + additionalOpsForNaming);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);    // Push the new block on the stack
+    yapCodeGrow(dst, 2 + additionalOpsForNaming);
+    yapCodeAppend(dst, YOP_PUSH_KB, index);    // Push the new block on the stack
+    yapCodeAppend(dst, YOP_CLOSE, 0);          // Give the VM an opportunity to pepper it with closure data
     if(name)
     {
         yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(name)));
@@ -798,7 +799,7 @@ asmFunc(Scope)
     index = yapBlockConvertCode(code, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHLBLOCK, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_ENTER, YFT_SCOPE);
 
