@@ -443,8 +443,8 @@ static yS32 yapVMPopInts(yapVM *vm, int count, int *output)
 
 yapValue * yapVMThis(yapVM *vm)
 {
-    int i = vm->frames.count - 1;
-    while(i >= 0)
+    int i;
+    for(i = vm->frames.count - 1; i >= 0; i--)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
         if(frame->type & YFT_FUNC)
