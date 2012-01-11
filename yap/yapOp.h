@@ -91,6 +91,9 @@ typedef struct yapOp
 {
     yOpcode  opcode;
     yOperand operand;
+#ifdef YAP_DEBUGGING
+    int line;
+#endif
 } yapOp;
 
 #define yapOpsAlloc(COUNT) ((yapOp*)(yapAlloc(sizeof(yapOp) * COUNT)))

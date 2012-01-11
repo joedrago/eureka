@@ -54,6 +54,8 @@ void yapMemoryStatsDumpLeaks();
 // ---------------------------------------------------------------------------
 // Debug Functions
 
+//#define YAP_DEBUGGING
+
 #include <assert.h>
 #define yapAssert assert
 

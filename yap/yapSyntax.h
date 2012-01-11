@@ -88,6 +88,7 @@ typedef struct yapSyntaxElement
 typedef struct yapSyntax
 {
     yU32 type;
+    int line;
     yapSyntaxElement v;                // "value" - name / value / main expr / cond expr
     yapSyntaxElement l;                // "left"  - lvalue / ifBody / loop body
     yapSyntaxElement r;                // "right" - rvalue / simple lists
@@ -100,14 +101,14 @@ enum
     CKO_NEGATIVE = (1 << 0)
 };
 
-yapSyntax *yapSyntaxCreate(yU32 type);
+yapSyntax *yapSyntaxCreate(yU32 type, int line);
 yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
 yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts);
 yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts);
 yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
 yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushThis);
-yapSyntax *yapSyntaxCreateNull();
-yapSyntax *yapSyntaxCreateThis();
+yapSyntax *yapSyntaxCreateNull(int line);
+yapSyntax *yapSyntaxCreateThis(int line);
 yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
 yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
 yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
@@ -122,7 +123,7 @@ yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr);
 yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
 yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
-yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body);
+yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body, int line);
 yapSyntax *yapSyntaxCreateScope(yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);

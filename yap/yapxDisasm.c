@@ -89,7 +89,11 @@ void yapOpsDump(yapOp *ops, int count)
         default:
             printf("%12s", "??");
         }
-        printf("%3d\n", op->operand);
+        printf("%3d", op->operand);
+#ifdef YAP_DEBUGGING
+        printf("line %8d\n", op->line);
+#endif
+        printf("\n");
     }
 }
 

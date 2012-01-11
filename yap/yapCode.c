@@ -27,11 +27,24 @@ void yapCodeGrow(yapCode *code, int count)
     code->size += count;
 }
 
-yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand)
+yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand, int line)
 {
     yapOp *op = &code->ops[code->count];
     op->opcode  = opcode;
     op->operand = operand;
+#ifdef YAP_DEBUGGING
+    op->line = line;
+#endif
     code->count++;
     return code->count - 1;
+}
+
+void yapCodeConcat(yapCode *dst, yapCode *src)
+{
+    if(src->count)
+    {
+        yapCodeGrow(dst, src->count);
+        memcpy(&dst->ops[dst->count], src->ops, src->size * sizeof(yapOp));
+        dst->count += src->count;
+    }
 }

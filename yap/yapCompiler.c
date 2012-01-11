@@ -188,7 +188,8 @@ enum
 {
     ASM_NORMAL = 0,
     ASM_LVALUE = (1 << 0),
-    ASM_VAR    = (1 << 1)
+    ASM_VAR    = (1 << 1),
+    ASM_SETVAR = (1 << 2)
 };
 
 #define ASM_ALL_ARGS (-1)
@@ -293,7 +294,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
 };
 
 // This function ensures that what we're being asked to keep is what we offered
-int asmPad(yapCode *code, int keep, int offer)
+int asmPad(yapCode *code, int keep, int offer, int line)
 {
     if(keep == ASM_ALL_ARGS)
     {
@@ -304,7 +305,7 @@ int asmPad(yapCode *code, int keep, int offer)
         if(offer > keep)
         {
             yapCodeGrow(code, 1);
-            yapCodeAppend(code, YOP_POP, (yOperand)(offer - keep));
+            yapCodeAppend(code, YOP_POP, (yOperand)(offer - keep), line);
         }
         else if(offer < keep)
         {
@@ -312,13 +313,13 @@ int asmPad(yapCode *code, int keep, int offer)
             int nulls = keep - offer;
             yapCodeGrow(code, nulls);
             for(i = 0; i < nulls; i++)
-                yapCodeAppend(code, YOP_PUSHNULL, 0);
+                yapCodeAppend(code, YOP_PUSHNULL, 0, line);
         }
     }
     return keep;
 }
 
-#define PAD(OFFER) asmPad(dst, keep, OFFER)
+#define PAD(OFFER) asmPad(dst, keep, OFFER, syntax->line)
 
 asmFunc(Nop)
 {
@@ -329,21 +330,21 @@ asmFunc(Nop)
 asmFunc(KString)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)));
+    yapCodeAppend(dst, YOP_PUSH_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)), syntax->line);
     return PAD(1);
 }
 
 asmFunc(KInt)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->chunk->kInts, &syntax->v.i));
+    yapCodeAppend(dst, YOP_PUSH_KI, yap32ArrayPushUnique(&compiler->chunk->kInts, &syntax->v.i), syntax->line);
     return PAD(1);
 }
 
 asmFunc(KFloat)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KF, yap32ArrayPushUnique(&compiler->chunk->kFloats, (yU32*)&syntax->v.f));
+    yapCodeAppend(dst, YOP_PUSH_KF, yap32ArrayPushUnique(&compiler->chunk->kFloats, (yU32*)&syntax->v.f), syntax->line);
     return PAD(1);
 }
 
@@ -353,11 +354,11 @@ asmFunc(Identifier)
     if(flags & ASM_VAR)
         opcode = YOP_VARREG_KS;
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, opcode, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)));
+    yapCodeAppend(dst, opcode, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(syntax->v.s)), syntax->line);
     if(!(flags & ASM_LVALUE))
     {
         yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_REFVAL, 0);
+        yapCodeAppend(dst, YOP_REFVAL, 0, syntax->line);
     }
     return PAD(1);
 }
@@ -379,7 +380,7 @@ asmFunc(Index)
         offerCount++;
     }
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_INDEX, opFlags);
+    yapCodeAppend(dst, YOP_INDEX, opFlags, syntax->line);
     return PAD(offerCount);
 }
 
@@ -394,20 +395,10 @@ asmFunc(IdentifierList)
         yapSyntax *arg = (yapSyntax *)args->data[i];
         keepCount = asmDispatch[arg->type].assemble(compiler, dst, arg, 1, flags);
         yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_SETVAR, 0);
+        yapCodeAppend(dst, YOP_SETVAR, 0, syntax->line);
     }
     return PAD(args->count);
 }
-
-// /
-//     yapSyntax *a = syntax->l.p;
-//     yapSyntax *b = syntax->r.p;
-//     asmDispatch[a->type].assemble(compiler, dst, a, 1, ASM_NORMAL);
-//     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
-//     yapCodeGrow(dst, 1);
-//     yapCodeAppend(dst, YOP_INDEX, (flags & ASM_LVALUE) ? 1 : 0);
-//     return PAD(1);
-// /
 
 asmFunc(Call)
 {
@@ -420,22 +411,22 @@ asmFunc(Call)
     asmDispatch[func->type].assemble(compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
 
     yapCodeGrow(dst, 2);
-    yapCodeAppend(dst, YOP_CALL, argCount);
-    yapCodeAppend(dst, YOP_KEEP, keep);
+    yapCodeAppend(dst, YOP_CALL, argCount, syntax->line);
+    yapCodeAppend(dst, YOP_KEEP, keep, syntax->line);
     return PAD(keep);
 }
 
 asmFunc(Null)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHNULL, 0);
+    yapCodeAppend(dst, YOP_PUSHNULL, 0, syntax->line);
     return PAD(1);
 }
 
 asmFunc(This)
 {
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSHTHIS, 0);
+    yapCodeAppend(dst, YOP_PUSHTHIS, 0, syntax->line);
     return PAD(1);
 }
 
@@ -446,7 +437,7 @@ asmFunc(StringFormat)
     int argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
     asmDispatch[format->type].assemble(compiler, dst, format, 1, ASM_NORMAL);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_FORMAT, argCount);
+    yapCodeAppend(dst, YOP_FORMAT, argCount, syntax->line);
     return PAD(1);
 }
 
@@ -458,19 +449,19 @@ asmFunc(Unary)
     switch(syntax->type)
     {
     case YST_TOSTRING:
-        yapCodeAppend(dst, YOP_TOSTRING, 0);
+        yapCodeAppend(dst, YOP_TOSTRING, 0, syntax->line);
         break;
     case YST_TOINT:
-        yapCodeAppend(dst, YOP_TOINT, 0);
+        yapCodeAppend(dst, YOP_TOINT, 0, syntax->line);
         break;
     case YST_TOFLOAT:
-        yapCodeAppend(dst, YOP_TOFLOAT, 0);
+        yapCodeAppend(dst, YOP_TOFLOAT, 0, syntax->line);
         break;
     case YST_NOT:
-        yapCodeAppend(dst, YOP_NOT, 0);
+        yapCodeAppend(dst, YOP_NOT, 0, syntax->line);
         break;
     case YST_BITWISE_NOT:
-        yapCodeAppend(dst, YOP_BITWISE_NOT, 0);
+        yapCodeAppend(dst, YOP_BITWISE_NOT, 0, syntax->line);
         break;
     };
     return PAD(1);
@@ -491,8 +482,8 @@ asmFunc(Binary)
     if(compound)
     {
         yapCodeGrow(dst, 2);
-        yapCodeAppend(dst, YOP_DUPE, 0);
-        yapCodeAppend(dst, YOP_REFVAL, 0);
+        yapCodeAppend(dst, YOP_DUPE, 0, syntax->line);
+        yapCodeAppend(dst, YOP_REFVAL, 0, syntax->line);
     }
     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
 
@@ -552,13 +543,13 @@ asmFunc(Binary)
     };
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, op, 0);
+    yapCodeAppend(dst, op, 0, syntax->line);
 
     if(compound)
     {
         yapCodeGrow(dst, 2);
-        yapCodeAppend(dst, YOP_MOVE, 1);
-        yapCodeAppend(dst, YOP_SETVAR, 0);
+        yapCodeAppend(dst, YOP_MOVE, 1, syntax->line);
+        yapCodeAppend(dst, YOP_SETVAR, 0, syntax->line);
         return PAD(0);
     }
     return PAD(1);
@@ -575,7 +566,7 @@ asmFunc(ShortCircuit)
 
     // test stack top's truth and uses the current value instead of the second expression's value
     yapCodeGrow(dst, 1);
-    skipIndex = yapCodeAppend(dst, (syntax->type == YST_AND) ? YOP_AND : YOP_OR, 0);
+    skipIndex = yapCodeAppend(dst, (syntax->type == YST_AND) ? YOP_AND : YOP_OR, 0, syntax->line);
 
     // code to add second expression on the stack
     asmDispatch[b->type].assemble(compiler, dst, b, 1, ASM_NORMAL);
@@ -596,22 +587,28 @@ asmFunc(Var)
 asmFunc(Return)
 {
     yapSyntax *expr = syntax->v.p;
-    int retCount = asmDispatch[expr->type].assemble(compiler, dst, expr, 1, ASM_NORMAL);
+    int retCount = asmDispatch[expr->type].assemble(compiler, dst, expr, ASM_ALL_ARGS, ASM_NORMAL);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_RET, retCount);
+    yapCodeAppend(dst, YOP_RET, retCount, syntax->line);
     return PAD(0);
 }
 
 asmFunc(Assignment)
 {
+    int i;
     yapSyntax *l = syntax->l.p;
     yapSyntax *r = syntax->r.p;
     int leave = (keep > 0) ? 1 : 0;
-
-    asmDispatch[r->type].assemble(compiler, dst, r, 1, ASM_NORMAL);
-    asmDispatch[l->type].assemble(compiler, dst, l, 1, ASM_LVALUE);
-    yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_SETVAR, leave);
+    yapCode *lvalueCode = yapCodeCreate();
+    int lvalueCount = asmDispatch[l->type].assemble(compiler, lvalueCode, l, ASM_ALL_ARGS, ASM_LVALUE|ASM_SETVAR);
+    asmDispatch[r->type].assemble(compiler, dst, r, lvalueCount, ASM_NORMAL);
+    yapCodeConcat(dst, lvalueCode);
+    yapCodeDestroy(lvalueCode);
+    if(l->type != YST_EXPRESSIONLIST)
+    {
+        yapCodeGrow(dst, 1);
+        yapCodeAppend(dst, YOP_SETVAR, leave, syntax->line);
+    }
     return PAD(leave);
 }
 
@@ -624,7 +621,7 @@ asmFunc(Inherits)
     asmDispatch[r->type].assemble(compiler, dst, r, 1, ASM_NORMAL);
     asmDispatch[l->type].assemble(compiler, dst, l, 1, ASM_LVALUE);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_INHERITS, leave);
+    yapCodeAppend(dst, YOP_INHERITS, leave, syntax->line);
     return PAD(leave);
 }
 
@@ -642,24 +639,24 @@ asmFunc(IfElse)
         yapCode *elseCode = yapCodeCreate();
         asmDispatch[elseBody->type].assemble(compiler, elseCode, elseBody, 0, ASM_NORMAL);
         yapCodeGrow(elseCode, 1);
-        yapCodeAppend(elseCode, YOP_LEAVE, 0);
+        yapCodeAppend(elseCode, YOP_LEAVE, 0, syntax->line);
         index = yapBlockConvertCode(elseCode, compiler->chunk, 0);
         yapCodeGrow(dst, 1);
-        yapCodeAppend(dst, YOP_PUSH_KB, index);
+        yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
     }
 
     asmDispatch[ifBody->type].assemble(compiler, ifCode, ifBody, 0, ASM_NORMAL);
     yapCodeGrow(ifCode, 1);
-    yapCodeAppend(ifCode, YOP_LEAVE, 0);
+    yapCodeAppend(ifCode, YOP_LEAVE, 0, syntax->line);
     index = yapBlockConvertCode(ifCode, compiler->chunk, 0);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KB, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
 
     // Only keeps the value of the first expression on the stack for bool testing
     asmDispatch[cond->type].assemble(compiler, dst, cond, 1, ASM_NORMAL);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_IF, (elseBody) ? 1 : 0);
+    yapCodeAppend(dst, YOP_IF, (elseBody) ? 1 : 0, syntax->line);
 
     return PAD(0);
 }
@@ -672,23 +669,23 @@ asmFunc(While)
     int index;
 
     yapCodeGrow(loop, 1);
-    yapCodeAppend(loop, YOP_START, 0);
+    yapCodeAppend(loop, YOP_START, 0, syntax->line);
 
     asmDispatch[cond->type].assemble(compiler, loop, cond, 1, ASM_NORMAL);
     yapCodeGrow(loop, 1);
-    yapCodeAppend(loop, YOP_LEAVE, 1);
+    yapCodeAppend(loop, YOP_LEAVE, 1, syntax->line);
 
     asmDispatch[body->type].assemble(compiler, loop, body, 0, ASM_NORMAL);
 
     yapCodeGrow(loop, 1);
-    yapCodeAppend(loop, YOP_BREAK, 1);
+    yapCodeAppend(loop, YOP_BREAK, 1, syntax->line);
 
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KB, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
+    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP, syntax->line);
 
     return PAD(0);
 }
@@ -705,10 +702,10 @@ asmFunc(For)
     asmDispatch[iter->type].assemble(compiler, dst, iter, 1, ASM_NORMAL);
 
     yapCodeGrow(loop, 4);
-    yapCodeAppend(loop, YOP_DUPE, 0);    // stash the object itself
-    yapCodeAppend(loop, YOP_COUNT, 0);   // using the dupe, call .count() to push the count on top
-    yapCodeAppend(loop, YOP_KEEP, 1);    // keep only one value from the call to .count()
-    yapCodeAppend(loop, YOP_PUSHI, 0);   // init our counter to zero
+    yapCodeAppend(loop, YOP_DUPE, 0, syntax->line);    // stash the object itself
+    yapCodeAppend(loop, YOP_COUNT, 0, syntax->line);   // using the dupe, call .count(, syntax->line) to push the count on top
+    yapCodeAppend(loop, YOP_KEEP, 1, syntax->line);    // keep only one value from the call to .count()
+    yapCodeAppend(loop, YOP_PUSHI, 0, syntax->line);   // init our counter to zero
 
     // At this point, the stack should look like:
     // -- top --
@@ -717,16 +714,16 @@ asmFunc(For)
     // object
 
     yapCodeGrow(loop, 3);
-    yapCodeAppend(loop, YOP_START, 0);   // begin loop
-    yapCodeAppend(loop, YOP_SUB, 1);     // push (count-counter) onto stack
-    yapCodeAppend(loop, YOP_LEAVE, 1);   // leave if ((count-counter) == 0)
+    yapCodeAppend(loop, YOP_START, 0, syntax->line);   // begin loop
+    yapCodeAppend(loop, YOP_SUB, 1, syntax->line);     // push (count-counter, syntax->line) onto stack
+    yapCodeAppend(loop, YOP_LEAVE, 1, syntax->line);   // leave if ((count-counter, syntax->line) == 0)
 
     // Populate the loop vars from the call to get()
     yapCodeGrow(loop, 7);
-    yapCodeAppend(loop, YOP_DUPE, 0);    // dupe counter
-    yapCodeAppend(loop, YOP_DUPE, 3);    // dupe object
-    yapCodeAppend(loop, YOP_NTH, 0);     // call nth
-    yapCodeAppend(loop, YOP_KEEP, vars->v.a->count);
+    yapCodeAppend(loop, YOP_DUPE, 0, syntax->line);    // dupe counter
+    yapCodeAppend(loop, YOP_DUPE, 3, syntax->line);    // dupe object
+    yapCodeAppend(loop, YOP_NTH, 0, syntax->line);     // call nth
+    yapCodeAppend(loop, YOP_KEEP, vars->v.a->count, syntax->line);
     asmDispatch[vars->type].assemble(compiler, loop, vars, vars->v.a->count, ASM_LVALUE | ASM_VAR);
 
     // Assemble the loop body itself
@@ -734,16 +731,16 @@ asmFunc(For)
 
     // Increment the counter and loop
     yapCodeGrow(loop, 3);
-    yapCodeAppend(loop, YOP_PUSHI, 1);
-    yapCodeAppend(loop, YOP_ADD, 0);
-    yapCodeAppend(loop, YOP_BREAK, 1);
+    yapCodeAppend(loop, YOP_PUSHI, 1, syntax->line);
+    yapCodeAppend(loop, YOP_ADD, 0, syntax->line);
+    yapCodeAppend(loop, YOP_BREAK, 1, syntax->line);
 
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KB, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP);
+    yapCodeAppend(dst, YOP_ENTER, YFT_LOOP, syntax->line);
 
     return PAD(0);
 }
@@ -766,7 +763,7 @@ asmFunc(Function)
     int argCount = asmDispatch[args->type].assemble(compiler, code, args, ASM_ALL_ARGS, ASM_VAR | ASM_LVALUE);
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_RET, 0);
+    yapCodeAppend(code, YOP_RET, 0, syntax->line);
     index = yapBlockConvertCode(code, compiler->chunk, argCount);
 
     if(name)
@@ -775,12 +772,12 @@ asmFunc(Function)
         valuesLeftOnStack = 0;
     }
     yapCodeGrow(dst, 2 + additionalOpsForNaming);
-    yapCodeAppend(dst, YOP_PUSH_KB, index);    // Push the new block on the stack
-    yapCodeAppend(dst, YOP_CLOSE, 0);          // Give the VM an opportunity to pepper it with closure data
+    yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);    // Push the new block on the stack
+    yapCodeAppend(dst, YOP_CLOSE, 0, syntax->line);          // Give the VM an opportunity to pepper it with closure data
     if(name)
     {
-        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(name)));
-        yapCodeAppend(dst, YOP_SETVAR, 0);
+        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(name)), syntax->line);
+        yapCodeAppend(dst, YOP_SETVAR, 0, syntax->line);
     };
     compiler->chunk->hasFuncs = yTrue;
     return PAD(valuesLeftOnStack);
@@ -795,26 +792,35 @@ asmFunc(Scope)
     // create new block from "body"
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
-    yapCodeAppend(code, YOP_LEAVE, 0);
+    yapCodeAppend(code, YOP_LEAVE, 0, syntax->line);
     index = yapBlockConvertCode(code, compiler->chunk, 0);
 
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_PUSH_KB, index);
+    yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
     yapCodeGrow(dst, 1);
-    yapCodeAppend(dst, YOP_ENTER, YFT_SCOPE);
+    yapCodeAppend(dst, YOP_ENTER, YFT_SCOPE, syntax->line);
 
     return PAD(0);
 }
 
 asmFunc(ExpressionList)
 {
-    int i;
+    int i = 0;
+    int last = syntax->v.a->count;
+    int increment = 1;
     int keepCount = 0;
+    int reverseOrder = (flags & ASM_SETVAR); // values must be SETVAR'd by popping off the stack in reverse
     for(i = 0; i < syntax->v.a->count; i++)
     {
+        int index = (reverseOrder) ? (syntax->v.a->count - 1) - i : i;
         int keepIt = ((keep == ASM_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
-        yapSyntax *child = (yapSyntax *)syntax->v.a->data[i];
-        keepCount += asmDispatch[child->type].assemble(compiler, dst, child, keepIt, ASM_NORMAL);
+        yapSyntax *child = (yapSyntax *)syntax->v.a->data[index];
+        keepCount += asmDispatch[child->type].assemble(compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
+        if(flags & ASM_SETVAR)
+        {
+            yapCodeGrow(dst, 1);
+            yapCodeAppend(dst, YOP_SETVAR, 0, syntax->line);
+        }
     }
     return PAD(keepCount);
 }
@@ -847,7 +853,7 @@ yBool yapAssemble(yapCompiler *compiler)
         compiler->code   = yapCodeCreate();
         yapAssembleStatementList(compiler, compiler->code, compiler->root, 0, ASM_NORMAL);
         yapCodeGrow(compiler->code, 1);
-        yapCodeAppend(compiler->code, YOP_RET, 0);
+        yapCodeAppend(compiler->code, YOP_RET, 0, 0);
         blockIndex = yapBlockConvertCode(compiler->code, compiler->chunk, 0);
         compiler->chunk->block = (yapBlock *)compiler->chunk->blocks.data[blockIndex];
     }

@@ -141,6 +141,9 @@ statement_block(B) ::= statement(S).
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateReturn(L); }
 
+statement(S) ::= RETURN paren_expr_list(L) ENDSTATEMENT.
+    { S = yapSyntaxCreateReturn(L); }
+
 statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateStatementExpr(L); }
 
@@ -153,8 +156,8 @@ statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
     { S = yapSyntaxCreateWhile(COND, BODY); }
 
-statement(S) ::= FUNCTION IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
-    { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY); }
+statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
+    { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY, F.line); }
 
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
@@ -306,9 +309,6 @@ expression(C) ::= expression(L) SHIFTRIGHT expression(R).
 expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
     { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
 
-expression(C) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
-    { C = EL; }
-
 expression(E) ::= lvalue(L) ASSIGN expression(R).
     { E = yapSyntaxCreateAssignment(L, R); }
 
@@ -333,11 +333,11 @@ expression(E) ::= NEGATIVE FLOATNUM(F).
 expression(E) ::= LITERALSTRING(L).
     { E = yapSyntaxCreateKString(&L); }
 
-expression(E) ::= NULL.
-    { E = yapSyntaxCreateNull(); }
+expression(E) ::= NULL(N).
+    { E = yapSyntaxCreateNull(N.line); }
 
-expression(E) ::= FUNCTION LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
-    { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY); }
+expression(E) ::= FUNCTION(F) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
+    { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY, F.line); }
 
 
 // ---------------------------------------------------------------------------
@@ -355,6 +355,9 @@ lvalue(L) ::= lvalue_indexable(I).
 lvalue(L) ::= VAR IDENTIFIER(I).
     { L = yapSyntaxCreateVar(yapSyntaxCreateIdentifier(&I)); }
 
+lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
+    { L = EL; }
+
 // ---------------------------------------------------------------------------
 // LValueIndexable
 
@@ -364,8 +367,8 @@ lvalue(L) ::= VAR IDENTIFIER(I).
 %destructor lvalue_indexable
     { yapSyntaxDestroy($$); }
 
-lvalue_indexable(L) ::= THIS.
-    { L = yapSyntaxCreateThis(); }
+lvalue_indexable(L) ::= THIS(T).
+    { L = yapSyntaxCreateThis(T.line); }
 
 lvalue_indexable(L) ::= lvalue_indexable(FUNC) paren_expr_list(ARGS).
     { L = yapSyntaxCreateCall(FUNC, ARGS); }
