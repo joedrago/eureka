@@ -18,9 +18,8 @@
 
 void yapVMRegisterGlobal(yapVM *vm, const char *name, yapValue *value)
 {
-    yapVariable *global = yapVariableCreate(vm, name);
-    global->value = value;
-    yapArrayPush(&vm->globals, global);
+    yapVariable *variable = yapVariableCreate(vm, value);
+    yapHashSet(vm->globals, name, variable);
 }
 
 void yapVMRegisterGlobalFunction(yapVM *vm, const char *name, yapCFunction func)
@@ -39,7 +38,6 @@ static yBool yapChunkCanBeTemporary(yapChunk *chunk)
 void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
 {
     yapChunk *chunk;
-    yapVariable *chunkRef;
     yapCompiler *compiler;
 
 #ifdef YAP_ENABLE_MEMORY_STATS
@@ -121,6 +119,7 @@ void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
 yapVM *yapVMCreate(void)
 {
     yapVM *vm = yapAlloc(sizeof(yapVM));
+    vm->globals = yapHashCreate(0);
     return vm;
 }
 
@@ -169,7 +168,7 @@ void yapVMClearError(yapVM *vm)
 
 void yapVMDestroy(yapVM *vm)
 {
-    yapArrayClear(&vm->globals, NULL);
+    yapHashDestroy(vm->globals, NULL);
     yapArrayClear(&vm->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(&vm->stack, NULL);
     yapArrayClear(&vm->chunks, (yapDestroyCB)yapChunkDestroy);
@@ -184,41 +183,27 @@ void yapVMDestroy(yapVM *vm)
     yapFree(vm);
 }
 
-static yapVariable *yapArrayFindVariableByName(yapArray *a, const char *name)
-{
-    int i;
-    for(i = 0; i < a->count; i++)
-    {
-        yapVariable *v = (yapVariable *)a->data[i];
-        if(!strcmp(v->name, name))
-        {
-            return v;
-        }
-    }
-    return NULL;
-}
-
 static yapVariable *yapVMResolveVariable(yapVM *vm, const char *name)
 {
     int i;
     yapFrame *frame;
-    yapVariable *v;
+    yapVariable **variableRef;
 
     for(i = vm->frames.count - 1; i >= 0; i--)
     {
         frame = (yapFrame *)vm->frames.data[i];
 
         // Check the local variables
-        v = yapArrayFindVariableByName(&frame->variables, name);
-        if(v) return v;
+        variableRef = (yapVariable **)yapHashLookup(frame->locals, name, yFalse);
+        if(variableRef) return *variableRef;
 
         if(frame->type == YFT_FUNC)
             break;
     }
 
     // check global vars
-    v = yapArrayFindVariableByName(&vm->globals, name);
-    if(v) return v;
+    variableRef = (yapVariable **)yapHashLookup(vm->globals, name, yFalse);
+    if(variableRef) return *variableRef;
 
     return NULL;
 }
@@ -289,7 +274,10 @@ static yBool yapVMCall(yapVM *vm, yapFrame **framePtr, yapValue *thisVal, yapVal
             // Hand over all closure variables into the new local scope
             int i;
             for(i=0; i<callable->closureVars->count; i++)
-                yapArrayPush(&((*framePtr)->variables), callable->closureVars->data[i]);
+            {
+                yapClosureVariable *cv = (yapClosureVariable *)callable->closureVars->data[i];
+                yapHashSet((*framePtr)->locals, cv->name, cv->variable);
+            }
         }
     }
     return yTrue;
@@ -315,10 +303,10 @@ static yapValue *yapFindFunc(yapVM *vm, yapValue *object, const char *name)
 yBool yapVMCallFuncByName(yapVM *vm, yapValue *thisVal, const char *name, int argCount)
 {
     yapFrame *frame = NULL;
-    yapVariable *func = yapVMResolveVariable(vm, name);
-    if(!func)
+    yapVariable *variable = yapVMResolveVariable(vm, name);
+    if(!variable)
         return yFalse;
-    if(yapVMCall(vm, &frame, thisVal, func->value, argCount))
+    if(yapVMCall(vm, &frame, thisVal, variable->value, argCount))
     {
         yapVMLoop(vm, yTrue);
         return yTrue;
@@ -340,22 +328,25 @@ static yBool yapVMCreateObject(yapVM *vm, yapFrame **framePtr, yapValue *isa, in
 }
 
 // TODO: this needs to protect against variable masking/shadowing
-static void yapVMRegisterVariable(yapVM *vm, yapVariable *variable)
+static yapVariable *yapVMRegisterVariable(yapVM *vm, const char *name, yapValue *value)
 {
+    yapVariable *variable;
     yapFrame *frame = yapArrayTop(&vm->frames);
     if(!frame)
-        return;
+        return NULL;
 
+    variable = yapVariableCreate(vm, value);
     if(frame->block == frame->block->chunk->block)
     {
         // If we're in the chunk's "main" function, all variable
         // registration goes into the globals
-        yapArrayPush(&vm->globals, variable);
+        yapHashSet(vm->globals, name, variable);
     }
     else
     {
-        yapArrayPush(&frame->variables, variable);
+        yapHashSet(frame->locals, name, variable);
     }
+    return variable;
 }
 
 static void yapVMPushRef(yapVM *vm, yapVariable *variable)
@@ -574,8 +565,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
 
         case YOP_VARREG_KS:
         {
-            yapVariable *variable = yapVariableCreate(vm, frame->block->chunk->kStrings.data[operand]);
-            yapVMRegisterVariable(vm, variable);
+            yapVariable *variable = yapVMRegisterVariable(vm, frame->block->chunk->kStrings.data[operand], yapValueNullPtr);
             yapVMPushRef(vm, variable);
         }
         break;
@@ -1160,6 +1150,11 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
     yapVMGC(vm);
 }
 
+static void yapHashEntryVariableMark(yapVM *vm, yapHashEntry *entry)
+{
+    yapVariableMark(vm, entry->value);
+}
+
 void yapVMGC(struct yapVM *vm)
 {
     int i, j;
@@ -1182,22 +1177,14 @@ void yapVMGC(struct yapVM *vm)
     // -----------------------------------------------------------------------
     // mark all values used by things the VM still cares about
 
-    for(i = 0; i < vm->globals.count; i++)
-    {
-        yapVariable *variable = (yapVariable *)vm->globals.data[i];
-        yapVariableMark(vm, variable);
-    }
+    yapHashIterateP1(vm->globals, (yapIterateCB1)yapHashEntryVariableMark, vm);
 
     for(i = 0; i < vm->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)vm->frames.data[i];
         if(frame->thisVal)
             yapValueMark(vm, frame->thisVal);
-        for(j = 0; j < frame->variables.count; j++)
-        {
-            yapVariable *variable = (yapVariable *)frame->variables.data[j];
-            yapVariableMark(vm, variable);
-        }
+        yapHashIterateP1(frame->locals, (yapIterateCB1)yapHashEntryVariableMark, vm);
     }
 
     for(i = 0; i < vm->stack.count; i++)

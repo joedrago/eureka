@@ -95,10 +95,24 @@ void yapValueTypeRegisterAllBasicTypes(struct yapVM *vm);
     (((yapValueType*)vm->types.data[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
    : ((yapValueType*)vm->types.data[id])->func ## funcName
 
+
+// ---------------------------------------------------------------------------
+
+typedef struct yapClosureVariable
+{
+    char *name;
+    struct yapVariable *variable;
+} yapClosureVariable;
+
+yapClosureVariable *yapClosureVariableCreate(const char *name, struct yapVariable *variable);
+void yapClosureVariableDestroy(yapClosureVariable *cv);
+
 // ---------------------------------------------------------------------------
 
 // Should return how many values it is returning on the stack
 typedef yU32(yapCFunction)(struct yapVM *vm, yU32 argCount);
+
+// ---------------------------------------------------------------------------
 
 typedef struct yapValue
 {

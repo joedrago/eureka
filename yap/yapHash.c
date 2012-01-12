@@ -103,6 +103,13 @@ void **yapHashLookup(yapHash *yh, const char *key, yBool create)
     return NULL;
 }
 
+void yapHashSet(yapHash *yh, const char *key, void *value)
+{
+    void **ref = yapHashLookup(yh, key, yTrue);
+    yapAssert(ref);
+    *ref = value;
+}
+
 void yapHashDelete(yapHash *yh, const char *key, yapDestroyCB cb)
 {
     yU32 hash = djb2hash(key);

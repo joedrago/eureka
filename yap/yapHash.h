@@ -26,6 +26,7 @@ typedef void (*yapIterateCB1)(void *arg1, yapHashEntry *entry);
 void yapHashIterateP1(yapHash *yh, yapIterateCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
 
 void **yapHashLookup(yapHash *yh, const char *key, yBool create);
+void yapHashSet(yapHash *yh, const char *key, void *value);       // assumes 'create' and 'replace'
 void yapHashDelete(yapHash *yh, const char *key, yapDestroyCB cb);
 
 #endif

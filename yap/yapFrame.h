@@ -1,7 +1,7 @@
 #ifndef YAPFRAME_H
 #define YAPFRAME_H
 
-#include "yapArray.h"
+#include "yapHash.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -25,7 +25,7 @@ enum
 
 typedef struct yapFrame
 {
-    yapArray variables;
+    yapHash *locals;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // In function scope, it is "this"

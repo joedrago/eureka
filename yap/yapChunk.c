@@ -1,7 +1,6 @@
 #include "yapChunk.h"
 
 #include "yapBlock.h"
-#include "yapVariable.h"
 
 void yapChunkDestroy(yapChunk *chunk)
 {

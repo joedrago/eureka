@@ -13,12 +13,11 @@ struct yapVM;
 
 typedef struct yapVariable
 {
-    char *name;
     struct yapValue *value;
     yFlag used: 1;
 } yapVariable;
 
-yapVariable *yapVariableCreate(struct yapVM *vm, const char *name);
+yapVariable *yapVariableCreate(struct yapVM *vm, struct yapValue *value);
 void yapVariableDestroy(yapVariable *v);
 
 void yapVariableMark(struct yapVM *vm, yapVariable *variable); // used by yapVMGC()

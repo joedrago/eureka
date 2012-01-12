@@ -68,8 +68,15 @@ char *loadFile(const char *filename)
 static char *getprompt(yapContext *context)
 {
     static char prompt[1024];
-    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", context->vm->chunks.count, context->vm->globals.count);
+    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", context->vm->chunks.count, context->vm->globals->count);
     return prompt;
+}
+
+// ---------------------------------------------------------------------------
+
+static void printVariable(void *ignored, yapHashEntry *entry)
+{
+    printf("* '%s'\n", entry->key);
 }
 
 // ---------------------------------------------------------------------------
@@ -104,11 +111,7 @@ int main(int argc, char *argv[])
             char *code = NULL;
             if(!strcmp(line, "$globals"))
             {
-                for(i=0; i<context->vm->globals.count; i++)
-                {
-                    yapVariable *v = (yapVariable *)context->vm->globals.data[i];
-                    printf("* '%s'\n", v->name);
-                }
+                yapHashIterateP1(context->vm->globals, printVariable, NULL);
             }
             else if(!strncmp(line, "$load ", 6))
             {

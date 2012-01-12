@@ -4,18 +4,16 @@
 #include "yapValue.h"
 #include "yapVM.h"
 
-yapVariable *yapVariableCreate(struct yapVM *vm, const char *name)
+yapVariable *yapVariableCreate(struct yapVM *vm, struct yapValue *value)
 {
     yapVariable *v = (yapVariable *)yapAlloc(sizeof(yapVariable));
-    v->name = yapStrdup(name);
-    v->value = &yapValueNull;
+    v->value = value;
     yapArrayPush(&vm->usedVariables, v);
     return v;
 }
 
 void yapVariableDestroy(yapVariable *v)
 {
-    yapFree(v->name);
     yapFree(v);
 }
 

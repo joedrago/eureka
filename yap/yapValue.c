@@ -48,6 +48,22 @@ static yapValue *yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
 
 // ---------------------------------------------------------------------------
 
+yapClosureVariable *yapClosureVariableCreate(const char *name, yapVariable *variable)
+{
+    yapClosureVariable *cv = yapAlloc(sizeof(yapClosureVariable));
+    cv->name = yapStrdup(name);
+    cv->variable = variable;
+    return cv;
+}
+
+void yapClosureVariableDestroy(yapClosureVariable *cv)
+{
+    free(cv->name);
+    free(cv);
+}
+
+// ---------------------------------------------------------------------------
+
 yapValueType *yapValueTypeCreate(const char *name)
 {
     yapValueType *type = yapAlloc(sizeof(yapValueType));
@@ -123,7 +139,7 @@ static void nullFuncRegister(struct yapVM *vm)
 static void blockFuncClear(struct yapValue *p)
 {
     if(p->closureVars)
-        yapArrayDestroy(p->closureVars, NULL);
+        yapArrayDestroy(p->closureVars, (yapDestroyCB)yapClosureVariableDestroy);
 }
 
 static void blockFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
@@ -137,7 +153,10 @@ static void blockFuncMark(struct yapVM *vm, struct yapValue *value)
     {
         int i;
         for(i=0; i<value->closureVars->count; i++)
-            yapVariableMark(vm, value->closureVars->data[i]);
+        {
+            yapClosureVariable *cv = (yapClosureVariable *)value->closureVars->data[i];
+            yapVariableMark(vm, cv->variable);
+        }
     }
 }
 
@@ -786,6 +805,12 @@ yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
     return p;
 }
 
+static void yapValueAddClosureVar(yapArray *closureVars, yapHashEntry *entry)
+{
+    yapClosureVariable *cv = yapClosureVariableCreate(entry->key, entry->value);
+    yapArrayPush(closureVars, cv);
+}
+
 void yapValueAddClosureVars(struct yapVM *vm, yapValue *p)
 {
     yapFrame *frame;
@@ -811,16 +836,12 @@ void yapValueAddClosureVars(struct yapVM *vm, yapValue *p)
         for( ; frameIndex < vm->frames.count; frameIndex++)
         {
             frame = vm->frames.data[frameIndex];
-            if(frame->variables.count)
+            if(frame->locals->count)
             {
                 int i;
                 if(!p->closureVars)
                     p->closureVars = yapArrayCreate();
-                for(i=0; i < frame->variables.count; i++)
-                {
-                    yapVariable *variable = (yapVariable *)frame->variables.data[i];
-                    yapArrayPush(p->closureVars, variable);
-                }
+                yapHashIterateP1(frame->locals, (yapIterateCB1)yapValueAddClosureVar, p->closureVars);
             }
         }
     }

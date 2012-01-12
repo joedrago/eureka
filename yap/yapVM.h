@@ -2,6 +2,7 @@
 #define YAPVM_H
 
 #include "yapTypes.h"
+#include "yapHash.h"
 #include "yapValue.h"                  // for yapCFunction
 
 // ---------------------------------------------------------------------------
@@ -27,7 +28,7 @@ typedef struct yapVM
     yapArray types;
 
     // things that can own values
-    yapArray globals;                  // Global variables
+    yapHash *globals;                  // Global variables
     yapArray frames;                   // Current stack frames
     yapArray stack;                    // Value stack
     yapArray chunks;                   // the VM owns all chunks, making cheap vars
