@@ -25,6 +25,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 */
 
 /*!re2c
+    "\"\"\""        { goto heredoc; }
     "//"            { goto comment; }
     "#"             { goto comment; }
     "&&"            { return YTT_AND; }
@@ -131,4 +132,20 @@ comment:
     }
 
     any            { goto comment; }
+*/
+
+heredoc:
+/*!re2c
+    Newline
+    {
+        l->line++;
+		goto heredoc;
+	}
+
+	"\"\"\""
+	{
+        return YTT_HEREDOC;
+    }
+
+    any            { goto heredoc; }
 */

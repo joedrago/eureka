@@ -30,7 +30,7 @@ typedef struct yapVM
     yapArray globals;                  // Global variables
     yapArray frames;                   // Current stack frames
     yapArray stack;                    // Value stack
-    yapArray chunks;                  // the VM owns all chunks, making cheap vars
+    yapArray chunks;                   // the VM owns all chunks, making cheap vars
 
     // GC data
     yapArray usedValues;               // All values used by the system

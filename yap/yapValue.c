@@ -12,6 +12,9 @@
 #include <string.h>
 #include <stdio.h>
 
+// Enabling this allows for arrays to return their length by doing a.length(), etc
+// #define ENABLE_ARRAY_OO_FUNCTIONS
+
 static char *NULL_STRING_FORM = "[null]";
 
 // ---------------------------------------------------------------------------
@@ -516,6 +519,8 @@ static yF32 arrayFuncToFloat(struct yapValue *p)
 static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
+
+#ifdef ENABLE_ARRAY_OO_FUNCTIONS
     if(index->type == YVT_STRING)
     {
         yapHash *yh = (yapHash *)((yapValueType*)vm->types.data[value->type])->userData;
@@ -533,6 +538,7 @@ static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value
         }
     }
     if(!ret && (vm->errorType == YVE_NONE))
+#endif
     {
         yapValue **ref = NULL;
         index = yapValueToInt(vm, index);
@@ -552,11 +558,13 @@ static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value
     return ret;
 }
 
+#ifdef ENABLE_ARRAY_OO_FUNCTIONS
 static void arrayFuncDestroyUserData(struct yapValueType *valueType)
 {
     if(valueType->userData)
         yapHashDestroy((yapHash*)valueType->userData, NULL);
 }
+#endif
 
 static void arrayFuncRegister(struct yapVM *vm)
 {
@@ -574,10 +582,12 @@ static void arrayFuncRegister(struct yapVM *vm)
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_ARRAY);
 
+#ifdef ENABLE_ARRAY_OO_FUNCTIONS
     type->funcDestroyUserData = arrayFuncDestroyUserData;
     type->userData = yapHashCreate(0);
     addFunc(type->userData, "push", array_push);
     addFunc(type->userData, "length", array_length);
+#endif
 }
 
 // ---------------------------------------------------------------------------

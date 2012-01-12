@@ -65,6 +65,15 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
         switch(id)
         {
+        case YTT_HEREDOC:
+            // Heredocs are just trimmed literal strings
+            id = YTT_LITERALSTRING;
+            yapAssert(token_len >= 6);
+
+            // remove triple quotes
+            token_len -= 6;
+            l.token += 3;
+            break;
         case YTT_NEWLINE:
             id = YTT_SPACE;
             break;
