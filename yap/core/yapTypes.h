@@ -1,6 +1,8 @@
 #ifndef YAPTYPES_H
 #define YAPTYPES_H
 
+#include <stdlib.h> // for size_t
+
 // ---------------------------------------------------------------------------
 // Forwards
 
@@ -16,7 +18,7 @@ typedef char yS8;
 typedef unsigned short yU16;
 typedef short yS16;
 typedef unsigned char yU8;
-typedef unsigned int ySize;
+typedef size_t ySize;
 typedef int yFlag;
 
 typedef yS16 yOpcode;

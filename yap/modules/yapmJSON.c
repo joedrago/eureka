@@ -3,6 +3,7 @@
 #include "yapValue.h"
 #include "yapVM.h"
 
+#include <stdlib.h>
 #include "cJSON.h"
 
 static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
