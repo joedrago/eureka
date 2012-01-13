@@ -1,6 +1,6 @@
 #include "yapContext.h"
 
-#include "yapIntrinsics.h"
+#include "yapiArray.h"
 #include "yapVM.h"
 
 yapContext *yapContextCreate(void)

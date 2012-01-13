@@ -4,7 +4,7 @@ MACRO(add_lemon_files _sources )
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/core/${_basename}.c)
       set(_template ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.lt)
 
       ADD_CUSTOM_COMMAND(
@@ -24,7 +24,7 @@ MACRO(add_re2c_files _sources )
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.re.inc)
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/core/${_basename}.re.inc)
       set(_incd ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
 
       ADD_CUSTOM_COMMAND(
@@ -41,48 +41,66 @@ ENDMACRO(add_re2c_files)
 
 project(yap)
 set(yap_src
-    yapArray.h
-    yapArray.c
-    yapBlock.h
-    yapBlock.c
-    yapChunk.h
-    yapChunk.c
-    yapCode.h
-    yapCode.c
-    yapCompiler.h
-    yapCompiler.c
-    yapContext.h
-    yapContext.c
-    yapObject.h
-    yapObject.c
-    yapFrame.h
-    yapFrame.c
-    yapHash.h
-    yapHash.c
-    yapIntrinsics.c
-    yapIntrinsics.h
-    yapLexer.c
-    yapLexer.h
-    yapLexer.re
-    yapOp.h
-    yapOp.c
-    yapParser.y
-    yapSyntax.h
-    yapSyntax.c
-    yapTypes.h
-    yapTypes.c
-    yapValue.h
-    yapValue.c
-    yapVariable.h
-    yapVariable.c
-    yapVM.h
-    yapVM.c
-    yapxDot.h
-    yapxDot.c
-    yapxDisasm.h
-    yapxDisasm.c
+    core/yapArray.h
+    core/yapArray.c
+    core/yapBlock.h
+    core/yapBlock.c
+    core/yapChunk.h
+    core/yapChunk.c
+    core/yapCode.h
+    core/yapCode.c
+    core/yapCompiler.h
+    core/yapCompiler.c
+    core/yapContext.h
+    core/yapContext.c
+    core/yapObject.h
+    core/yapObject.c
+    core/yapFrame.h
+    core/yapFrame.c
+    core/yapHash.h
+    core/yapHash.c
+    core/yapLexer.c
+    core/yapLexer.h
+    core/yapLexer.re
+    core/yapOp.h
+    core/yapOp.c
+    core/yapParser.y
+    core/yapSyntax.h
+    core/yapSyntax.c
+    core/yapTypes.h
+    core/yapTypes.c
+    core/yapValue.h
+    core/yapValue.c
+    core/yapVariable.h
+    core/yapVariable.c
+    core/yapVM.h
+    core/yapVM.c
 )
-add_lemon_files(yap_src yapParser.y)
-add_re2c_files(yap_src yapLexer.re)
-add_library(yap ${yap_src})
+
+set(yap_intrinsics
+    intrinsics/yapiArray.h
+    intrinsics/yapiArray.c
+)
+
+set(yap_modules
+)
+
+set(yap_extras
+    extras/yapxDot.h
+    extras/yapxDot.c
+    extras/yapxDisasm.h
+    extras/yapxDisasm.c
+)
+
+include_directories(core intrinsics modules extras)
+
+add_lemon_files(yap_src core/yapParser.y)
+add_re2c_files(yap_src core/yapLexer.re)
+
+add_library(yap
+    ${yap_src}
+    ${yap_intrinsics}
+    ${yap_modules}
+    ${yap_extras}
+)
 

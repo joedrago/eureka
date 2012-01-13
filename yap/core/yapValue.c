@@ -2,7 +2,7 @@
 
 #include "yapFrame.h"
 #include "yapHash.h"
-#include "yapIntrinsics.h"
+#include "yapiArray.h"
 #include "yapObject.h"
 #include "yapLexer.h"
 #include "yapVariable.h"

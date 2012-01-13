@@ -11,8 +11,6 @@ if(MSVC)
     set(CMAKE_C_FLAGS /wd4996)
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/yap)
-
 if(APPLE)
     add_definitions(-DPLATFORM_OSX)
 else()
@@ -25,11 +23,7 @@ else()
     endif()
 endif()
 
-add_subdirectory(lemon)
+add_subdirectory(external)
 add_subdirectory(yap)
-add_subdirectory(yaptest)
-add_subdirectory(yapconsole)
-if(APPLE)
-    add_subdirectory(yapgame)
-endif()
+add_subdirectory(demos)
 

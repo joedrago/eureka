@@ -1,4 +1,4 @@
-#include "yapIntrinsics.h"
+#include "yapiArray.h"
 
 #include "yapTypes.h"
 #include "yapHash.h"
