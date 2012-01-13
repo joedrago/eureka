@@ -3,14 +3,15 @@
 #include "yapBlock.h"
 #include "yapOp.h"
 
-yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block, yU32 prevStackCount, struct yapValue *thisVal)
+yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount)
 {
     yapFrame *frame = (yapFrame *)yapAlloc(sizeof(yapFrame));
     frame->locals = yapHashCreate(0);
     frame->type = type;
+    frame->thisVal = thisVal;
     frame->block = block;
     frame->prevStackCount = prevStackCount;
-    frame->thisVal = thisVal;
+    frame->argCount = argCount;
     yapFrameReset(frame, yFalse);
     return frame;
 }

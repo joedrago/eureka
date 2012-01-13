@@ -81,6 +81,13 @@ void yapArrayInject(yapArray *p, void *v, int n)
     p->data[index] = v;
 }
 
+void yapArrayUnshift(yapArray *p, void *v)
+{
+    yapArrayPush(p, NULL); // make some room!
+    memmove(&p->data[1], &p->data[0], sizeof(void*) * (p->count - 1)); // this might be a no-op if the array was empty. This is okay.
+    p->data[0] = v;
+}
+
 void yapArrayShrink(yapArray *p, int n, yapDestroyCB cb)
 {
     while(p->count > n)

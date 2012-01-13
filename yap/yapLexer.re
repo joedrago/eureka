@@ -28,6 +28,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "\"\"\""        { goto heredoc; }
     "//"            { goto comment; }
     "#"             { goto comment; }
+    "..."           { return YTT_ELLIPSIS; }
     "&&"            { return YTT_AND; }
     "&="            { return YTT_BITWISE_ANDEQUALS; }
     "&"             { return YTT_BITWISE_AND; }

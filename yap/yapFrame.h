@@ -10,6 +10,12 @@ struct yapValue;
 
 // ---------------------------------------------------------------------------
 
+// Argument Values
+enum
+{
+    YAV_ALL_ARGS = (-1)
+};
+
 enum
 {
     YFT_ANY = 0,                       // "any type", used in function calls
@@ -31,9 +37,10 @@ typedef struct yapFrame
     struct yapValue *thisVal;          // In function scope, it is "this"
     yU32 type;                         // YFT_*
     yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
+    yU32 argCount;                     // Number of args available on the stack when entering the frame; used by varargs
 } yapFrame;
 
-yapFrame *yapFrameCreate(yU32 type, struct yapBlock *block, yU32 prevStackCount, struct yapValue *thisVal);
+yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount);
 void yapFrameReset(yapFrame *frame, yBool jumpToStart);
 void yapFrameDestroy(yapFrame *frame);
 

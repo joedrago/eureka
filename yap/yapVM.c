@@ -216,23 +216,26 @@ yapFrame *yapVMPushFrame(yapVM *vm, yapBlock *block, int argCount, yU32 frameTyp
     if(thisVal == NULL)
         thisVal = yapValueNullPtr;
 
-    // accomodate the function's arglist by padding/removing stack entries
-    if(argCount > block->argCount)
+    if(block->argCount != YAV_ALL_ARGS)
     {
-        // Too many arguments passed to this function. Pop some!
-        int i;
-        for(i = 0; i < (argCount - block->argCount); i++)
-            yapArrayPop(&vm->stack);
-    }
-    else if(block->argCount > argCount)
-    {
-        // Too few arguments -- pad with nulls
-        int i;
-        for(i = 0; i < (block->argCount - argCount); i++)
-            yapArrayPush(&vm->stack, &yapValueNull);
+        // accomodate the function's arglist by padding/removing stack entries
+        if(argCount > block->argCount)
+        {
+            // Too many arguments passed to this function. Pop some!
+            int i;
+            for(i = 0; i < (argCount - block->argCount); i++)
+                yapArrayPop(&vm->stack);
+        }
+        else if(block->argCount > argCount)
+        {
+            // Too few arguments -- pad with nulls
+            int i;
+            for(i = 0; i < (block->argCount - argCount); i++)
+                yapArrayPush(&vm->stack, &yapValueNull);
+        }
     }
 
-    frame = yapFrameCreate(frameType, block, vm->stack.count, thisVal);
+    frame = yapFrameCreate(frameType, thisVal, block, vm->stack.count, argCount);
     yapArrayPush(&vm->frames, frame);
 
     return frame;
@@ -359,7 +362,7 @@ static void yapVMPushRef(yapVM *vm, yapVariable *variable)
 static yBool yapVMCallCFunction(yapVM *vm, yapCFunction func, yU32 argCount, yapValue *thisVal)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(YFT_FUNC, NULL, vm->stack.count, thisVal);
+    yapFrame *frame = yapFrameCreate(YFT_FUNC, thisVal, NULL, vm->stack.count, argCount);
     yapArrayPush(&vm->frames, frame);
 
     retCount = func(vm, argCount);
@@ -721,6 +724,22 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
             {
                 yapArrayPush(&vm->stack, *ref->refVal);
             }
+        }
+        break;
+
+        case YOP_VARARGS:
+        {
+            int i;
+            int varargCount = frame->argCount - operand;
+            yapValue *varargsArray = yapValueArrayCreate(vm);
+
+            // Only one of these for loops will actually loop
+            for(; varargCount < 0; varargCount++)
+                yapArrayPush(&vm->stack, &yapValueNull);
+            for(; varargCount > 0; varargCount--)
+                yapArrayUnshift(varargsArray->arrayVal, yapArrayPop(&vm->stack));
+
+            yapArrayPush(&vm->stack, varargsArray);
         }
         break;
 

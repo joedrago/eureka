@@ -80,6 +80,7 @@ enum
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
     YOP_INHERITS,                      // pops [ref,v], creates a new ref to a stub object if ref=null, sets *ref to inherit from v. if X, don't actually pop v
+    YOP_VARARGS,                       // pops all but X arguments pushed for this frame, adds them to an array, and pushes the array on the stack
 
     YOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]
     YOP_COUNT                          // pops value, returns either array length and sets lastRet=1, or performs call to 'count' on obj

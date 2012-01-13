@@ -32,6 +32,7 @@
 %fallback NEGATIVE DASH.
 
 %left HEREDOC.
+%left ELLIPSIS.
 %left BITWISE_OREQUALS.
 %left BITWISE_ANDEQUALS.
 %left BITWISE_XOREQUALS.
@@ -157,7 +158,7 @@ statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
     { S = yapSyntaxCreateWhile(COND, BODY); }
 
-statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
+statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
     { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY, F.line); }
 
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
@@ -337,7 +338,7 @@ expression(E) ::= LITERALSTRING(L).
 expression(E) ::= NULL(N).
     { E = yapSyntaxCreateNull(N.line); }
 
-expression(E) ::= FUNCTION(F) LEFTPAREN ident_list(ARGS) RIGHTPAREN statement_block(BODY).
+expression(E) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
     { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY, F.line); }
 
 
@@ -403,3 +404,18 @@ ident_list(IL) ::= IDENTIFIER(I).
 
 ident_list(IL) ::= .
     { IL = yapSyntaxCreateList(YST_IDENTIFIERLIST, NULL); }
+
+// ---------------------------------------------------------------------------
+// Function Arguments
+
+%type func_args
+    { yapSyntax* }
+
+func_args(ARGS) ::= ident_list(IL).
+    { ARGS = yapSyntaxCreateFunctionArgs(IL, NULL); }
+
+func_args(ARGS) ::= ident_list(IL) COMMA ELLIPSIS IDENTIFIER(VARARGS).
+    { ARGS = yapSyntaxCreateFunctionArgs(IL, &VARARGS); }
+
+func_args(ARGS) ::= ELLIPSIS IDENTIFIER(VARARGS).
+    { ARGS = yapSyntaxCreateFunctionArgs(yapSyntaxCreateList(YST_IDENTIFIERLIST, NULL), &VARARGS); }

@@ -70,6 +70,7 @@ enum
     YST_WHILE,                         // while v: l
     YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
+    YST_FUNCTION_ARGS,                 // l.p are args, v.s is the optional name of the varargs variable
 
     YST_SCOPE,                         // arbitrary scope block executing v.p statement list
 
@@ -124,6 +125,7 @@ yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *
 yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body, int line);
+yapSyntax *yapSyntaxCreateFunctionArgs(yapSyntax *args, struct yapToken *varargs);
 yapSyntax *yapSyntaxCreateScope(yapSyntax *body);
 
 void yapSyntaxDestroy(yapSyntax *syntax);

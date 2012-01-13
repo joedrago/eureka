@@ -192,8 +192,6 @@ enum
     ASM_SETVAR = (1 << 2)
 };
 
-#define ASM_ALL_ARGS (-1)
-
 #define asmFunc(NAME) \
 yS32 yapAssemble ## NAME (yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, yS32 keep, yU32 flags)
 typedef yS32(*yapAssembleFunc)(yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, yS32 keep, yU32 flags);
@@ -228,6 +226,7 @@ asmFunc(IfElse);
 asmFunc(While);
 asmFunc(For);
 asmFunc(Function);
+asmFunc(FunctionArgs);
 asmFunc(With);
 asmFunc(Scope);
 
@@ -290,13 +289,14 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleWhile },           // YST_WHILE
     { yapAssembleFor },             // YST_FOR
     { yapAssembleFunction },        // YST_FUNCTION
+    { yapAssembleFunctionArgs },    // YST_FUNCTION_ARGS
     { yapAssembleScope },           // YST_SCOPE
 };
 
 // This function ensures that what we're being asked to keep is what we offered
 int asmPad(yapCode *code, int keep, int offer, int line)
 {
-    if(keep == ASM_ALL_ARGS)
+    if(keep == YAV_ALL_ARGS)
     {
         keep = offer;
     }
@@ -406,7 +406,7 @@ asmFunc(Call)
     yapSyntax *args = syntax->r.p;
     int argCount;
 
-    argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
+    argCount = asmDispatch[args->type].assemble(compiler, dst, args, YAV_ALL_ARGS, ASM_NORMAL);
 
     asmDispatch[func->type].assemble(compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
 
@@ -434,7 +434,7 @@ asmFunc(StringFormat)
 {
     yapSyntax *format = syntax->l.p;
     yapSyntax *args   = syntax->r.p;
-    int argCount = asmDispatch[args->type].assemble(compiler, dst, args, ASM_ALL_ARGS, ASM_NORMAL);
+    int argCount = asmDispatch[args->type].assemble(compiler, dst, args, YAV_ALL_ARGS, ASM_NORMAL);
     asmDispatch[format->type].assemble(compiler, dst, format, 1, ASM_NORMAL);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_FORMAT, argCount, syntax->line);
@@ -587,7 +587,7 @@ asmFunc(Var)
 asmFunc(Return)
 {
     yapSyntax *expr = syntax->v.p;
-    int retCount = asmDispatch[expr->type].assemble(compiler, dst, expr, ASM_ALL_ARGS, ASM_NORMAL);
+    int retCount = asmDispatch[expr->type].assemble(compiler, dst, expr, YAV_ALL_ARGS, ASM_NORMAL);
     yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_RET, retCount, syntax->line);
     return PAD(0);
@@ -600,7 +600,7 @@ asmFunc(Assignment)
     yapSyntax *r = syntax->r.p;
     int leave = (keep > 0) ? 1 : 0;
     yapCode *lvalueCode = yapCodeCreate();
-    int lvalueCount = asmDispatch[l->type].assemble(compiler, lvalueCode, l, ASM_ALL_ARGS, ASM_LVALUE|ASM_SETVAR);
+    int lvalueCount = asmDispatch[l->type].assemble(compiler, lvalueCode, l, YAV_ALL_ARGS, ASM_LVALUE|ASM_SETVAR);
     asmDispatch[r->type].assemble(compiler, dst, r, lvalueCount, ASM_NORMAL);
     yapCodeConcat(dst, lvalueCode);
     yapCodeDestroy(lvalueCode);
@@ -760,7 +760,7 @@ asmFunc(Function)
     int additionalOpsForNaming = 0;
     int valuesLeftOnStack = 1;
 
-    int argCount = asmDispatch[args->type].assemble(compiler, code, args, ASM_ALL_ARGS, ASM_VAR | ASM_LVALUE);
+    int argCount = asmDispatch[args->type].assemble(compiler, code, args, YAV_ALL_ARGS, ASM_VAR | ASM_LVALUE);
     asmDispatch[body->type].assemble(compiler, code, body, 0, ASM_NORMAL);
     yapCodeGrow(code, 1);
     yapCodeAppend(code, YOP_RET, 0, syntax->line);
@@ -781,6 +781,30 @@ asmFunc(Function)
     };
     compiler->chunk->hasFuncs = yTrue;
     return PAD(valuesLeftOnStack);
+}
+
+asmFunc(FunctionArgs)
+{
+    int argCount;
+    int varargsOpIndex = 0;
+    yapSyntax *args = syntax->l.p;
+    const char *varargsName = syntax->v.s;
+    if(varargsName)
+    {
+        yapCodeGrow(dst, 3);
+        varargsOpIndex = yapCodeAppend(dst, YOP_VARARGS, 0, args->line);
+        yapCodeAppend(dst, YOP_VARREG_KS, yapArrayPushUniqueString(&compiler->chunk->kStrings, yapStrdup(varargsName)), syntax->line);
+        yapCodeAppend(dst, YOP_SETVAR, 0, syntax->line);
+    }
+
+    argCount = asmDispatch[args->type].assemble(compiler, dst, args, keep, flags);
+
+    if(varargsName)
+    {
+        dst->ops[varargsOpIndex].operand = argCount;
+        return YAV_ALL_ARGS;
+    }
+    return argCount;
 }
 
 asmFunc(Scope)
@@ -813,7 +837,7 @@ asmFunc(ExpressionList)
     for(i = 0; i < syntax->v.a->count; i++)
     {
         int index = (reverseOrder) ? (syntax->v.a->count - 1) - i : i;
-        int keepIt = ((keep == ASM_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
+        int keepIt = ((keep == YAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
         yapSyntax *child = (yapSyntax *)syntax->v.a->data[index];
         keepCount += asmDispatch[child->type].assemble(compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
         if(flags & ASM_SETVAR)

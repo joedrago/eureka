@@ -28,31 +28,30 @@ static yU32 make_array(struct yapVM *vm, yU32 argCount)
 
 yU32 array_push(struct yapVM *vm, yU32 argCount)
 {
-    yapValue *a = yapVMThis(vm);
-    if(a && (a->type == YVT_ARRAY))
+    if(argCount)
     {
         int i;
-        for(i=0; i < argCount; i++)
+        yapValue *a = yapVMGetArg(vm, 0, argCount);
+        for(i = 1; i < argCount; i++)
         {
             yapValue *v = yapVMGetArg(vm, i, argCount);
             yapValueArrayPush(vm, a, v);
         }
+        yapVMPopValues(vm, argCount);
     }
-    yapVMPopValues(vm, argCount);
     return 0;
 }
 
 yU32 array_length(struct yapVM *vm, yU32 argCount)
 {
-    yapValue *a = yapVMThis(vm);
-    yapVMPopValues(vm, argCount);
-    if(a && (a->type == YVT_ARRAY))
+    if(argCount)
     {
+        yapValue *a = yapVMGetArg(vm, 0, argCount);
         yapValue *c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
+        yapVMPopValues(vm, argCount);
         yapArrayPush(&vm->stack, c);
-        return 1;
     }
-    return 0;
+    return 1;
 }
 
 static yU32 make_object(struct yapVM *vm, yU32 argCount)

@@ -223,6 +223,15 @@ yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, y
     return syntax;
 }
 
+yapSyntax *yapSyntaxCreateFunctionArgs(yapSyntax *args, struct yapToken *varargs)
+{
+    int line = (args) ? args->line : (varargs) ? varargs->line : 0;
+    yapSyntax *syntax = yapSyntaxCreate(YST_FUNCTION_ARGS, line);
+    syntax->l.p = args;
+    syntax->v.s = (varargs) ? yapTokenToString(varargs) : NULL;
+    return syntax;
+}
+
 yapSyntax *yapSyntaxCreateScope(yapSyntax *body)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_SCOPE, body->line);
