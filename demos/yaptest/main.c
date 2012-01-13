@@ -1,10 +1,12 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapChunk.h"
-#include "yapxDisasm.h"
-#include "yapxDot.h"
 #include "yapVM.h"
 #include "yapHash.h"
+
+#ifdef YAP_ENABLE_EXT_DOT
+#include "yapxDot.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +28,7 @@ void loadChunk(const char *code)
 
 void outputDot(const char *code)
 {
+#ifdef YAP_ENABLE_EXT_DOT
     yapCompiler *compiler = yapCompilerCreate();
     yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
     if(compiler->root)
@@ -33,6 +36,9 @@ void outputDot(const char *code)
     else
         printf("ERROR: Failed to build syntax tree\n");
     yapCompilerDestroy(compiler);
+#else
+    printf("Dot support is disabled! (YAP_ENABLE_EXT_DOT)\n");
+#endif
 }
 
 // ---------------------------------------------------------------------------

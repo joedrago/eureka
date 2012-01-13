@@ -13,7 +13,7 @@ add_executable(yaptest
 )
 target_link_libraries (yaptest yap)
 
-if(YAP_MOD_JSON)
+if(YAP_ENABLE_MOD_JSON)
     target_link_libraries (yaptest cjson)
 endif()
 

@@ -88,7 +88,11 @@ void yapVMEval(yapVM *vm, const char *text, yU32 evalOpts)
 
             if(evalOpts & YEO_DUMP)
             {
+#ifdef YAP_ENABLE_EXT_DISASM
                 yapChunkDump(chunk);
+#else
+                yapAssert(0 && "Requesting disasm dump when disasm support is disabled");
+#endif
             }
 
 #ifdef YAP_TRACE_OPS

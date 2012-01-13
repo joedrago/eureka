@@ -87,7 +87,7 @@ set(yap_modules
     modules/yapmAll.h
 )
 
-if(YAP_MOD_JSON)
+if(YAP_ENABLE_MOD_JSON)
     include_directories(${cjson_SOURCE_DIR})
     set(yap_modules ${yap_modules}
         modules/yapmJSON.c
@@ -96,11 +96,21 @@ if(YAP_MOD_JSON)
 endif()
 
 set(yap_extras
-    extras/yapxDot.h
-    extras/yapxDot.c
-    extras/yapxDisasm.h
-    extras/yapxDisasm.c
 )
+
+if(YAP_ENABLE_EXT_DISASM)
+    set(yap_extras ${yap_extras}
+        extras/yapxDisasm.h
+        extras/yapxDisasm.c
+    )
+endif()
+
+if(YAP_ENABLE_EXT_DOT)
+    set(yap_extras ${yap_extras}
+        extras/yapxDot.h
+        extras/yapxDot.c
+    )
+endif()
 
 include_directories(core intrinsics modules extras)
 

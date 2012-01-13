@@ -13,7 +13,7 @@ add_executable(yapconsole
 )
 target_link_libraries (yapconsole yap)
 
-if(YAP_MOD_JSON)
+if(YAP_ENABLE_MOD_JSON)
     target_link_libraries (yapconsole cjson)
 endif()
 
