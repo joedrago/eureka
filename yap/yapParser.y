@@ -108,7 +108,7 @@ chunk ::= statement_list(L).
     { yapSyntaxDestroy($$); }
 
 statement_list(L) ::= statement_list(OL) statement(S).
-    { L = yapSyntaxListAppend(OL, S); }
+    { L = yapSyntaxListAppend(OL, S, 0); }
 
 statement_list(L) ::= statement(S).
     { L = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
@@ -225,7 +225,10 @@ paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
     { yapSyntaxDestroy($$); }
 
 expr_list(EL) ::= expr_list(OL) COMMA expression(E).
-    { EL = yapSyntaxListAppend(OL, E); }
+    { EL = yapSyntaxListAppend(OL, E, 0); }
+
+expr_list(EL) ::= expr_list(OL) FATCOMMA expression(E).
+    { EL = yapSyntaxListAppend(OL, E, YSLF_AUTOLITERAL); }
 
 expr_list(EL) ::= expression(E).
     { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, E); }
@@ -397,7 +400,7 @@ lvalue_indexable(L) ::= IDENTIFIER(I).
     { yapSyntaxDestroy($$); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
-    { IL = yapSyntaxListAppend(OL, yapSyntaxCreateIdentifier(&I)); }
+    { IL = yapSyntaxListAppend(OL, yapSyntaxCreateIdentifier(&I), 0); }
 
 ident_list(IL) ::= IDENTIFIER(I).
     { IL = yapSyntaxCreateList(YST_IDENTIFIERLIST, yapSyntaxCreateIdentifier(&I)); }

@@ -52,7 +52,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     ">>"            { return YTT_SHIFTRIGHT; }
     "<="            { return YTT_LESSTHANOREQUAL; }
     "<"             { return YTT_LESSTHAN; }
-    "=>"            { return YTT_COMMA; } /* The fat comma (see Perl) */
+    "=>"            { return YTT_FATCOMMA; } /* The fat comma! (see Perl) */
     ","             { return YTT_COMMA; }
     ";"             { return YTT_SEMI; }
     "+="            { return YTT_PLUSEQUALS; }

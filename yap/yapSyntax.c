@@ -94,13 +94,20 @@ yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
     return syntax;
 }
 
-yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr)
+yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr, yU32 flags)
 {
     if(expr != NULL)
     {
+        int index;
         if(!list->line)
             list->line = expr->line;
-        yapArrayPush(list->v.a, expr);
+        index = yapArrayPush(list->v.a, expr);
+        if((flags & YSLF_AUTOLITERAL) && (index > 0))
+        {
+            yapSyntax *toLiteral = (yapSyntax *)list->v.a->data[index - 1];
+            if(toLiteral->type == YST_IDENTIFIER)
+                toLiteral->type = YST_KSTRING;
+        }
     }
     return list;
 }

@@ -102,6 +102,12 @@ enum
     CKO_NEGATIVE = (1 << 0)
 };
 
+// yapSyntax List Flags
+enum
+{
+    YSLF_AUTOLITERAL = (1 << 0)        // Fat comma support, as in Perl. Morphs the bareword identifier prior to the fat comma into a literal string
+};
+
 yapSyntax *yapSyntaxCreate(yU32 type, int line);
 yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
 yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts);
@@ -111,7 +117,7 @@ yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushTh
 yapSyntax *yapSyntaxCreateNull(int line);
 yapSyntax *yapSyntaxCreateThis(int line);
 yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
-yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr);
+yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr, yU32 flags);
 yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
 yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
 yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
