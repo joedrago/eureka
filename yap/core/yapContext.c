@@ -1,6 +1,4 @@
 #include "yapContext.h"
-
-#include "yapiArray.h"
 #include "yapVM.h"
 
 yapContext *yapContextCreate(void)
@@ -11,8 +9,6 @@ yapContext *yapContextCreate(void)
 #endif
     context = yapAlloc(sizeof(yapContext));
     context->vm = yapVMCreate();
-    yapValueTypeRegisterAllBasicTypes(context->vm);
-    yapIntrinsicsRegister(context->vm);
     return context;
 }
 

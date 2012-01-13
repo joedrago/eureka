@@ -83,7 +83,17 @@ set(yap_intrinsics
 )
 
 set(yap_modules
+    modules/yapmAll.c
+    modules/yapmAll.h
 )
+
+if(YAP_MOD_JSON)
+    include_directories(${cjson_SOURCE_DIR})
+    set(yap_modules ${yap_modules}
+        modules/yapmJSON.c
+        modules/yapmJSON.h
+    )
+endif()
 
 set(yap_extras
     extras/yapxDot.h

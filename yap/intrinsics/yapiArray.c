@@ -196,7 +196,8 @@ static yU32 standard_print(struct yapVM *vm, yU32 argCount)
                 printf("%f", v->floatVal);
                 break;
             default:
-                printf("***hurrrrr***");
+                v = yapValueToString(vm, v);
+                printf("%s", v->stringVal);
                 break;
             };
         }

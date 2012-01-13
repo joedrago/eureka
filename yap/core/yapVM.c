@@ -9,6 +9,9 @@
 #include "yapValue.h"
 #include "yapVariable.h"
 
+#include "yapmAll.h"
+#include "yapiArray.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,6 +123,9 @@ yapVM *yapVMCreate(void)
 {
     yapVM *vm = yapAlloc(sizeof(yapVM));
     vm->globals = yapHashCreate(0);
+    yapValueTypeRegisterAllBasicTypes(vm);
+    yapIntrinsicsRegister(vm);
+    yapModuleRegisterAll(vm);
     return vm;
 }
 
