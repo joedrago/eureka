@@ -33,6 +33,7 @@
 
 %left HEREDOC.
 %left ELLIPSIS.
+%left BREAK.
 %left BITWISE_OREQUALS.
 %left BITWISE_ANDEQUALS.
 %left BITWISE_XOREQUALS.
@@ -139,6 +140,9 @@ statement_block(B) ::= statement(S).
 
 %destructor statement
     { yapSyntaxDestroy($$); }
+
+statement(S) ::= BREAK(B) ENDSTATEMENT.
+    { S = yapSyntaxCreateBreak(B.line); }
 
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateReturn(L); }

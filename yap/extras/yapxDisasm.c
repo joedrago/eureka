@@ -36,6 +36,7 @@ void yapOpsDump(yapOp *ops, int count)
 
             HURR(YOP_CALL, "call")
             HURR(YOP_RET, "ret")
+            HURR(YOP_CLEANUP, "cleanup")
             HURR(YOP_KEEP, "keep")
             HURR(YOP_CLOSE, "close")
 
@@ -46,6 +47,7 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_IF, "if")
             HURR(YOP_ENTER, "enter")
             HURR(YOP_LEAVE, "leave")
+            HURR(YOP_CONTINUE, "continue")
             HURR(YOP_BREAK, "break")
 
             HURR(YOP_ADD, "add")

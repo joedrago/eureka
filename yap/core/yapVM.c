@@ -405,6 +405,20 @@ yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep)
     return vm->stack.data[(vm->stack.count - 1) - howDeep];
 }
 
+static yapVMFrameCleanup(yapVM *vm, yapFrame *frame)
+{
+    if(frame->cleanupCount)
+    {
+        int i;
+        for(i=0; i < frame->cleanupCount; i++)
+        {
+            int index = ((vm->stack.count - 1) - vm->lastRet) - i;
+            vm->stack.data[index] = NULL;
+        }
+        yapArraySquash(&vm->stack);
+    }
+}
+
 struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
@@ -413,6 +427,7 @@ struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
     {
         while(frame && !(frame->type & frameTypeToFind))
         {
+            yapVMFrameCleanup(vm, frame);
             yapFrameDestroy(frame);
             yapArrayPop(&vm->frames);
             frame = yapArrayTop(&vm->frames);
@@ -421,6 +436,7 @@ struct yapFrame *yapVMPopFrames(yapVM *vm, yU32 frameTypeToFind, yBool keepIt)
 
     if(frame && !keepIt)
     {
+        yapVMFrameCleanup(vm, frame);
         yapFrameDestroy(frame);
         yapArrayPop(&vm->frames);
         frame = yapArrayTop(&vm->frames);
@@ -457,6 +473,57 @@ yapValue * yapVMThis(yapVM *vm)
     return yapValueNullPtr;
 }
 
+#ifdef YAP_TRACE_OPS
+static const char *yapValueDebugString(yapVM *vm, yapValue *v)
+{
+    static char buffer[2048];
+    static char valString[2048];
+
+    valString[0] = 0;
+    switch(v->type)
+    {
+    case YVT_INT:
+        sprintf(valString, "(%d)", v->intVal);
+        break;
+    case YVT_FLOAT:
+        sprintf(valString, "(%2.2f)", v->floatVal);
+        break;
+    case YVT_STRING:
+        sprintf(valString, "(%s)", v->stringVal);
+        break;
+    case YVT_ARRAY:
+        sprintf(valString, "(count: %d)", v->arrayVal->count);
+        break;
+    }
+
+    sprintf(buffer, "%s 0x%p %s", yapValueTypeName(vm, v->type), v, valString);
+    return buffer;
+}
+
+static void yapVMLogState(yapVM *vm)
+{
+    int i;
+
+    printf("\n\n\n------------------------------------------\n");
+
+    if(vm->frames.count > 0)
+    {
+        yapFrame *frame = yapArrayTop(&vm->frames);
+        printf("0x%p [cleanup:%d][lastRet:%d] IP: ", frame, frame->cleanupCount, vm->lastRet);
+        yapOpsDump(frame->ip, 1);
+    }
+
+    printf("\n");
+    printf("-- Stack --\n");
+
+    for(i=0; i<vm->stack.count; i++)
+    {
+        yapValue *v = (yapValue*)vm->stack.data[vm->stack.count - 1 - i];
+        printf("%2.2d: %s\n", i, yapValueDebugString(vm, v));
+    }
+}
+#endif
+
 void yapVMLoop(yapVM *vm, yBool stopAtPop)
 {
     yapFrame *frame = yapArrayTop(&vm->frames);
@@ -485,10 +552,8 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         operand = frame->ip->operand;
 
 #ifdef YAP_TRACE_OPS
-        printf(" -> %d\n", vm->stack.count);
-        yapOpsDump(frame->ip, 1);
+        yapVMLogState(vm);
 #endif
-
         switch(opcode)
         {
         case YOP_NOP:
@@ -857,6 +922,13 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
         };
         break;
 
+        case YOP_CLEANUP:
+        {
+            frame->cleanupCount += operand;
+            vm->lastRet = 0; // reset this here in case as a 'normal' termination of a for loop won't ever set it, but it is legal to override it with a return
+        }
+        break;
+
         case YOP_KEEP:
         {
             int keepCount = operand;
@@ -880,6 +952,7 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
                     yapArrayPush(&vm->stack, &yapValueNull);
                 }
             }
+            vm->lastRet = 0;
         }
         break;
 
@@ -961,25 +1034,24 @@ void yapVMLoop(yapVM *vm, yBool stopAtPop)
 
         case YOP_BREAK:
         {
-            if(operand)
+            // a C-style break. Find the innermost loop and kill it.
+            frame = yapVMPopFrames(vm, YFT_LOOP, yFalse);
+            continueLooping = (frame) ? yTrue : yFalse;
+        }
+        break;
+
+        case YOP_CONTINUE:
+        {
+            // a C-style continue. Find the innermost loop and reset it.
+            frame = yapVMPopFrames(vm, YFT_LOOP, yTrue);
+            if(frame)
             {
-                // a C-style continue. Find the innermost loop and reset it.
-                frame = yapVMPopFrames(vm, YFT_LOOP, yTrue);
-                if(frame)
-                {
-                    yapFrameReset(frame, yTrue);
-                    newFrame = yTrue;
-                }
-                else
-                {
-                    continueLooping = yFalse;
-                }
+                yapFrameReset(frame, yTrue);
+                newFrame = yTrue;
             }
             else
             {
-                // a C-style break. Find the innermost loop and kill it.
-                frame = yapVMPopFrames(vm, YFT_LOOP, yFalse);
-                continueLooping = (frame) ? yTrue : yFalse;
+                continueLooping = yFalse;
             }
         }
         break;

@@ -38,6 +38,7 @@ typedef struct yapFrame
     yU32 type;                         // YFT_*
     yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
     yU32 argCount;                     // Number of args available on the stack when entering the frame; used by varargs
+    yU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
 } yapFrame;
 
 yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount);

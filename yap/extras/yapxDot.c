@@ -372,6 +372,12 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
+    case YST_BREAK:
+    {
+        strcpy(label, "Break");
+    }
+    break;
+
     case YST_RETURN:
     {
         strcpy(label, "Return");

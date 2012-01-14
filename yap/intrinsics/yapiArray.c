@@ -47,7 +47,9 @@ yU32 array_length(struct yapVM *vm, yU32 argCount)
     if(argCount)
     {
         yapValue *a = yapVMGetArg(vm, 0, argCount);
-        yapValue *c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
+        yapValue *c = yapValueNullPtr;
+        if(a && (a->type == YVT_ARRAY))
+            c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
         yapVMPopValues(vm, argCount);
         yapArrayPush(&vm->stack, c);
     }
@@ -278,6 +280,21 @@ static yU32 import(struct yapVM *vm, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+yU32 type(struct yapVM *vm, yU32 argCount)
+{
+    if(argCount)
+    {
+        yapValue *a = yapVMGetArg(vm, 0, argCount);
+        yapValue *ret = yapValueSetKString(vm, yapValueAcquire(vm), (char *)yapValueTypeName(vm, a->type));
+        yapVMPopValues(vm, argCount);
+        yapArrayPush(&vm->stack, ret);
+        return 1;
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
     yapValue *arrayGlobal = yapValueObjectCreate(vm, NULL, 0);
@@ -291,6 +308,7 @@ void yapIntrinsicsRegister(struct yapVM *vm)
     yapVMRegisterGlobalFunction(vm, "keys", keys);
     yapVMRegisterGlobalFunction(vm, "super", super);
     yapVMRegisterGlobalFunction(vm, "eval", eval);
+    yapVMRegisterGlobalFunction(vm, "type", type);
 
     // TODO: Move these out of here
     yapVMRegisterGlobalFunction(vm, "print", standard_print);

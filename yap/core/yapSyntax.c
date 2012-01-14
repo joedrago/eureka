@@ -187,6 +187,12 @@ yapSyntax *yapSyntaxCreateVar(yapSyntax *expr)
     return syntax;
 }
 
+yapSyntax *yapSyntaxCreateBreak(int line)
+{
+    yapSyntax *syntax = yapSyntaxCreate(YST_BREAK, line);
+    return syntax;
+}
+
 yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr)
 {
     yapSyntax *syntax = yapSyntaxCreate(YST_RETURN, expr->line);

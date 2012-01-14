@@ -35,7 +35,8 @@ enum
 
     YOP_CALL,                          // calls function with X args, using the current frame's stack pushes as args
     YOP_RET,                           // leave current call, returning X items on the stack
-    YOP_KEEP,                          // Pad/trim most recent RET to X args
+    YOP_CLEANUP,                       // Increments the current frame's count (by X) of stack elements that must be cleaned up underneath the args during a KEEP
+    YOP_KEEP,                          // Pad/trim most recent RET to X args, perform "stack cleanup"
     YOP_CLOSE,                         // add closure variables to the YVT_BLOCK on top of the stack (harvested from frame stack)
 
     YOP_START,                         // no-op, marks the beginning of a loop for yapFrameReset
@@ -45,7 +46,8 @@ enum
     YOP_IF,                            // pop value, then X+1 blocks. run 0 if true, 1 if false and present
     YOP_ENTER,                         // pops block, pushes frame and enters new scope (a non-function CALL). X == YFT_*
     YOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
-    YOP_BREAK,                         // pop/finds LOOP frame. if 1, reset frame and ip. if 0, pop loop. (BREAK 0 = break, BREAK 1 = continue)
+    YOP_CONTINUE,                      // resets LOOP frame.
+    YOP_BREAK,                         // Pops LOOP frame.
 
     YOP_ADD,                           // pops [a,b], pushes a+b
     YOP_SUB,                           // pops [a,b], pushes a-b. Leaves [a,b] on stack if X=1

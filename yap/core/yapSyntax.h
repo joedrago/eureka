@@ -64,6 +64,7 @@ enum
     YST_ASSIGNMENT,                    // l = r
     YST_INHERITS,                      // ensures l is an object, and then makes r inherit from l
     YST_VAR,                           // var s (= r)
+    YST_BREAK,                         // break;
     YST_RETURN,                        // return a:r
 
     YST_IFELSE,                        // if v: l else r
@@ -126,6 +127,7 @@ yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr);
 yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
 yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);
 yapSyntax *yapSyntaxCreateVar(yapSyntax *expr);
+yapSyntax *yapSyntaxCreateBreak(int line);
 yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr);
 yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
 yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);

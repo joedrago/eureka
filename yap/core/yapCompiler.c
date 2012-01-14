@@ -219,6 +219,7 @@ asmFunc(Unary);
 asmFunc(Binary);
 asmFunc(ShortCircuit);
 asmFunc(Var);
+asmFunc(Break);
 asmFunc(Return);
 asmFunc(Assignment);
 asmFunc(Inherits);
@@ -283,6 +284,7 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleAssignment },      // YST_ASSIGNMENT
     { yapAssembleInherits },        // YST_INHERITS
     { yapAssembleVar },             // YST_VAR
+    { yapAssembleBreak },           // YST_BREAK
     { yapAssembleReturn },          // YST_RETURN
 
     { yapAssembleIfElse },          // YST_IFELSE
@@ -584,6 +586,13 @@ asmFunc(Var)
     return PAD(1);
 }
 
+asmFunc(Break)
+{
+    yapCodeGrow(dst, 1);
+    yapCodeAppend(dst, YOP_BREAK, 0, syntax->line);
+    return PAD(0);
+}
+
 asmFunc(Return)
 {
     yapSyntax *expr = syntax->v.p;
@@ -678,7 +687,7 @@ asmFunc(While)
     asmDispatch[body->type].assemble(compiler, loop, body, 0, ASM_NORMAL);
 
     yapCodeGrow(loop, 1);
-    yapCodeAppend(loop, YOP_BREAK, 1, syntax->line);
+    yapCodeAppend(loop, YOP_CONTINUE, 0, syntax->line);
 
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
@@ -701,11 +710,12 @@ asmFunc(For)
     // Get the iterable onto the stack
     asmDispatch[iter->type].assemble(compiler, dst, iter, 1, ASM_NORMAL);
 
-    yapCodeGrow(loop, 4);
+    yapCodeGrow(loop, 5);
     yapCodeAppend(loop, YOP_DUPE, 0, syntax->line);    // stash the object itself
     yapCodeAppend(loop, YOP_COUNT, 0, syntax->line);   // using the dupe, call .count(, syntax->line) to push the count on top
     yapCodeAppend(loop, YOP_KEEP, 1, syntax->line);    // keep only one value from the call to .count()
     yapCodeAppend(loop, YOP_PUSHI, 0, syntax->line);   // init our counter to zero
+    yapCodeAppend(loop, YOP_CLEANUP, 3, syntax->line); // Mark the 3 'for loop' items as things to clean up
 
     // At this point, the stack should look like:
     // -- top --
@@ -733,13 +743,12 @@ asmFunc(For)
     yapCodeGrow(loop, 3);
     yapCodeAppend(loop, YOP_PUSHI, 1, syntax->line);
     yapCodeAppend(loop, YOP_ADD, 0, syntax->line);
-    yapCodeAppend(loop, YOP_BREAK, 1, syntax->line);
+    yapCodeAppend(loop, YOP_CONTINUE, 0, syntax->line);
 
     index = yapBlockConvertCode(loop, compiler->chunk, 0);
 
-    yapCodeGrow(dst, 1);
+    yapCodeGrow(dst, 2);
     yapCodeAppend(dst, YOP_PUSH_KB, index, syntax->line);
-    yapCodeGrow(dst, 1);
     yapCodeAppend(dst, YOP_ENTER, YFT_LOOP, syntax->line);
 
     return PAD(0);

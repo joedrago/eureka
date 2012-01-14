@@ -12,6 +12,7 @@ yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *b
     frame->block = block;
     frame->prevStackCount = prevStackCount;
     frame->argCount = argCount;
+    frame->cleanupCount = 0;
     yapFrameReset(frame, yFalse);
     return frame;
 }
