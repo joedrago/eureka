@@ -29,7 +29,7 @@ MACRO(add_re2c_files _sources )
 
       ADD_CUSTOM_COMMAND(
          OUTPUT ${_out}
-         COMMAND re2c
+         COMMAND ${YAP_RE2C_PATH}
          ARGS
          ${_in} > ${_out}
          DEPENDS ${_in}

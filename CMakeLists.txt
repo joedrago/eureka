@@ -19,6 +19,8 @@ if(YAP_ENABLE_EXT_DOT)
     add_definitions(-DYAP_ENABLE_EXT_DOT=1)
 endif()
 
+set(YAP_RE2C_PATH "re2c" CACHE STRING "Path to re2c executable.")
+
 # ----------------------------------------------------------------------------
 
 if(UNIX)
