@@ -11,5 +11,5 @@ include_directories (
 add_executable(yaptest
     main.c
 )
-target_link_libraries (yaptest ${YAP_MOD_LIBS} yap)
+target_link_libraries (yaptest yap ${YAP_MOD_LIBS})
 

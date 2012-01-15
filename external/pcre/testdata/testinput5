@@ -828,11 +828,9 @@ correctly, but that messes up comparisons). --/
 /a+#хaa
   z#х?/8x<any>BZ 
 
-/\g{A}xxx#bXX(?'A'123)
-(?'A'456)/8x<any>BZ
+/\g{A}xxx#bXX(?'A'123)(?'A'456)/8x<any>BZ
 
-/\g{A}xxx#bх(?'A'123)
-(?'A'456)/8x<any>BZ
+/\g{A}xxx#bх(?'A'123)(?'A'456)/8x<any>BZ
 
 /a+/8
     a\x{123}aa\>1
