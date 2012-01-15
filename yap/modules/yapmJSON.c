@@ -75,17 +75,19 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
 static yU32 json_parse(struct yapVM *vm, yU32 argCount)
 {
     yapValue *ret = yapValueNullPtr;
-    yapValue *jsonValue = yapVMGetArg(vm, 0, argCount);
-    if(jsonValue && (jsonValue->type == YVT_STRING))
+    cJSON *json;
+    yapValue *jsonValue;
+
+    if(!yapVMGetArgs(vm, argCount, "s", &jsonValue))
+        return yapVMArgsFailure(vm, argCount, "json_parse([string] json)");
+
+    json = cJSON_Parse(jsonValue->stringVal);
+    if(json)
     {
-        cJSON *json = cJSON_Parse(jsonValue->stringVal);
-        if(json)
-        {
-            ret = jsonRecurse(vm, json);
-            cJSON_Delete(json);
-        }
+        ret = jsonRecurse(vm, json);
+        cJSON_Delete(json);
     }
-    yapVMPopValues(vm, argCount);
+
     yapArrayPush(&vm->stack, ret);
     return 1;
 }

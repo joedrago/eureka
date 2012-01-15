@@ -4,9 +4,18 @@ project(yap)
 
 # ----------------------------------------------------------------------------
 
+set(YAP_MOD_LIBS)
+
 set(YAP_ENABLE_MOD_JSON "ON" CACHE BOOL "Enables JSON support.")
 if(YAP_ENABLE_MOD_JSON)
     add_definitions(-DYAP_ENABLE_MOD_JSON=1)
+    set(YAP_MOD_LIBS ${YAP_MOD_LIBS} cjson)
+endif()
+
+set(YAP_ENABLE_MOD_PCRE "ON" CACHE BOOL "Enables PCRE support.")
+if(YAP_ENABLE_MOD_PCRE)
+    add_definitions(-DYAP_ENABLE_MOD_PCRE=1 -DPCRE_STATIC=1)
+    set(YAP_MOD_LIBS ${YAP_MOD_LIBS} pcre)
 endif()
 
 set(YAP_ENABLE_EXT_DISASM "ON" CACHE BOOL "Enables Yap disassembly support.")

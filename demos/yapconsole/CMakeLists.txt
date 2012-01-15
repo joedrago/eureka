@@ -11,9 +11,5 @@ include_directories (
 add_executable(yapconsole
     main.c
 )
-target_link_libraries (yapconsole yap)
-
-if(YAP_ENABLE_MOD_JSON)
-    target_link_libraries (yapconsole cjson)
-endif()
+target_link_libraries (yapconsole ${YAP_MOD_LIBS} yap)
 

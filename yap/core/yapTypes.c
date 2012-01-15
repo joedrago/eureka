@@ -156,3 +156,12 @@ char *yapStrdup(const char *s)
     return copy;
 }
 
+char *yapSubstrdup(const char *s, int start, int end)
+{
+    int len = end - start;
+    char *copy = yapAlloc(len+1);
+    memcpy(copy, &s[start], len);
+    copy[len] = 0;
+    return copy;
+}
+

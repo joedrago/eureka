@@ -95,6 +95,14 @@ if(YAP_ENABLE_MOD_JSON)
     )
 endif()
 
+if(YAP_ENABLE_MOD_PCRE)
+    include_directories(${PCRE_BINARY_DIR})
+    set(yap_modules ${yap_modules}
+        modules/yapmPCRE.c
+        modules/yapmPCRE.h
+    )
+endif()
+
 set(yap_extras
 )
 

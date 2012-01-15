@@ -76,6 +76,9 @@ void yapVMPopValues(yapVM *vm, yU32 count);
 yapValue *yapVMGetValue(yapVM *vm, yU32 howDeep);  // 0 is "top of stack"
 yapValue * yapVMThis(yapVM *vm); // returns 'this' in current context
 
+yBool yapVMGetArgs(yapVM *vm, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
+int yapVMArgsFailure(yapVM *vm, int argCount, const char *errorFormat, ...); // Will always pop all arguments!
+
 yBool yapVMCallFuncByName(yapVM *vm, yapValue *thisVal, const char *name, int argCount); // returns whether or not it found it
 
 #define yapVMGetTop(VM) yapVMGetValue(VM, 0)

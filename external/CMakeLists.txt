@@ -4,3 +4,8 @@ add_subdirectory(lemon)
 if(YAP_ENABLE_MOD_JSON)
     add_subdirectory(cJSON)
 endif()
+
+if(YAP_ENABLE_MOD_PCRE)
+    set(PCRE_MINIMAL_DEFAULT "OFF")
+    add_subdirectory(pcre)
+endif()

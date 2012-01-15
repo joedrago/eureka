@@ -473,6 +473,114 @@ yapValue * yapVMThis(yapVM *vm)
     return yapValueNullPtr;
 }
 
+yBool yapVMGetArgs(yapVM *vm, int argCount, const char *argFormat, ...)
+{
+    yBool required = yTrue;
+    const char *c;
+    yapValue *v;
+    yapValue **valuePtr;
+    yapArray *leftovers = NULL;
+    int argsTaken = 0; // from the yap stack (the amount of incoming varargs solely depends on argFormat)
+    va_list args;
+    va_start(args, argFormat);
+
+    for(c = argFormat; *c; c++)
+    {
+        if(*c == '|')
+        {
+            required = yFalse;
+            continue;
+        }
+
+        if(*c == '.')
+        {
+            leftovers = va_arg(args, yapArray*);
+            break;
+        };
+
+        if(argsTaken == argCount)
+        {
+            // We have run out of incoming yap arguments!
+            // If the current argument is required, we've just failed. 
+            // If not, what we've gathered is "enough". Pop the args and return success.
+            if(!required)
+            {
+                yapVMPopValues(vm, argCount);
+                return yTrue;
+            }
+            return yFalse;
+        };
+
+        v = yapVMGetArg(vm, argsTaken, argCount);
+        if(!v)
+        {
+            // this is a very serious failure (argCount doesn't agree with yapVMGetArg)
+            yapVMSetError(vm, YVE_RUNTIME, "yapVMGetArgs(): VM stack and argCount disagree!");
+            return yFalse;
+        }
+        argsTaken++;
+
+        switch(*c)
+        {
+        default:  
+        case '?': /* can be anything */                    break;
+        case 'n': if(v->type != YVT_NULL)   return yFalse; break;
+        case 's': if(v->type != YVT_STRING) return yFalse; break;
+        case 'i': if(v->type != YVT_INT)    return yFalse; break;
+        case 'f': if(v->type != YVT_FLOAT)  return yFalse; break;
+        case 'a': if(v->type != YVT_ARRAY)  return yFalse; break;
+        case 'd': if(v->type != YVT_OBJECT) return yFalse; break; // "dict"
+        case 'o': if(v->type != YVT_OBJECT) return yFalse; break;
+        case 'c':
+            {
+                // "callable" - function, object, etc
+                if(!yapValueIsCallable(v))
+                    return yFalse;
+            }
+            break;
+        };
+
+        valuePtr = va_arg(args, yapValue**);
+        *valuePtr = v;
+    }
+
+    if(leftovers)
+    {
+        for( ; argsTaken < argCount; argsTaken++)
+        {
+            yapArrayPush(leftovers, yapVMGetArg(vm, argsTaken, argCount));
+        }
+    }
+
+    if(argsTaken != argCount)
+    {
+        // too many args!
+        return yFalse;
+    }
+
+    va_end(args);
+    yapVMPopValues(vm, argCount);
+    return yTrue;
+}
+
+// TODO: reuse code between yapVMArgsFailure and yapVMSetError
+int yapVMArgsFailure(yapVM *vm, int argCount, const char *errorFormat, ...)
+{
+    va_list args;
+    char tempStr[MAX_ERROR_LENGTH + 1];
+
+    yapVMClearError(vm);
+    va_start(args, errorFormat);
+    vsprintf(tempStr, errorFormat, args);
+    va_end(args);
+
+    vm->errorType = YVE_RUNTIME;
+    vm->error = yapStrdup(tempStr);
+
+    yapVMPopValues(vm, argCount);
+    return 0;
+}
+
 #ifdef YAP_TRACE_OPS
 static const char *yapValueDebugString(yapVM *vm, yapValue *v)
 {

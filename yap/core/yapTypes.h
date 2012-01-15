@@ -39,6 +39,7 @@ void *yapAlloc(ySize bytes);
 void *yapRealloc(void *ptr, ySize bytes);
 void yapFree(void *ptr);
 char *yapStrdup(const char *s);
+char *yapSubstrdup(const char *s, int start, int end);
 
 typedef void (*yapDestroyCB)(void *p);
 typedef void (*yapDestroyCB1)(void *arg1, void *p);

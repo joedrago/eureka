@@ -28,31 +28,31 @@ static yU32 make_array(struct yapVM *vm, yU32 argCount)
 
 yU32 array_push(struct yapVM *vm, yU32 argCount)
 {
-    if(argCount)
+    int i;
+    yapValue *a;
+    yapArray values = {0};
+    if(!yapVMGetArgs(vm, argCount, "a.", &a, &values))
+        return yapVMArgsFailure(vm, argCount, "push([array] a, ... values)");
+
+    for(i=0; i<values.count; i++)
     {
-        int i;
-        yapValue *a = yapVMGetArg(vm, 0, argCount);
-        for(i = 1; i < argCount; i++)
-        {
-            yapValue *v = yapVMGetArg(vm, i, argCount);
-            yapValueArrayPush(vm, a, v);
-        }
-        yapVMPopValues(vm, argCount);
+        yapValue *v = (yapValue *)values.data[i];
+        yapValueArrayPush(vm, a, v);
     }
+
+    yapArrayClear(&values, NULL);
     return 0;
 }
 
 yU32 array_length(struct yapVM *vm, yU32 argCount)
 {
-    if(argCount)
-    {
-        yapValue *a = yapVMGetArg(vm, 0, argCount);
-        yapValue *c = yapValueNullPtr;
-        if(a && (a->type == YVT_ARRAY))
-            c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
-        yapVMPopValues(vm, argCount);
-        yapArrayPush(&vm->stack, c);
-    }
+    yapValue *a;
+    yapValue *c = yapValueNullPtr;
+    if(!yapVMGetArgs(vm, argCount, "a", &a))
+        return yapVMArgsFailure(vm, argCount, "length([array] a)");
+
+    c = yapValueSetInt(vm, yapValueAcquire(vm), a->arrayVal->count);
+    yapArrayPush(&vm->stack, c);
     return 1;
 }
 
@@ -78,38 +78,16 @@ static void yapAppendKey(struct keyIterateInfo *info, yapHashEntry *entry)
 
 static yU32 keys(struct yapVM *vm, yU32 argCount)
 {
-    yapValue *object = NULL;
+    yapValue *object;
     struct keyIterateInfo info;
-    if(argCount)
-        object = yapVMGetArg(vm, 0, argCount);
-    if(!object || object->type != YVT_OBJECT)
-    {
-        yapVMSetError(vm, YVE_RUNTIME, "keys() takes a single argument of type object");
-        yapVMPopValues(vm, argCount);
-        return 0;
-    }
+
+    if(!yapVMGetArgs(vm, argCount, "o", &object))
+        return yapVMArgsFailure(vm, argCount, "keys([object/dict] o)");
 
     info.vm = vm;
     info.arrayVal = yapValueArrayCreate(vm);
     yapHashIterateP1(object->objectVal->hash, (yapIterateCB1)yapAppendKey, &info);
 
-    //    int i;
-    //    for(i=0; i<argCount; i+=2)
-    //    {
-    //        yapValue **ref;
-    //        yapValue *key = yapVMGetArg(vm, i, argCount);
-    //        yapValue *val = yapValueNullPtr;
-    //        int valueArg = i+1;
-    //        if(valueArg < argCount)
-    //        {
-    //            val = yapVMGetArg(vm, valueArg, argCount);
-    //        }
-    //        key = yapValueToString(vm, key);
-    //        ref = yapObjectGetRef(vm, v->objectVal, key->stringVal, yTrue);
-    //        *ref = val;
-    //    }
-    //}
-    yapVMPopValues(vm, argCount);
     yapArrayPush(&vm->stack, info.arrayVal);
     return 1;
 }
@@ -297,11 +275,9 @@ yU32 type(struct yapVM *vm, yU32 argCount)
 
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
-    yapValue *arrayGlobal = yapValueObjectCreate(vm, NULL, 0);
-    yapValueObjectSetMember(vm, arrayGlobal, "init", yapValueSetCFunction(vm, yapValueAcquire(vm), make_array));
-    yapValueObjectSetMember(vm, arrayGlobal, "length", yapValueSetCFunction(vm, yapValueAcquire(vm), array_length));
-    yapValueObjectSetMember(vm, arrayGlobal, "push", yapValueSetCFunction(vm, yapValueAcquire(vm), array_push));
-    yapVMRegisterGlobal(vm, "array", arrayGlobal);
+    yapVMRegisterGlobalFunction(vm, "array", make_array);
+    yapVMRegisterGlobalFunction(vm, "length", array_length);
+    yapVMRegisterGlobalFunction(vm, "push", array_push);
 
     yapVMRegisterGlobalFunction(vm, "object", make_object);
     yapVMRegisterGlobalFunction(vm, "dict", make_object); // alias

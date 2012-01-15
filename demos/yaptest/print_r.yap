@@ -61,13 +61,13 @@ function print_r(depth, ... values)
     }
 }
 
-print_r(0,
-    "value!",
-    array(1,2,3),
-    array(4,5,6),
-    array('a'),
-    array(1,2,3,array(4,5,6)),
-
-    dict(a => 1, b => 2, c => array(1,2,3,dict(even => "deeper")))
-    );
-
+#print_r(0,
+#    "value!",
+#    array(1,2,3),
+#    array(4,5,6),
+#    array('a'),
+#    array(1,2,3,array(4,5,6)),
+#
+#    dict(a => 1, b => 2, c => array(1,2,3,dict(even => "deeper")))
+#    );
+#
