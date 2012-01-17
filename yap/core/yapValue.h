@@ -65,6 +65,7 @@ typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapVM *vm, struct y
 typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
 typedef yBool (*yapValueTypeFuncCmp)(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult);
 typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapVM *vm, struct yapValue *p, struct yapValue *index, yBool lvalue);
+typedef char * (*yapValueTypeFuncDump)(struct yapVM *vm, struct yapValue *p, int depth); // creates debug text representing value, caller responsible for yapFree()
 
 // This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
 #define yapValueTypeFuncNotUsed ((void*)-1)
@@ -87,6 +88,7 @@ typedef struct yapValueType
     yapValueTypeFuncArithmetic funcArithmetic;
     yapValueTypeFuncCmp funcCmp;
     yapValueTypeFuncIndex funcIndex;
+    yapValueTypeFuncDump funcDump;
 } yapValueType;
 
 yapValueType *yapValueTypeCreate(const char *name);
@@ -191,6 +193,7 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
 yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, yBool lvalue);
 
 const char *yapValueTypeName(struct yapVM *vm, int type); // used in error reporting
+char *yapValueDump(struct yapVM *vm, yapValue *p);
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_OBJECT)    \
