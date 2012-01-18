@@ -75,9 +75,9 @@ else
 }
 
 
-if(var b = regex_match("dat (.+)", "i love DAT thing"))
+if(var b = regex_match("dat (.+)", "i love DAT thing", "i"))
 {
-    print_r(0, b);
+    print(dump(b), "\n");
 }
 else
 {
@@ -85,4 +85,6 @@ else
 }
 
 print("done\n");
+
+print(dump(dict( name => "fred", value => "woo", list => array(1,2,3), func => print)));
 

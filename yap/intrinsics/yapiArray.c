@@ -280,6 +280,27 @@ yU32 type(struct yapVM *vm, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+yU32 dump(struct yapVM *vm, yU32 argCount)
+{
+    if(argCount)
+    {
+        yapValue *a = yapVMGetArg(vm, 0, argCount);
+        yapDumpParams *params = yapDumpParamsCreate(vm);
+        yapValue *ret = yapValueSetKString(vm, yapValueAcquire(vm), "");
+
+        yapValueDump(params, a);
+        yapStringDonateStr(&ret->stringVal, &params->output);
+
+        yapDumpParamsDestroy(params);
+        yapVMPopValues(vm, argCount);
+        yapArrayPush(&vm->stack, ret);
+        return 1;
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
 void yapIntrinsicsRegister(struct yapVM *vm)
 {
     yapVMRegisterGlobalFunction(vm, "array", make_array);
@@ -292,6 +313,7 @@ void yapIntrinsicsRegister(struct yapVM *vm)
     yapVMRegisterGlobalFunction(vm, "super", super);
     yapVMRegisterGlobalFunction(vm, "eval", eval);
     yapVMRegisterGlobalFunction(vm, "type", type);
+    yapVMRegisterGlobalFunction(vm, "dump", dump);
 
     // TODO: Move these out of here
     yapVMRegisterGlobalFunction(vm, "print", standard_print);

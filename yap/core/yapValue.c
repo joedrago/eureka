@@ -19,7 +19,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static char *NULL_STRING_FORM = "[null]";
+static char *NULL_STRING_FORM = "(null)";
 
 // ---------------------------------------------------------------------------
 // Helper funcs
@@ -36,6 +36,22 @@ void yapClosureVariableDestroy(yapClosureVariable *cv)
 {
     free(cv->name);
     free(cv);
+}
+
+// ---------------------------------------------------------------------------
+
+yapDumpParams *yapDumpParamsCreate(struct yapVM *vm)
+{
+    yapDumpParams *params = (yapDumpParams *)yapAlloc(sizeof(yapDumpParams));
+    params->vm = vm;
+    return params;
+}
+
+void yapDumpParamsDestroy(yapDumpParams *params)
+{
+    yapStringClear(&params->output);
+    yapStringClear(&params->tempStr);
+    yapFree(params);
 }
 
 // ---------------------------------------------------------------------------
@@ -79,6 +95,8 @@ int yapValueTypeRegister(struct yapVM *vm, yapValueType *newType)
     yapAssert(newType->funcArithmetic);
     yapAssert(newType->funcCmp);
     yapAssert(newType->funcIndex);
+    yapAssert(newType->funcDump);
+    yapAssert(newType->funcDump != yapValueTypeFuncNotUsed); // required!
 
     newType->id = yapArrayPush(&vm->types, newType);
     return newType->id;
@@ -90,6 +108,11 @@ int yapValueTypeRegister(struct yapVM *vm, yapValueType *newType)
 static struct yapValue * nullFuncToString(struct yapVM *vm, struct yapValue *p)
 {
     return yapValueSetKString(vm, yapValueAcquire(vm), NULL_STRING_FORM);
+}
+
+static void nullFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    yapStringConcat(&params->output, NULL_STRING_FORM);
 }
 
 static void nullFuncRegister(struct yapVM *vm)
@@ -105,6 +128,7 @@ static void nullFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = nullFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_NULL);
 }
@@ -151,6 +175,13 @@ static yF32 blockFuncToFloat(struct yapValue *p)
     return 1.0f; // ?
 }
 
+static void blockFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    char temp[64];
+    sprintf(temp, "(block:0x%p)", p->blockVal);
+    yapStringConcat(&params->output, temp);
+}
+
 static void blockFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("block");
@@ -164,6 +195,7 @@ static void blockFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = blockFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_BLOCK);
 }
@@ -191,6 +223,13 @@ static yF32 cfunctionFuncToFloat(struct yapValue *p)
     return 1.0f; // ?
 }
 
+static void cfunctionFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    char temp[64];
+    sprintf(temp, "(cfunction:0x%p)", p->cFuncVal);
+    yapStringConcat(&params->output, temp);
+}
+
 static void cfunctionFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("cfunction");
@@ -204,6 +243,7 @@ static void cfunctionFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = cfunctionFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_CFUNCTION);
 }
@@ -284,6 +324,13 @@ static yBool intFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue *b
     return yFalse;
 }
 
+static void intFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    char temp[64];
+    sprintf(temp, "%d", p->intVal);
+    yapStringConcat(&params->output, temp);
+}
+
 static void intFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("int");
@@ -297,6 +344,7 @@ static void intFuncRegister(struct yapVM *vm)
     type->funcArithmetic = intFuncArithmetic;
     type->funcCmp        = intFuncCmp;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = intFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_INT);
 }
@@ -382,6 +430,13 @@ static yBool floatFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue 
     return yFalse;
 }
 
+static void floatFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    char temp[64];
+    sprintf(temp, "%f", p->floatVal);
+    yapStringConcat(&params->output, temp);
+}
+
 static void floatFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("float");
@@ -395,6 +450,7 @@ static void floatFuncRegister(struct yapVM *vm)
     type->funcArithmetic = floatFuncArithmetic;
     type->funcCmp        = floatFuncCmp;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = floatFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_FLOAT);
 }
@@ -461,6 +517,13 @@ static yBool stringFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue
     return yFalse;
 }
 
+static void stringFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    yapStringConcatLen(&params->output, "\"", 1);
+    yapStringConcatStr(&params->output, &p->stringVal);
+    yapStringConcatLen(&params->output, "\"", 1);
+}
+
 static void stringFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("string");
@@ -474,6 +537,7 @@ static void stringFuncRegister(struct yapVM *vm)
     type->funcArithmetic = stringFuncArithmetic;
     type->funcCmp        = stringFuncCmp;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = stringFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_STRING);
 }
@@ -536,6 +600,21 @@ static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value
     return ret;
 }
 
+static void arrayFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    int i;
+    yapVM *vm = params->vm;
+    yapStringConcat(&params->output, "[ ");
+    for(i=0; i<p->arrayVal->count; i++)
+    {
+        yapValue *child = (yapValue *)p->arrayVal->data[i];
+        if(i > 0)
+            yapStringConcat(&params->output, ", ");
+        yapValueTypeSafeCall(child->type, Dump)(params, child);
+    }
+    yapStringConcat(&params->output, " ]");
+}
+
 static void arrayFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("array");
@@ -549,6 +628,7 @@ static void arrayFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = arrayFuncIndex;
+    type->funcDump       = arrayFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_ARRAY);
 }
@@ -606,6 +686,29 @@ static struct yapValue * objectFuncIndex(struct yapVM *vm, struct yapValue *valu
     return ret;
 }
 
+void appendKeys(yapDumpParams *params, yapHashEntry *entry)
+{
+    yapValue *child = (yapValue *)entry->value;
+    yapVM *vm = params->vm;
+    if(params->tempInt)
+        yapStringConcat(&params->output, "\"");
+    else
+        yapStringConcat(&params->output, ", \"");
+
+    yapStringConcat(&params->output, entry->key);
+    yapStringConcat(&params->output, "\" : ");
+    yapValueTypeSafeCall(child->type, Dump)(params, child);
+    params->tempInt = 0;
+}
+
+static void objectFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    params->tempInt = 1;
+    yapStringConcat(&params->output, "{ ");
+    yapHashIterateP1(p->objectVal->hash, appendKeys, params);
+    yapStringConcat(&params->output, " }");
+}
+
 static void objectFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("object");
@@ -619,6 +722,7 @@ static void objectFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = objectFuncIndex;
+    type->funcDump       = objectFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_OBJECT);
 }
@@ -654,6 +758,14 @@ static yF32 refFuncToFloat(struct yapValue *p)
     return 1.0f; // ?
 }
 
+static void refFuncDump(yapDumpParams *params, struct yapValue *p)
+{
+    yapVM *vm = params->vm;
+    yapStringConcat(&params->output, "(ref: ");
+    yapValueTypeSafeCall((*p->refVal)->type, Dump)(params, *p->refVal);
+    yapStringConcat(&params->output, ")");
+}
+
 static void refFuncRegister(struct yapVM *vm)
 {
     yapValueType *type = yapValueTypeCreate("ref");
@@ -667,6 +779,7 @@ static void refFuncRegister(struct yapVM *vm)
     type->funcArithmetic = yapValueTypeFuncNotUsed;
     type->funcCmp        = yapValueTypeFuncNotUsed;
     type->funcIndex      = yapValueTypeFuncNotUsed;
+    type->funcDump       = refFuncDump;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_REF);
 }
@@ -1194,4 +1307,10 @@ const char *yapValueTypeName(struct yapVM *vm, int type)
         return valueType->name;
     }
     return "unknown";
+}
+
+void yapValueDump(yapDumpParams *params, yapValue *p)
+{
+    yapVM *vm = params->vm;
+    yapValueTypeSafeCall(p->type, Dump)(params, p);
 }
