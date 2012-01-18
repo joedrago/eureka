@@ -88,7 +88,7 @@ static yU32 json_parse(struct yapVM *vm, yU32 argCount)
     if(!yapVMGetArgs(vm, argCount, "s", &jsonValue))
         return yapVMArgsFailure(vm, argCount, "json_parse([string] json)");
 
-    json = cJSON_Parse(jsonValue->stringVal);
+    json = cJSON_Parse(yapStringSafePtr(&jsonValue->stringVal));
     if(json)
     {
         ret = jsonRecurse(vm, json);

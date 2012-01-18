@@ -137,7 +137,7 @@ static yU32 eval(struct yapVM *vm, yU32 argCount)
             yapValue *v = yapVMGetArg(vm, i, argCount);
             if(v->type == YVT_STRING)
             {
-                yapVMEval(vm, v->stringVal, 0);
+                yapVMEval(vm, yapStringSafePtr(&v->stringVal), 0);
                 if(vm->error)
                 {
                     // steal the error from the VM so we can recover and THEN give it back as a yapValue
@@ -174,7 +174,7 @@ static yU32 standard_print(struct yapVM *vm, yU32 argCount)
             switch(v->type)
             {
             case YVT_STRING:
-                printf("%s", v->stringVal);
+                printf("%s", yapStringSafePtr(&v->stringVal));
                 break;
             case YVT_INT:
                 printf("%d", v->intVal);
@@ -184,7 +184,7 @@ static yU32 standard_print(struct yapVM *vm, yU32 argCount)
                 break;
             default:
                 v = yapValueToString(vm, v);
-                printf("%s", v->stringVal);
+                printf("%s", yapStringSafePtr(&v->stringVal));
                 break;
             };
         }
@@ -238,7 +238,7 @@ static yU32 import(struct yapVM *vm, yU32 argCount)
     }
 
     if(filenameValue)
-        code = loadFile(filenameValue->stringVal);
+        code = loadFile(yapStringSafePtr(&filenameValue->stringVal));
 
     yapVMPopValues(vm, argCount);
 

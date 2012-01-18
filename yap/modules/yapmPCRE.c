@@ -51,13 +51,13 @@ static yU32 regex_match(struct yapVM *vm, yU32 argCount)
         return yapVMArgsFailure(vm, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
 
     if(options)
-        regexFlags = yapRegexOptionsToPCREFlags(options->stringVal);
+        regexFlags = yapRegexOptionsToPCREFlags(yapStringSafePtr(&options->stringVal));
 
-    regex = pcre_compile(pattern->stringVal, regexFlags, &regexError, &regexErrorOffset, NULL);
+    regex = pcre_compile(yapStringSafePtr(&pattern->stringVal), regexFlags, &regexError, &regexErrorOffset, NULL);
     if(regex)
     {
-        int len = strlen(subject->stringVal);
-        int err = pcre_exec(regex, 0, subject->stringVal, len, 0, 0, regexVectors, YAP_MAX_REGEX_VECTORS);
+        int len = strlen(yapStringSafePtr(&subject->stringVal));
+        int err = pcre_exec(regex, 0, yapStringSafePtr(&subject->stringVal), len, 0, 0, regexVectors, YAP_MAX_REGEX_VECTORS);
         if(err > 0)
         {
             int i;
@@ -68,7 +68,7 @@ static yU32 regex_match(struct yapVM *vm, yU32 argCount)
             for(i=0; i<err; i++)
             {
                 int index = i*2;
-                yapValue *match = yapValueDonateString(vm, yapValueAcquire(vm), yapSubstrdup(subject->stringVal, regexVectors[index], regexVectors[index+1]));
+                yapValue *match = yapValueDonateString(vm, yapValueAcquire(vm), yapSubstrdup(yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
                 yapArrayPush(matches->arrayVal, match);
             }
         }

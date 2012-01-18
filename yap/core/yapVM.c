@@ -604,7 +604,7 @@ static const char *yapValueDebugString(yapVM *vm, yapValue *v)
         sprintf(valString, "(%2.2f)", v->floatVal);
         break;
     case YVT_STRING:
-        sprintf(valString, "(%s)", v->stringVal);
+        sprintf(valString, "(%s)", yapStringSafePtr(&v->stringVal));
         break;
     case YVT_ARRAY:
         sprintf(valString, "(count: %d)", v->arrayVal->count);

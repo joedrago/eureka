@@ -19,41 +19,10 @@
 #include <string.h>
 #include <stdio.h>
 
-// Enabling this allows for arrays to return their length by doing a.length(), etc
-// #define ENABLE_ARRAY_OO_FUNCTIONS
-
 static char *NULL_STRING_FORM = "[null]";
 
 // ---------------------------------------------------------------------------
 // Helper funcs
-
-// adds a yapCFunction pointer to a hash
-static void addFunc(yapHash *yh, const char *name, yapCFunction func)
-{
-    void **ref = yapHashLookup(yh, name, yTrue);
-    yapAssert(ref);
-    *ref = (void*)func;
-}
-
-// TODO: Make a real string class that isn't terrible
-static char *concat(char *a, char *b)
-{
-    yU32 newLen = (yU32)strlen(a) + (yU32)strlen(b);
-    char *newString = yapAlloc(newLen + 1);
-    strcpy(newString, a); // TODO: make this smarter
-    strcat(newString, b);
-    return newString;
-}
-
-static yapValue *yapValueConcat(struct yapVM *vm, yapValue *a, yapValue *b)
-{
-    a = yapValueToString(vm, a);
-    b = yapValueToString(vm, b);
-    a = yapValueDonateString(vm, a, concat(a->stringVal, b->stringVal));
-    return a;
-}
-
-// ---------------------------------------------------------------------------
 
 yapClosureVariable *yapClosureVariableCreate(const char *name, yapVariable *variable)
 {
@@ -435,32 +404,28 @@ static void floatFuncRegister(struct yapVM *vm)
 
 static void stringFuncClear(struct yapValue *p)
 {
-    if(!p->constant)
-        yapFree(p->stringVal);
+    yapStringClear(&p->stringVal);
 }
 
 static void stringFuncClone(struct yapVM *vm, struct yapValue *dst, struct yapValue *src)
 {
-    if(src->constant)
-        dst->stringVal = src->stringVal;
-    else
-        dst->stringVal = yapStrdup(src->stringVal);
+    yapStringSetStr(&dst->stringVal, &src->stringVal);
 }
 
 static yBool stringFuncToBool(struct yapValue *p)
 {
-    return (p->stringVal[0] != 0) ? yTrue : yFalse;
+    return (p->stringVal.len) ? yTrue : yFalse;
 }
 
 static yS32 stringFuncToInt(struct yapValue *p)
 {
-    yapToken t = { p->stringVal, strlen(p->stringVal) };
+    yapToken t = { yapStringSafePtr(&p->stringVal), p->stringVal.len };
     return yapTokenToInt(&t);
 }
 
 static yF32 stringFuncToFloat(struct yapValue *p)
 {
-    yapToken t = { p->stringVal, strlen(p->stringVal) };
+    yapToken t = { yapStringSafePtr(&p->stringVal), p->stringVal.len };
     return yapTokenToFloat(&t);
 }
 
@@ -471,17 +436,23 @@ struct yapValue * stringFuncToString(struct yapVM *vm, struct yapValue *p)
 
 struct yapValue * stringFuncArithmetic(struct yapVM *vm, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
+    yapValue *ret = NULL;
     if(op == YVAO_ADD)
-        return yapValueConcat(vm, a, b);
+    {
+        a = yapValueToString(vm, a);
+        b = yapValueToString(vm, b);
+        ret = yapValueSetString(vm, yapValueAcquire(vm), yapStringSafePtr(&a->stringVal));
+        yapStringConcatStr(&ret->stringVal, &a->stringVal);
+    }
     printf("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!\n");
-    return NULL;
+    return ret;
 }
 
 static yBool stringFuncCmp(struct yapVM *vm, struct yapValue *a, struct yapValue *b, int *cmpResult)
 {
     if(b->type == YVT_STRING)
     {
-        *cmpResult = strcmp(a->stringVal, b->stringVal);
+        *cmpResult = yapStringCmpStr(&a->stringVal, &b->stringVal);
         return yTrue;
     }
     return yFalse;
@@ -545,52 +516,22 @@ static yF32 arrayFuncToFloat(struct yapValue *p)
 static struct yapValue * arrayFuncIndex(struct yapVM *vm, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
-
-#ifdef ENABLE_ARRAY_OO_FUNCTIONS
-    if(index->type == YVT_STRING)
+    yapValue **ref = NULL;
+    index = yapValueToInt(vm, index);
+    if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
     {
-        yapHash *yh = (yapHash *)((yapValueType*)vm->types.data[value->type])->userData;
-        void **funcRef = yapHashLookup(yh, index->stringVal, yFalse);
-        if(funcRef)
-        {
-            if(lvalue)
-            {
-                yapVMSetError(vm, YVE_RUNTIME, "Cannot use array function as an lvalue");
-            }
-            else
-            {
-                ret = yapValueSetCFunction(vm, yapValueAcquire(vm), *funcRef);
-            }
-        }
-    }
-    if(!ret && (vm->errorType == YVE_NONE))
-#endif
-    {
-        yapValue **ref = NULL;
-        index = yapValueToInt(vm, index);
-        if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
-        {
-            ref = (yapValue **) & (value->arrayVal->data[index->intVal]);
-            if(lvalue)
-                ret = yapValueSetRef(vm, yapValueAcquire(vm), ref);
-            else
-                ret = *ref;
-        }
+        ref = (yapValue **) & (value->arrayVal->data[index->intVal]);
+        if(lvalue)
+            ret = yapValueSetRef(vm, yapValueAcquire(vm), ref);
         else
-        {
-            yapVMSetError(vm, YVE_RUNTIME, "array index %d out of range", index->intVal);
-        }
+            ret = *ref;
+    }
+    else
+    {
+        yapVMSetError(vm, YVE_RUNTIME, "array index %d out of range", index->intVal);
     }
     return ret;
 }
-
-#ifdef ENABLE_ARRAY_OO_FUNCTIONS
-static void arrayFuncDestroyUserData(struct yapValueType *valueType)
-{
-    if(valueType->userData)
-        yapHashDestroy((yapHash*)valueType->userData, NULL);
-}
-#endif
 
 static void arrayFuncRegister(struct yapVM *vm)
 {
@@ -607,13 +548,6 @@ static void arrayFuncRegister(struct yapVM *vm)
     type->funcIndex      = arrayFuncIndex;
     yapValueTypeRegister(vm, type);
     yapAssert(type->id == YVT_ARRAY);
-
-#ifdef ENABLE_ARRAY_OO_FUNCTIONS
-    type->funcDestroyUserData = arrayFuncDestroyUserData;
-    type->userData = yapHashCreate(0);
-    addFunc(type->userData, "push", array_push);
-    addFunc(type->userData, "length", array_length);
-#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -661,7 +595,7 @@ static struct yapValue * objectFuncIndex(struct yapVM *vm, struct yapValue *valu
     yapValue *ret = NULL;
     yapValue **ref = NULL;
     index = yapValueToString(vm, index);
-    ref = yapObjectGetRef(vm, value->objectVal, index->stringVal, lvalue /* create? */);
+    ref = yapObjectGetRef(vm, value->objectVal, yapStringSafePtr(&index->stringVal), lvalue /* create? */);
     if(lvalue)
         ret = yapValueSetRef(vm, yapValueAcquire(vm), ref);
     else
@@ -776,25 +710,23 @@ yapValue *yapValueSetFloat(struct yapVM *vm, yapValue *p, yF32 v)
     return p;
 }
 
-yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, char *s)
+yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, const char *s)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(vm, p);
     p->type = YVT_STRING;
-    p->stringVal = s;
-    p->constant = yTrue;
+    yapStringSetK(&p->stringVal, s);
     p->used = yTrue;
     yapTrace(("yapValueSetKString %p\n", p));
     return p;
 }
 
-yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s)
+yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, const char *s)
 {
     p = yapValuePersonalize(vm, p);
     yapValueClear(vm, p);
     p->type = YVT_STRING;
-    p->stringVal = yapStrdup(s);
-    p->constant = yFalse;
+    yapStringSet(&p->stringVal, s);
     p->used = yTrue;
     yapTrace(("yapValueSetString %p\n", p));
     return p;
@@ -805,8 +737,7 @@ yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s)
     p = yapValuePersonalize(vm, p);
     yapValueClear(vm, p);
     p->type = YVT_STRING;
-    p->stringVal = s;
-    p->constant = yFalse;
+    yapStringDonate(&p->stringVal, s);
     p->used = yTrue;
     yapTrace(("yapValueDonateString %p\n", p));
     return p;
@@ -1007,7 +938,7 @@ yapValue *yapValueObjectCreate(struct yapVM *vm, struct yapValue *isa, int argCo
                 val = yapVMGetArg(vm, valueArg, argCount);
             }
             key = yapValueToString(vm, key);
-            ref = yapObjectGetRef(vm, p->objectVal, key->stringVal, yTrue);
+            ref = yapObjectGetRef(vm, p->objectVal, yapStringSafePtr(&key->stringVal), yTrue);
             *ref = val;
         }
         yapVMPopValues(vm, argCount);
@@ -1183,27 +1114,19 @@ yapValue *yapValueToString(struct yapVM *vm, yapValue *p)
 
 yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount)
 {
-    char *out = yapStrdup("");
-    int outSize = 1;
-    int outPos = 0;
-    int addLen;
-
-    char *curr = format->stringVal;
+    char *curr = (char *)yapStringSafePtr(&format->stringVal);
     char *next;
 
     yapValue *arg;
     int argIndex = 0;
 
+    yapValue *ret = yapValueSetString(vm, yapValueAcquire(vm), "");
+    yapString *str = &ret->stringVal;
+
     while(curr && (next = strchr(curr, '%')))
     {
         // First, add in all of the stuff before the %
-        {
-            addLen = next - curr;
-            outSize += addLen;
-            out = yapRealloc(out, outSize);
-            memcpy(&out[outPos], curr, addLen);
-            outPos += addLen;
-        }
+        yapStringConcatLen(str, curr, (int)(next - curr));
         next++;
 
         switch(*next)
@@ -1212,19 +1135,14 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
             curr = NULL;
             break;
         case '%':
-            out = yapRealloc(out, ++outSize);
-            out[outPos++] = '%';
+            yapStringConcatLen(str, "%", 1);
             break;
         case 's':
             arg = yapVMGetArg(vm, argIndex++, argCount);
             if(arg)
             {
                 arg = yapValueToString(vm, arg);
-                addLen = strlen(arg->stringVal);
-                outSize += addLen;
-                out = yapRealloc(out, outSize);
-                memcpy(&out[outPos], arg->stringVal, addLen);
-                outPos += addLen;
+                yapStringConcatStr(str, &arg->stringVal);
             }
             break;
         case 'd':
@@ -1234,11 +1152,7 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
                 char temp[32];
                 arg = yapValueToInt(vm, arg);
                 sprintf(temp, "%d", arg->intVal);
-                addLen = strlen(temp);
-                outSize += addLen;
-                out = yapRealloc(out, outSize);
-                memcpy(&out[outPos], temp, addLen);
-                outPos += addLen;
+                yapStringConcat(str, temp);
             }
             break;
         case 'f':
@@ -1248,11 +1162,7 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
                 char temp[32];
                 arg = yapValueToFloat(vm, arg);
                 sprintf(temp, "%f", arg->floatVal);
-                addLen = strlen(temp);
-                outSize += addLen;
-                out = yapRealloc(out, outSize);
-                memcpy(&out[outPos], temp, addLen);
-                outPos += addLen;
+                yapStringConcat(str, temp);
             }
             break;
         };
@@ -1262,23 +1172,10 @@ yapValue *yapValueStringFormat(struct yapVM *vm, yapValue *format, yS32 argCount
 
     // Add the remainder of the string, if any
     if(curr)
-    {
-        addLen = strlen(curr);
-        outSize += addLen;
-        out = yapRealloc(out, outSize);
-        memcpy(&out[outPos], curr, addLen);
-        outPos += addLen;
-    }
-
-    // Terminate the string
-    out[outPos] = 0;
-
-    format = yapValueAcquire(vm);
-    format->type = YVT_STRING;
-    format->stringVal = out;
+        yapStringConcat(str, curr);
 
     yapVMPopValues(vm, argCount);
-    return format;
+    return ret;
 }
 
 yapValue *yapValueIndex(struct yapVM *vm, yapValue *p, yapValue *index, yBool lvalue)

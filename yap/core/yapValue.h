@@ -9,6 +9,7 @@
 #define YAPVALUE_H
 
 #include "yapArray.h"
+#include "yapString.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -134,7 +135,7 @@ typedef struct yapValue
             yapArray *closureVars;         // Populated at runtime when a reference to a new function() is created
             struct yapBlock *blockVal;     // Hurr, Shield Slam
         };
-        char *stringVal;
+        yapString stringVal;
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
         yapArray *arrayVal;
@@ -157,8 +158,8 @@ yapValue *yapValuePersonalize(struct yapVM *vm, yapValue *p);  // only clones if
 
 yapValue *yapValueSetInt(struct yapVM *vm, yapValue *p, int v);
 yapValue *yapValueSetFloat(struct yapVM *vm, yapValue *p, yF32 v);
-yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, char *s);
-yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, char *s);
+yapValue *yapValueSetKString(struct yapVM *vm, yapValue *p, const char *s);
+yapValue *yapValueSetString(struct yapVM *vm, yapValue *p, const char *s);
 yapValue *yapValueDonateString(struct yapVM *vm, yapValue *p, char *s);  // grants ownership to the char*
 yapValue *yapValueSetFunction(struct yapVM *vm, yapValue *p, struct yapBlock *block);
 yapValue *yapValueSetCFunction(struct yapVM *vm, yapValue *p, yapCFunction func);

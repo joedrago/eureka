@@ -71,6 +71,8 @@ set(yap_src
     core/yapOp.h
     core/yapOp.c
     core/yapParser.y
+    core/yapString.h
+    core/yapString.c
     core/yapSyntax.h
     core/yapSyntax.c
     core/yapTypes.h
