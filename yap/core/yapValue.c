@@ -444,7 +444,10 @@ struct yapValue * stringFuncArithmetic(struct yapVM *vm, struct yapValue *a, str
         ret = yapValueSetString(vm, yapValueAcquire(vm), yapStringSafePtr(&a->stringVal));
         yapStringConcatStr(&ret->stringVal, &a->stringVal);
     }
-    printf("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!\n");
+    else
+    {
+        printf("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!\n");
+    }
     return ret;
 }
 
