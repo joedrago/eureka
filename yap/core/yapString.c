@@ -78,6 +78,19 @@ void yapStringDonate(yapString *str, char *text)
     str->maxlen = str->len;
 }
 
+void yapStringDonateStr(yapString *str, yapString *donation)
+{
+    yapStringClear(str);
+
+    str->text = donation->text;
+    str->len = donation->len;
+    str->maxlen = donation->maxlen;
+
+    donation->text = NULL;
+    donation->len = 0;
+    donation->maxlen = 0;
+}
+
 void yapStringSetK(yapString *str, const char *text)
 {
     yapStringClear(str);
