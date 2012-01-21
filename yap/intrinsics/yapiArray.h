@@ -13,15 +13,15 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yapVM;
+struct yapContext;
 
 // ---------------------------------------------------------------------------
 
-yU32 array_push(struct yapVM *vm, yU32 argCount);
-yU32 array_length(struct yapVM *vm, yU32 argCount);
+yU32 array_push(struct yapContext *Y, yU32 argCount);
+yU32 array_length(struct yapContext *Y, yU32 argCount);
 
 // ---------------------------------------------------------------------------
 
-void yapIntrinsicsRegister(struct yapVM *vm);
+void yapIntrinsicsRegister(struct yapContext *Y);
 
 #endif

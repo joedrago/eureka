@@ -10,8 +10,8 @@
 
 #include "yapTypes.h"
 
-struct yapVM;
+struct yapContext;
 
-void yapModuleRegisterJSON(struct yapVM *vm);
+void yapModuleRegisterJSON(struct yapContext *Y);
 
 #endif

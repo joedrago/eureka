@@ -8,7 +8,7 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapChunk.h"
-#include "yapVM.h"
+#include "yapContext.h"
 #include "yapHash.h"
 
 #ifdef YAP_ENABLE_EXT_DOT
@@ -22,13 +22,13 @@
 
 void loadChunk(const char *code)
 {
-    yapContext *context = yapContextCreate();
-    yapVMEval(context->vm, code, YEO_DUMP);
-    if(yapContextGetError(context))
+    yapContext *Y = yapContextCreate();
+    yapContextEval(Y, code, YEO_DUMP);
+    if(yapContextGetError(Y))
     {
-        printf("VM Bailed out: %s\n", yapContextGetError(context));
+        printf("VM Bailed out: %s\n", yapContextGetError(Y));
     }
-    yapContextFree(context);
+    yapContextDestroy(Y);
 }
 
 // ---------------------------------------------------------------------------

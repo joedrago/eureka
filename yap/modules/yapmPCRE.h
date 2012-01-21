@@ -10,8 +10,8 @@
 
 #include "yapTypes.h"
 
-struct yapVM;
+struct yapContext;
 
-void yapModuleRegisterPCRE(struct yapVM *vm);
+void yapModuleRegisterPCRE(struct yapContext *Y);
 
 #endif

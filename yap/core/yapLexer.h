@@ -17,7 +17,7 @@
 
 struct yapCompiler;
 struct yapSyntaxTree;
-struct yapVM;
+struct yapContext;
 
 // ---------------------------------------------------------------------------
 

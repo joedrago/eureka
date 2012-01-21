@@ -14,7 +14,7 @@
 // Forwards
 
 struct yapValue;
-struct yapVM;
+struct yapContext;
 
 // ---------------------------------------------------------------------------
 
@@ -24,9 +24,9 @@ typedef struct yapVariable
     yFlag used: 1;
 } yapVariable;
 
-yapVariable *yapVariableCreate(struct yapVM *vm, struct yapValue *value);
+yapVariable *yapVariableCreate(struct yapContext *Y, struct yapValue *value);
 void yapVariableDestroy(yapVariable *v);
 
-void yapVariableMark(struct yapVM *vm, yapVariable *variable); // used by yapVMGC()
+void yapVariableMark(struct yapContext *Y, yapVariable *variable); // used by yapContextGC()
 
 #endif

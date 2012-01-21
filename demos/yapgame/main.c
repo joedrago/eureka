@@ -1,13 +1,13 @@
 #include "yapCompiler.h"
 #include "yapContext.h"
 #include "yapChunk.h"
-#include "yapVM.h"
+#include "yapContext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <glut.h>
 
-yapVM *sVM = NULL;
+yapContext *sVM = NULL;
 
 #ifndef WIN32
 #include <CoreServices/CoreServices.h>
@@ -31,28 +31,28 @@ static unsigned int GetTickCount()
 
 unsigned int sLastTick = 0;
 
-static int getInt(struct yapVM *vm, int arg, yU32 argCount)
+static int getInt(struct yapContext *Y, int arg, yU32 argCount)
 {
-    yapValue *a = yapVMGetArg(vm, arg, argCount);
+    yapValue *a = yapContextGetArg(Y, arg, argCount);
     if(a)
     {
-        a = yapValueToInt(vm, a);
+        a = yapValueToInt(Y, a);
         return a->intVal;
     }
     return 0;
 }
 
-static yU32 drawBox(struct yapVM *vm, yU32 argCount)
+static yU32 drawBox(struct yapContext *Y, yU32 argCount)
 {
     if(argCount == 7)
     {
-        int left   = getInt(vm, 0, argCount);
-        int top    = getInt(vm, 1, argCount);
-        int right  = getInt(vm, 2, argCount);
-        int bottom = getInt(vm, 3, argCount);
-        int r      = getInt(vm, 4, argCount);
-        int g      = getInt(vm, 5, argCount);
-        int b      = getInt(vm, 6, argCount);
+        int left   = getInt(Y, 0, argCount);
+        int top    = getInt(Y, 1, argCount);
+        int right  = getInt(Y, 2, argCount);
+        int bottom = getInt(Y, 3, argCount);
+        int r      = getInt(Y, 4, argCount);
+        int g      = getInt(Y, 5, argCount);
+        int b      = getInt(Y, 6, argCount);
 
         glColor3f((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
 
@@ -65,7 +65,7 @@ static yU32 drawBox(struct yapVM *vm, yU32 argCount)
         glVertex3f(right, bottom, 0);
         glEnd();
     }
-    yapVMPopValues(vm, argCount);
+    yapContextPopValues(Y, argCount);
     return 0;
 }
 
@@ -88,9 +88,9 @@ void renderScene(void)
 
             msv = yapValueSetInt(sVM, yapValueAcquire(sVM), ms);
             yapArrayPush(&sVM->stack, msv);
-            yapVMCallFuncByName(sVM, "update", 1);
+            yapContextCallFuncByName(sVM, "update", 1);
         }
-        yapVMCallFuncByName(sVM, "render", 0);
+        yapContextCallFuncByName(sVM, "render", 0);
     }
 
     glutSwapBuffers();
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
             if(code)
             {
                 yapContext *context = yapContextCreate();
-                sVM = context->vm;
+                sVM = Y;
 
                 // init GLUT and create Window
                 glutInit(&argc, argv);
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
                 glutInitWindowSize(800, 600);
                 glutCreateWindow("Yap Game!");
 
-                yapVMEval(context->vm, code, 0);
+                yapContextEval(Y, code, 0);
                 free(code);
                 if(yapContextGetError(context))
                 {
@@ -175,12 +175,12 @@ int main(int argc, char *argv[])
                     exit(0);
                 }
 
-                yapVMRegisterGlobalFunction(context->vm, "drawBox", drawBox);
+                yapContextRegisterGlobalFunction(Y, "drawBox", drawBox);
 
                 glutDisplayFunc(renderScene);
                 glutIdleFunc(renderScene);
 
-                yapVMCallFuncByName(sVM, "init", 0);
+                yapContextCallFuncByName(sVM, "init", 0);
 
                 glutMainLoop();
             }

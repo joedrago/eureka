@@ -8,12 +8,12 @@
 #include "yapmJSON.h"
 
 #include "yapValue.h"
-#include "yapVM.h"
+#include "yapContext.h"
 
 #include <stdlib.h>
 #include "cJSON.h"
 
-static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
+static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
 {
     cJSON *child;
     yapValue *ret = yapValueNullPtr;
@@ -21,13 +21,13 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
     {
     case cJSON_False:
     {
-        ret = yapValueSetInt(vm, yapValueAcquire(vm), 0);
+        ret = yapValueSetInt(Y, yapValueAcquire(Y), 0);
     }
     break;
 
     case cJSON_True:
     {
-        ret = yapValueSetInt(vm, yapValueAcquire(vm), 1);
+        ret = yapValueSetInt(Y, yapValueAcquire(Y), 1);
     }
     break;
 
@@ -39,13 +39,13 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
 
     case cJSON_Number:
     {
-        ret = yapValueSetFloat(vm, yapValueAcquire(vm), json->valuedouble);
+        ret = yapValueSetFloat(Y, yapValueAcquire(Y), json->valuedouble);
     }
     break;
 
     case cJSON_String:
     {
-        ret = yapValueSetString(vm, yapValueAcquire(vm), json->valuestring);
+        ret = yapValueSetString(Y, yapValueAcquire(Y), json->valuestring);
     }
     break;
 
@@ -53,11 +53,11 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
     {
         int i;
         int size = cJSON_GetArraySize(json);
-        ret = yapValueArrayCreate(vm);
+        ret = yapValueArrayCreate(Y);
         child = json->child;
         while(child)
         {
-            yapArrayPush(ret->arrayVal, jsonRecurse(vm, child));
+            yapArrayPush(ret->arrayVal, jsonRecurse(Y, child));
             child = child->next;
         }
     }
@@ -65,11 +65,11 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
 
     case cJSON_Object:
     {
-        ret = yapValueObjectCreate(vm, NULL, 0);
+        ret = yapValueObjectCreate(Y, NULL, 0);
         child = json->child;
         while(child)
         {
-            yapValueObjectSetMember(vm, ret, child->string, jsonRecurse(vm, child));
+            yapValueObjectSetMember(Y, ret, child->string, jsonRecurse(Y, child));
             child = child->next;
         }
     }
@@ -79,30 +79,30 @@ static yapValue *jsonRecurse(struct yapVM *vm, cJSON *json)
     return ret;
 }
 
-static yU32 json_parse(struct yapVM *vm, yU32 argCount)
+static yU32 json_parse(struct yapContext *Y, yU32 argCount)
 {
     yapValue *ret = yapValueNullPtr;
     cJSON *json;
     yapValue *jsonValue;
 
-    if(!yapVMGetArgs(vm, argCount, "s", &jsonValue))
-        return yapVMArgsFailure(vm, argCount, "json_parse([string] json)");
+    if(!yapContextGetArgs(Y, argCount, "s", &jsonValue))
+        return yapContextArgsFailure(Y, argCount, "json_parse([string] json)");
 
     json = cJSON_Parse(yapStringSafePtr(&jsonValue->stringVal));
     if(json)
     {
-        ret = jsonRecurse(vm, json);
+        ret = jsonRecurse(Y, json);
         cJSON_Delete(json);
     }
 
-    yapArrayPush(&vm->stack, ret);
+    yapArrayPush(&Y->stack, ret);
     return 1;
 }
 
-void yapModuleRegisterJSON(struct yapVM *vm)
+void yapModuleRegisterJSON(struct yapContext *Y)
 {
     cJSON_Hooks hooks = { yapAlloc, yapFree };
     cJSON_InitHooks(&hooks);
 
-    yapVMRegisterGlobalFunction(vm, "json_parse", json_parse);
+    yapContextRegisterGlobalFunction(Y, "json_parse", json_parse);
 }

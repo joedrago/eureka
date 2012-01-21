@@ -8,7 +8,7 @@
 #include "yapmPCRE.h"
 
 #include "yapValue.h"
-#include "yapVM.h"
+#include "yapContext.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@ static int yapRegexOptionsToPCREFlags(const char *options)
     return pcreFlags;
 }
 
-static yU32 regex_match(struct yapVM *vm, yU32 argCount)
+static yU32 regex_match(struct yapContext *Y, yU32 argCount)
 {
     yapValue *pattern = NULL;
     yapValue *subject = NULL;
@@ -47,8 +47,8 @@ static yU32 regex_match(struct yapVM *vm, yU32 argCount)
     int regexErrorOffset;
     int regexVectors[YAP_MAX_REGEX_VECTORS];
 
-    if(!yapVMGetArgs(vm, argCount, "ss|s", &pattern, &subject, &options))
-        return yapVMArgsFailure(vm, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
+    if(!yapContextGetArgs(Y, argCount, "ss|s", &pattern, &subject, &options))
+        return yapContextArgsFailure(Y, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
 
     if(options)
         regexFlags = yapRegexOptionsToPCREFlags(yapStringSafePtr(&options->stringVal));
@@ -61,14 +61,14 @@ static yU32 regex_match(struct yapVM *vm, yU32 argCount)
         if(err > 0)
         {
             int i;
-            matches = yapValueArrayCreate(vm);
-            //results = yapValueObjectCreate(vm, NULL, 0);
-            //yapValueObjectSetMember(vm, results, "matches", matches);
+            matches = yapValueArrayCreate(Y);
+            //results = yapValueObjectCreate(Y, NULL, 0);
+            //yapValueObjectSetMember(Y, results, "matches", matches);
             results = matches;
             for(i=0; i<err; i++)
             {
                 int index = i*2;
-                yapValue *match = yapValueDonateString(vm, yapValueAcquire(vm), yapSubstrdup(yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
+                yapValue *match = yapValueDonateString(Y, yapValueAcquire(Y), yapSubstrdup(yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
                 yapArrayPush(matches->arrayVal, match);
             }
         }
@@ -77,14 +77,14 @@ static yU32 regex_match(struct yapVM *vm, yU32 argCount)
     else
     {
         // Regex compilation errors are fatal for now. I think this is good.
-        yapVMSetError(vm, YVE_RUNTIME, "regex_match() error: %s", regexError);
+        yapContextSetError(Y, YVE_RUNTIME, "regex_match() error: %s", regexError);
     }
 
-    yapArrayPush(&vm->stack, results);
+    yapArrayPush(&Y->stack, results);
     return 1;
 }
 
-void yapModuleRegisterPCRE(struct yapVM *vm)
+void yapModuleRegisterPCRE(struct yapContext *Y)
 {
-    yapVMRegisterGlobalFunction(vm, "regex_match", regex_match);
+    yapContextRegisterGlobalFunction(Y, "regex_match", regex_match);
 }

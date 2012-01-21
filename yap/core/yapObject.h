@@ -15,7 +15,7 @@
 
 struct yapHash;
 struct yapValue;
-struct yapVM;
+struct yapContext;
 
 typedef struct yapObject
 {
@@ -23,10 +23,10 @@ typedef struct yapObject
     struct yapHash *hash;
 } yapObject;
 
-yapObject *yapObjectCreate(struct yapVM *vm, struct yapValue *isa);
+yapObject *yapObjectCreate(struct yapContext *Y, struct yapValue *isa);
 void yapObjectDestroy(yapObject *v);
-void yapObjectMark(struct yapVM *vm, yapObject *v);
+void yapObjectMark(struct yapContext *Y, yapObject *v);
 
-struct yapValue **yapObjectGetRef(struct yapVM *vm, yapObject *object, const char *key, yBool create);
+struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create);
 
 #endif

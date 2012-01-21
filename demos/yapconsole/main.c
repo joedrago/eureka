@@ -9,7 +9,7 @@
 #include "yapContext.h"
 #include "yapChunk.h"
 #include "yapVariable.h"
-#include "yapVM.h"
+#include "yapContext.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -70,10 +70,10 @@ char *loadFile(const char *filename)
 
 // ---------------------------------------------------------------------------
 
-static char *getprompt(yapContext *context)
+static char *getprompt(yapContext *Y)
 {
     static char prompt[1024];
-    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", context->vm->chunks.count, context->vm->globals->count);
+    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", Y->chunks.count, Y->globals->count);
     return prompt;
 }
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        yapContext *context = yapContextCreate();
+        yapContext *Y = yapContextCreate();
         int dump = 0;
         int running = 1;
         char *line;
@@ -111,12 +111,12 @@ int main(int argc, char *argv[])
             }
         }
 
-        while(running && (line = readline(getprompt(context))))
+        while(running && (line = readline(getprompt(Y))))
         {
             char *code = NULL;
             if(!strcmp(line, "$globals"))
             {
-                yapHashIterateP1(context->vm->globals, printVariable, NULL);
+                yapHashIterateP1(Y->globals, (yapIterateCB1)printVariable, NULL);
             }
             else if(!strncmp(line, "$load ", 6))
             {
@@ -136,18 +136,18 @@ int main(int argc, char *argv[])
                 int opts = YEO_DEFAULT;
                 if(dump)
                     opts = YEO_DUMP;
-                yapVMEval(context->vm, code, opts);
-                if(yapContextGetError(context))
+                yapContextEval(Y, code, opts);
+                if(yapContextGetError(Y))
                 {
-                    printf("Errors:\n%s\n", yapContextGetError(context));
-                    yapVMRecover(context->vm);
+                    printf("Errors:\n%s\n", yapContextGetError(Y));
+                    yapContextRecover(Y);
                 }
                 free(code);
             }
 
             free(line);
         }
-        yapContextFree(context);
+        yapContextDestroy(Y);
     }
 
 #ifdef PLATFORM_WIN32

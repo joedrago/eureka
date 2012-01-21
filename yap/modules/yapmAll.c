@@ -15,12 +15,12 @@
 #include "yapmPCRE.h"
 #endif
 
-void yapModuleRegisterAll(struct yapVM *vm)
+void yapModuleRegisterAll(struct yapContext *Y)
 {
 #ifdef YAP_ENABLE_MOD_JSON
-    yapModuleRegisterJSON(vm);
+    yapModuleRegisterJSON(Y);
 #endif
 #ifdef YAP_ENABLE_MOD_PCRE
-    yapModuleRegisterPCRE(vm);
+    yapModuleRegisterPCRE(Y);
 #endif
 }
