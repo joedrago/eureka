@@ -7,6 +7,8 @@
 
 #include "yapString.h"
 
+#include <string.h>
+
 int yapStrlen(const char *s)
 {
     return (int)strlen(s);
