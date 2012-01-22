@@ -13,6 +13,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapContext;
 struct yapToken;
 
 // ---------------------------------------------------------------------------
@@ -42,14 +43,25 @@ typedef int yBool;
 // ---------------------------------------------------------------------------
 // Memory Routines
 
-void *yapAlloc(ySize bytes);
-void *yapRealloc(void *ptr, ySize bytes);
-void yapFree(void *ptr);
-char *yapStrdup(const char *s);
-char *yapSubstrdup(const char *s, int start, int end);
+typedef void * (*yapAllocFunc)(ySize bytes);
+typedef void * (*yapRellocFunc)(void *ptr, ySize bytes);
+typedef void (*yapFreeFunc)(void *ptr);
 
-typedef void (*yapDestroyCB)(void *p);
-typedef void (*yapDestroyCB1)(void *arg1, void *p);
+void *yapDefaultAlloc(ySize bytes);
+void *yapDefaultRealloc(void *ptr, ySize bytes);
+void yapDefaultFree(void *ptr);
+
+#define yapAlloc Y->allocFunc
+#define yapRealloc Y->reallocFunc
+#define yapFree Y->freeFunc
+
+char *yapStrdup(struct yapContext *Y, const char *s);
+char *yapSubstrdup(struct yapContext *Y, const char *s, int start, int end);
+
+typedef void (*yapDestroyCB)(struct yapContext *Y, void *p);
+typedef void (*yapDestroyCB1)(struct yapContext *Y, void *arg1, void *p);
+
+void yapDestroyCBFree(struct yapContext *Y, void *ptr); // calls Y->free() on each element
 
 //#define YAP_ENABLE_MEMORY_STATS
 #ifdef YAP_ENABLE_MEMORY_STATS

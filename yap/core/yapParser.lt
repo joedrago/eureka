@@ -267,7 +267,7 @@ static void yyGrowStack(yyParser *p){
 ** A pointer to a parser.  This pointer is used in subsequent calls
 ** to Parse and ParseFree.
 */
-void *ParseAlloc(void){
+void *ParseAlloc(struct yapContext *Y){
   yyParser *pParser;
   pParser = (yyParser*)yapAlloc( sizeof(yyParser) );
   if( pParser ){
@@ -349,7 +349,7 @@ static int yy_pop_parser_stack(yyParser *pParser){
 **       from malloc.
 ** </ul>
 */
-void ParseFree(
+void ParseFree(struct yapContext *Y,
   void *p                    /* The parser to be deleted */
 ){
   yyParser *pParser = (yyParser*)p;

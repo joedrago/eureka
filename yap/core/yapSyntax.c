@@ -6,13 +6,14 @@
 // ---------------------------------------------------------------------------
 
 #include "yapSyntax.h"
+#include "yapContext.h"
 
 #include "yapLexer.h"
 
 #include <string.h>
 #include <stdio.h>
 
-yapSyntax *yapSyntaxCreate(yU32 type, int line)
+yapSyntax *yapSyntaxCreate(struct yapContext *Y, yU32 type, int line)
 {
     yapSyntax *syntax = (yapSyntax *)yapAlloc(sizeof(yapSyntax));
     syntax->type = type;
@@ -20,95 +21,95 @@ yapSyntax *yapSyntaxCreate(yU32 type, int line)
     return syntax;
 }
 
-static void yapSyntaxElementClear(yapSyntaxElement *e)
+static void yapSyntaxElementClear(struct yapContext *Y, yapSyntaxElement *e)
 {
     if(e->p)
-        yapSyntaxDestroy(e->p);
+        yapSyntaxDestroy(Y, e->p);
     if(e->s)
         yapFree(e->s);
     if(e->a)
-        yapArrayDestroy(e->a, (yapDestroyCB)yapSyntaxDestroy);
+        yapArrayDestroy(Y, e->a, (yapDestroyCB)yapSyntaxDestroy);
 }
 
-void yapSyntaxDestroy(yapSyntax *syntax)
+void yapSyntaxDestroy(struct yapContext *Y, yapSyntax *syntax)
 {
-    yapSyntaxElementClear(&syntax->v);
-    yapSyntaxElementClear(&syntax->l);
-    yapSyntaxElementClear(&syntax->r);
+    yapSyntaxElementClear(Y, &syntax->v);
+    yapSyntaxElementClear(Y, &syntax->l);
+    yapSyntaxElementClear(Y, &syntax->r);
 
     yapFree(syntax);
 }
 
-yapSyntax *yapSyntaxCreateKString(struct yapToken *token)
+yapSyntax *yapSyntaxCreateKString(struct yapContext *Y, struct yapToken *token)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_KSTRING, token->line);
-    syntax->v.s = yapTokenToString(token);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_KSTRING, token->line);
+    syntax->v.s = yapTokenToString(Y, token);
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts)
+yapSyntax *yapSyntaxCreateKInt(struct yapContext *Y, struct yapToken *token, yU32 opts)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_KINT, token->line);
-    syntax->v.i = yapTokenToInt(token);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_KINT, token->line);
+    syntax->v.i = yapTokenToInt(Y, token);
     if(opts & CKO_NEGATIVE)
         syntax->v.i *= -1;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts)
+yapSyntax *yapSyntaxCreateKFloat(struct yapContext *Y, struct yapToken *token, yU32 opts)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_KFLOAT, token->line);
-    syntax->v.f = yapTokenToFloat(token);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_KFLOAT, token->line);
+    syntax->v.f = yapTokenToFloat(Y, token);
     if(opts & CKO_NEGATIVE)
         syntax->v.f *= -1;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token)
+yapSyntax *yapSyntaxCreateIdentifier(struct yapContext *Y, struct yapToken *token)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_IDENTIFIER, token->line);
-    syntax->v.s = yapTokenToString(token);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_IDENTIFIER, token->line);
+    syntax->v.s = yapTokenToString(Y, token);
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushThis)
+yapSyntax *yapSyntaxCreateIndex(struct yapContext *Y, yapSyntax *array, yapSyntax *index, yBool pushThis)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_INDEX, array->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_INDEX, array->line);
     syntax->v.i = pushThis;
     syntax->l.p = array;
     syntax->r.p = index;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateNull(int line)
+yapSyntax *yapSyntaxCreateNull(struct yapContext *Y, int line)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_NULL, line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_NULL, line);
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateThis(int line)
+yapSyntax *yapSyntaxCreateThis(struct yapContext *Y, int line)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_THIS, line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_THIS, line);
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr)
+yapSyntax *yapSyntaxCreateList(struct yapContext *Y, yU32 type, yapSyntax *firstExpr)
 {
-    yapSyntax *syntax = yapSyntaxCreate(type, (firstExpr) ? firstExpr->line : 0);
+    yapSyntax *syntax = yapSyntaxCreate(Y, type, (firstExpr) ? firstExpr->line : 0);
     syntax->v.a = yapArrayCreate();
     if(firstExpr)
-        yapArrayPush(syntax->v.a, firstExpr);
+        yapArrayPush(Y, syntax->v.a, firstExpr);
     return syntax;
 }
 
-yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr, yU32 flags)
+yapSyntax *yapSyntaxListAppend(struct yapContext *Y, yapSyntax *list, yapSyntax *expr, yU32 flags)
 {
     if(expr != NULL)
     {
         int index;
         if(!list->line)
             list->line = expr->line;
-        index = yapArrayPush(list->v.a, expr);
+        index = yapArrayPush(Y, list->v.a, expr);
         if((flags & YSLF_AUTOLITERAL) && (index > 0))
         {
             yapSyntax *toLiteral = (yapSyntax *)list->v.a->data[index - 1];
@@ -119,39 +120,39 @@ yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr, yU32 flags)
     return list;
 }
 
-yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args)
+yapSyntax *yapSyntaxCreateCall(struct yapContext *Y, yapSyntax *func, yapSyntax *args)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_CALL, func->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_CALL, func->line);
     syntax->v.p = func;
     syntax->r.p = args;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args)
+yapSyntax *yapSyntaxCreateStringFormat(struct yapContext *Y, yapSyntax *format, yapSyntax *args)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_STRINGFORMAT, format->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_STRINGFORMAT, format->line);
     syntax->l.p = format;
     syntax->r.p = args;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr)
+yapSyntax *yapSyntaxCreateUnary(struct yapContext *Y, yU32 type, yapSyntax *expr)
 {
-    yapSyntax *syntax = yapSyntaxCreate(type, expr->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, type, expr->line);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r, yBool compound)
+yapSyntax *yapSyntaxCreateBinary(struct yapContext *Y, yU32 type, yapSyntax *l, yapSyntax *r, yBool compound)
 {
-    yapSyntax *syntax = yapSyntaxCreate(type, l->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, type, l->line);
     syntax->l.p = l;
     syntax->r.p = r;
     syntax->v.i = compound;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateStatementExpr(struct yapContext *Y, yapSyntax *expr)
 {
     yapSyntax *syntax;
 
@@ -160,101 +161,101 @@ yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr)
         // An empty statement. Without PYTHON_SCOPING, this only happens
         // when there are multiple semicolons in a row. However, when
         // it is enabled, one is created for every blank line!
-        yapSyntaxDestroy(expr);
+        yapSyntaxDestroy(Y, expr);
         return NULL;
     }
 
-    syntax = yapSyntaxCreate(YST_STATEMENT_EXPR, expr->line);
+    syntax = yapSyntaxCreate(Y, YST_STATEMENT_EXPR, expr->line);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateAssignment(struct yapContext *Y, yapSyntax *l, yapSyntax *r)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_ASSIGNMENT, l->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_ASSIGNMENT, l->line);
     syntax->l.p = l;
     syntax->r.p = r;
     syntax->line = l->line;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r)
+yapSyntax *yapSyntaxCreateInherits(struct yapContext *Y, yapSyntax *l, yapSyntax *r)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_INHERITS, l->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_INHERITS, l->line);
     syntax->l.p = l;
     syntax->r.p = r;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateVar(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateVar(struct yapContext *Y, yapSyntax *expr)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_VAR, expr->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_VAR, expr->line);
     syntax->v.p = expr;
     syntax->line = expr->line;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateBreak(int line)
+yapSyntax *yapSyntaxCreateBreak(struct yapContext *Y, int line)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_BREAK, line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_BREAK, line);
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr)
+yapSyntax *yapSyntaxCreateReturn(struct yapContext *Y, yapSyntax *expr)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_RETURN, expr->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_RETURN, expr->line);
     syntax->v.p = expr;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody)
+yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_IFELSE, cond->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_IFELSE, cond->line);
     syntax->v.p = cond;
     syntax->l.p = ifBody;
     syntax->r.p = elseBody;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body)
+yapSyntax *yapSyntaxCreateWhile(struct yapContext *Y, yapSyntax *cond, yapSyntax *body)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_WHILE, cond->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_WHILE, cond->line);
     syntax->v.p = cond;
     syntax->r.p = body;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body)
+yapSyntax *yapSyntaxCreateFor(struct yapContext *Y, yapSyntax *vars, yapSyntax *iter, yapSyntax *body)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_FOR, vars->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_FOR, vars->line);
     syntax->v.p = vars;
     syntax->l.p = iter;
     syntax->r.p = body;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body, int line)
+yapSyntax *yapSyntaxCreateFunctionDecl(struct yapContext *Y, struct yapToken *name, yapSyntax *args, yapSyntax *body, int line)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_FUNCTION, line);
-    syntax->v.s = (name) ? yapTokenToString(name) : NULL;
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_FUNCTION, line);
+    syntax->v.s = (name) ? yapTokenToString(Y, name) : NULL;
     syntax->l.p = args;
     syntax->r.p = body;
     syntax->line = line;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateFunctionArgs(yapSyntax *args, struct yapToken *varargs)
+yapSyntax *yapSyntaxCreateFunctionArgs(struct yapContext *Y, yapSyntax *args, struct yapToken *varargs)
 {
     int line = (args) ? args->line : (varargs) ? varargs->line : 0;
-    yapSyntax *syntax = yapSyntaxCreate(YST_FUNCTION_ARGS, line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_FUNCTION_ARGS, line);
     syntax->l.p = args;
-    syntax->v.s = (varargs) ? yapTokenToString(varargs) : NULL;
+    syntax->v.s = (varargs) ? yapTokenToString(Y, varargs) : NULL;
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateScope(yapSyntax *body)
+yapSyntax *yapSyntaxCreateScope(struct yapContext *Y, yapSyntax *body)
 {
-    yapSyntax *syntax = yapSyntaxCreate(YST_SCOPE, body->line);
+    yapSyntax *syntax = yapSyntaxCreate(Y, YST_SCOPE, body->line);
     syntax->v.p = body;
     return syntax;
 }

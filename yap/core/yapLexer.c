@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "yapLexer.h"
+#include "yapContext.h"
 
 #include "yapCompiler.h"
 #include "yapParser.h"
@@ -48,6 +49,7 @@ int getNextToken(yapLexer *l)
 
 yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *compiler)
 {
+    struct yapContext *Y = compiler->Y;
     int id;
     int token_len;
     int tokenMax;
@@ -118,14 +120,14 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     return yTrue;
 }
 
-yapToken *yapTokenClone(yapToken *token)
+yapToken *yapTokenClone(struct yapContext *Y, yapToken *token)
 {
     yapToken *ret = yapTokenCreate();
     *ret = *token;
     return ret;
 }
 
-char *yapTokenToString(yapToken *t)
+char *yapTokenToString(struct yapContext *Y, yapToken *t)
 {
     const char *src = t->text;
     const char *end = src + t->len;
@@ -187,7 +189,7 @@ char *yapTokenToString(yapToken *t)
     return str;
 }
 
-int yapTokenToInt(yapToken *t)
+int yapTokenToInt(struct yapContext *Y, yapToken *t)
 {
     char temp[32];
     int base = 10;
@@ -206,7 +208,7 @@ int yapTokenToInt(yapToken *t)
     return strtol(temp, NULL, base);
 }
 
-float yapTokenToFloat(yapToken *t)
+float yapTokenToFloat(struct yapContext *Y, yapToken *t)
 {
     char temp[32];
     char *endptr;

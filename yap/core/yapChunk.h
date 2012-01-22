@@ -27,8 +27,8 @@ typedef struct yapChunk
 } yapChunk;
 
 #define yapChunkCreate() ((yapChunk*)yapAlloc(sizeof(yapChunk)))
-void yapChunkDestroy(yapChunk *chunk);
+void yapChunkDestroy(struct yapContext *Y, yapChunk *chunk);
 
-yOperand yapChunkAddBlock(yapChunk *chunk, struct yapBlock *block);
+yOperand yapChunkAddBlock(struct yapContext *Y, yapChunk *chunk, struct yapBlock *block);
 
 #endif

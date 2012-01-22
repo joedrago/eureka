@@ -26,8 +26,8 @@ typedef struct yapBlock
 } yapBlock;
 
 #define yapBlockCreate() ((yapBlock*)yapAlloc(sizeof(yapBlock)))
-void yapBlockDestroy(yapBlock *block);
+void yapBlockDestroy(struct yapContext *Y, yapBlock *block);
 
-yOperand yapBlockConvertCode(struct yapCode *code, struct yapChunk *owner, int argCount);
+yOperand yapBlockConvertCode(struct yapContext *Y, struct yapCode *code, struct yapChunk *owner, int argCount);
 
 #endif

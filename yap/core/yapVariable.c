@@ -15,11 +15,11 @@ yapVariable *yapVariableCreate(struct yapContext *Y, struct yapValue *value)
 {
     yapVariable *v = (yapVariable *)yapAlloc(sizeof(yapVariable));
     v->value = value;
-    yapArrayPush(&Y->usedVariables, v);
+    yapArrayPush(Y, &Y->usedVariables, v);
     return v;
 }
 
-void yapVariableDestroy(yapVariable *v)
+void yapVariableDestroy(struct yapContext *Y, yapVariable *v)
 {
     yapFree(v);
 }

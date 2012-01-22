@@ -16,7 +16,6 @@
 
 struct yapObject;
 struct yapValue;
-struct yapContext;
 
 // ---------------------------------------------------------------------------
 
@@ -53,31 +52,30 @@ typedef enum yapValueArithmeticOp
 
 typedef struct yapDumpParams
 {
-    struct yapContext *Y;
     yapString output;  // The final output value. Dump functions should use concatenate functions on this string, not set
     yapString tempStr; // to be used as a temporary string by the dump function, and should be considered to be changed if recursively calling dump()
     int tempInt;       // to be used as a temporary int by the dump function, and should be considered to be changed if recursively calling dump()
 } yapDumpParams;
 
 yapDumpParams *yapDumpParamsCreate(struct yapContext *Y);
-void yapDumpParamsDestroy(yapDumpParams *params);
+void yapDumpParamsDestroy(struct yapContext *Y, yapDumpParams *params);
 
 #define YVT_MAXNAMELEN 15
 
 struct yapValueType;
-typedef void (*yapValueTypeDestroyUserData)(struct yapValueType *valueType);
+typedef void (*yapValueTypeDestroyUserData)(struct yapContext *Y, struct yapValueType *valueType);
 
-typedef void (*yapValueTypeFuncClear)(struct yapValue *p);
+typedef void (*yapValueTypeFuncClear)(struct yapContext *Y, struct yapValue *p);
 typedef void (*yapValueTypeFuncClone)(struct yapContext *Y, struct yapValue *dst, struct yapValue *src);
 typedef void (*yapValueTypeFuncMark)(struct yapContext *Y, struct yapValue *value);
-typedef yBool (*yapValueTypeFuncToBool)(struct yapValue *p);
-typedef yS32 (*yapValueTypeFuncToInt)(struct yapValue *p);
-typedef yF32 (*yapValueTypeFuncToFloat)(struct yapValue *p);
+typedef yBool (*yapValueTypeFuncToBool)(struct yapContext *Y, struct yapValue *p);
+typedef yS32 (*yapValueTypeFuncToInt)(struct yapContext *Y, struct yapValue *p);
+typedef yF32 (*yapValueTypeFuncToFloat)(struct yapContext *Y, struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapContext *Y, struct yapValue *p);
 typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
 typedef yBool (*yapValueTypeFuncCmp)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, int *cmpResult);
 typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapContext *Y, struct yapValue *p, struct yapValue *index, yBool lvalue);
-typedef void (*yapValueTypeFuncDump)(yapDumpParams *params, struct yapValue *p); // creates debug text representing value, caller responsible for yapFree()
+typedef void (*yapValueTypeFuncDump)(struct yapContext *Y, yapDumpParams *params, struct yapValue *p); // creates debug text representing value, caller responsible for yapFree()
 
 // This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
 #define yapValueTypeFuncNotUsed ((void*)-1)
@@ -103,8 +101,8 @@ typedef struct yapValueType
     yapValueTypeFuncDump funcDump;
 } yapValueType;
 
-yapValueType *yapValueTypeCreate(const char *name);
-void yapValueTypeDestroy(yapValueType *type);
+yapValueType *yapValueTypeCreate(struct yapContext *Y, const char *name);
+void yapValueTypeDestroy(struct yapContext *Y, yapValueType *type);
 int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType); // takes ownership of newType (use yapAlloc), returns new type id
 
 void yapValueTypeRegisterAllBasicTypes(struct yapContext *Y);
@@ -125,8 +123,8 @@ typedef struct yapClosureVariable
     struct yapVariable *variable;
 } yapClosureVariable;
 
-yapClosureVariable *yapClosureVariableCreate(const char *name, struct yapVariable *variable);
-void yapClosureVariableDestroy(yapClosureVariable *cv);
+yapClosureVariable *yapClosureVariableCreate(struct yapContext *Y, const char *name, struct yapVariable *variable);
+void yapClosureVariableDestroy(struct yapContext *Y, yapClosureVariable *cv);
 
 // ---------------------------------------------------------------------------
 
@@ -206,7 +204,7 @@ yapValue *yapValueIndex(struct yapContext *Y, yapValue *p, yapValue *index, yBoo
 
 const char *yapValueTypeName(struct yapContext *Y, int type); // used in error reporting
 
-void yapValueDump(yapDumpParams *params, yapValue *p);
+void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p);
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_OBJECT)    \

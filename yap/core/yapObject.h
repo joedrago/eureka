@@ -8,14 +8,15 @@
 #ifndef YAPOBJECT_H
 #define YAPOBJECT_H
 
-#include "yapTypes.h"
+#include "yapContext.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
 
 struct yapHash;
 struct yapValue;
-struct yapContext;
+
+// ---------------------------------------------------------------------------
 
 typedef struct yapObject
 {
@@ -24,7 +25,7 @@ typedef struct yapObject
 } yapObject;
 
 yapObject *yapObjectCreate(struct yapContext *Y, struct yapValue *isa);
-void yapObjectDestroy(yapObject *v);
+void yapObjectDestroy(struct yapContext *Y, yapObject *v);
 void yapObjectMark(struct yapContext *Y, yapObject *v);
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create);

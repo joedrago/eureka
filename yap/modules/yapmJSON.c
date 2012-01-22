@@ -57,7 +57,7 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
         child = json->child;
         while(child)
         {
-            yapArrayPush(ret->arrayVal, jsonRecurse(Y, child));
+            yapArrayPush(Y, ret->arrayVal, jsonRecurse(Y, child));
             child = child->next;
         }
     }
@@ -95,7 +95,7 @@ static yU32 json_parse(struct yapContext *Y, yU32 argCount)
         cJSON_Delete(json);
     }
 
-    yapArrayPush(&Y->stack, ret);
+    yapArrayPush(Y, &Y->stack, ret);
     return 1;
 }
 

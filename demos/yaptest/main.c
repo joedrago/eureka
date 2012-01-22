@@ -5,11 +5,7 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "yapCompiler.h"
-#include "yapContext.h"
-#include "yapChunk.h"
-#include "yapContext.h"
-#include "yapHash.h"
+#include "yap.h"
 
 #ifdef YAP_ENABLE_EXT_DOT
 #include "yapxDot.h"
@@ -22,7 +18,7 @@
 
 void loadChunk(const char *code)
 {
-    yapContext *Y = yapContextCreate();
+    yapContext *Y = yapContextCreate(NULL);
     yapContextEval(Y, code, YEO_DUMP);
     if(yapContextGetError(Y))
     {
@@ -36,13 +32,15 @@ void loadChunk(const char *code)
 void outputDot(const char *code)
 {
 #ifdef YAP_ENABLE_EXT_DOT
-    yapCompiler *compiler = yapCompilerCreate();
+    yapContext *Y = yapContextCreate(NULL);
+    yapCompiler *compiler = yapCompilerCreate(Y);
     yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
     if(compiler->root)
         yapSyntaxDot(compiler->root);
     else
         printf("ERROR: Failed to build syntax tree\n");
     yapCompilerDestroy(compiler);
+    yapContextDestroy(Y);
 #else
     printf("Dot support is disabled! (YAP_ENABLE_EXT_DOT)\n");
 #endif

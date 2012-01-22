@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "yapHash.h"
+#include "yapContext.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +22,7 @@ static yU32 djb2hash(const unsigned char *str)
     return hash;
 }
 
-yapHash *yapHashCreate(int sizeEstimate)
+yapHash *yapHashCreate(struct yapContext *Y, int sizeEstimate)
 {
     int width = 7; // TODO: do something interesting to calculate width from sizeEstimate
     yapHash *yh;
@@ -31,15 +32,15 @@ yapHash *yapHashCreate(int sizeEstimate)
     return yh;
 }
 
-static void yapHashEntryDestroy(yapHashEntry *entry, yapDestroyCB cb)
+static void yapHashEntryDestroy(struct yapContext *Y, yapHashEntry *entry, yapDestroyCB cb)
 {
     if(cb)
-        cb(entry->value);
+        cb(Y, entry->value);
     yapFree(entry->key);
     yapFree(entry);
 }
 
-void yapHashIterateP1(yapHash *yh, yapIterateCB1 cb, void *arg1)
+void yapHashIterate(struct yapContext *Y, yapHash *yh, yapIterateCB cb)
 {
     int i;
     if(!cb)
@@ -49,13 +50,29 @@ void yapHashIterateP1(yapHash *yh, yapIterateCB1 cb, void *arg1)
         yapHashEntry *entry = yh->table[i];
         while(entry)
         {
-            cb(arg1, entry);
+            cb(Y, entry);
             entry = entry->next;
         }
     }
 }
 
-void yapHashClear(yapHash *yh, yapDestroyCB cb)
+void yapHashIterateP1(struct yapContext *Y, yapHash *yh, yapIterateCB1 cb, void *arg1)
+{
+    int i;
+    if(!cb)
+        return;
+    for(i=0; i<yh->width; i++)
+    {
+        yapHashEntry *entry = yh->table[i];
+        while(entry)
+        {
+            cb(Y, arg1, entry);
+            entry = entry->next;
+        }
+    }
+}
+
+void yapHashClear(struct yapContext *Y, yapHash *yh, yapDestroyCB cb)
 {
     int i;
     for(i=0; i<yh->width; i++)
@@ -65,20 +82,20 @@ void yapHashClear(yapHash *yh, yapDestroyCB cb)
         {
             yapHashEntry *freeme = entry;
             entry = entry->next;
-            yapHashEntryDestroy(freeme, cb);
+            yapHashEntryDestroy(Y, freeme, cb);
         }
     }
     memset(yh->table, 0, sizeof(yapHashEntry*) * yh->width);
 }
 
-void yapHashDestroy(yapHash *yh, yapDestroyCB cb)
+void yapHashDestroy(struct yapContext *Y, yapHash *yh, yapDestroyCB cb)
 {
-    yapHashClear(yh, cb);
+    yapHashClear(Y, yh, cb);
     yapFree(yh->table);
     yapFree(yh);
 }
 
-void **yapHashLookup(yapHash *yh, const char *key, yBool create)
+void **yapHashLookup(struct yapContext *Y, yapHash *yh, const char *key, yBool create)
 {
     yU32 hash = djb2hash(key);
     yU32 index = hash % yh->width;
@@ -101,7 +118,7 @@ void **yapHashLookup(yapHash *yh, const char *key, yBool create)
     {
         yh->count++;
         entry = yapAlloc(sizeof(yapHashEntry));
-        entry->key = yapStrdup(key);
+        entry->key = yapStrdup(Y, key);
         entry->hash = hash;
         entry->next = yh->table[index];
         yh->table[index] = entry;
@@ -110,14 +127,14 @@ void **yapHashLookup(yapHash *yh, const char *key, yBool create)
     return NULL;
 }
 
-void yapHashSet(yapHash *yh, const char *key, void *value)
+void yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value)
 {
-    void **ref = yapHashLookup(yh, key, yTrue);
+    void **ref = yapHashLookup(Y, yh, key, yTrue);
     yapAssert(ref);
     *ref = value;
 }
 
-void yapHashDelete(yapHash *yh, const char *key, yapDestroyCB cb)
+void yapHashDelete(struct yapContext *Y, yapHash *yh, const char *key, yapDestroyCB cb)
 {
     yU32 hash = djb2hash(key);
     yU32 index = hash % yh->width;
@@ -147,6 +164,6 @@ void yapHashDelete(yapHash *yh, const char *key, yapDestroyCB cb)
             // No parent means it was the head
             yh->table[index] = NULL;
         }
-        yapHashEntryDestroy(found, cb);
+        yapHashEntryDestroy(Y, found, cb);
     }
 }

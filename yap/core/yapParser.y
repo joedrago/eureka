@@ -16,7 +16,7 @@
     { yapToken }
 
 %extra_argument
-    { yapCompiler *compiler }
+    { yapCompiler *C }
 
 %include
 {
@@ -24,6 +24,7 @@
     #include "yapLexer.h"
     #include "yapParser.h"
     #include "yapSyntax.h"
+    #include "yapContext.h"
 
     #include <string.h>
     #include <stdlib.h>
@@ -97,13 +98,13 @@
 %left IF.
 %left ELSE.
 
-%syntax_error { yapCompileSyntaxError(compiler, &TOKEN); }
+%syntax_error { yapCompileSyntaxError(C, &TOKEN); }
 
 // ---------------------------------------------------------------------------
 // Chunk
 
 chunk ::= statement_list(L).
-    { compiler->root = L; }
+    { C->root = L; }
 
 // ---------------------------------------------------------------------------
 // Statement List
@@ -112,13 +113,13 @@ chunk ::= statement_list(L).
     { yapSyntax* }
 
 %destructor statement_list
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 statement_list(L) ::= statement_list(OL) statement(S).
-    { L = yapSyntaxListAppend(OL, S, 0); }
+    { L = yapSyntaxListAppend(C->Y, OL, S, 0); }
 
 statement_list(L) ::= statement(S).
-    { L = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
+    { L = yapSyntaxCreateList(C->Y, YST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
 // Statement Block
@@ -127,16 +128,16 @@ statement_list(L) ::= statement(S).
     { yapSyntax* }
 
 %destructor statement_block
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 statement_block(B) ::= STARTBLOCK ENDBLOCK.
-    { B = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+    { B = yapSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
 
 statement_block(B) ::= STARTBLOCK statement_list(L) ENDBLOCK.
     { B = L; }
 
 statement_block(B) ::= statement(S).
-    { B = yapSyntaxCreateList(YST_STATEMENTLIST, S); }
+    { B = yapSyntaxCreateList(C->Y, YST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
 // Statement
@@ -145,70 +146,70 @@ statement_block(B) ::= statement(S).
     { yapSyntax* }
 
 %destructor statement
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 statement(S) ::= BREAK(B) ENDSTATEMENT.
-    { S = yapSyntaxCreateBreak(B.line); }
+    { S = yapSyntaxCreateBreak(C->Y, B.line); }
 
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
-    { S = yapSyntaxCreateReturn(L); }
+    { S = yapSyntaxCreateReturn(C->Y, L); }
 
 statement(S) ::= RETURN paren_expr_list(L) ENDSTATEMENT.
-    { S = yapSyntaxCreateReturn(L); }
+    { S = yapSyntaxCreateReturn(C->Y, L); }
 
 statement(S) ::= expr_list(L) ENDSTATEMENT.
-    { S = yapSyntaxCreateStatementExpr(L); }
+    { S = yapSyntaxCreateStatementExpr(C->Y, L); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
-    { S = yapSyntaxCreateIfElse(COND, IFBODY, ELSEBODY); }
+    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
-    { S = yapSyntaxCreateIfElse(COND, IFBODY, NULL); }
+    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, NULL); }
 
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
-    { S = yapSyntaxCreateWhile(COND, BODY); }
+    { S = yapSyntaxCreateWhile(C->Y, COND, BODY); }
 
 statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
-    { S = yapSyntaxCreateFunctionDecl(&I, ARGS, BODY, F.line); }
+    { S = yapSyntaxCreateFunctionDecl(C->Y, &I, ARGS, BODY, F.line); }
 
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
-    { S = yapSyntaxCreateFor(VARS, ITER, BODY); }
+    { S = yapSyntaxCreateFor(C->Y, VARS, ITER, BODY); }
 
 statement(S) ::= lvalue(L) PLUSEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_ADD, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_ADD, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) DASHEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_SUB, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_SUB, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) STAREQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_MUL, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_MUL, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) SLASHEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_DIV, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_DIV, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_OREQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_BITWISE_OR, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_BITWISE_OR, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_ANDEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_BITWISE_AND, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_BITWISE_AND, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_XOREQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_BITWISE_XOR, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) SHIFTLEFTEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_SHIFTLEFT, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, L, R, yTrue); }
 
 statement(S) ::= lvalue(L) SHIFTRIGHTEQUALS expression(R).
-    { S = yapSyntaxCreateBinary(YST_SHIFTRIGHT, L, R, yTrue); }
+    { S = yapSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, L, R, yTrue); }
 
 statement(S) ::= ENDSTATEMENT.
-    { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+    { S = yapSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
 
 statement(S) ::= SCOPESTARTBLOCK ENDBLOCK.
-    { S = yapSyntaxCreateList(YST_STATEMENTLIST, NULL); }
+    { S = yapSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
 
 statement(S) ::= SCOPESTARTBLOCK statement_list(L) ENDBLOCK.
-    { S = yapSyntaxCreateScope(L); }
+    { S = yapSyntaxCreateScope(C->Y, L); }
 
 // ---------------------------------------------------------------------------
 // Parenthesized Expression List
@@ -217,13 +218,13 @@ statement(S) ::= SCOPESTARTBLOCK statement_list(L) ENDBLOCK.
     { yapSyntax* }
 
 %destructor paren_expr_list
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 paren_expr_list(PEL) ::= LEFTPAREN expr_list(L) RIGHTPAREN.
     { PEL = L; }
 
 paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
-    { PEL = yapSyntaxCreateList(YST_EXPRESSIONLIST, NULL); }
+    { PEL = yapSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, NULL); }
 
 // ---------------------------------------------------------------------------
 // Expression List
@@ -232,16 +233,16 @@ paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
     { yapSyntax* }
 
 %destructor expr_list
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 expr_list(EL) ::= expr_list(OL) COMMA expression(E).
-    { EL = yapSyntaxListAppend(OL, E, 0); }
+    { EL = yapSyntaxListAppend(C->Y, OL, E, 0); }
 
 expr_list(EL) ::= expr_list(OL) FATCOMMA expression(E).
-    { EL = yapSyntaxListAppend(OL, E, YSLF_AUTOLITERAL); }
+    { EL = yapSyntaxListAppend(C->Y, OL, E, YSLF_AUTOLITERAL); }
 
 expr_list(EL) ::= expression(E).
-    { EL = yapSyntaxCreateList(YST_EXPRESSIONLIST, E); }
+    { EL = yapSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, E); }
 
 // ---------------------------------------------------------------------------
 // Expression
@@ -250,109 +251,112 @@ expr_list(EL) ::= expression(E).
     { yapSyntax* }
 
 %destructor expression
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
-expression(C) ::= INT expression(E).
-    { C = yapSyntaxCreateUnary(YST_TOINT, E); }
+expression(EXP) ::= INT expression(E).
+    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOINT, E); }
 
-expression(C) ::= FLOAT expression(E).
-    { C = yapSyntaxCreateUnary(YST_TOFLOAT, E); }
+expression(EXP) ::= FLOAT expression(E).
+    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOFLOAT, E); }
 
-expression(C) ::= STRING expression(E).
-    { C = yapSyntaxCreateUnary(YST_TOSTRING, E); }
+expression(EXP) ::= STRING expression(E).
+    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOSTRING, E); }
 
-expression(C) ::= NOT expression(E).
-    { C = yapSyntaxCreateUnary(YST_NOT, E); }
+expression(EXP) ::= NOT expression(E).
+    { EXP = yapSyntaxCreateUnary(C->Y, YST_NOT, E); }
 
-expression(C) ::= BITWISE_NOT expression(E).
-    { C = yapSyntaxCreateUnary(YST_BITWISE_NOT, E); }
+expression(EXP) ::= BITWISE_NOT expression(E).
+    { EXP = yapSyntaxCreateUnary(C->Y, YST_BITWISE_NOT, E); }
 
-expression(C) ::= expression(L) PLUS expression(R).
-    { C = yapSyntaxCreateBinary(YST_ADD, L, R, yFalse); }
+expression(EXP) ::= expression(L) PLUS expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_ADD, L, R, yFalse); }
 
-expression(C) ::= expression(L) DASH expression(R).
-    { C = yapSyntaxCreateBinary(YST_SUB, L, R, yFalse); }
+expression(EXP) ::= expression(L) DASH expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_SUB, L, R, yFalse); }
 
-expression(C) ::= expression(L) STAR expression(R).
-    { C = yapSyntaxCreateBinary(YST_MUL, L, R, yFalse); }
+expression(EXP) ::= expression(L) STAR expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_MUL, L, R, yFalse); }
 
-expression(C) ::= expression(L) SLASH expression(R).
-    { C = yapSyntaxCreateBinary(YST_DIV, L, R, yFalse); }
+expression(EXP) ::= expression(L) SLASH expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_DIV, L, R, yFalse); }
 
-expression(C) ::= expression(L) AND expression(R).
-    { C = yapSyntaxCreateBinary(YST_AND, L, R, yFalse); }
+expression(EXP) ::= expression(L) AND expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_AND, L, R, yFalse); }
 
-expression(C) ::= expression(L) OR expression(R).
-    { C = yapSyntaxCreateBinary(YST_OR, L, R, yFalse); }
+expression(EXP) ::= expression(L) OR expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_OR, L, R, yFalse); }
 
-expression(C) ::= expression(L) CMP expression(R).
-    { C = yapSyntaxCreateBinary(YST_CMP, L, R, yFalse); }
+expression(EXP) ::= expression(L) CMP expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_CMP, L, R, yFalse); }
 
-expression(C) ::= expression(L) EQUALS expression(R).
-    { C = yapSyntaxCreateBinary(YST_EQUALS, L, R, yFalse); }
+expression(EXP) ::= expression(L) EQUALS expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_EQUALS, L, R, yFalse); }
 
-expression(C) ::= expression(L) NOTEQUALS expression(R).
-    { C = yapSyntaxCreateBinary(YST_NOTEQUALS, L, R, yFalse); }
+expression(EXP) ::= expression(L) NOTEQUALS expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_NOTEQUALS, L, R, yFalse); }
 
-expression(C) ::= expression(L) GREATERTHAN expression(R).
-    { C = yapSyntaxCreateBinary(YST_GREATERTHAN, L, R, yFalse); }
+expression(EXP) ::= expression(L) GREATERTHAN expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_GREATERTHAN, L, R, yFalse); }
 
-expression(C) ::= expression(L) GREATERTHANOREQUAL expression(R).
-    { C = yapSyntaxCreateBinary(YST_GREATERTHANOREQUAL, L, R, yFalse); }
+expression(EXP) ::= expression(L) GREATERTHANOREQUAL expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_GREATERTHANOREQUAL, L, R, yFalse); }
 
-expression(C) ::= expression(L) LESSTHAN expression(R).
-    { C = yapSyntaxCreateBinary(YST_LESSTHAN, L, R, yFalse); }
+expression(EXP) ::= expression(L) LESSTHAN expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_LESSTHAN, L, R, yFalse); }
 
-expression(C) ::= expression(L) LESSTHANOREQUAL expression(R).
-    { C = yapSyntaxCreateBinary(YST_LESSTHANOREQUAL, L, R, yFalse); }
+expression(EXP) ::= expression(L) LESSTHANOREQUAL expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_LESSTHANOREQUAL, L, R, yFalse); }
 
-expression(C) ::= expression(L) BITWISE_XOR expression(R).
-    { C = yapSyntaxCreateBinary(YST_BITWISE_XOR, L, R, yFalse); }
+expression(EXP) ::= expression(L) BITWISE_XOR expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, L, R, yFalse); }
 
-expression(C) ::= expression(L) BITWISE_AND expression(R).
-    { C = yapSyntaxCreateBinary(YST_BITWISE_AND, L, R, yFalse); }
+expression(EXP) ::= expression(L) BITWISE_AND expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_BITWISE_AND, L, R, yFalse); }
 
-expression(C) ::= expression(L) BITWISE_OR expression(R).
-    { C = yapSyntaxCreateBinary(YST_BITWISE_OR, L, R, yFalse); }
+expression(EXP) ::= expression(L) BITWISE_OR expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_BITWISE_OR, L, R, yFalse); }
 
-expression(C) ::= expression(L) SHIFTLEFT expression(R).
-    { C = yapSyntaxCreateBinary(YST_SHIFTLEFT, L, R, yFalse); }
+expression(EXP) ::= expression(L) SHIFTLEFT expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, L, R, yFalse); }
 
-expression(C) ::= expression(L) SHIFTRIGHT expression(R).
-    { C = yapSyntaxCreateBinary(YST_SHIFTRIGHT, L, R, yFalse); }
+expression(EXP) ::= expression(L) SHIFTRIGHT expression(R).
+    { EXP = yapSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, L, R, yFalse); }
 
-expression(C) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
-    { C = yapSyntaxCreateStringFormat(FORMAT, ARGS); }
+expression(EXP) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
+    { EXP = yapSyntaxCreateStringFormat(C->Y, FORMAT, ARGS); }
+
+expression(EXP) ::= expression(FORMAT) MOD expression(ARGS).
+    { EXP = yapSyntaxCreateStringFormat(C->Y, FORMAT, ARGS); }
 
 expression(E) ::= lvalue(L) ASSIGN expression(R).
-    { E = yapSyntaxCreateAssignment(L, R); }
+    { E = yapSyntaxCreateAssignment(C->Y, L, R); }
 
 expression(E) ::= lvalue(L) INHERITS expression(R).
-    { E = yapSyntaxCreateInherits(L, R); }
+    { E = yapSyntaxCreateInherits(C->Y, L, R); }
 
 expression(E) ::= lvalue(LV).
     { E = LV; }
 
 expression(E) ::= INTEGER(I).
-    { E = yapSyntaxCreateKInt(&I, 0); }
+    { E = yapSyntaxCreateKInt(C->Y, &I, 0); }
 
 expression(E) ::= NEGATIVE INTEGER(I).
-    { E = yapSyntaxCreateKInt(&I, CKO_NEGATIVE); }
+    { E = yapSyntaxCreateKInt(C->Y, &I, CKO_NEGATIVE); }
 
 expression(E) ::= FLOATNUM(F).
-    { E = yapSyntaxCreateKFloat(&F, 0); }
+    { E = yapSyntaxCreateKFloat(C->Y, &F, 0); }
 
 expression(E) ::= NEGATIVE FLOATNUM(F).
-    { E = yapSyntaxCreateKFloat(&F, CKO_NEGATIVE); }
+    { E = yapSyntaxCreateKFloat(C->Y, &F, CKO_NEGATIVE); }
 
 expression(E) ::= LITERALSTRING(L).
-    { E = yapSyntaxCreateKString(&L); }
+    { E = yapSyntaxCreateKString(C->Y, &L); }
 
 expression(E) ::= NULL(N).
-    { E = yapSyntaxCreateNull(N.line); }
+    { E = yapSyntaxCreateNull(C->Y, N.line); }
 
 expression(E) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
-    { E = yapSyntaxCreateFunctionDecl(NULL, ARGS, BODY, F.line); }
+    { E = yapSyntaxCreateFunctionDecl(C->Y, NULL, ARGS, BODY, F.line); }
 
 
 // ---------------------------------------------------------------------------
@@ -362,13 +366,13 @@ expression(E) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_blo
     { yapSyntax* }
 
 %destructor lvalue
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 lvalue(L) ::= lvalue_indexable(I).
     { L = I; }
 
 lvalue(L) ::= VAR IDENTIFIER(I).
-    { L = yapSyntaxCreateVar(yapSyntaxCreateIdentifier(&I)); }
+    { L = yapSyntaxCreateVar(C->Y, yapSyntaxCreateIdentifier(C->Y, &I)); }
 
 lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { L = EL; }
@@ -380,25 +384,25 @@ lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { yapSyntax* }
 
 %destructor lvalue_indexable
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 lvalue_indexable(L) ::= THIS(T).
-    { L = yapSyntaxCreateThis(T.line); }
+    { L = yapSyntaxCreateThis(C->Y, T.line); }
 
 lvalue_indexable(L) ::= lvalue_indexable(FUNC) paren_expr_list(ARGS).
-    { L = yapSyntaxCreateCall(FUNC, ARGS); }
+    { L = yapSyntaxCreateCall(C->Y, FUNC, ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
-    { L = yapSyntaxCreateIndex(ARRAY, INDEX, yFalse); }
+    { L = yapSyntaxCreateIndex(C->Y, ARRAY, INDEX, yFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
-    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER), yFalse); }
+    { L = yapSyntaxCreateIndex(C->Y, OBJECT, yapSyntaxCreateKString(C->Y, &MEMBER), yFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) COLONCOLON IDENTIFIER(MEMBER).
-    { L = yapSyntaxCreateIndex(OBJECT, yapSyntaxCreateKString(&MEMBER), yTrue); }
+    { L = yapSyntaxCreateIndex(C->Y, OBJECT, yapSyntaxCreateKString(C->Y, &MEMBER), yTrue); }
 
 lvalue_indexable(L) ::= IDENTIFIER(I).
-    { L = yapSyntaxCreateIdentifier(&I); }
+    { L = yapSyntaxCreateIdentifier(C->Y, &I); }
 
 // ---------------------------------------------------------------------------
 // Identifier List
@@ -407,16 +411,16 @@ lvalue_indexable(L) ::= IDENTIFIER(I).
     { yapSyntax* }
 
 %destructor ident_list
-    { yapSyntaxDestroy($$); }
+    { yapSyntaxDestroy(C->Y, $$); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
-    { IL = yapSyntaxListAppend(OL, yapSyntaxCreateIdentifier(&I), 0); }
+    { IL = yapSyntaxListAppend(C->Y, OL, yapSyntaxCreateIdentifier(C->Y, &I), 0); }
 
 ident_list(IL) ::= IDENTIFIER(I).
-    { IL = yapSyntaxCreateList(YST_IDENTIFIERLIST, yapSyntaxCreateIdentifier(&I)); }
+    { IL = yapSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, yapSyntaxCreateIdentifier(C->Y, &I)); }
 
 ident_list(IL) ::= .
-    { IL = yapSyntaxCreateList(YST_IDENTIFIERLIST, NULL); }
+    { IL = yapSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL); }
 
 // ---------------------------------------------------------------------------
 // Function Arguments
@@ -425,10 +429,10 @@ ident_list(IL) ::= .
     { yapSyntax* }
 
 func_args(ARGS) ::= ident_list(IL).
-    { ARGS = yapSyntaxCreateFunctionArgs(IL, NULL); }
+    { ARGS = yapSyntaxCreateFunctionArgs(C->Y, IL, NULL); }
 
 func_args(ARGS) ::= ident_list(IL) COMMA ELLIPSIS IDENTIFIER(VARARGS).
-    { ARGS = yapSyntaxCreateFunctionArgs(IL, &VARARGS); }
+    { ARGS = yapSyntaxCreateFunctionArgs(C->Y, IL, &VARARGS); }
 
 func_args(ARGS) ::= ELLIPSIS IDENTIFIER(VARARGS).
-    { ARGS = yapSyntaxCreateFunctionArgs(yapSyntaxCreateList(YST_IDENTIFIERLIST, NULL), &VARARGS); }
+    { ARGS = yapSyntaxCreateFunctionArgs(C->Y, yapSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL), &VARARGS); }

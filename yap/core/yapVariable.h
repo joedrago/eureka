@@ -14,7 +14,6 @@
 // Forwards
 
 struct yapValue;
-struct yapContext;
 
 // ---------------------------------------------------------------------------
 
@@ -25,7 +24,7 @@ typedef struct yapVariable
 } yapVariable;
 
 yapVariable *yapVariableCreate(struct yapContext *Y, struct yapValue *value);
-void yapVariableDestroy(yapVariable *v);
+void yapVariableDestroy(struct yapContext *Y, yapVariable *v);
 
 void yapVariableMark(struct yapContext *Y, yapVariable *variable); // used by yapContextGC()
 

@@ -9,7 +9,6 @@
 #define YAPCODE_H
 
 #include "yapTypes.h"
-#include "yapArray.h"
 
 typedef struct yapCode
 {
@@ -19,10 +18,10 @@ typedef struct yapCode
 } yapCode;
 
 #define yapCodeCreate() ((yapCode*)yapAlloc(sizeof(yapCode)))
-void yapCodeDestroy(yapCode *code);
+void yapCodeDestroy(struct yapContext *Y, yapCode *code);
 
-void yapCodeGrow(yapCode *code, int count);
-yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand, int line);
-void yapCodeConcat(yapCode *dst, yapCode *src);
+void yapCodeGrow(struct yapContext *Y, yapCode *code, int count);
+yS32 yapCodeAppend(struct yapContext *Y, yapCode *code, yOpcode opcode, yOperand operand, int line);
+void yapCodeConcat(struct yapContext *Y, yapCode *dst, yapCode *src);
 
 #endif

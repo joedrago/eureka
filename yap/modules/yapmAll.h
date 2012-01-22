@@ -10,8 +10,6 @@
 
 #include "yapTypes.h"
 
-struct yapContext;
-
 void yapModuleRegisterAll(struct yapContext *Y);
 
 #endif

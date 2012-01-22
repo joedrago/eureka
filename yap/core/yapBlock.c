@@ -7,16 +7,18 @@
 
 #include "yapBlock.h"
 
+#include "yapContext.h"
+#include "yapChunk.h"
 #include "yapCode.h"
 #include "yapOp.h"
 
-void yapBlockDestroy(yapBlock *block)
+void yapBlockDestroy(struct yapContext *Y, yapBlock *block)
 {
     yapOpsFree(block->ops);
     yapFree(block);
 }
 
-yOperand yapBlockConvertCode(struct yapCode *code, struct yapChunk *owner, int argCount)
+yOperand yapBlockConvertCode(struct yapContext *Y, struct yapCode *code, struct yapChunk *owner, int argCount)
 {
     yOperand ret;
     yapBlock *block = yapBlockCreate();
@@ -24,12 +26,12 @@ yOperand yapBlockConvertCode(struct yapCode *code, struct yapChunk *owner, int a
     block->opCount = code->count;
     block->argCount = argCount;
 
-    ret = yapChunkAddBlock(owner, block);
+    ret = yapChunkAddBlock(Y, owner, block);
 
     code->ops = NULL;
     code->size = 0;
     code->count = 0;
-    yapCodeDestroy(code);
+    yapCodeDestroy(Y, code);
     return ret;
 }
 

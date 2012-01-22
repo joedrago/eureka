@@ -116,33 +116,33 @@ enum
     YSLF_AUTOLITERAL = (1 << 0)        // Fat comma support, as in Perl. Morphs the bareword identifier prior to the fat comma into a literal string
 };
 
-yapSyntax *yapSyntaxCreate(yU32 type, int line);
-yapSyntax *yapSyntaxCreateKString(struct yapToken *token);
-yapSyntax *yapSyntaxCreateKInt(struct yapToken *token, yU32 opts);
-yapSyntax *yapSyntaxCreateKFloat(struct yapToken *token, yU32 opts);
-yapSyntax *yapSyntaxCreateIdentifier(struct yapToken *token);
-yapSyntax *yapSyntaxCreateIndex(yapSyntax *array, yapSyntax *index, yBool pushThis);
-yapSyntax *yapSyntaxCreateNull(int line);
-yapSyntax *yapSyntaxCreateThis(int line);
-yapSyntax *yapSyntaxCreateList(yU32 type, yapSyntax *firstExpr);
-yapSyntax *yapSyntaxListAppend(yapSyntax *list, yapSyntax *expr, yU32 flags);
-yapSyntax *yapSyntaxCreateCall(yapSyntax *func, yapSyntax *args);
-yapSyntax *yapSyntaxCreateStringFormat(yapSyntax *format, yapSyntax *args);
-yapSyntax *yapSyntaxCreateUnary(yU32 type, yapSyntax *expr);
-yapSyntax *yapSyntaxCreateBinary(yU32 type, yapSyntax *l, yapSyntax *r, yBool compound);
-yapSyntax *yapSyntaxCreateStatementExpr(yapSyntax *expr);
-yapSyntax *yapSyntaxCreateAssignment(yapSyntax *l, yapSyntax *r);
-yapSyntax *yapSyntaxCreateInherits(yapSyntax *l, yapSyntax *r);
-yapSyntax *yapSyntaxCreateVar(yapSyntax *expr);
-yapSyntax *yapSyntaxCreateBreak(int line);
-yapSyntax *yapSyntaxCreateReturn(yapSyntax *expr);
-yapSyntax *yapSyntaxCreateIfElse(yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
-yapSyntax *yapSyntaxCreateWhile(yapSyntax *cond, yapSyntax *body);
-yapSyntax *yapSyntaxCreateFor(yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
-yapSyntax *yapSyntaxCreateFunctionDecl(struct yapToken *name, yapSyntax *args, yapSyntax *body, int line);
-yapSyntax *yapSyntaxCreateFunctionArgs(yapSyntax *args, struct yapToken *varargs);
-yapSyntax *yapSyntaxCreateScope(yapSyntax *body);
+yapSyntax *yapSyntaxCreate(struct yapContext *Y, yU32 type, int line);
+yapSyntax *yapSyntaxCreateKString(struct yapContext *Y, struct yapToken *token);
+yapSyntax *yapSyntaxCreateKInt(struct yapContext *Y, struct yapToken *token, yU32 opts);
+yapSyntax *yapSyntaxCreateKFloat(struct yapContext *Y, struct yapToken *token, yU32 opts);
+yapSyntax *yapSyntaxCreateIdentifier(struct yapContext *Y, struct yapToken *token);
+yapSyntax *yapSyntaxCreateIndex(struct yapContext *Y, yapSyntax *array, yapSyntax *index, yBool pushThis);
+yapSyntax *yapSyntaxCreateNull(struct yapContext *Y, int line);
+yapSyntax *yapSyntaxCreateThis(struct yapContext *Y, int line);
+yapSyntax *yapSyntaxCreateList(struct yapContext *Y, yU32 type, yapSyntax *firstExpr);
+yapSyntax *yapSyntaxListAppend(struct yapContext *Y, yapSyntax *list, yapSyntax *expr, yU32 flags);
+yapSyntax *yapSyntaxCreateCall(struct yapContext *Y, yapSyntax *func, yapSyntax *args);
+yapSyntax *yapSyntaxCreateStringFormat(struct yapContext *Y, yapSyntax *format, yapSyntax *args);
+yapSyntax *yapSyntaxCreateUnary(struct yapContext *Y, yU32 type, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateBinary(struct yapContext *Y, yU32 type, yapSyntax *l, yapSyntax *r, yBool compound);
+yapSyntax *yapSyntaxCreateStatementExpr(struct yapContext *Y, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateAssignment(struct yapContext *Y, yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateInherits(struct yapContext *Y, yapSyntax *l, yapSyntax *r);
+yapSyntax *yapSyntaxCreateVar(struct yapContext *Y, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateBreak(struct yapContext *Y, int line);
+yapSyntax *yapSyntaxCreateReturn(struct yapContext *Y, yapSyntax *expr);
+yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
+yapSyntax *yapSyntaxCreateWhile(struct yapContext *Y, yapSyntax *cond, yapSyntax *body);
+yapSyntax *yapSyntaxCreateFor(struct yapContext *Y, yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
+yapSyntax *yapSyntaxCreateFunctionDecl(struct yapContext *Y, struct yapToken *name, yapSyntax *args, yapSyntax *body, int line);
+yapSyntax *yapSyntaxCreateFunctionArgs(struct yapContext *Y, yapSyntax *args, struct yapToken *varargs);
+yapSyntax *yapSyntaxCreateScope(struct yapContext *Y, yapSyntax *body);
 
-void yapSyntaxDestroy(yapSyntax *syntax);
+void yapSyntaxDestroy(struct yapContext *Y, yapSyntax *syntax);
 
 #endif

@@ -21,21 +21,21 @@ typedef struct yapString
     int maxlen;             // allowed to be: YAP_CONSTANT_STRING
 } yapString;
 
-void yapStringClear(yapString *str); // frees memory
+void yapStringClear(struct yapContext *Y, yapString *str); // frees memory
 
 const char *yapStringSafePtr(yapString *str);
 
-void yapStringSetLen(yapString *str, const char *text, int len);
-void yapStringSetStr(yapString *str, yapString *src);
-void yapStringSet(yapString *str, const char *text);
-void yapStringDonate(yapString *str, char *text);                // grants ownership of text to str, assumes (maxlen == len)
-void yapStringDonateStr(yapString *str, yapString *donation);    // grants ownership of 'donation' contents to str
-void yapStringSetK(yapString *str, const char *text);            // use constant string. This assumes that the ptr given will live forever
+void yapStringSetLen(struct yapContext *Y, yapString *str, const char *text, int len);
+void yapStringSetStr(struct yapContext *Y, yapString *str, yapString *src);
+void yapStringSet(struct yapContext *Y, yapString *str, const char *text);
+void yapStringDonate(struct yapContext *Y, yapString *str, char *text);                // grants ownership of text to str, assumes (maxlen == len)
+void yapStringDonateStr(struct yapContext *Y, yapString *str, yapString *donation);    // grants ownership of 'donation' contents to str
+void yapStringSetK(struct yapContext *Y, yapString *str, const char *text);            // use constant string. This assumes that the ptr given will live forever
 
-void yapStringConcatLen(yapString *str, const char *text, int len);
-void yapStringConcatStr(yapString *str, yapString *src);
-void yapStringConcat(yapString *str, const char *text);
+void yapStringConcatLen(struct yapContext *Y, yapString *str, const char *text, int len);
+void yapStringConcatStr(struct yapContext *Y, yapString *str, yapString *src);
+void yapStringConcat(struct yapContext *Y, yapString *str, const char *text);
 
-int yapStringCmpStr(yapString *a, yapString *b);
+int yapStringCmpStr(struct yapContext *Y, yapString *a, yapString *b);
 
 #endif

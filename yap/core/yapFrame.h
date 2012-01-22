@@ -8,11 +8,12 @@
 #ifndef YAPFRAME_H
 #define YAPFRAME_H
 
-#include "yapHash.h"
+#include "yapTypes.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapHash;
 struct yapValue;
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,7 @@ enum
 
 typedef struct yapFrame
 {
-    yapHash *locals;
+    struct yapHash *locals;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // In function scope, it is "this"
@@ -48,8 +49,8 @@ typedef struct yapFrame
     yU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
 } yapFrame;
 
-yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount);
-void yapFrameReset(yapFrame *frame, yBool jumpToStart);
-void yapFrameDestroy(yapFrame *frame);
+yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount);
+void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart);
+void yapFrameDestroy(struct yapContext *Y, yapFrame *frame);
 
 #endif

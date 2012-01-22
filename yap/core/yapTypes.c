@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "yapTypes.h"
+#include "yapContext.h"
 
 #include "yapLexer.h"
 
@@ -132,30 +133,33 @@ void yapTrackRealloc(void *oldptr, void *newptr, int bytes)
 #define TRACK_REALLOC(OLDPTR, NEWPTR, BYTES)
 #endif
 
-void *yapAlloc(ySize bytes)
+void *yapDefaultAlloc(ySize bytes)
 {
     void *ptr = calloc(1, bytes);
     TRACK_ALLOC(ptr, bytes)
     return ptr;
 }
 
-void *yapRealloc(void *ptr, ySize bytes)
+void *yapDefaultRealloc(void *ptr, ySize bytes)
 {
     void *p = realloc(ptr, bytes);
     TRACK_REALLOC(ptr, p, bytes)
     return p;
 }
 
-void yapFree(void *ptr)
+void yapDefaultFree(void *ptr)
 {
     yapAssert(ptr);
-    if(ptr == 0)
-        printf("huh\n");
     free(ptr);
     TRACK_FREE(ptr)
 }
 
-char *yapStrdup(const char *s)
+void yapDestroyCBFree(struct yapContext *Y, void *ptr)
+{
+    yapFree(ptr);
+}
+
+char *yapStrdup(struct yapContext *Y, const char *s)
 {
     int len = strlen(s);
     char *copy = yapAlloc(len+1);
@@ -163,7 +167,7 @@ char *yapStrdup(const char *s)
     return copy;
 }
 
-char *yapSubstrdup(const char *s, int start, int end)
+char *yapSubstrdup(struct yapContext *Y, const char *s, int start, int end)
 {
     int len = end - start;
     char *copy = yapAlloc(len+1);

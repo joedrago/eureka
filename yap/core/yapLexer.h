@@ -10,14 +10,11 @@
 
 #include "yapTypes.h"
 
-// #include "yapParser.h"
-
 // ---------------------------------------------------------------------------
 // Forwards
 
 struct yapCompiler;
 struct yapSyntaxTree;
-struct yapContext;
 
 // ---------------------------------------------------------------------------
 
@@ -31,11 +28,11 @@ typedef struct yapToken
 #define yapTokenCreate() ((yapToken*)yapAlloc(sizeof(yapToken)))
 #define yapTokenDestroy yapFree
 
-yapToken *yapTokenClone(yapToken *token);
+yapToken *yapTokenClone(struct yapContext *Y, yapToken *token);
 
-char *yapTokenToString(yapToken *t); // yapAlloc's a string copy
-int yapTokenToInt(yapToken *t);
-float yapTokenToFloat(yapToken *t);
+char *yapTokenToString(struct yapContext *Y, yapToken *t); // yapAlloc's a string copy
+int yapTokenToInt(struct yapContext *Y, yapToken *t);
+float yapTokenToFloat(struct yapContext *Y, yapToken *t);
 
 typedef void (*tokenCB)(void *parser, int id, yapToken token, struct yapCompiler *compiler);
 yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *compiler);

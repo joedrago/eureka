@@ -8,6 +8,7 @@
 #include "yapCode.h"
 
 #include "yapCompiler.h"
+#include "yapContext.h"
 #include "yapLexer.h"
 #include "yapChunk.h"
 #include "yapOp.h"
@@ -15,14 +16,14 @@
 #include <string.h>
 #include <stdio.h>
 
-void yapCodeDestroy(yapCode *code)
+void yapCodeDestroy(struct yapContext *Y, yapCode *code)
 {
     if(code->ops)
         yapFree(code->ops);
     yapFree(code);
 }
 
-void yapCodeGrow(yapCode *code, int count)
+void yapCodeGrow(struct yapContext *Y, yapCode *code, int count)
 {
     if(code->count + count <= code->size)
         return;
@@ -34,7 +35,7 @@ void yapCodeGrow(yapCode *code, int count)
     code->size += count;
 }
 
-yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand, int line)
+yS32 yapCodeAppend(struct yapContext *Y, yapCode *code, yOpcode opcode, yOperand operand, int line)
 {
     yapOp *op = &code->ops[code->count];
     op->opcode  = opcode;
@@ -46,11 +47,11 @@ yS32 yapCodeAppend(yapCode *code, yOpcode opcode, yOperand operand, int line)
     return code->count - 1;
 }
 
-void yapCodeConcat(yapCode *dst, yapCode *src)
+void yapCodeConcat(struct yapContext *Y, yapCode *dst, yapCode *src)
 {
     if(src->count)
     {
-        yapCodeGrow(dst, src->count);
+        yapCodeGrow(Y, dst, src->count);
         memcpy(&dst->ops[dst->count], src->ops, src->size * sizeof(yapOp));
         dst->count += src->count;
     }

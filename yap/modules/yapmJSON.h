@@ -10,8 +10,6 @@
 
 #include "yapTypes.h"
 
-struct yapContext;
-
 void yapModuleRegisterJSON(struct yapContext *Y);
 
 #endif

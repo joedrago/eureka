@@ -5,7 +5,7 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "yapArray.h"
+#include "yapContext.h"
 
 #include "yapLexer.h"
 
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-yOperand yap32ArrayPushUnique(yap32Array *p, yU32 *v)
+yOperand yap32ArrayPushUnique(struct yapContext *Y, yap32Array *p, yU32 *v)
 {
     int i;
     for(i = 0; i < p->count; i++)
@@ -21,10 +21,10 @@ yOperand yap32ArrayPushUnique(yap32Array *p, yU32 *v)
         if(p->data[i] == *v)
             return i;
     }
-    return yap32ArrayPush(p, *v);
+    return yap32ArrayPush(Y, p, *v);
 }
 
-yOperand yap32ArrayPush(yap32Array *p, yU32 v)
+yOperand yap32ArrayPush(struct yapContext *Y, yap32Array *p, yU32 v)
 {
     if(p->count == p->capacity)
     {
@@ -38,7 +38,7 @@ yOperand yap32ArrayPush(yap32Array *p, yU32 v)
     return (yOperand)(p->count - 1);
 }
 
-yU32 yap32ArrayPop(yap32Array *p)
+yU32 yap32ArrayPop(struct yapContext *Y, yap32Array *p)
 {
     if(p->count == 0)
         return -1;
@@ -46,7 +46,7 @@ yU32 yap32ArrayPop(yap32Array *p)
     return p->data[--p->count];
 }
 
-void yap32ArrayClear(yap32Array *p)
+void yap32ArrayClear(struct yapContext *Y, yap32Array *p)
 {
     p->count = 0;
     if(p->data)
@@ -55,7 +55,7 @@ void yap32ArrayClear(yap32Array *p)
     p->capacity = 0;
 }
 
-void yapArraySquash(yapArray *p)
+void yapArraySquash(struct yapContext *Y, yapArray *p)
 {
     int head = 0;
     int tail = 0;
@@ -71,9 +71,9 @@ void yapArraySquash(yapArray *p)
     p->count = head;
 }
 
-void yapArrayInject(yapArray *p, void *v, int n)
+void yapArrayInject(struct yapContext *Y, yapArray *p, void *v, int n)
 {
-    int index = yapArrayPush(p, v); // start with a push to cause the array to grow, if need be
+    int index = yapArrayPush(Y, p, v); // start with a push to cause the array to grow, if need be
     int injectIndex = index - n;    // calculate the proper home for the entry that is now at the endIndex
     if(injectIndex < 0)
     {
@@ -88,24 +88,24 @@ void yapArrayInject(yapArray *p, void *v, int n)
     p->data[index] = v;
 }
 
-void yapArrayUnshift(yapArray *p, void *v)
+void yapArrayUnshift(struct yapContext *Y, yapArray *p, void *v)
 {
-    yapArrayPush(p, NULL); // make some room!
+    yapArrayPush(Y, p, NULL); // make some room!
     memmove(&p->data[1], &p->data[0], sizeof(void*) * (p->count - 1)); // this might be a no-op if the array was empty. This is okay.
     p->data[0] = v;
 }
 
-void yapArrayShrink(yapArray *p, int n, yapDestroyCB cb)
+void yapArrayShrink(struct yapContext *Y, yapArray *p, int n, yapDestroyCB cb)
 {
     while(p->count > n)
     {
         if(cb)
-            cb(p->data[p->count-1]);
+            cb(Y, p->data[p->count-1]);
         p->count--;
     }
 }
 
-yOperand yapArrayPushUniqueString(yapArray *p, char *s)
+yOperand yapArrayPushUniqueString(struct yapContext *Y, yapArray *p, char *s)
 {
     int i;
     for(i = 0; i < p->count; i++)
@@ -117,15 +117,15 @@ yOperand yapArrayPushUniqueString(yapArray *p, char *s)
             return (yOperand)i;
         }
     }
-    return yapArrayPush(p, s);
+    return yapArrayPush(Y, p, s);
 }
 
-yOperand yapArrayPushUniqueToken(yapArray *p, struct yapToken *token)
+yOperand yapArrayPushUniqueToken(struct yapContext *Y, yapArray *p, struct yapToken *token)
 {
-    return yapArrayPushUniqueString(p, yapTokenToString(token));
+    return yapArrayPushUniqueString(Y, p, yapTokenToString(Y, token));
 }
 
-yOperand yapArrayPush(yapArray *p, void *v)
+yOperand yapArrayPush(struct yapContext *Y, yapArray *p, void *v)
 {
     if(p->count == p->capacity)
     {
@@ -139,32 +139,32 @@ yOperand yapArrayPush(yapArray *p, void *v)
     return (yOperand)(p->count - 1);
 }
 
-void *yapArrayPop(yapArray *p)
+void *yapArrayPop(struct yapContext *Y, yapArray *p)
 {
     if(!p->count)
         return NULL;
     return p->data[--p->count];
 }
 
-void *yapArrayTop(yapArray *p)
+void *yapArrayTop(struct yapContext *Y, yapArray *p)
 {
     if(!p->count)
         return NULL;
     return p->data[p->count - 1];
 }
 
-yU32 yapArrayCount(yapArray *p)
+yU32 yapArrayCount(struct yapContext *Y, yapArray *p)
 {
     return p->count;
 }
 
-void yapArrayClear(yapArray *p, yapDestroyCB cb)
+void yapArrayClear(struct yapContext *Y, yapArray *p, yapDestroyCB cb)
 {
     if(cb)
     {
         int i;
         for(i = 0; i < p->count; i++)
-            cb(p->data[i]);
+            cb(Y, p->data[i]);
     }
     p->count = 0;
     if(p->data)
@@ -173,19 +173,19 @@ void yapArrayClear(yapArray *p, yapDestroyCB cb)
     p->capacity = 0;
 }
 
-void yapArrayClearP1(yapArray *p, yapDestroyCB1 cb, void *arg1)
+void yapArrayClearP1(struct yapContext *Y, yapArray *p, yapDestroyCB1 cb, void *arg1)
 {
     if(cb)
     {
         int i;
         for(i = 0; i < p->count; i++)
-            cb(arg1, p->data[i]);
+            cb(Y, arg1, p->data[i]);
     }
-    yapArrayClear(p, NULL);
+    yapArrayClear(Y, p, NULL);
 }
 
-void yapArrayDestroy(yapArray *p, yapDestroyCB cb)
+void yapArrayDestroy(struct yapContext *Y, yapArray *p, yapDestroyCB cb)
 {
-    yapArrayClear(p, cb);
+    yapArrayClear(Y, p, cb);
     yapFree(p);
 }

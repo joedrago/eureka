@@ -20,10 +20,10 @@ typedef struct yap32Array
     yU32 *data;
 } yap32Array;
 
-yOperand yap32ArrayPushUnique(yap32Array *p, yU32 *v);
-yOperand yap32ArrayPush(yap32Array *p, yU32 v);
-yU32 yap32ArrayPop(yap32Array *p);
-void yap32ArrayClear(yap32Array *p);
+yOperand yap32ArrayPushUnique(struct yapContext *Y, yap32Array *p, yU32 *v);
+yOperand yap32ArrayPush(struct yapContext *Y, yap32Array *p, yU32 v);
+yU32 yap32ArrayPop(struct yapContext *Y, yap32Array *p);
+void yap32ArrayClear(struct yapContext *Y, yap32Array *p);
 
 typedef struct yapArray
 {
@@ -34,19 +34,19 @@ typedef struct yapArray
 
 #define yapArrayCreate() ((yapArray*)yapAlloc(sizeof(yapArray)))
 
-yOperand yapArrayPushUniqueString(yapArray *p, char *s);
-yOperand yapArrayPushUniqueToken(yapArray *p, struct yapToken *token);
-yOperand yapArrayPush(yapArray *p, void *v);
-void *yapArrayPop(yapArray *p);
-void *yapArrayTop(yapArray *p);
-yU32 yapArrayCount(yapArray *p);
-void yapArraySquash(yapArray *p);  // Removes all NULL entries
-void yapArrayUnshift(yapArray *p, void *v);        // Pushes v n entries on the front of the array
-void yapArrayInject(yapArray *p, void *v, int n);  // Injects v n entries from the end (0 being equivalent to Push)
+yOperand yapArrayPushUniqueString(struct yapContext *Y, yapArray *p, char *s);
+yOperand yapArrayPushUniqueToken(struct yapContext *Y, yapArray *p, struct yapToken *token);
+yOperand yapArrayPush(struct yapContext *Y, yapArray *p, void *v);
+void *yapArrayPop(struct yapContext *Y, yapArray *p);
+void *yapArrayTop(struct yapContext *Y, yapArray *p);
+yU32 yapArrayCount(struct yapContext *Y, yapArray *p);
+void yapArraySquash(struct yapContext *Y, yapArray *p);  // Removes all NULL entries
+void yapArrayUnshift(struct yapContext *Y, yapArray *p, void *v);        // Pushes v n entries on the front of the array
+void yapArrayInject(struct yapContext *Y, yapArray *p, void *v, int n);  // Injects v n entries from the end (0 being equivalent to Push)
 
-void yapArrayClear(yapArray *p, yapDestroyCB cb);
-void yapArrayClearP1(yapArray *p, yapDestroyCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
-void yapArrayDestroy(yapArray *p, yapDestroyCB cb);
-void yapArrayShrink(yapArray *p, int n, yapDestroyCB cb); // Causes array to be at-most n in count (does not affect capacity)
+void yapArrayClear(struct yapContext *Y, yapArray *p, yapDestroyCB cb);
+void yapArrayClearP1(struct yapContext *Y, yapArray *p, yapDestroyCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
+void yapArrayDestroy(struct yapContext *Y, yapArray *p, yapDestroyCB cb);
+void yapArrayShrink(struct yapContext *Y, yapArray *p, int n, yapDestroyCB cb); // Causes array to be at-most n in count (does not affect capacity)
 
 #endif

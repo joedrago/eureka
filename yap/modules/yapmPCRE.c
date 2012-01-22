@@ -68,8 +68,8 @@ static yU32 regex_match(struct yapContext *Y, yU32 argCount)
             for(i=0; i<err; i++)
             {
                 int index = i*2;
-                yapValue *match = yapValueDonateString(Y, yapValueAcquire(Y), yapSubstrdup(yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
-                yapArrayPush(matches->arrayVal, match);
+                yapValue *match = yapValueDonateString(Y, yapValueAcquire(Y), yapSubstrdup(Y, yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
+                yapArrayPush(Y, matches->arrayVal, match);
             }
         }
         pcre_free(regex);
@@ -80,7 +80,7 @@ static yU32 regex_match(struct yapContext *Y, yU32 argCount)
         yapContextSetError(Y, YVE_RUNTIME, "regex_match() error: %s", regexError);
     }
 
-    yapArrayPush(&Y->stack, results);
+    yapArrayPush(Y, &Y->stack, results);
     return 1;
 }
 

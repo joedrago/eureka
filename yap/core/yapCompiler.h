@@ -31,13 +31,14 @@ enum
 
 typedef struct yapCompiler
 {
+    struct yapContext *Y;
     struct yapSyntax *root;
     struct yapChunk *chunk;
     struct yapCode *code;
     yapArray errors;
 } yapCompiler;
 
-#define yapCompilerCreate() ((yapCompiler*)yapAlloc(sizeof(yapCompiler)))
+yapCompiler *yapCompilerCreate(struct yapContext *Y);
 void yapCompilerDestroy(yapCompiler *compiler);
 
 // Main entry point for the compiler

@@ -5,11 +5,7 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "yapCompiler.h"
-#include "yapContext.h"
-#include "yapChunk.h"
-#include "yapVariable.h"
-#include "yapContext.h"
+#include "yap.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -79,7 +75,7 @@ static char *getprompt(yapContext *Y)
 
 // ---------------------------------------------------------------------------
 
-static void printVariable(void *ignored, yapHashEntry *entry)
+static void printVariable(struct yapContext *Y, yapHashEntry *entry)
 {
     printf("* '%s'\n", entry->key);
 }
@@ -92,7 +88,7 @@ int main(int argc, char *argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        yapContext *Y = yapContextCreate();
+        yapContext *Y = yapContextCreate(NULL);
         int dump = 0;
         int running = 1;
         char *line;
@@ -116,7 +112,7 @@ int main(int argc, char *argv[])
             char *code = NULL;
             if(!strcmp(line, "$globals"))
             {
-                yapHashIterateP1(Y->globals, (yapIterateCB1)printVariable, NULL);
+                yapHashIterate(Y, Y->globals, (yapIterateCB)printVariable);
             }
             else if(!strncmp(line, "$load ", 6))
             {

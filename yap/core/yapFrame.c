@@ -8,25 +8,27 @@
 #include "yapFrame.h"
 
 #include "yapBlock.h"
+#include "yapContext.h"
+#include "yapHash.h"
 #include "yapOp.h"
 
-yapFrame *yapFrameCreate(yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount)
+yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount)
 {
     yapFrame *frame = (yapFrame *)yapAlloc(sizeof(yapFrame));
-    frame->locals = yapHashCreate(0);
+    frame->locals = yapHashCreate(Y, 0);
     frame->type = type;
     frame->thisVal = thisVal;
     frame->block = block;
     frame->prevStackCount = prevStackCount;
     frame->argCount = argCount;
     frame->cleanupCount = 0;
-    yapFrameReset(frame, yFalse);
+    yapFrameReset(Y, frame, yFalse);
     return frame;
 }
 
-void yapFrameReset(yapFrame *frame, yBool jumpToStart)
+void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart)
 {
-    yapHashClear(frame->locals, NULL);
+    yapHashClear(Y, frame->locals, NULL);
     frame->ip = (frame->block) ? frame->block->ops : NULL;
     if(frame->ip && jumpToStart)
     {
@@ -35,10 +37,10 @@ void yapFrameReset(yapFrame *frame, yBool jumpToStart)
     }
 }
 
-void yapFrameDestroy(yapFrame *frame)
+void yapFrameDestroy(struct yapContext *Y, yapFrame *frame)
 {
-    yapFrameReset(frame, yFalse);
-    yapHashDestroy(frame->locals, NULL);
+    yapFrameReset(Y, frame, yFalse);
+    yapHashDestroy(Y, frame->locals, NULL);
     yapFree(frame);
 }
 

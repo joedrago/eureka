@@ -7,21 +7,22 @@
 
 #include "yapChunk.h"
 
+#include "yapContext.h"
 #include "yapBlock.h"
 
-void yapChunkDestroy(yapChunk *chunk)
+void yapChunkDestroy(struct yapContext *Y, yapChunk *chunk)
 {
     // chunk->block is either NULL or pointing inside chunk->blocks
-    yapArrayClear(&chunk->blocks, (yapDestroyCB)yapBlockDestroy);
+    yapArrayClear(Y, &chunk->blocks, (yapDestroyCB)yapBlockDestroy);
 
-    yapArrayClear(&chunk->kStrings, (yapDestroyCB)yapFree);
-    yap32ArrayClear(&chunk->kInts);
+    yapArrayClear(Y, &chunk->kStrings, (yapDestroyCB)yapDestroyCBFree);
+    yap32ArrayClear(Y, &chunk->kInts);
 
     yapFree(chunk);
 }
 
-yOperand yapChunkAddBlock(yapChunk *chunk, struct yapBlock *block)
+yOperand yapChunkAddBlock(struct yapContext *Y, yapChunk *chunk, struct yapBlock *block)
 {
     block->chunk = chunk;
-    return yapArrayPush(&chunk->blocks, block);
+    return yapArrayPush(Y, &chunk->blocks, block);
 }

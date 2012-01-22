@@ -16,31 +16,31 @@ yapObject *yapObjectCreate(struct yapContext *Y, yapValue *isa)
 {
     yapObject *v = (yapObject *)yapAlloc(sizeof(yapObject));
     v->isa = isa;
-    v->hash = yapHashCreate(0);
+    v->hash = yapHashCreate(Y, 0);
     return v;
 }
 
-void yapObjectDestroy(yapObject *v)
+void yapObjectDestroy(struct yapContext *Y, yapObject *v)
 {
-    yapHashDestroy(v->hash, NULL);
+    yapHashDestroy(Y, v->hash, NULL);
     yapFree(v);
 }
 
-static void yapHashValueMark(yapContext *Y, yapHashEntry *entry)
+static void yapHashValueMark(struct yapContext *Y, yapHashEntry *entry)
 {
     yapValueMark(Y, entry->value);
 }
 
-void yapObjectMark(yapContext *Y, yapObject *v)
+void yapObjectMark(struct yapContext *Y, yapObject *v)
 {
-    yapHashIterateP1(v->hash, (yapIterateCB1)yapHashValueMark, Y);
+    yapHashIterate(Y, v->hash, (yapIterateCB)yapHashValueMark);
     if(v->isa)
         yapValueMark(Y, v->isa); // Is this necessary?
 }
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)
 {
-    struct yapValue **ref = (struct yapValue **)yapHashLookup(object->hash, key, create);
+    struct yapValue **ref = (struct yapValue **)yapHashLookup(Y, object->hash, key, create);
     if(create)
     {
         if(*ref == NULL)

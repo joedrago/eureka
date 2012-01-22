@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "yapString.h"
+#include "yapContext.h"
 
 #include <string.h>
 
@@ -14,7 +15,7 @@ int yapStrlen(const char *s)
     return (int)strlen(s);
 }
 
-void yapStringClear(yapString *str)
+void yapStringClear(struct yapContext *Y, yapString *str)
 {
     if((str->maxlen > 0) && str->text)
         free(str->text);
@@ -32,12 +33,12 @@ const char *yapStringSafePtr(yapString *str)
 }
 
 // Helper function
-static yBool yapStringMakeRoom(yapString *str, int len, yBool append)
+static yBool yapStringMakeRoom(struct yapContext *Y, yapString *str, int len, yBool append)
 {
     int newlen;
 
     if(str->maxlen == YAP_CONSTANT_STRING)
-        yapStringClear(str);
+        yapStringClear(Y, str);
 
     newlen = len;
     if(append)
@@ -51,38 +52,38 @@ static yBool yapStringMakeRoom(yapString *str, int len, yBool append)
     return yTrue;
 }
 
-void yapStringSetLen(yapString *str, const char *text, int len)
+void yapStringSetLen(struct yapContext *Y, yapString *str, const char *text, int len)
 {
-    yapStringMakeRoom(str, len, yFalse);
+    yapStringMakeRoom(Y, str, len, yFalse);
     memcpy(str->text, text, len);
     str->text[len] = 0;
     str->len = len;
 }
 
-void yapStringSetStr(yapString *str, yapString *src)
+void yapStringSetStr(struct yapContext *Y, yapString *str, yapString *src)
 {
     if(src->maxlen == YAP_CONSTANT_STRING)
-        yapStringSetK(str, src->text);
+        yapStringSetK(Y, str, src->text);
     else
-        yapStringSetLen(str, src->text, src->len);
+        yapStringSetLen(Y, str, src->text, src->len);
 }
 
-void yapStringSet(yapString *str, const char *text)
+void yapStringSet(struct yapContext *Y, yapString *str, const char *text)
 {
-    yapStringSetLen(str, text, (int)strlen(text));
+    yapStringSetLen(Y, str, text, (int)strlen(text));
 }
 
-void yapStringDonate(yapString *str, char *text)
+void yapStringDonate(struct yapContext *Y, yapString *str, char *text)
 {
-    yapStringClear(str);
+    yapStringClear(Y, str);
     str->text = text;
     str->len = yapStrlen(text);
     str->maxlen = str->len;
 }
 
-void yapStringDonateStr(yapString *str, yapString *donation)
+void yapStringDonateStr(struct yapContext *Y, yapString *str, yapString *donation)
 {
-    yapStringClear(str);
+    yapStringClear(Y, str);
 
     str->text = donation->text;
     str->len = donation->len;
@@ -93,36 +94,36 @@ void yapStringDonateStr(yapString *str, yapString *donation)
     donation->maxlen = 0;
 }
 
-void yapStringSetK(yapString *str, const char *text)
+void yapStringSetK(struct yapContext *Y, yapString *str, const char *text)
 {
-    yapStringClear(str);
+    yapStringClear(Y, str);
     str->text = (char*)text;
     str->len = yapStrlen(str->text);
     str->maxlen = YAP_CONSTANT_STRING;
 }
 
-void yapStringConcatLen(yapString *str, const char *text, int len)
+void yapStringConcatLen(struct yapContext *Y, yapString *str, const char *text, int len)
 {
     if(!len)
         return;
 
-    yapStringMakeRoom(str, len, yTrue);
+    yapStringMakeRoom(Y, str, len, yTrue);
     memcpy(&str->text[str->len], text, len);
     str->len += len;
     str->text[str->len] = 0;
 }
 
-void yapStringConcatStr(yapString *str, yapString *src)
+void yapStringConcatStr(struct yapContext *Y, yapString *str, yapString *src)
 {
-    yapStringConcatLen(str, yapStringSafePtr(src), src->len);
+    yapStringConcatLen(Y, str, yapStringSafePtr(src), src->len);
 }
 
-void yapStringConcat(yapString *str, const char *text)
+void yapStringConcat(struct yapContext *Y, yapString *str, const char *text)
 {
-    yapStringConcatLen(str, text, yapStrlen(text));
+    yapStringConcatLen(Y, str, text, yapStrlen(text));
 }
 
-int yapStringCmpStr(yapString *a, yapString *b)
+int yapStringCmpStr(struct yapContext *Y, yapString *a, yapString *b)
 {
     return strcmp(yapStringSafePtr(a), yapStringSafePtr(b));
 }
