@@ -150,20 +150,6 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     }
     break;
 
-    case YST_TOSTRING:
-    {
-        strcpy(label, "ToString");
-        REC_CHILD(syntax->v.p);
-    }
-    break;
-
-    case YST_TOINT:
-    {
-        strcpy(label, "ToInt");
-        REC_CHILD(syntax->v.p);
-    }
-    break;
-
     case YST_NOT:
     {
         strcpy(label, "Not (logical)");

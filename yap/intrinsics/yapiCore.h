@@ -5,11 +5,11 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef YAPINTRINSICS_H
-#define YAPINTRINSICS_H
+#ifndef YAPINTRINSICS_CORE_H
+#define YAPINTRINSICS_CORE_H
 
 #include "yapTypes.h"
 
-void yapIntrinsicsRegister(struct yapContext *Y);
+void yapIntrinsicsRegisterCore(struct yapContext *Y);
 
 #endif

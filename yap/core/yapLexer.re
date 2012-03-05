@@ -77,7 +77,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "."             { return YTT_PERIOD; }
     "::"            { return YTT_COLONCOLON; }
 
-	"break"         { return YTT_BREAK; }
+    "break"         { return YTT_BREAK; }
     "this"          { return YTT_THIS; }
     "while"         { return YTT_WHILE; }
     "var"           { return YTT_VAR; }
@@ -86,9 +86,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "return"        { return YTT_RETURN; }
     "if"            { return YTT_IF; }
     "else"          { return YTT_ELSE; }
-    "int"           { return YTT_INT; }
-    "float"         { return YTT_FLOAT; }
-    "string"        { return YTT_STRING; }
     "and"           { return YTT_AND; }
     "or"            { return YTT_OR; }
     "not"           { return YTT_NOT; }

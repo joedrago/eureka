@@ -69,10 +69,6 @@ enum
     YOP_LESSTHAN,                      // pops [a,b], pushes a<b  (bool)
     YOP_LESSTHANOREQUAL,               // pops [a,b], pushes a<=b (bool)
 
-    YOP_TOSTRING,                      // type conversion: string
-    YOP_TOINT,                         // type conversion: int
-    YOP_TOFLOAT,                       // type conversion: float
-
     YOP_NOT,                           // pops [a], pushes ![a] (bool value)
 
     YOP_BITWISE_NOT,                   // pops [a], pushes ~[a] (int value)

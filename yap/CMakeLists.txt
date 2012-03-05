@@ -84,8 +84,10 @@ set(yap_src
 )
 
 set(yap_intrinsics
-    intrinsics/yapiArray.h
-    intrinsics/yapiArray.c
+    intrinsics/yapiCore.h
+    intrinsics/yapiCore.c
+    intrinsics/yapiConversions.h
+    intrinsics/yapiConversions.c
 )
 
 set(yap_modules

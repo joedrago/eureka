@@ -39,9 +39,6 @@ enum
     YST_NULL,
     YST_THIS,
 
-    YST_TOSTRING,                      // r: expression to convert
-    YST_TOINT,                         // r: expression to convert
-    YST_TOFLOAT,                       // r: expression to convert
     YST_NOT,                           // !v
 
     YST_BITWISE_NOT,                   // ~v

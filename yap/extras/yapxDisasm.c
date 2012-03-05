@@ -70,10 +70,6 @@ void yapOpsDump(yapOp *ops, int count)
             HURR(YOP_LESSTHAN, "lt")
             HURR(YOP_LESSTHANOREQUAL, "lte")
 
-            HURR(YOP_TOSTRING, "tostring")
-            HURR(YOP_TOINT, "toint")
-            HURR(YOP_TOFLOAT, "tofloat")
-
             HURR(YOP_NOT, "not")
 
             HURR(YOP_BITWISE_NOT, "bnot")

@@ -18,7 +18,8 @@
 #include "yapVariable.h"
 
 #include "yapmAll.h"
-#include "yapiArray.h"
+#include "yapiCore.h"
+#include "yapiConversions.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -148,7 +149,8 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
     }
     Y->globals = yapHashCreate(Y, 0);
     yapValueTypeRegisterAllBasicTypes(Y);
-    yapIntrinsicsRegister(Y);
+    yapIntrinsicsRegisterCore(Y);
+    yapIntrinsicsRegisterConversions(Y);
     yapModuleRegisterAll(Y);
     return Y;
 }
@@ -526,7 +528,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
         if(argsTaken == argCount)
         {
             // We have run out of incoming yap arguments!
-            // If the current argument is required, we've just failed. 
+            // If the current argument is required, we've just failed.
             // If not, what we've gathered is "enough". Pop the args and return success.
             if(!required)
             {
@@ -547,7 +549,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
 
         switch(*c)
         {
-        default:  
+        default:
         case '?': /* can be anything */                    break;
         case 'n': if(v->type != YVT_NULL)   return yFalse; break;
         case 's': if(v->type != YVT_STRING) return yFalse; break;
@@ -1186,45 +1188,6 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             {
                 continueLooping = yFalse;
             }
-        }
-        break;
-
-        case YOP_TOSTRING:
-        {
-            yapValue *value = yapArrayPop(Y, &Y->stack);
-            if(!value)
-            {
-                yapContextSetError(Y, YVE_RUNTIME, "YOP_TOSTRING: empty stack!");
-                continueLooping = yFalse;
-                break;
-            };
-            yapArrayPush(Y, &Y->stack, yapValueToString(Y, value));
-        }
-        break;
-
-        case YOP_TOINT:
-        {
-            yapValue *value = yapArrayPop(Y, &Y->stack);
-            if(!value)
-            {
-                yapContextSetError(Y, YVE_RUNTIME, "YOP_TOINT: empty stack!");
-                continueLooping = yFalse;
-                break;
-            };
-            yapArrayPush(Y, &Y->stack, yapValueToInt(Y, value));
-        }
-        break;
-
-        case YOP_TOFLOAT:
-        {
-            yapValue *value = yapArrayPop(Y, &Y->stack);
-            if(!value)
-            {
-                yapContextSetError(Y, YVE_RUNTIME, "YOP_TOFLOAT: empty stack!");
-                continueLooping = yFalse;
-                break;
-            };
-            yapArrayPush(Y, &Y->stack, yapValueToFloat(Y, value));
         }
         break;
 

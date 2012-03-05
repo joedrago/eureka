@@ -271,9 +271,6 @@ static yapAssembleInfo asmDispatch[YST_COUNT] =
     { yapAssembleNull },            // YST_NULL
     { yapAssembleThis },            // YST_THIS
 
-    { yapAssembleUnary },           // YST_TOSTRING
-    { yapAssembleUnary },           // YST_TOINT
-    { yapAssembleUnary },           // YST_TOFLOAT
     { yapAssembleUnary },           // YST_NOT
 
     { yapAssembleUnary },           // YST_BITWISE_NOT
@@ -469,15 +466,6 @@ asmFunc(Unary)
     yapCodeGrow(Y, dst, 1);
     switch(syntax->type)
     {
-    case YST_TOSTRING:
-        yapCodeAppend(Y, dst, YOP_TOSTRING, 0, syntax->line);
-        break;
-    case YST_TOINT:
-        yapCodeAppend(Y, dst, YOP_TOINT, 0, syntax->line);
-        break;
-    case YST_TOFLOAT:
-        yapCodeAppend(Y, dst, YOP_TOFLOAT, 0, syntax->line);
-        break;
     case YST_NOT:
         yapCodeAppend(Y, dst, YOP_NOT, 0, syntax->line);
         break;

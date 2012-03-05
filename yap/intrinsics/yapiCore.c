@@ -5,7 +5,7 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "yapiArray.h"
+#include "yapiCore.h"
 
 #include "yapTypes.h"
 #include "yapHash.h"
@@ -51,7 +51,7 @@ yU32 array_push(struct yapContext *Y, yU32 argCount)
     return 0;
 }
 
-yU32 array_length(struct yapContext *Y, yU32 argCount)
+yU32 length(struct yapContext *Y, yU32 argCount)
 {
     yapValue *a;
     yapValue *c = yapValueNullPtr;
@@ -293,10 +293,10 @@ yU32 dump(struct yapContext *Y, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-void yapIntrinsicsRegister(struct yapContext *Y)
+void yapIntrinsicsRegisterCore(struct yapContext *Y)
 {
     yapContextRegisterGlobalFunction(Y, "array", make_array);
-    yapContextRegisterGlobalFunction(Y, "length", array_length);
+    yapContextRegisterGlobalFunction(Y, "length", length);
     yapContextRegisterGlobalFunction(Y, "push", array_push);
 
     yapContextRegisterGlobalFunction(Y, "object", make_object);

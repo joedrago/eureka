@@ -88,9 +88,6 @@
 %left SLASH.
 %left AND.
 %left OR.
-%left INT.
-%left FLOAT.
-%left STRING.
 %left THIS.
 %left NOT.
 %left MOD.
@@ -252,15 +249,6 @@ expr_list(EL) ::= expression(E).
 
 %destructor expression
     { yapSyntaxDestroy(C->Y, $$); }
-
-expression(EXP) ::= INT expression(E).
-    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOINT, E); }
-
-expression(EXP) ::= FLOAT expression(E).
-    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOFLOAT, E); }
-
-expression(EXP) ::= STRING expression(E).
-    { EXP = yapSyntaxCreateUnary(C->Y, YST_TOSTRING, E); }
 
 expression(EXP) ::= NOT expression(E).
     { EXP = yapSyntaxCreateUnary(C->Y, YST_NOT, E); }
