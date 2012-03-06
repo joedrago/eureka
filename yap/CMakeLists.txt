@@ -88,6 +88,8 @@ set(yap_intrinsics
     intrinsics/yapiCore.c
     intrinsics/yapiConversions.h
     intrinsics/yapiConversions.c
+    intrinsics/yapiInheritance.h
+    intrinsics/yapiInheritance.c
 )
 
 set(yap_modules

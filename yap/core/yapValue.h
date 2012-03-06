@@ -177,13 +177,14 @@ yapValue *yapValueSetCFunction(struct yapContext *Y, yapValue *p, yapCFunction f
 yapValue *yapValueSetRef(struct yapContext *Y, yapValue *p, struct yapValue **ref);
 
 yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p);
+yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *parent);
 
 void yapValueAddClosureVars(struct yapContext *Y, yapValue *p);
 
 yapValue *yapValueArrayCreate(struct yapContext *Y);
 void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v);
 
-yapValue *yapValueObjectCreate(struct yapContext *Y, struct yapValue *isa, int argCount);
+yapValue *yapValueObjectCreate(struct yapContext *Y, struct yapValue *isa, int argCount, yBool firstArgIsa);
 void yapValueObjectSetMember(struct yapContext *Y, struct yapValue *object, const char *name, struct yapValue *value);
 
 yapValue *yapValueAdd(struct yapContext *Y, yapValue *a, yapValue *b);

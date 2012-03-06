@@ -65,7 +65,7 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
 
     case cJSON_Object:
     {
-        ret = yapValueObjectCreate(Y, NULL, 0);
+        ret = yapValueObjectCreate(Y, NULL, 0, yFalse);
         child = json->child;
         while(child)
         {

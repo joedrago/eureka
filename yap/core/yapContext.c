@@ -20,6 +20,7 @@
 #include "yapmAll.h"
 #include "yapiCore.h"
 #include "yapiConversions.h"
+#include "yapiInheritance.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -148,9 +149,11 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
             Y->freeFunc = memFuncs->freeFunc;
     }
     Y->globals = yapHashCreate(Y, 0);
+
     yapValueTypeRegisterAllBasicTypes(Y);
     yapIntrinsicsRegisterCore(Y);
     yapIntrinsicsRegisterConversions(Y);
+    yapIntrinsicsRegisterInheritance(Y);
     yapModuleRegisterAll(Y);
     return Y;
 }
@@ -358,7 +361,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 {
     yBool ret = yTrue;
     yapValue *initFunc = yapFindFunc(Y, isa, "init");
-    yapValue *newObject = yapValueObjectCreate(Y, isa, (initFunc) ? 0 : argCount);
+    yapValue *newObject = yapValueObjectCreate(Y, isa, (initFunc) ? 0 : argCount, yFalse);
 
     if(initFunc)
         return yapContextCall(Y, framePtr, newObject, initFunc, argCount);
@@ -927,13 +930,11 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
         case YOP_INHERITS:
         {
-            yapValue *ref = yapArrayPop(Y, &Y->stack);
-            yapValue *val = yapArrayPop(Y, &Y->stack);
-            continueLooping = yapValueSetRefInherits(Y, ref, val);
-            if(continueLooping && operand)
-            {
-                yapArrayPush(Y, &Y->stack, *ref->refVal);
-            }
+            yapValue *l = yapArrayPop(Y, &Y->stack);
+            yapValue *r = yapArrayPop(Y, &Y->stack);
+            yBool inherits = yapValueTestInherits(Y, l, r);
+
+            yapArrayPush(Y, &Y->stack, yapValueSetInt(Y, yapValueAcquire(Y), inherits ? 1 : 0));
         }
         break;
 

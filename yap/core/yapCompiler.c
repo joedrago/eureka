@@ -632,13 +632,12 @@ asmFunc(Inherits)
 {
     yapSyntax *l = syntax->l.p;
     yapSyntax *r = syntax->r.p;
-    int leave = (keep > 0) ? 1 : 0;
 
     asmDispatch[r->type].assemble(Y, compiler, dst, r, 1, ASM_NORMAL);
-    asmDispatch[l->type].assemble(Y, compiler, dst, l, 1, ASM_LVALUE);
+    asmDispatch[l->type].assemble(Y, compiler, dst, l, 1, ASM_NORMAL);
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, YOP_INHERITS, leave, syntax->line);
-    return PAD(leave);
+    yapCodeAppend(Y, dst, YOP_INHERITS, 0, syntax->line);
+    return PAD(1);
 }
 
 asmFunc(IfElse)

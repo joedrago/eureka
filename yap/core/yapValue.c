@@ -978,27 +978,26 @@ yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
     return yTrue;
 }
 
-yBool yapValueSetRefInherits(struct yapContext *Y, yapValue *ref, yapValue *p)
+yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *parent)
 {
-    if(!yapValueCheckRef(Y, ref, p))
+    yapValue *p;
+
+    if(child->type != YVT_OBJECT)
         return yFalse;
 
-    if(*(ref->refVal) == &yapValueNull)
-    {
-        *(ref->refVal) = yapValueObjectCreate(Y, p, 0);
-    }
-
-    if((*(ref->refVal))->type != YVT_OBJECT)
-    {
-        yapContextSetError(Y, YVE_RUNTIME, "yapValueSetRefInherits: non-objects cannot inherit");
+    if(parent->type != YVT_OBJECT)
         return yFalse;
+
+    p = child->objectVal->isa;
+    while(p && (p->type == YVT_OBJECT))
+    {
+        if(p->objectVal == parent->objectVal)
+            return yTrue;
+
+        p = p->objectVal->isa;
     }
 
-    (*(ref->refVal))->objectVal->isa = p;
-    p->used = yTrue;
-
-    yapTrace(("yapValueSetRefInherits %p = %p\n", ref, p));
-    return yTrue;
+    return yFalse;
 }
 
 // ---------------------------------------------------------------------------
@@ -1028,17 +1027,42 @@ void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v)
 
 // ---------------------------------------------------------------------------
 
-yapValue *yapValueObjectCreate(struct yapContext *Y, struct yapValue *isa, int argCount)
+yapValue *yapValueObjectCreate(struct yapContext *Y, struct yapValue *isa, int argCount, yBool firstArgIsa)
 {
     yapValue *p = yapValueAcquire(Y);
+    if(firstArgIsa)
+    {
+        yapAssert(argCount);
+        yapAssert(isa == NULL);
+
+        if(argCount)
+        {
+            isa = yapContextGetArg(Y, 0, argCount);
+            if(!isa || (isa->type == YVT_NULL))
+            {
+                isa = NULL;
+            }
+            if(isa && (isa->type != YVT_OBJECT))
+            {
+                yapContextSetError(Y, YVE_RUNTIME, "objects can only inherit from objects");
+                isa = NULL;
+            }
+        }
+        else
+        {
+            isa = NULL;
+        }
+    }
     p->objectVal = yapObjectCreate(Y, isa);
     p->type = YVT_OBJECT;
     p->used = yTrue;
 
     if(argCount)
     {
-        int i;
-        for(i=0; i<argCount; i+=2)
+        int i = 0;
+        if(firstArgIsa)
+            i++;
+        for(; i<argCount; i+=2)
         {
             yapValue **ref;
             yapValue *key = yapContextGetArg(Y, i, argCount);

@@ -319,7 +319,7 @@ expression(EXP) ::= expression(FORMAT) MOD expression(ARGS).
 expression(E) ::= lvalue(L) ASSIGN expression(R).
     { E = yapSyntaxCreateAssignment(C->Y, L, R); }
 
-expression(E) ::= lvalue(L) INHERITS expression(R).
+expression(E) ::= expression(L) INHERITS expression(R).
     { E = yapSyntaxCreateInherits(C->Y, L, R); }
 
 expression(E) ::= lvalue(LV).

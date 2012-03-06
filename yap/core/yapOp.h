@@ -84,7 +84,7 @@ enum
     YOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
     YOP_REFVAL,                        // replace ref at top of stack with its value
     YOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
-    YOP_INHERITS,                      // pops [ref,v], creates a new ref to a stub object if ref=null, sets *ref to inherit from v. if X, don't actually pop v
+    YOP_INHERITS,                      // pops [l,r], pushes bool indicating if l inherits from r
     YOP_VARARGS,                       // pops all but X arguments pushed for this frame, adds them to an array, and pushes the array on the stack
 
     YOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]

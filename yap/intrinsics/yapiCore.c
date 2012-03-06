@@ -63,14 +63,6 @@ yU32 length(struct yapContext *Y, yU32 argCount)
     return 1;
 }
 
-static yU32 make_object(struct yapContext *Y, yU32 argCount)
-{
-    yapValue *v;
-    v = yapValueObjectCreate(Y, NULL, argCount);
-    yapArrayPush(Y, &Y->stack, v);
-    return 1;
-}
-
 static void yapAppendKey(struct yapContext *Y, yapValue *arrayVal, yapHashEntry *entry)
 {
     yapValue *keyVal = yapValueSetString(Y, yapValueAcquire(Y), entry->key);
@@ -88,32 +80,6 @@ static yU32 keys(struct yapContext *Y, yU32 argCount)
     yapHashIterateP1(Y, object->objectVal->hash, (yapIterateCB1)yapAppendKey, arrayVal);
 
     yapArrayPush(Y, &Y->stack, arrayVal);
-    return 1;
-}
-
-static yU32 super(struct yapContext *Y, yU32 argCount)
-{
-    yapObject *object = NULL;
-    if(argCount)
-    {
-        yapValue *arg = yapContextGetArg(Y, 0, argCount);
-        if(arg->type == YVT_REF)
-            arg = *arg->refVal;
-        if(arg->type == YVT_OBJECT)
-            object = arg->objectVal;
-    }
-
-    yapContextPopValues(Y, argCount);
-
-    if(object && object->isa)
-    {
-        yapArrayPush(Y, &Y->stack, object->isa);
-    }
-    else
-    {
-        yapArrayPush(Y, &Y->stack, &yapValueNull);
-    }
-
     return 1;
 }
 
@@ -299,10 +265,7 @@ void yapIntrinsicsRegisterCore(struct yapContext *Y)
     yapContextRegisterGlobalFunction(Y, "length", length);
     yapContextRegisterGlobalFunction(Y, "push", array_push);
 
-    yapContextRegisterGlobalFunction(Y, "object", make_object);
-    yapContextRegisterGlobalFunction(Y, "dict", make_object); // alias
     yapContextRegisterGlobalFunction(Y, "keys", keys);
-    yapContextRegisterGlobalFunction(Y, "super", super);
     yapContextRegisterGlobalFunction(Y, "eval", eval);
     yapContextRegisterGlobalFunction(Y, "type", type);
     yapContextRegisterGlobalFunction(Y, "dump", dump);
