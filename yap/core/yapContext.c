@@ -367,6 +367,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
         return yapContextCall(Y, framePtr, newObject, initFunc, argCount);
 
     yapArrayPush(Y, &Y->stack, newObject);
+    Y->lastRet = 1; // leaving the new object on the stack (object creation via this function is a CALL)
     return ret;
 }
 
