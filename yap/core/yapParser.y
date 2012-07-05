@@ -31,7 +31,10 @@
 
     #undef assert
     #define assert(ignoring_this_function)
-    #define YYNOERRORRECOVERY 1
+    
+#ifdef YAP_TRACE_PARSE
+    #undef NDEBUG
+#endif
 }
 
 %fallback GROUPLEFTPAREN LEFTPAREN.
@@ -207,6 +210,8 @@ statement(S) ::= SCOPESTARTBLOCK ENDBLOCK.
 
 statement(S) ::= SCOPESTARTBLOCK statement_list(L) ENDBLOCK.
     { S = yapSyntaxCreateScope(C->Y, L); }
+
+statement ::= error ENDSTATEMENT.
 
 // ---------------------------------------------------------------------------
 // Parenthesized Expression List

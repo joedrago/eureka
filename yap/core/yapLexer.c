@@ -62,7 +62,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     l.token  = l.cur;
     l.line   = 1;
 
-    while(!compiler->errors.count && ((id = getNextToken(&l)) != YTT_EOF))
+    while((id = getNextToken(&l)) != YTT_EOF)
     {
         if(l.error)
             break;

@@ -26,6 +26,7 @@
 void *yapParseAlloc(struct yapContext *Y);
 void yapParse(void *yyp, int id, yapToken token, yapCompiler *compiler);
 void yapParseFree(struct yapContext *Y, void *p);
+void yapParseTrace(FILE *TraceFILE, char *zTracePrompt);
 // ---------------------------------------------------------------------------
 
 void yapCompileOptimize(struct yapContext *Y, yapCompiler *compiler);
@@ -57,6 +58,10 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
     yapToken emptyToken = {0};
     void *parser;
 
+#ifdef YAP_TRACE_PARSE
+    yapParseTrace(stderr, "--- ");
+#endif
+
     yapTraceMem(("\n                                     "
                  "--- start chunk compile ---\n"));
 
@@ -68,12 +73,14 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
 
     if(compiler->root)
     {
-        if(compileOpts & YCO_OPTIMIZE)
-            yapCompileOptimize(Y, compiler);
+        if(!compiler->errors.count)
+        {
+            if(compileOpts & YCO_OPTIMIZE)
+                yapCompileOptimize(Y, compiler);
 
-        yapAssemble(Y, compiler);
-        success = yTrue;
-
+            yapAssemble(Y, compiler);
+            success = yTrue;
+        }
         if(!(compileOpts & YCO_KEEP_SYNTAX_TREE))
         {
             yapSyntaxDestroy(Y, compiler->root);
@@ -116,11 +123,19 @@ void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token)
     strcat(error, "syntax error near '");
     if(token && token->text)
     {
+        char *newlinePos;
         char temp[32];
         int len = strlen(token->text);
         if(len > 31) len = 31;
         memcpy(temp, token->text, len);
         temp[len] = 0;
+        newlinePos = strchr(temp, '\r');
+        if(!newlinePos)
+            newlinePos = strchr(temp, '\n');
+        if(newlinePos)
+        {
+            *newlinePos = 0;
+        }
         strcat(error, temp);
     }
     else

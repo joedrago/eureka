@@ -35,6 +35,15 @@ void outputDot(const char *code)
     yapContext *Y = yapContextCreate(NULL);
     yapCompiler *compiler = yapCompilerCreate(Y);
     yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
+    if(compiler->errors.count)
+    {
+        int i;
+        for(i = 0; i < compiler->errors.count; i++)
+        {
+            char *error = (char *)compiler->errors.data[i];
+            fprintf(stderr, "Error: %s\n", error);
+        }
+    }
     if(compiler->root)
         yapSyntaxDot(compiler->root);
     else

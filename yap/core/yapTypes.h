@@ -81,6 +81,7 @@ void yapMemoryStatsDumpLeaks();
 #include <assert.h>
 #define yapAssert assert
 
+//#define YAP_TRACE_PARSE
 //#define YAP_TRACE_OPS
 
 #define yapTrace(ARGS)
