@@ -138,6 +138,7 @@ typedef struct yapValue
     yU8 type;
     yFlag constant: 1;                 // Pointing at a constant table, do not free
     yFlag used: 1;                     // The "mark" during the GC's mark-and-sweep
+    yS32 refs;                         // reference count!
     union
     {
         yS32 intVal;

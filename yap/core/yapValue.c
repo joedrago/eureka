@@ -1128,6 +1128,11 @@ yapValue *yapValueAcquire(struct yapContext *Y)
     {
         value = yapValueCreate(Y);
     };
+    if(value->refs != 0)
+    {
+        yapTraceRefs(("yapValueAcquire: refs is %d", value->refs));
+    }
+    value->refs = 1;
     yapArrayPush(Y, &Y->usedValues, value);
     yapTrace(("yapValueAcquire %p\n", value));
     return value;

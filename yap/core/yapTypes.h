@@ -87,6 +87,9 @@ void yapMemoryStatsDumpLeaks();
 #define yapTrace(ARGS)
 //#define yapTrace(ARGS) printf ARGS
 
+//#define yapTraceRefs(ARGS)
+#define yapTraceRefs(ARGS) printf ARGS
+
 // ---------------------------------------------------------------------------
 
 #endif
