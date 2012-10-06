@@ -48,10 +48,12 @@ if(UNIX)
         add_custom_target(covclear
             COMMAND lcov -z -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info
         )
+        set(COVERAGE_HTML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage" CACHE STRING "Coverage HTML output")
+        MESSAGE(STATUS "Coverage HTML Output: ${COVERAGE_HTML_OUTPUT_DIR}")
         add_custom_target(covgen
             COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info
             COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/coverage
-            COMMAND genhtml --highlight --legend --output-directory ${CMAKE_BINARY_DIR}/coverage ${CMAKE_BINARY_DIR}/yap.info
+            COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/yap.info
         )
     else()
         MESSAGE(STATUS "Coverage disabled.")
