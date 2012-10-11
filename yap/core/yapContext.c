@@ -53,10 +53,6 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
     yapChunk *chunk;
     yapCompiler *compiler;
 
-#ifdef YAP_ENABLE_MEMORY_STATS
-    yapMemoryStatsReset();
-#endif
-
     compiler = yapCompilerCreate(Y);
     yapCompile(compiler, text, YCO_DEFAULT);
 
@@ -105,15 +101,15 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
 #endif
             }
 
-#ifdef YAP_TRACE_OPS
-            printf("--- begin chunk execution ---\n");
+#ifdef YAP_TRACE_EXECUTION
+            yapTraceExecution(("--- begin chunk execution ---\n"));
 #endif
             // Execute the chunk's block
             yapContextPushFrame(Y, chunk->block, 0, YFT_FUNC|YFT_CHUNK, yapValueNullPtr);
             yapContextLoop(Y, yTrue);
 
-#ifdef YAP_TRACE_OPS
-            printf("---  end  chunk execution ---\n");
+#ifdef YAP_TRACE_EXECUTION
+            yapTraceExecution(("---  end  chunk execution ---\n"));
 #endif
             if(!chunk->temporary)
             {
@@ -127,10 +123,6 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
             yapChunkDestroy(Y, chunk);
         }
     }
-
-#ifdef YAP_ENABLE_MEMORY_STATS
-    yapMemoryStatsPrint("yapContextEval: ");
-#endif
 }
 
 yapContext *yapContextCreate(yapMemFuncs *memFuncs)
@@ -612,7 +604,7 @@ int yapContextArgsFailure(struct yapContext *Y, int argCount, const char *errorF
     return 0;
 }
 
-#ifdef YAP_TRACE_OPS
+#ifdef YAP_TRACE_EXECUTION
 static const char *yapValueDebugString(struct yapContext *Y, yapValue *v)
 {
     static char buffer[2048];
@@ -643,23 +635,24 @@ static void yapContextLogState(yapContext *Y)
 {
     int i;
 
-    printf("\n\n\n------------------------------------------\n");
+    yapTraceExecution(("\n\n\n------------------------------------------\n"));
 
     if(Y->frames.count > 0)
     {
         yapFrame *frame = yapArrayTop(Y, &Y->frames);
-        printf("0x%p [cleanup:%d][lastRet:%d] IP: ", frame, frame->cleanupCount, Y->lastRet);
+        yapTraceExecution(("0x%p [cleanup:%d][lastRet:%d] IP: ", frame, frame->cleanupCount, Y->lastRet));
         yapOpsDump(frame->ip, 1);
     }
 
-    printf("\n");
-    printf("-- Stack --\n");
+    yapTraceExecution(("\n"));
 
+    yapTraceExecution(("-- Stack Top --\n"));
     for(i=0; i<Y->stack.count; i++)
     {
         yapValue *v = (yapValue*)Y->stack.data[Y->stack.count - 1 - i];
-        printf("%2.2d: %s\n", i, yapValueDebugString(Y, v));
+        yapTraceExecution(("%2.2d: %s\n", i, yapValueDebugString(Y, v)));
     }
+    yapTraceExecution(("-- Stack Bot --\n"));
 }
 #endif
 
@@ -690,7 +683,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
         opcode  = frame->ip->opcode;
         operand = frame->ip->operand;
 
-#ifdef YAP_TRACE_OPS
+#ifdef YAP_TRACE_EXECUTION
         yapContextLogState(Y);
 #endif
         switch(opcode)
@@ -1076,7 +1069,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 int i;
                 for(i = 0; i < (offerCount - keepCount); i++)
                 {
-                    yapTrace(("-- cleaning stack entry --\n"));
+                    yapTraceExecution(("-- cleaning stack entry --\n"));
                     yapArrayPop(Y, &Y->stack);
                 }
             }
@@ -1085,7 +1078,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 int i;
                 for(i = 0; i < (keepCount - offerCount); i++)
                 {
-                    yapTrace(("-- padding stack with null --\n"));
+                    yapTraceExecution(("-- padding stack with null --\n"));
                     yapArrayPush(Y, &Y->stack, &yapValueNull);
                 }
             }

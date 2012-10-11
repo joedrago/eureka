@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef YAP_ENABLE_MEMORY_STATS
+#ifdef YAP_TRACE_MEMORY
 
 // I realize this is large. This is just for memory profiling.
 #define MAX_TRACKERS 100000
@@ -50,7 +50,7 @@ void yapMemoryStatsReset()
 
 void yapMemoryStatsPrint(const char* prefix)
 {
-    printf("%sMemory Stats: %d/%d A/F count [%d]. %d/%d A/F bytes [%d]. %d/%d A/F total [%d]\n",
+    yapTraceMem(("%sMemory Stats: %d/%d A/F count [%d]. %d/%d A/F bytes [%d]. %d/%d A/F total [%d]\n",
         prefix,
         sMemoryStats.allocs,
         sMemoryStats.frees,
@@ -61,7 +61,7 @@ void yapMemoryStatsPrint(const char* prefix)
         sMemoryStats.totalAllocSize,
         sMemoryStats.totalFreeSize,
         sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
-    );
+    ));
 }
 
 void yapMemoryStatsDumpLeaks()

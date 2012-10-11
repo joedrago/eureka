@@ -32,7 +32,7 @@
     #undef assert
     #define assert(ignoring_this_function)
     
-#ifdef YAP_TRACE_PARSE
+#ifdef YAP_TRACE_PARSER
     #undef NDEBUG
 #endif
 }

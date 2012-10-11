@@ -40,7 +40,7 @@ yS32 yapCodeAppend(struct yapContext *Y, yapCode *code, yOpcode opcode, yOperand
     yapOp *op = &code->ops[code->count];
     op->opcode  = opcode;
     op->operand = operand;
-#ifdef YAP_DEBUGGING
+#ifdef YAP_DEBUG_SYMBOLS
     op->line = line;
 #endif
     code->count++;

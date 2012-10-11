@@ -58,7 +58,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
     yapToken emptyToken = {0};
     void *parser;
 
-#ifdef YAP_TRACE_PARSE
+#ifdef YAP_TRACE_PARSER
     yapParseTrace(stderr, "--- ");
 #endif
 

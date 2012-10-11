@@ -97,7 +97,7 @@ typedef struct yapOp
 {
     yOpcode  opcode;
     yOperand operand;
-#ifdef YAP_DEBUGGING
+#ifdef YAP_DEBUG_SYMBOLS
     int line;
 #endif
 } yapOp;

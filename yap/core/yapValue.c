@@ -500,7 +500,7 @@ struct yapValue * stringFuncArithmetic(struct yapContext *Y, struct yapValue *a,
     }
     else
     {
-        printf("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!\n");
+        yapTraceExecution(("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!"));
     }
     return ret;
 }
@@ -806,7 +806,7 @@ yapValue *yapValueSetInt(struct yapContext *Y, yapValue *p, int v)
     p->type = YVT_INT;
     p->intVal = v;
     p->used = yTrue;
-    yapTrace(("yapValueSetInt %p [%d]\n", p, v));
+    yapTraceValues(("yapValueSetInt %p [%d]\n", p, v));
     return p;
 }
 
@@ -817,7 +817,7 @@ yapValue *yapValueSetFloat(struct yapContext *Y, yapValue *p, yF32 v)
     p->type = YVT_FLOAT;
     p->floatVal = v;
     p->used = yTrue;
-    yapTrace(("yapValueSetFloat %p [%f]\n", p, v));
+    yapTraceValues(("yapValueSetFloat %p [%f]\n", p, v));
     return p;
 }
 
@@ -828,7 +828,7 @@ yapValue *yapValueSetKString(struct yapContext *Y, yapValue *p, const char *s)
     p->type = YVT_STRING;
     yapStringSetK(Y, &p->stringVal, s);
     p->used = yTrue;
-    yapTrace(("yapValueSetKString %p\n", p));
+    yapTraceValues(("yapValueSetKString %p\n", p));
     return p;
 }
 
@@ -839,7 +839,7 @@ yapValue *yapValueSetString(struct yapContext *Y, yapValue *p, const char *s)
     p->type = YVT_STRING;
     yapStringSet(Y, &p->stringVal, s);
     p->used = yTrue;
-    yapTrace(("yapValueSetString %p\n", p));
+    yapTraceValues(("yapValueSetString %p\n", p));
     return p;
 }
 
@@ -850,7 +850,7 @@ yapValue *yapValueDonateString(struct yapContext *Y, yapValue *p, char *s)
     p->type = YVT_STRING;
     yapStringDonate(Y, &p->stringVal, s);
     p->used = yTrue;
-    yapTrace(("yapValueDonateString %p\n", p));
+    yapTraceValues(("yapValueDonateString %p\n", p));
     return p;
 }
 
@@ -904,7 +904,7 @@ yapValue *yapValueSetFunction(struct yapContext *Y, yapValue *p, struct yapBlock
     p->closureVars = NULL;
     p->blockVal = block;
     p->used = yTrue;
-    yapTrace(("yapValueSetFunction %p\n", p));
+    yapTraceValues(("yapValueSetFunction %p\n", p));
     return p;
 }
 
@@ -915,7 +915,7 @@ yapValue *yapValueSetCFunction(struct yapContext *Y, yapValue *p, yapCFunction f
     p->type = YVT_CFUNCTION;
     p->cFuncVal = func;
     p->used = yTrue;
-    yapTrace(("yapValueSetCFunction %p\n", p));
+    yapTraceValues(("yapValueSetCFunction %p\n", p));
     return p;
 }
 
@@ -926,7 +926,7 @@ yapValue *yapValueSetRef(struct yapContext *Y, yapValue *p, struct yapValue **re
     p->type = YVT_REF;
     p->refVal = ref;
     p->used = yTrue;
-    yapTrace(("yapValueSetRef %p\n", p));
+    yapTraceValues(("yapValueSetRef %p\n", p));
     return p;
 }
 
@@ -937,7 +937,7 @@ yapValue *yapValueSetObject(struct yapContext *Y, yapValue *p, struct yapObject 
     p->type = YVT_OBJECT;
     p->objectVal = object;
     p->used = yTrue;
-    yapTrace(("yapValueSetObject %p\n", p));
+    yapTraceValues(("yapValueSetObject %p\n", p));
     return p;
 }
 
@@ -974,7 +974,7 @@ yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
     *(ref->refVal) = p;
     p->used = yTrue;
 
-    yapTrace(("yapValueSetRefVal %p = %p\n", ref, p));
+    yapTraceValues(("yapValueSetRefVal %p = %p\n", ref, p));
     return yTrue;
 }
 
@@ -1102,14 +1102,14 @@ void yapValueClear(struct yapContext *Y, yapValue *p)
 
 void yapValueRelease(struct yapContext *Y, yapValue *p)
 {
-    yapTrace(("yapValueRelease %p\n", p));
+    yapTraceValues(("yapValueRelease %p\n", p));
     yapValueClear(Y, p);
     yapArrayPush(Y, &Y->freeValues, p);
 }
 
 void yapValueDestroy(struct yapContext *Y, yapValue *p)
 {
-    yapTrace(("yapValueFree %p\n", p));
+    yapTraceValues(("yapValueFree %p\n", p));
     yapValueClear(Y, p);
     yapFree(p);
 }
@@ -1117,7 +1117,7 @@ void yapValueDestroy(struct yapContext *Y, yapValue *p)
 static yapValue *yapValueCreate(yapContext *Y)
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
-    yapTrace(("yapValueCreate %p\n", value));
+    yapTraceValues(("yapValueCreate %p\n", value));
     return value;
 }
 
@@ -1134,7 +1134,7 @@ yapValue *yapValueAcquire(struct yapContext *Y)
     }
     value->refs = 1;
     yapArrayPush(Y, &Y->usedValues, value);
-    yapTrace(("yapValueAcquire %p\n", value));
+    yapTraceValues(("yapValueAcquire %p\n", value));
     return value;
 }
 
@@ -1164,7 +1164,7 @@ yapValue *yapValueClone(struct yapContext *Y, yapValue *p)
 {
     yapValue *n = yapValueAcquire(Y);
     yapValueCloneData(Y, n, p);
-    yapTrace(("yapValueClone %p -> %p\n", p, n));
+    yapTraceValues(("yapValueClone %p -> %p\n", p, n));
     return n;
 }
 
@@ -1196,7 +1196,9 @@ yapValue *yapValueAdd(struct yapContext *Y, yapValue *a, yapValue *b)
 {
     yapValue *value = yapValueTypeSafeCall(a->type, Arithmetic)(Y, a, b, YVAO_ADD);
     if(!value)
-        yapTrace(("Don't know how to add types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    {
+        yapTraceValues(("Don't know how to add types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    }
     return value;
 }
 
@@ -1204,7 +1206,9 @@ yapValue *yapValueSub(struct yapContext *Y, yapValue *a, yapValue *b)
 {
     yapValue *value = yapValueTypeSafeCall(a->type, Arithmetic)(Y, a, b, YVAO_SUB);
     if(!value)
-        yapTrace(("Don't know how to subtract types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    {
+        yapTraceValues(("Don't know how to subtract types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    }
     return value;
 }
 
@@ -1212,7 +1216,9 @@ yapValue *yapValueMul(struct yapContext *Y, yapValue *a, yapValue *b)
 {
     yapValue *value = yapValueTypeSafeCall(a->type, Arithmetic)(Y, a, b, YVAO_MUL);
     if(!value)
-        yapTrace(("Don't know how to multiply types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    {
+        yapTraceValues(("Don't know how to multiply types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    }
     return value;
 }
 
@@ -1220,7 +1226,9 @@ yapValue *yapValueDiv(struct yapContext *Y, yapValue *a, yapValue *b)
 {
     yapValue *value = yapValueTypeSafeCall(a->type, Arithmetic)(Y, a, b, YVAO_DIV);
     if(!value)
-        yapTrace(("Don't know how to divide types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    {
+        yapTraceValues(("Don't know how to divide types %s and %s\n", yapValueTypePtr(a->type)->name, yapValueTypePtr(b->type)->name));
+    }
     return value;
 }
 
@@ -1247,7 +1255,7 @@ yapValue *yapValueToString(struct yapContext *Y, yapValue *p)
     yapValue *value = yapValueTypeSafeCall(p->type, ToString)(Y, p);
     if(!value)
     {
-        printf("yapValueToString: unable to convert type '%s' to string\n", yapValueTypePtr(p->type)->name);
+        yapTraceExecution(("yapValueToString: unable to convert type '%s' to string\n", yapValueTypePtr(p->type)->name));
     }
     return value;
 }

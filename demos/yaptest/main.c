@@ -18,13 +18,21 @@
 
 void loadChunk(const char *code)
 {
-    yapContext *Y = yapContextCreate(NULL);
-    yapContextEval(Y, code, YEO_DUMP);
-    if(yapContextGetError(Y))
+#ifdef YAP_TRACE_MEMORY
+    yapMemoryStatsReset();
+#endif
     {
-        printf("VM Bailed out: %s\n", yapContextGetError(Y));
+        yapContext *Y = yapContextCreate(NULL);
+        yapContextEval(Y, code, YEO_DUMP);
+        if(yapContextGetError(Y))
+        {
+            printf("VM Bailed out: %s\n", yapContextGetError(Y));
+        }
+        yapContextDestroy(Y);
     }
-    yapContextDestroy(Y);
+#ifdef YAP_TRACE_MEMORY
+    yapMemoryStatsPrint("yapChunk End: ");
+#endif
 }
 
 // ---------------------------------------------------------------------------

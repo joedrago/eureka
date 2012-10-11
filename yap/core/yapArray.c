@@ -77,7 +77,7 @@ void yapArrayInject(struct yapContext *Y, yapArray *p, void *v, int n)
     int injectIndex = index - n;    // calculate the proper home for the entry that is now at the endIndex
     if(injectIndex < 0)
     {
-        printf("yapArrayInject(): injectIndex is %d! Terrible things are happening!\n", injectIndex);
+        yapTraceExecution(("yapArrayInject(): injectIndex is %d! Terrible things are happening!\n", injectIndex));
         injectIndex = 0;
     }
     while(index > injectIndex)

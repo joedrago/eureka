@@ -11,6 +11,16 @@
 #include <stdlib.h> // for size_t
 
 // ---------------------------------------------------------------------------
+// Debug Defines
+
+//#define YAP_DEBUG_SYMBOLS
+//#define YAP_TRACE_MEMORY
+//#define YAP_TRACE_PARSER
+//#define YAP_TRACE_EXECUTION
+//#define YAP_TRACE_REFS
+//#define YAP_TRACE_VALUES
+
+// ---------------------------------------------------------------------------
 // Forwards
 
 struct yapContext;
@@ -63,8 +73,13 @@ typedef void (*yapDestroyCB1)(struct yapContext *Y, void *arg1, void *p);
 
 void yapDestroyCBFree(struct yapContext *Y, void *ptr); // calls Y->free() on each element
 
-//#define YAP_ENABLE_MEMORY_STATS
-#ifdef YAP_ENABLE_MEMORY_STATS
+// ---------------------------------------------------------------------------
+// Debug/Tracing Functions
+
+#include <assert.h>
+#define yapAssert assert
+
+#ifdef YAP_TRACE_MEMORY
 void yapMemoryStatsReset();
 void yapMemoryStatsPrint(const char *prefix);
 void yapMemoryStatsDumpLeaks();
@@ -73,22 +88,23 @@ void yapMemoryStatsDumpLeaks();
 #define yapTraceMem(ARGS)
 #endif
 
-// ---------------------------------------------------------------------------
-// Debug Functions
+#ifdef YAP_TRACE_EXECUTION
+#define yapTraceExecution(ARGS) printf ARGS
+#else
+#define yapTraceExecution(ARGS)
+#endif
 
-//#define YAP_DEBUGGING
-
-#include <assert.h>
-#define yapAssert assert
-
-//#define YAP_TRACE_PARSE
-//#define YAP_TRACE_OPS
-
-#define yapTrace(ARGS)
-//#define yapTrace(ARGS) printf ARGS
-
-//#define yapTraceRefs(ARGS)
+#ifdef YAP_TRACE_REFS
 #define yapTraceRefs(ARGS) printf ARGS
+#else
+#define yapTraceRefs(ARGS)
+#endif
+
+#ifdef YAP_TRACE_VALUES
+#define yapTraceValues(ARGS) printf ARGS
+#else
+#define yapTraceValues(ARGS)
+#endif
 
 // ---------------------------------------------------------------------------
 
