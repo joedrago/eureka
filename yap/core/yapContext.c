@@ -37,7 +37,7 @@ void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *
 
 void yapContextRegisterGlobalFunction(struct yapContext *Y, const char *name, yapCFunction func)
 {
-    yapContextRegisterGlobal(Y, name, yapValueSetCFunction(Y, yapValueAcquire(Y), func));
+    yapContextRegisterGlobal(Y, name, yapValueCreateCFunction(Y, func));
 }
 
 static yBool yapChunkCanBeTemporary(yapChunk *chunk)
@@ -353,7 +353,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 {
     yBool ret = yTrue;
     yapValue *initFunc = yapFindFunc(Y, isa, "init");
-    yapValue *newObject = yapValueObjectCreate(Y, isa, (initFunc) ? 0 : argCount, yFalse);
+    yapValue *newObject = yapValueCreateObject(Y, isa, (initFunc) ? 0 : argCount, yFalse);
 
     if(initFunc)
         return yapContextCall(Y, framePtr, newObject, initFunc, argCount);
@@ -387,7 +387,7 @@ static yapVariable *yapContextRegisterVariable(struct yapContext *Y, const char 
 
 static void yapContextPushRef(struct yapContext *Y, yapVariable *variable)
 {
-    yapValue *value = yapValueSetRef(Y, yapValueAcquire(Y), &variable->value);
+    yapValue *value = yapValueCreateRef(Y, &variable->value);
     yapArrayPush(Y, &Y->stack, value);
 }
 
@@ -735,28 +735,28 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
         case YOP_PUSHI:
         {
-            yapValue *value = yapValueSetInt(Y, yapValueAcquire(Y), operand);
+            yapValue *value = yapValueCreateInt(Y, operand);
             yapArrayPush(Y, &Y->stack, value);
         }
         break;
 
         case YOP_PUSH_KB:
         {
-            yapValue *value = yapValueSetFunction(Y, yapValueAcquire(Y), frame->block->chunk->blocks.data[operand]);
+            yapValue *value = yapValueCreateFunction(Y, frame->block->chunk->blocks.data[operand]);
             yapArrayPush(Y, &Y->stack, value);
         }
         break;
 
         case YOP_PUSH_KI:
         {
-            yapValue *value = yapValueSetInt(Y, yapValueAcquire(Y), frame->block->chunk->kInts.data[operand]);
+            yapValue *value = yapValueCreateInt(Y, frame->block->chunk->kInts.data[operand]);
             yapArrayPush(Y, &Y->stack, value);
         }
         break;
 
         case YOP_PUSH_KF:
         {
-            yapValue *value = yapValueSetFloat(Y, yapValueAcquire(Y), *((yF32*)&frame->block->chunk->kFloats.data[operand]));
+            yapValue *value = yapValueCreateFloat(Y, *((yF32*)&frame->block->chunk->kFloats.data[operand]));
             yapArrayPush(Y, &Y->stack, value);
         }
         break;
@@ -765,9 +765,9 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
         {
             yapValue *value;
             if(frame->block->chunk->temporary)
-                value = yapValueSetString(Y, yapValueAcquire(Y), frame->block->chunk->kStrings.data[operand]);
+                value = yapValueCreateString(Y, frame->block->chunk->kStrings.data[operand]);
             else
-                value = yapValueSetKString(Y, yapValueAcquire(Y), frame->block->chunk->kStrings.data[operand]);
+                value = yapValueCreateKString(Y, frame->block->chunk->kStrings.data[operand]);
 
             yapArrayPush(Y, &Y->stack, value);
         }
@@ -908,7 +908,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     }
                 }
             }
-            yapArrayPush(Y, &Y->stack, yapValueSetInt(Y, a, cmp));
+            yapArrayPush(Y, &Y->stack, yapValueCreateInt(Y, cmp));
         }
         break;
 
@@ -928,7 +928,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             yapValue *r = yapArrayPop(Y, &Y->stack);
             yBool inherits = yapValueTestInherits(Y, l, r);
 
-            yapArrayPush(Y, &Y->stack, yapValueSetInt(Y, yapValueAcquire(Y), inherits ? 1 : 0));
+            yapArrayPush(Y, &Y->stack, yapValueCreateInt(Y, inherits ? 1 : 0));
         }
         break;
 
@@ -936,7 +936,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
         {
             int i;
             int varargCount = frame->argCount - operand;
-            yapValue *varargsArray = yapValueArrayCreate(Y);
+            yapValue *varargsArray = yapValueCreateArray(Y);
 
             // Only one of these for loops will actually loop
             for(; varargCount < 0; varargCount++)
@@ -1196,7 +1196,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 break;
             };
             value = yapValueToBool(Y, value);
-            value = yapValueSetInt(Y, value, !value->intVal); // Double temporary?
+            value = yapValueCreateInt(Y, !value->intVal); // Double temporary?
             yapArrayPush(Y, &Y->stack, value);
         }
         break;
@@ -1227,7 +1227,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 case YOP_BITWISE_AND: ret =  i[0] &  i[1]; break;
                 case YOP_BITWISE_OR:  ret =  i[0] |  i[1]; break;
             }
-            yapArrayPush(Y, &Y->stack, yapValueSetInt(Y, yapValueAcquire(Y), ret));
+            yapArrayPush(Y, &Y->stack, yapValueCreateInt(Y, ret));
         }
         break;
 
@@ -1299,8 +1299,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             yapValue *val = yapArrayPop(Y, &Y->stack);
             if(val->type == YVT_ARRAY)
             {
-                yapValue *count = yapValueAcquire(Y);
-                count = yapValueSetInt(Y, count, val->arrayVal->count);
+                yapValue *count = yapValueCreateInt(Y, val->arrayVal->count);
                 yapArrayPush(Y, &Y->stack, count);
                 Y->lastRet = 1;
             }
@@ -1393,7 +1392,7 @@ void yapContextGC(struct yapContext *Y)
         yapValue *value = (yapValue *)Y->usedValues.data[i];
         if(!value->used)
         {
-            yapValueRelease(Y, value);
+            yapValueDestroy(Y, value);
             Y->usedValues.data[i] = NULL; // for future squashing
         }
     }

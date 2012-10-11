@@ -61,14 +61,14 @@ static yU32 regex_match(struct yapContext *Y, yU32 argCount)
         if(err > 0)
         {
             int i;
-            matches = yapValueArrayCreate(Y);
+            matches = yapValueCreateArray(Y);
             //results = yapValueObjectCreate(Y, NULL, 0);
             //yapValueObjectSetMember(Y, results, "matches", matches);
             results = matches;
             for(i=0; i<err; i++)
             {
                 int index = i*2;
-                yapValue *match = yapValueDonateString(Y, yapValueAcquire(Y), yapSubstrdup(Y, yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
+                yapValue *match = yapValueDonateString(Y, yapSubstrdup(Y, yapStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
                 yapArrayPush(Y, matches->arrayVal, match);
             }
         }

@@ -89,7 +89,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
     }
     else
     {
-        printf("unknown badness - grammar is probably incomplete\n");
+        yapContextSetError(Y, YVE_COMPILE, "unknown badness - grammar is probably incomplete");
     }
 
     yapParseFree(Y, parser);

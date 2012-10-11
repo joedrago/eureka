@@ -155,38 +155,42 @@ typedef struct yapValue
     };
 } yapValue;
 
-// yapValueCreate() is only ever called via yapValueAcquire
-yapValue *yapValueAcquire(struct yapContext *Y);
-void yapValueRelease(struct yapContext *Y, yapValue *p); // returns to free pool
+yapValue *yapValueCreate(struct yapContext *Y);
+void yapValueDestroy(struct yapContext *Y, yapValue *p);
+
+void yapValueAddRef(struct yapContext *Y, yapValue *p);
+void yapValueRemoveRef(struct yapContext *Y, yapValue *p);
 
 void yapValueMark(struct yapContext *Y, yapValue *value); // used by yapContextGC()
-void yapValueDestroy(struct yapContext *Y, yapValue *p);  // only yapContextDestroy() should -ever- call this
 
 void yapValueClear(struct yapContext *Y, yapValue *p);
 
 void yapValueCloneData(struct yapContext *Y, yapValue *dst, yapValue *src);
 yapValue *yapValueClone(struct yapContext *Y, yapValue *p);
-yapValue *yapValuePersonalize(struct yapContext *Y, yapValue *p);  // only clones if used
 
-yapValue *yapValueSetInt(struct yapContext *Y, yapValue *p, int v);
-yapValue *yapValueSetFloat(struct yapContext *Y, yapValue *p, yF32 v);
-yapValue *yapValueSetKString(struct yapContext *Y, yapValue *p, const char *s);
-yapValue *yapValueSetString(struct yapContext *Y, yapValue *p, const char *s);
-yapValue *yapValueDonateString(struct yapContext *Y, yapValue *p, char *s);  // grants ownership to the char*
-yapValue *yapValueSetFunction(struct yapContext *Y, yapValue *p, struct yapBlock *block);
-yapValue *yapValueSetCFunction(struct yapContext *Y, yapValue *p, yapCFunction func);
-yapValue *yapValueSetRef(struct yapContext *Y, yapValue *p, struct yapValue **ref);
+yapValue *yapValueCreateInt(struct yapContext *Y, int v);
+yapValue *yapValueCreateFloat(struct yapContext *Y, yF32 v);
+yapValue *yapValueCreateKString(struct yapContext *Y, const char *s);
+yapValue *yapValueCreateString(struct yapContext *Y, const char *s);
+yapValue *yapValueDonateString(struct yapContext *Y, char *s);  // grants ownership to the char*
+yapValue *yapValueCreateFunction(struct yapContext *Y, struct yapBlock *block);
+yapValue *yapValueCreateCFunction(struct yapContext *Y, yapCFunction func);
+yapValue *yapValueCreateRef(struct yapContext *Y, struct yapValue **ref);
+yapValue *yapValueCreateArray(struct yapContext *Y);
+yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int argCount, yBool firstArgIsa);
 
-yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p);
-yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *parent);
-
-void yapValueAddClosureVars(struct yapContext *Y, yapValue *p);
-
-yapValue *yapValueArrayCreate(struct yapContext *Y);
+// Special calls for arrays
 void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v);
 
-yapValue *yapValueObjectCreate(struct yapContext *Y, struct yapValue *isa, int argCount, yBool firstArgIsa);
+// Special calls for refs
+yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p);
+
+// Special calls for objects
 void yapValueObjectSetMember(struct yapContext *Y, struct yapValue *object, const char *name, struct yapValue *value);
+yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *parent);
+
+// Special calls for functions
+void yapValueAddClosureVars(struct yapContext *Y, yapValue *p);
 
 yapValue *yapValueAdd(struct yapContext *Y, yapValue *a, yapValue *b);
 yapValue *yapValueSub(struct yapContext *Y, yapValue *a, yapValue *b);

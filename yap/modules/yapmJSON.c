@@ -21,13 +21,13 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
     {
     case cJSON_False:
     {
-        ret = yapValueSetInt(Y, yapValueAcquire(Y), 0);
+        ret = yapValueCreateInt(Y, 0);
     }
     break;
 
     case cJSON_True:
     {
-        ret = yapValueSetInt(Y, yapValueAcquire(Y), 1);
+        ret = yapValueCreateInt(Y, 1);
     }
     break;
 
@@ -39,13 +39,13 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
 
     case cJSON_Number:
     {
-        ret = yapValueSetFloat(Y, yapValueAcquire(Y), json->valuedouble);
+        ret = yapValueCreateFloat(Y, json->valuedouble);
     }
     break;
 
     case cJSON_String:
     {
-        ret = yapValueSetString(Y, yapValueAcquire(Y), json->valuestring);
+        ret = yapValueCreateString(Y, json->valuestring);
     }
     break;
 
@@ -53,7 +53,7 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
     {
         int i;
         int size = cJSON_GetArraySize(json);
-        ret = yapValueArrayCreate(Y);
+        ret = yapValueCreateArray(Y);
         child = json->child;
         while(child)
         {
@@ -65,7 +65,7 @@ static yapValue *jsonRecurse(struct yapContext *Y, cJSON *json)
 
     case cJSON_Object:
     {
-        ret = yapValueObjectCreate(Y, NULL, 0, yFalse);
+        ret = yapValueCreateObject(Y, NULL, 0, yFalse);
         child = json->child;
         while(child)
         {
