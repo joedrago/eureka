@@ -15,7 +15,7 @@ typedef struct yapHashEntry
     yU32 hash;
     char *key;
     void *value;
-    struct yapHashEntry *next;    
+    struct yapHashEntry *next;
 } yapHashEntry;
 
 typedef struct yapHash

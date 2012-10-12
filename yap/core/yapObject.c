@@ -35,7 +35,9 @@ void yapObjectMark(struct yapContext *Y, yapObject *v)
 {
     yapHashIterate(Y, v->hash, (yapIterateCB)yapHashValueMark);
     if(v->isa)
-        yapValueMark(Y, v->isa); // Is this necessary?
+    {
+        yapValueMark(Y, v->isa);    // Is this necessary?
+    }
 }
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)
@@ -44,12 +46,16 @@ struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const
     if(create)
     {
         if(*ref == NULL)
+        {
             *ref = yapValueNullPtr;
+        }
     }
     else if(!ref)
     {
         if(object->isa)
+        {
             return yapObjectGetRef(Y, object->isa->objectVal, key, create);
+        }
         ref = &yapValueNullPtr;
     }
     return ref;

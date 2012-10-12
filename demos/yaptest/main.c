@@ -53,9 +53,13 @@ void outputDot(const char *code)
         }
     }
     if(compiler->root)
+    {
         yapSyntaxDot(compiler->root);
+    }
     else
+    {
         printf("ERROR: Failed to build syntax tree\n");
+    }
     yapCompilerDestroy(compiler);
     yapContextDestroy(Y);
 #else
@@ -114,9 +118,9 @@ int main(int argc, char *argv[])
             {
                 switch(argv[i][1])
                 {
-                case 'd':
-                    mode = YTM_DOT;
-                    break;
+                    case 'd':
+                        mode = YTM_DOT;
+                        break;
                 };
             }
             filename = argv[i];
@@ -129,12 +133,12 @@ int main(int argc, char *argv[])
             {
                 switch(mode)
                 {
-                case YTM_LOADCHUNK:
-                    loadChunk(code);
-                    break;
-                case YTM_DOT:
-                    outputDot(code);
-                    break;
+                    case YTM_LOADCHUNK:
+                        loadChunk(code);
+                        break;
+                    case YTM_DOT:
+                        outputDot(code);
+                        break;
                 };
                 free(code);
             }

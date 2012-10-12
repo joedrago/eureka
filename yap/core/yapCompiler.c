@@ -35,7 +35,7 @@ yBool yapAssemble(struct yapContext *Y, yapCompiler *compiler);
 
 yapCompiler *yapCompilerCreate(struct yapContext *Y)
 {
-    yapCompiler *compiler = (yapCompiler*)yapAlloc(sizeof(yapCompiler));
+    yapCompiler *compiler = (yapCompiler *)yapAlloc(sizeof(yapCompiler));
     compiler->Y = Y;
     return compiler;
 }
@@ -44,9 +44,13 @@ void yapCompilerDestroy(yapCompiler *compiler)
 {
     struct yapContext *Y = compiler->Y;
     if(compiler->chunk)
+    {
         yapChunkDestroy(Y, compiler->chunk);
+    }
     if(compiler->root)
+    {
         yapSyntaxDestroy(Y, compiler->root);
+    }
     yapArrayClear(Y, &compiler->errors, (yapDestroyCB)yapDestroyCBFree);
     yapFree(compiler);
 }
@@ -76,7 +80,9 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
         if(!compiler->errors.count)
         {
             if(compileOpts & YCO_OPTIMIZE)
+            {
                 yapCompileOptimize(Y, compiler);
+            }
 
             yapAssemble(Y, compiler);
             success = yTrue;
@@ -126,12 +132,14 @@ void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token)
         char *newlinePos;
         char temp[32];
         int len = strlen(token->text);
-        if(len > 31) len = 31;
+        if(len > 31) { len = 31; }
         memcpy(temp, token->text, len);
         temp[len] = 0;
         newlinePos = strchr(temp, '\r');
         if(!newlinePos)
+        {
             newlinePos = strchr(temp, '\n');
+        }
         if(newlinePos)
         {
             *newlinePos = 0;
@@ -162,50 +170,50 @@ static void yapCompileOptimizeArray(struct yapContext *Y, yapCompiler *compiler,
 
 static int yapCompileOptimizeChild(struct yapContext *Y, yapCompiler *compiler, yapSyntax *syntax)
 {
-    if(syntax->v.a) yapCompileOptimizeArray(Y, compiler, syntax->v.a);
-    if(syntax->v.p) yapCompileOptimizeChild(Y, compiler, syntax->v.p);
-    if(syntax->l.a) yapCompileOptimizeArray(Y, compiler, syntax->l.a);
-    if(syntax->l.p) yapCompileOptimizeChild(Y, compiler, syntax->l.p);
-    if(syntax->r.a) yapCompileOptimizeArray(Y, compiler, syntax->r.a);
-    if(syntax->r.p) yapCompileOptimizeChild(Y, compiler, syntax->r.p);
+    if(syntax->v.a) { yapCompileOptimizeArray(Y, compiler, syntax->v.a); }
+    if(syntax->v.p) { yapCompileOptimizeChild(Y, compiler, syntax->v.p); }
+    if(syntax->l.a) { yapCompileOptimizeArray(Y, compiler, syntax->l.a); }
+    if(syntax->l.p) { yapCompileOptimizeChild(Y, compiler, syntax->l.p); }
+    if(syntax->r.a) { yapCompileOptimizeArray(Y, compiler, syntax->r.a); }
+    if(syntax->r.p) { yapCompileOptimizeChild(Y, compiler, syntax->r.p); }
 
     switch(syntax->type)
     {
-    case YST_ADD:
-    case YST_SUB:
-    case YST_MUL:
-    case YST_DIV:
-    {
-        // Integer arithmetic optimization
-        if((syntax->l.p->type == YST_KINT)
-           && (syntax->r.p->type == YST_KINT))
+        case YST_ADD:
+        case YST_SUB:
+        case YST_MUL:
+        case YST_DIV:
         {
-            int val;
-            switch(syntax->type)
+            // Integer arithmetic optimization
+            if((syntax->l.p->type == YST_KINT)
+               && (syntax->r.p->type == YST_KINT))
             {
-            case YST_ADD:
-                val = syntax->l.p->v.i + syntax->r.p->v.i;
-                break;
-            case YST_SUB:
-                val = syntax->l.p->v.i - syntax->r.p->v.i;
-                break;
-            case YST_MUL:
-                val = syntax->l.p->v.i * syntax->r.p->v.i;
-                break;
-            case YST_DIV:
-                if(!syntax->r.p->v.i) return 0;
-                val = syntax->l.p->v.i / syntax->r.p->v.i;
-                break;
-            };
-            yapSyntaxDestroy(Y, syntax->l.p);
-            syntax->l.p = NULL;
-            yapSyntaxDestroy(Y, syntax->r.p);
-            syntax->r.p = NULL;
-            syntax->type = YST_KINT;
-            syntax->v.i = val;
+                int val;
+                switch(syntax->type)
+                {
+                    case YST_ADD:
+                        val = syntax->l.p->v.i + syntax->r.p->v.i;
+                        break;
+                    case YST_SUB:
+                        val = syntax->l.p->v.i - syntax->r.p->v.i;
+                        break;
+                    case YST_MUL:
+                        val = syntax->l.p->v.i * syntax->r.p->v.i;
+                        break;
+                    case YST_DIV:
+                        if(!syntax->r.p->v.i) { return 0; }
+                        val = syntax->l.p->v.i / syntax->r.p->v.i;
+                        break;
+                };
+                yapSyntaxDestroy(Y, syntax->l.p);
+                syntax->l.p = NULL;
+                yapSyntaxDestroy(Y, syntax->r.p);
+                syntax->r.p = NULL;
+                syntax->type = YST_KINT;
+                syntax->v.i = val;
+            }
         }
-    }
-    break;
+        break;
     };
 
     return 0;
@@ -227,7 +235,7 @@ enum
 };
 
 #define asmFunc(NAME) \
-yS32 yapAssemble ## NAME (struct yapContext *Y, yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, yS32 keep, yU32 flags)
+    yS32 yapAssemble ## NAME (struct yapContext *Y, yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, yS32 keep, yU32 flags)
 typedef yS32(*yapAssembleFunc)(struct yapContext *Y, yapCompiler *compiler, yapCode *dst, yapSyntax *syntax, yS32 keep, yU32 flags);
 
 typedef struct yapAssembleInfo
@@ -346,7 +354,9 @@ int asmPad(struct yapContext *Y, yapCode *code, int keep, int offer, int line)
             int nulls = keep - offer;
             yapCodeGrow(Y, code, nulls);
             for(i = 0; i < nulls; i++)
+            {
                 yapCodeAppend(Y, code, YOP_PUSHNULL, 0, line);
+            }
         }
     }
     return keep;
@@ -377,7 +387,7 @@ asmFunc(KInt)
 asmFunc(KFloat)
 {
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, YOP_PUSH_KF, yap32ArrayPushUnique(Y, &compiler->chunk->kFloats, (yU32*)&syntax->v.f), syntax->line);
+    yapCodeAppend(Y, dst, YOP_PUSH_KF, yap32ArrayPushUnique(Y, &compiler->chunk->kFloats, (yU32 *)&syntax->v.f), syntax->line);
     return PAD(1);
 }
 
@@ -385,7 +395,9 @@ asmFunc(Identifier)
 {
     yOpcode opcode = YOP_VARREF_KS;
     if(flags & ASM_VAR)
+    {
         opcode = YOP_VARREG_KS;
+    }
     yapCodeGrow(Y, dst, 1);
     yapCodeAppend(Y, dst, opcode, yapArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, syntax->v.s)), syntax->line);
     if(!(flags & ASM_LVALUE))
@@ -406,7 +418,9 @@ asmFunc(Index)
     asmDispatch[a->type].assemble(Y, compiler, dst, a, 1, ASM_NORMAL);
     asmDispatch[b->type].assemble(Y, compiler, dst, b, 1, ASM_NORMAL);
     if(flags & ASM_LVALUE)
+    {
         opFlags |= YOF_LVALUE;
+    }
     if(keep > 1)
     {
         opFlags |= (pushThis) ? YOF_PUSHTHIS : YOF_PUSHOBJ;
@@ -481,12 +495,12 @@ asmFunc(Unary)
     yapCodeGrow(Y, dst, 1);
     switch(syntax->type)
     {
-    case YST_NOT:
-        yapCodeAppend(Y, dst, YOP_NOT, 0, syntax->line);
-        break;
-    case YST_BITWISE_NOT:
-        yapCodeAppend(Y, dst, YOP_BITWISE_NOT, 0, syntax->line);
-        break;
+        case YST_NOT:
+            yapCodeAppend(Y, dst, YOP_NOT, 0, syntax->line);
+            break;
+        case YST_BITWISE_NOT:
+            yapCodeAppend(Y, dst, YOP_BITWISE_NOT, 0, syntax->line);
+            break;
     };
     return PAD(1);
 }
@@ -500,7 +514,9 @@ asmFunc(Binary)
     int aflags = ASM_NORMAL;
 
     if(compound)
+    {
         aflags = ASM_LVALUE;
+    }
 
     asmDispatch[a->type].assemble(Y, compiler, dst, a, 1, aflags);
     if(compound)
@@ -513,57 +529,57 @@ asmFunc(Binary)
 
     switch(syntax->type)
     {
-    // Legal in either compound statements or expressions
-    case YST_ADD:
-        op = YOP_ADD;
-        break;
-    case YST_SUB:
-        op = YOP_SUB;
-        break;
-    case YST_MUL:
-        op = YOP_MUL;
-        break;
-    case YST_DIV:
-        op = YOP_DIV;
-        break;
-    case YST_BITWISE_XOR:
-        op = YOP_BITWISE_XOR;
-        break;
-    case YST_BITWISE_AND:
-        op = YOP_BITWISE_AND;
-        break;
-    case YST_BITWISE_OR:
-        op = YOP_BITWISE_OR;
-        break;
-    case YST_SHIFTLEFT:
-        op = YOP_SHIFTLEFT;
-        break;
-    case YST_SHIFTRIGHT:
-        op = YOP_SHIFTRIGHT;
-        break;
+            // Legal in either compound statements or expressions
+        case YST_ADD:
+            op = YOP_ADD;
+            break;
+        case YST_SUB:
+            op = YOP_SUB;
+            break;
+        case YST_MUL:
+            op = YOP_MUL;
+            break;
+        case YST_DIV:
+            op = YOP_DIV;
+            break;
+        case YST_BITWISE_XOR:
+            op = YOP_BITWISE_XOR;
+            break;
+        case YST_BITWISE_AND:
+            op = YOP_BITWISE_AND;
+            break;
+        case YST_BITWISE_OR:
+            op = YOP_BITWISE_OR;
+            break;
+        case YST_SHIFTLEFT:
+            op = YOP_SHIFTLEFT;
+            break;
+        case YST_SHIFTRIGHT:
+            op = YOP_SHIFTRIGHT;
+            break;
 
-    // Legal in expressions only
-    case YST_CMP:
-        op = YOP_CMP;
-        break;
-    case YST_EQUALS:
-        op = YOP_EQUALS;
-        break;
-    case YST_NOTEQUALS:
-        op = YOP_NOTEQUALS;
-        break;
-    case YST_GREATERTHAN:
-        op = YOP_GREATERTHAN;
-        break;
-    case YST_GREATERTHANOREQUAL:
-        op = YOP_GREATERTHANOREQUAL;
-        break;
-    case YST_LESSTHAN:
-        op = YOP_LESSTHAN;
-        break;
-    case YST_LESSTHANOREQUAL:
-        op = YOP_LESSTHANOREQUAL;
-        break;
+            // Legal in expressions only
+        case YST_CMP:
+            op = YOP_CMP;
+            break;
+        case YST_EQUALS:
+            op = YOP_EQUALS;
+            break;
+        case YST_NOTEQUALS:
+            op = YOP_NOTEQUALS;
+            break;
+        case YST_GREATERTHAN:
+            op = YOP_GREATERTHAN;
+            break;
+        case YST_GREATERTHANOREQUAL:
+            op = YOP_GREATERTHANOREQUAL;
+            break;
+        case YST_LESSTHAN:
+            op = YOP_LESSTHAN;
+            break;
+        case YST_LESSTHANOREQUAL:
+            op = YOP_LESSTHANOREQUAL;
+            break;
     };
 
     yapCodeGrow(Y, dst, 1);

@@ -47,7 +47,9 @@ yapValueType *yapValueTypeCreate(struct yapContext *Y, const char *name)
 void yapValueTypeDestroy(struct yapContext *Y, yapValueType *type)
 {
     if(type->funcDestroyUserData)
+    {
         type->funcDestroyUserData(Y, type);
+    }
     yapFree(type);
 }
 
@@ -86,7 +88,7 @@ int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
 // ---------------------------------------------------------------------------
 // YVT_NULL Funcs
 
-static struct yapValue * nullFuncToString(struct yapContext *Y, struct yapValue *p)
+static struct yapValue *nullFuncToString(struct yapContext *Y, struct yapValue *p)
 {
     return yapValueCreateKString(Y, NULL_STRING_FORM);
 }
@@ -254,35 +256,35 @@ static yF32 intFuncToFloat(struct yapContext *Y, struct yapValue *p)
     return (yF32)p->intVal;
 }
 
-static struct yapValue * intFuncToString(struct yapContext *Y, struct yapValue *p)
+static struct yapValue *intFuncToString(struct yapContext *Y, struct yapValue *p)
 {
     char temp[32];
     sprintf(temp, "%d", p->intVal);
     return yapValueCreateString(Y, temp);
 }
 
-static struct yapValue * intFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
+static struct yapValue *intFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
     b = yapValueToInt(Y, b);
     switch(op)
     {
-    case YVAO_ADD:
-        a = yapValueCreateInt(Y, a->intVal + b->intVal);
-        break;
-    case YVAO_SUB:
-        a = yapValueCreateInt(Y, a->intVal - b->intVal);
-        break;
-    case YVAO_MUL:
-        a = yapValueCreateInt(Y, a->intVal * b->intVal);
-        break;
-    case YVAO_DIV:
-        if(!b->intVal)
-        {
-            yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
-            return NULL;
-        }
-        a = yapValueCreateInt(Y, a->intVal / b->intVal);
-        break;
+        case YVAO_ADD:
+            a = yapValueCreateInt(Y, a->intVal + b->intVal);
+            break;
+        case YVAO_SUB:
+            a = yapValueCreateInt(Y, a->intVal - b->intVal);
+            break;
+        case YVAO_MUL:
+            a = yapValueCreateInt(Y, a->intVal * b->intVal);
+            break;
+        case YVAO_DIV:
+            if(!b->intVal)
+            {
+                yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
+                return NULL;
+            }
+            a = yapValueCreateInt(Y, a->intVal / b->intVal);
+            break;
     };
     return a;
 }
@@ -292,11 +294,17 @@ static yBool intFuncCmp(struct yapContext *Y, struct yapValue *a, struct yapValu
     if(b->type == YVT_FLOAT)
     {
         if((yF32)a->intVal > b->floatVal)
+        {
             *cmpResult = 1;
+        }
         else if((yF32)a->intVal < b->floatVal)
+        {
             *cmpResult = -1;
+        }
         else
+        {
             *cmpResult = 0;
+        }
         return yTrue;
     }
     else if(b->type == YVT_INT)
@@ -355,35 +363,35 @@ static yF32 floatFuncToFloat(struct yapContext *Y, struct yapValue *p)
     return p->floatVal;
 }
 
-static struct yapValue * floatFuncToString(struct yapContext *Y, struct yapValue *p)
+static struct yapValue *floatFuncToString(struct yapContext *Y, struct yapValue *p)
 {
     char temp[64];
     sprintf(temp, "%f", p->floatVal);
     return yapValueCreateString(Y, temp);
 }
 
-static struct yapValue * floatFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
+static struct yapValue *floatFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
     b = yapValueToFloat(Y, b);
     switch(op)
     {
-    case YVAO_ADD:
-        a = yapValueCreateFloat(Y, a->floatVal + b->floatVal);
-        break;
-    case YVAO_SUB:
-        a = yapValueCreateFloat(Y, a->floatVal - b->floatVal);
-        break;
-    case YVAO_MUL:
-        a = yapValueCreateFloat(Y, a->floatVal * b->floatVal);
-        break;
-    case YVAO_DIV:
-        if(b->floatVal == 0.0f)
-        {
-            yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
-            return NULL;
-        }
-        a = yapValueCreateFloat(Y, a->floatVal / b->floatVal);
-        break;
+        case YVAO_ADD:
+            a = yapValueCreateFloat(Y, a->floatVal + b->floatVal);
+            break;
+        case YVAO_SUB:
+            a = yapValueCreateFloat(Y, a->floatVal - b->floatVal);
+            break;
+        case YVAO_MUL:
+            a = yapValueCreateFloat(Y, a->floatVal * b->floatVal);
+            break;
+        case YVAO_DIV:
+            if(b->floatVal == 0.0f)
+            {
+                yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
+                return NULL;
+            }
+            a = yapValueCreateFloat(Y, a->floatVal / b->floatVal);
+            break;
     };
     return a;
 }
@@ -393,21 +401,33 @@ static yBool floatFuncCmp(struct yapContext *Y, struct yapValue *a, struct yapVa
     if(b->type == YVT_INT)
     {
         if(a->floatVal > (yF32)b->intVal)
+        {
             *cmpResult = 1;
+        }
         else if(a->floatVal < (yF32)b->intVal)
+        {
             *cmpResult = -1;
+        }
         else
+        {
             *cmpResult = 0;
+        }
         return yTrue;
     }
     else if(b->type == YVT_FLOAT)
     {
         if(a->floatVal > b->floatVal)
+        {
             *cmpResult = 1;
+        }
         else if(a->floatVal < b->floatVal)
+        {
             *cmpResult = -1;
+        }
         else
+        {
             *cmpResult = 0;
+        }
         return yTrue;
     }
     return yFalse;
@@ -468,12 +488,12 @@ static yF32 stringFuncToFloat(struct yapContext *Y, struct yapValue *p)
     return yapTokenToFloat(Y, &t);
 }
 
-struct yapValue * stringFuncToString(struct yapContext *Y, struct yapValue *p)
+struct yapValue *stringFuncToString(struct yapContext *Y, struct yapValue *p)
 {
     return p;
 }
 
-struct yapValue * stringFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
+struct yapValue *stringFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
     yapValue *ret = NULL;
     if(op == YVAO_ADD)
@@ -563,7 +583,7 @@ static yF32 arrayFuncToFloat(struct yapContext *Y, struct yapValue *p)
     return (p->arrayVal) ? (yF32)p->arrayVal->count : 0;
 }
 
-static struct yapValue * arrayFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
+static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
     yapValue **ref = NULL;
@@ -572,9 +592,13 @@ static struct yapValue * arrayFuncIndex(struct yapContext *Y, struct yapValue *v
     {
         ref = (yapValue **) & (value->arrayVal->data[index->intVal]);
         if(lvalue)
+        {
             ret = yapValueCreateRef(Y, ref);
+        }
         else
+        {
             ret = *ref;
+        }
     }
     else
     {
@@ -591,7 +615,9 @@ static void arrayFuncDump(struct yapContext *Y, yapDumpParams *params, struct ya
     {
         yapValue *child = (yapValue *)p->arrayVal->data[i];
         if(i > 0)
+        {
             yapStringConcat(Y, &params->output, ", ");
+        }
         yapValueTypeSafeCall(child->type, Dump)(Y, params, child);
     }
     yapStringConcat(Y, &params->output, " ]");
@@ -648,23 +674,27 @@ static yF32 objectFuncToFloat(struct yapContext *Y, struct yapValue *p)
     return 1.0f; // ?
 }
 
-static struct yapValue * objectFuncToString(struct yapContext *Y, struct yapValue *p)
+static struct yapValue *objectFuncToString(struct yapContext *Y, struct yapValue *p)
 {
     char temp[32];
     sprintf(temp, "[object:%p]", p->objectVal);
     return yapValueCreateString(Y, temp);
 }
 
-static struct yapValue * objectFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
+static struct yapValue *objectFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
 {
     yapValue *ret = NULL;
     yapValue **ref = NULL;
     index = yapValueToString(Y, index);
     ref = yapObjectGetRef(Y, value->objectVal, yapStringSafePtr(&index->stringVal), lvalue /* create? */);
     if(lvalue)
+    {
         ret = yapValueCreateRef(Y, ref);
+    }
     else
+    {
         ret = *ref;
+    }
     return ret;
 }
 
@@ -672,9 +702,13 @@ void appendKeys(struct yapContext *Y, yapDumpParams *params, yapHashEntry *entry
 {
     yapValue *child = (yapValue *)entry->value;
     if(params->tempInt)
+    {
         yapStringConcat(Y, &params->output, "\"");
+    }
     else
+    {
         yapStringConcat(Y, &params->output, ", \"");
+    }
 
     yapStringConcat(Y, &params->output, entry->key);
     yapStringConcat(Y, &params->output, "\" : ");
@@ -855,13 +889,15 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
     for(frameIndex = Y->frames.count - 1; frameIndex >= 0; frameIndex--)
     {
         frame = Y->frames.data[frameIndex];
-        if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC) // we are inside of an actual function!
+        if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
+        {
             break;
+        }
     }
 
     if(frameIndex >= 0)
     {
-        for( ; frameIndex < Y->frames.count; frameIndex++)
+        for(; frameIndex < Y->frames.count; frameIndex++)
         {
             frame = Y->frames.data[frameIndex];
             if(frame->locals->count)
@@ -947,7 +983,9 @@ static yBool yapValueCheckRef(struct yapContext *Y, yapValue *ref, yapValue *p)
 yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
 {
     if(!yapValueCheckRef(Y, ref, p))
+    {
         return yFalse;
+    }
 
     *(ref->refVal) = p;
     p->used = yTrue;
@@ -961,16 +999,22 @@ yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *pare
     yapValue *p;
 
     if(child->type != YVT_OBJECT)
+    {
         return yFalse;
+    }
 
     if(parent->type != YVT_OBJECT)
+    {
         return yFalse;
+    }
 
     p = child->objectVal->isa;
     while(p && (p->type == YVT_OBJECT))
     {
         if(p->objectVal == parent->objectVal)
+        {
             return yTrue;
+        }
 
         p = p->objectVal->isa;
     }
@@ -1042,7 +1086,9 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int a
     {
         int i = 0;
         if(firstArgIsa)
+        {
             i++;
+        }
         for(; i<argCount; i+=2)
         {
             yapValue **ref;
@@ -1107,13 +1153,17 @@ void yapValueDestroy(struct yapContext *Y, yapValue *p)
 yS32 yapValueCmp(struct yapContext *Y, yapValue *a, yapValue *b)
 {
     if(a == b)
-        return 0; // this should also handle the NULL case
+    {
+        return 0;    // this should also handle the NULL case
+    }
 
     if(a && b)
     {
         yS32 ret = 0;
         if(yapValueTypeSafeCall(a->type, Cmp)(Y, a, b, &ret))
+        {
             return ret;
+        }
     }
 
     return (yS32)(a - b); // Fallback case: compare pointers for consistency
@@ -1137,10 +1187,14 @@ yapValue *yapValueClone(struct yapContext *Y, yapValue *p)
 void yapValueMark(struct yapContext *Y, yapValue *value)
 {
     if(value->type == YVT_NULL)
+    {
         return;
+    }
 
     if(value->used)
+    {
         return;
+    }
 
     value->used = yTrue;
 
@@ -1234,40 +1288,40 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
 
         switch(*next)
         {
-        case '\0':
-            curr = NULL;
-            break;
-        case '%':
-            yapStringConcatLen(Y, str, "%", 1);
-            break;
-        case 's':
-            arg = yapContextGetArg(Y, argIndex++, argCount);
-            if(arg)
-            {
-                arg = yapValueToString(Y, arg);
-                yapStringConcatStr(Y, str, &arg->stringVal);
-            }
-            break;
-        case 'd':
-            arg = yapContextGetArg(Y, argIndex++, argCount);
-            if(arg)
-            {
-                char temp[32];
-                arg = yapValueToInt(Y, arg);
-                sprintf(temp, "%d", arg->intVal);
-                yapStringConcat(Y, str, temp);
-            }
-            break;
-        case 'f':
-            arg = yapContextGetArg(Y, argIndex++, argCount);
-            if(arg)
-            {
-                char temp[32];
-                arg = yapValueToFloat(Y, arg);
-                sprintf(temp, "%f", arg->floatVal);
-                yapStringConcat(Y, str, temp);
-            }
-            break;
+            case '\0':
+                curr = NULL;
+                break;
+            case '%':
+                yapStringConcatLen(Y, str, "%", 1);
+                break;
+            case 's':
+                arg = yapContextGetArg(Y, argIndex++, argCount);
+                if(arg)
+                {
+                    arg = yapValueToString(Y, arg);
+                    yapStringConcatStr(Y, str, &arg->stringVal);
+                }
+                break;
+            case 'd':
+                arg = yapContextGetArg(Y, argIndex++, argCount);
+                if(arg)
+                {
+                    char temp[32];
+                    arg = yapValueToInt(Y, arg);
+                    sprintf(temp, "%d", arg->intVal);
+                    yapStringConcat(Y, str, temp);
+                }
+                break;
+            case 'f':
+                arg = yapContextGetArg(Y, argIndex++, argCount);
+                if(arg)
+                {
+                    char temp[32];
+                    arg = yapValueToFloat(Y, arg);
+                    sprintf(temp, "%f", arg->floatVal);
+                    yapStringConcat(Y, str, temp);
+                }
+                break;
         };
 
         curr = next + 1;
@@ -1275,7 +1329,9 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
 
     // Add the remainder of the string, if any
     if(curr)
+    {
         yapStringConcat(Y, str, curr);
+    }
 
     yapContextPopValues(Y, argCount);
     return ret;
@@ -1290,7 +1346,7 @@ const char *yapValueTypeName(struct yapContext *Y, int type)
 {
     if((type >= 0) && (type < Y->types.count))
     {
-        yapValueType *valueType = ((yapValueType*)Y->types.data[type]);
+        yapValueType *valueType = ((yapValueType *)Y->types.data[type]);
         return valueType->name;
     }
     return "unknown";

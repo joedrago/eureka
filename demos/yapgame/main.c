@@ -141,12 +141,12 @@ int main(int argc, char *argv[])
         {
             if(argv[i][0] == '-')
             {
-//                switch(argv[i][1])
-//                {
-//                case 'd':
-//                    mode = YTM_DOT;
-//                    break;
-//                };
+                //                switch(argv[i][1])
+                //                {
+                //                case 'd':
+                //                    mode = YTM_DOT;
+                //                    break;
+                //                };
             }
             filename = argv[i];
         }

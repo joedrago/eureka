@@ -24,10 +24,10 @@ static int yapRegexOptionsToPCREFlags(const char *options)
     {
         switch(*c)
         {
-        case 'x': pcreFlags |= PCRE_EXTENDED;  break;
-        case 'i': pcreFlags |= PCRE_CASELESS;  break;
-        case 's': pcreFlags |= PCRE_DOTALL;    break;
-        case 'm': pcreFlags |= PCRE_MULTILINE; break;
+            case 'x': pcreFlags |= PCRE_EXTENDED;  break;
+            case 'i': pcreFlags |= PCRE_CASELESS;  break;
+            case 's': pcreFlags |= PCRE_DOTALL;    break;
+            case 'm': pcreFlags |= PCRE_MULTILINE; break;
         };
     }
     return pcreFlags;
@@ -48,10 +48,14 @@ static yU32 regex_match(struct yapContext *Y, yU32 argCount)
     int regexVectors[YAP_MAX_REGEX_VECTORS];
 
     if(!yapContextGetArgs(Y, argCount, "ss|s", &pattern, &subject, &options))
+    {
         return yapContextArgsFailure(Y, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
+    }
 
     if(options)
+    {
         regexFlags = yapRegexOptionsToPCREFlags(yapStringSafePtr(&options->stringVal));
+    }
 
     regex = pcre_compile(yapStringSafePtr(&pattern->stringVal), regexFlags, &regexError, &regexErrorOffset, NULL);
     if(regex)

@@ -53,8 +53,8 @@ typedef int yBool;
 // ---------------------------------------------------------------------------
 // Memory Routines
 
-typedef void * (*yapAllocFunc)(ySize bytes);
-typedef void * (*yapRellocFunc)(void *ptr, ySize bytes);
+typedef void *(*yapAllocFunc)(ySize bytes);
+typedef void *(*yapRellocFunc)(void *ptr, ySize bytes);
 typedef void (*yapFreeFunc)(void *ptr);
 
 void *yapDefaultAlloc(ySize bytes);

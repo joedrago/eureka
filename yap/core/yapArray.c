@@ -19,7 +19,9 @@ yOperand yap32ArrayPushUnique(struct yapContext *Y, yap32Array *p, yU32 *v)
     for(i = 0; i < p->count; i++)
     {
         if(p->data[i] == *v)
+        {
             return i;
+        }
     }
     return yap32ArrayPush(Y, p, *v);
 }
@@ -41,7 +43,9 @@ yOperand yap32ArrayPush(struct yapContext *Y, yap32Array *p, yU32 v)
 yU32 yap32ArrayPop(struct yapContext *Y, yap32Array *p)
 {
     if(p->count == 0)
+    {
         return -1;
+    }
 
     return p->data[--p->count];
 }
@@ -50,7 +54,9 @@ void yap32ArrayClear(struct yapContext *Y, yap32Array *p)
 {
     p->count = 0;
     if(p->data)
+    {
         yapFree(p->data);
+    }
     p->data = NULL;
     p->capacity = 0;
 }
@@ -91,7 +97,7 @@ void yapArrayInject(struct yapContext *Y, yapArray *p, void *v, int n)
 void yapArrayUnshift(struct yapContext *Y, yapArray *p, void *v)
 {
     yapArrayPush(Y, p, NULL); // make some room!
-    memmove(&p->data[1], &p->data[0], sizeof(void*) * (p->count - 1)); // this might be a no-op if the array was empty. This is okay.
+    memmove(&p->data[1], &p->data[0], sizeof(void *) * (p->count - 1)); // this might be a no-op if the array was empty. This is okay.
     p->data[0] = v;
 }
 
@@ -100,7 +106,9 @@ void yapArrayShrink(struct yapContext *Y, yapArray *p, int n, yapDestroyCB cb)
     while(p->count > n)
     {
         if(cb)
+        {
             cb(Y, p->data[p->count-1]);
+        }
         p->count--;
     }
 }
@@ -142,14 +150,18 @@ yOperand yapArrayPush(struct yapContext *Y, yapArray *p, void *v)
 void *yapArrayPop(struct yapContext *Y, yapArray *p)
 {
     if(!p->count)
+    {
         return NULL;
+    }
     return p->data[--p->count];
 }
 
 void *yapArrayTop(struct yapContext *Y, yapArray *p)
 {
     if(!p->count)
+    {
         return NULL;
+    }
     return p->data[p->count - 1];
 }
 
@@ -164,11 +176,15 @@ void yapArrayClear(struct yapContext *Y, yapArray *p, yapDestroyCB cb)
     {
         int i;
         for(i = 0; i < p->count; i++)
+        {
             cb(Y, p->data[i]);
+        }
     }
     p->count = 0;
     if(p->data)
+    {
         yapFree(p->data);
+    }
     p->data = NULL;
     p->capacity = 0;
 }
@@ -179,7 +195,9 @@ void yapArrayClearP1(struct yapContext *Y, yapArray *p, yapDestroyCB1 cb, void *
     {
         int i;
         for(i = 0; i < p->count; i++)
+        {
             cb(Y, arg1, p->data[i]);
+        }
     }
     yapArrayClear(Y, p, NULL);
 }

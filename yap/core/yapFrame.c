@@ -34,7 +34,9 @@ void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart)
     if(frame->ip && jumpToStart)
     {
         while(frame->ip->opcode != YOP_START)
+        {
             frame->ip++;
+        }
     }
 }
 

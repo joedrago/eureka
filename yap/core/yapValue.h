@@ -22,7 +22,7 @@ struct yapValue;
 
 typedef enum yapValueBasicType
 {
-    YVT_NULL,                          // Must stay zero, so that calloc/memset sets a yapValue to NULL 
+    YVT_NULL,                          // Must stay zero, so that calloc/memset sets a yapValue to NULL
 
     YVT_BLOCK,
     YVT_CFUNCTION,
@@ -69,13 +69,13 @@ typedef void (*yapValueTypeDestroyUserData)(struct yapContext *Y, struct yapValu
 typedef void (*yapValueTypeFuncClear)(struct yapContext *Y, struct yapValue *p);
 typedef void (*yapValueTypeFuncClone)(struct yapContext *Y, struct yapValue *dst, struct yapValue *src);
 typedef void (*yapValueTypeFuncMark)(struct yapContext *Y, struct yapValue *value);
-typedef yBool (*yapValueTypeFuncToBool)(struct yapContext *Y, struct yapValue *p);
-typedef yS32 (*yapValueTypeFuncToInt)(struct yapContext *Y, struct yapValue *p);
-typedef yF32 (*yapValueTypeFuncToFloat)(struct yapContext *Y, struct yapValue *p);
-typedef struct yapValue * (*yapValueTypeFuncToString)(struct yapContext *Y, struct yapValue *p);
-typedef struct yapValue * (*yapValueTypeFuncArithmetic)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
-typedef yBool (*yapValueTypeFuncCmp)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, int *cmpResult);
-typedef struct yapValue * (*yapValueTypeFuncIndex)(struct yapContext *Y, struct yapValue *p, struct yapValue *index, yBool lvalue);
+typedef yBool(*yapValueTypeFuncToBool)(struct yapContext *Y, struct yapValue *p);
+typedef yS32(*yapValueTypeFuncToInt)(struct yapContext *Y, struct yapValue *p);
+typedef yF32(*yapValueTypeFuncToFloat)(struct yapContext *Y, struct yapValue *p);
+typedef struct yapValue *(*yapValueTypeFuncToString)(struct yapContext *Y, struct yapValue *p);
+typedef struct yapValue *(*yapValueTypeFuncArithmetic)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op);
+typedef yBool(*yapValueTypeFuncCmp)(struct yapContext *Y, struct yapValue *a, struct yapValue *b, int *cmpResult);
+typedef struct yapValue *(*yapValueTypeFuncIndex)(struct yapContext *Y, struct yapValue *p, struct yapValue *index, yBool lvalue);
 typedef void (*yapValueTypeFuncDump)(struct yapContext *Y, yapDumpParams *params, struct yapValue *p); // creates debug text representing value, caller responsible for yapFree()
 
 // This is used to enforce the setting of every function ptr in a yapValueType*; an explicit alternative to NULL
@@ -113,7 +113,7 @@ void yapValueTypeRegisterAllBasicTypes(struct yapContext *Y);
 // If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro
 #define yapValueTypeSafeCall(id, funcName) \
     (((yapValueType*)Y->types.data[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
-   : ((yapValueType*)Y->types.data[id])->func ## funcName
+    : ((yapValueType*)Y->types.data[id])->func ## funcName
 
 // ---------------------------------------------------------------------------
 
@@ -131,11 +131,13 @@ typedef struct yapValue
     {
         yS32 intVal;
         yF32 floatVal;
-        struct {
+        struct
+        {
             struct yapHash *closureVars; // Populated at runtime when a reference to a new function() is created
             struct yapBlock *blockVal;   // Hurr, Shield Slam
         };
-        struct {
+        struct
+        {
             yapString stringVal;
             yFlag constant: 1;           // Pointing at a constant table, do not free
         };
@@ -205,8 +207,8 @@ void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p);
 
 #define yapValueIsCallable(VAL)     \
     (  (VAL->type == YVT_OBJECT)    \
-    || (VAL->type == YVT_BLOCK)     \
-    || (VAL->type == YVT_CFUNCTION))
+       || (VAL->type == YVT_BLOCK)     \
+       || (VAL->type == YVT_CFUNCTION))
 
 // ---------------------------------------------------------------------------
 // Globals

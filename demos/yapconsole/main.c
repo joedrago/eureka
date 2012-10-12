@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
             {
                 switch(argv[i][1])
                 {
-                case 'd':
-                    dump = 1;
-                    break;
+                    case 'd':
+                        dump = 1;
+                        break;
                 };
             }
         }
@@ -131,7 +131,9 @@ int main(int argc, char *argv[])
             {
                 int opts = YEO_DEFAULT;
                 if(dump)
+                {
                     opts = YEO_DUMP;
+                }
                 yapContextEval(Y, code, opts);
                 if(yapContextGetError(Y))
                 {

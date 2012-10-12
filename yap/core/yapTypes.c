@@ -48,20 +48,20 @@ void yapMemoryStatsReset()
     // no point in reseting sMemoryTrackers
 }
 
-void yapMemoryStatsPrint(const char* prefix)
+void yapMemoryStatsPrint(const char *prefix)
 {
     yapTraceMem(("%sMemory Stats: %d/%d A/F count [%d]. %d/%d A/F bytes [%d]. %d/%d A/F total [%d]\n",
-        prefix,
-        sMemoryStats.allocs,
-        sMemoryStats.frees,
-        sMemoryStats.allocs - sMemoryStats.frees,
-        sMemoryStats.allocSize,
-        sMemoryStats.freeSize,
-        sMemoryStats.allocSize - sMemoryStats.freeSize,
-        sMemoryStats.totalAllocSize,
-        sMemoryStats.totalFreeSize,
-        sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
-    ));
+                 prefix,
+                 sMemoryStats.allocs,
+                 sMemoryStats.frees,
+                 sMemoryStats.allocs - sMemoryStats.frees,
+                 sMemoryStats.allocSize,
+                 sMemoryStats.freeSize,
+                 sMemoryStats.allocSize - sMemoryStats.freeSize,
+                 sMemoryStats.totalAllocSize,
+                 sMemoryStats.totalFreeSize,
+                 sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
+                ));
 }
 
 void yapMemoryStatsDumpLeaks()
@@ -72,8 +72,8 @@ void yapMemoryStatsDumpLeaks()
         if(sMemoryTrackers[i].ptr != 0)
         {
             yapTraceMem(("                                     LEAK %p [%d]\n",
-                sMemoryTrackers[i].ptr,
-                sMemoryTrackers[i].bytes));
+                         sMemoryTrackers[i].ptr,
+                         sMemoryTrackers[i].bytes));
         }
     }
 }
@@ -120,7 +120,7 @@ void yapTrackFree(void *ptr)
 
 void yapTrackRealloc(void *oldptr, void *newptr, int bytes)
 {
-    if(oldptr) yapTrackFree(oldptr);
+    if(oldptr) { yapTrackFree(oldptr); }
     yapTrackAlloc(newptr, bytes);
 }
 

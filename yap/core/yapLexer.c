@@ -65,7 +65,9 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
     while((id = getNextToken(&l)) != YTT_EOF)
     {
         if(l.error)
+        {
             break;
+        }
 
         token_len = (int)(l.cur - l.token);
 
@@ -74,27 +76,27 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
 
         switch(id)
         {
-        case YTT_HEREDOC:
-            // Heredocs are just trimmed literal strings
-            id = YTT_LITERALSTRING;
-            yapAssert(token_len >= 6);
+            case YTT_HEREDOC:
+                // Heredocs are just trimmed literal strings
+                id = YTT_LITERALSTRING;
+                yapAssert(token_len >= 6);
 
-            // remove triple quotes
-            token_len -= 6;
-            l.token += 3;
-            break;
-        case YTT_NEWLINE:
-            id = YTT_SPACE;
-            break;
-        case YTT_SEMI:
-            id = YTT_ENDSTATEMENT;
-            break;
-        case YTT_OPENBRACE:
-            id = YTT_STARTBLOCK;
-            break;
-        case YTT_CLOSEBRACE:
-            id = YTT_ENDBLOCK;
-            break;
+                // remove triple quotes
+                token_len -= 6;
+                l.token += 3;
+                break;
+            case YTT_NEWLINE:
+                id = YTT_SPACE;
+                break;
+            case YTT_SEMI:
+                id = YTT_ENDSTATEMENT;
+                break;
+            case YTT_OPENBRACE:
+                id = YTT_STARTBLOCK;
+                break;
+            case YTT_CLOSEBRACE:
+                id = YTT_ENDBLOCK;
+                break;
         };
 
         if((id != YTT_SPACE) && (id != YTT_COMMENT))
@@ -139,9 +141,13 @@ char *yapTokenToString(struct yapContext *Y, yapToken *t)
     if(t->len > 1)
     {
         if(*src == '\"')
+        {
             src++;
+        }
         if(*(end - 1) == '\"')
+        {
             end--;
+        }
     }
 
     // The unescaped string should always be smaller or the same size,
@@ -153,18 +159,18 @@ char *yapTokenToString(struct yapContext *Y, yapToken *t)
         {
             switch(*src)
             {
-            case '\\':
-                *dst = '\\';
-                break;
-            case 't':
-                *dst = '\t';
-                break;
-            case 'n':
-                *dst = '\n';
-                break;
+                case '\\':
+                    *dst = '\\';
+                    break;
+                case 't':
+                    *dst = '\t';
+                    break;
+                case 'n':
+                    *dst = '\n';
+                    break;
 
-            default:
-                *dst = *src; // anything else should just be pass-through, such as \"
+                default:
+                    *dst = *src; // anything else should just be pass-through, such as \"
             }
             escaped = yFalse;
         }
@@ -195,15 +201,19 @@ int yapTokenToInt(struct yapContext *Y, yapToken *t)
     int base = 10;
 
     int len = t->len;
-    if(len > 31) len = 31;
+    if(len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;
 
     if(len && temp[0] == '0')
         if((len > 1) && (temp[1] == 'x' || temp[1] == 'X'))
+        {
             base = 16;
+        }
         else
+        {
             base = 8;
+        }
 
     return strtol(temp, NULL, base);
 }
@@ -215,7 +225,7 @@ float yapTokenToFloat(struct yapContext *Y, yapToken *t)
     double d;
 
     int len = t->len;
-    if(len > 31) len = 31;
+    if(len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;
 

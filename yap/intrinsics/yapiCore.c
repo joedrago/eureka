@@ -39,7 +39,9 @@ yU32 array_push(struct yapContext *Y, yU32 argCount)
     yapValue *a;
     yapArray values = {0};
     if(!yapContextGetArgs(Y, argCount, "a.", &a, &values))
+    {
         return yapContextArgsFailure(Y, argCount, "push([array] a, ... values)");
+    }
 
     for(i=0; i<values.count; i++)
     {
@@ -56,7 +58,9 @@ yU32 length(struct yapContext *Y, yU32 argCount)
     yapValue *a;
     yapValue *c = yapValueNullPtr;
     if(!yapContextGetArgs(Y, argCount, "a", &a))
+    {
         return yapContextArgsFailure(Y, argCount, "length([array] a)");
+    }
 
     c = yapValueCreateInt(Y, a->arrayVal->count);
     yapArrayPush(Y, &Y->stack, c);
@@ -75,7 +79,9 @@ static yU32 keys(struct yapContext *Y, yU32 argCount)
     yapValue *arrayVal = yapValueCreateArray(Y);
 
     if(!yapContextGetArgs(Y, argCount, "o", &object))
+    {
         return yapContextArgsFailure(Y, argCount, "keys([object/dict] o)");
+    }
 
     yapHashIterateP1(Y, object->objectVal->hash, (yapIterateCB1)yapAppendKey, arrayVal);
 
@@ -131,19 +137,19 @@ static yU32 standard_print(struct yapContext *Y, yU32 argCount)
             yapValue *v = yapContextGetArg(Y, i, argCount);
             switch(v->type)
             {
-            case YVT_STRING:
-                printf("%s", yapStringSafePtr(&v->stringVal));
-                break;
-            case YVT_INT:
-                printf("%d", v->intVal);
-                break;
-            case YVT_FLOAT:
-                printf("%f", v->floatVal);
-                break;
-            default:
-                v = yapValueToString(Y, v);
-                printf("%s", yapStringSafePtr(&v->stringVal));
-                break;
+                case YVT_STRING:
+                    printf("%s", yapStringSafePtr(&v->stringVal));
+                    break;
+                case YVT_INT:
+                    printf("%d", v->intVal);
+                    break;
+                case YVT_FLOAT:
+                    printf("%f", v->floatVal);
+                    break;
+                default:
+                    v = yapValueToString(Y, v);
+                    printf("%s", yapStringSafePtr(&v->stringVal));
+                    break;
             };
         }
         yapContextPopValues(Y, argCount);
@@ -192,11 +198,15 @@ static yU32 import(struct yapContext *Y, yU32 argCount)
     {
         filenameValue = yapContextGetArg(Y, 0, argCount);
         if(filenameValue->type != YVT_STRING)
+        {
             filenameValue = NULL;
+        }
     }
 
     if(filenameValue)
+    {
         code = loadFile(Y, yapStringSafePtr(&filenameValue->stringVal));
+    }
 
     yapContextPopValues(Y, argCount);
 

@@ -24,11 +24,17 @@ yapSyntax *yapSyntaxCreate(struct yapContext *Y, yU32 type, int line)
 static void yapSyntaxElementClear(struct yapContext *Y, yapSyntaxElement *e)
 {
     if(e->p)
+    {
         yapSyntaxDestroy(Y, e->p);
+    }
     if(e->s)
+    {
         yapFree(e->s);
+    }
     if(e->a)
+    {
         yapArrayDestroy(Y, e->a, (yapDestroyCB)yapSyntaxDestroy);
+    }
 }
 
 void yapSyntaxDestroy(struct yapContext *Y, yapSyntax *syntax)
@@ -52,7 +58,9 @@ yapSyntax *yapSyntaxCreateKInt(struct yapContext *Y, struct yapToken *token, yU3
     yapSyntax *syntax = yapSyntaxCreate(Y, YST_KINT, token->line);
     syntax->v.i = yapTokenToInt(Y, token);
     if(opts & CKO_NEGATIVE)
+    {
         syntax->v.i *= -1;
+    }
     return syntax;
 }
 
@@ -61,7 +69,9 @@ yapSyntax *yapSyntaxCreateKFloat(struct yapContext *Y, struct yapToken *token, y
     yapSyntax *syntax = yapSyntaxCreate(Y, YST_KFLOAT, token->line);
     syntax->v.f = yapTokenToFloat(Y, token);
     if(opts & CKO_NEGATIVE)
+    {
         syntax->v.f *= -1;
+    }
     return syntax;
 }
 
@@ -98,7 +108,9 @@ yapSyntax *yapSyntaxCreateList(struct yapContext *Y, yU32 type, yapSyntax *first
     yapSyntax *syntax = yapSyntaxCreate(Y, type, (firstExpr) ? firstExpr->line : 0);
     syntax->v.a = yapArrayCreate();
     if(firstExpr)
+    {
         yapArrayPush(Y, syntax->v.a, firstExpr);
+    }
     return syntax;
 }
 
@@ -108,13 +120,17 @@ yapSyntax *yapSyntaxListAppend(struct yapContext *Y, yapSyntax *list, yapSyntax 
     {
         int index;
         if(!list->line)
+        {
             list->line = expr->line;
+        }
         index = yapArrayPush(Y, list->v.a, expr);
         if((flags & YSLF_AUTOLITERAL) && (index > 0))
         {
             yapSyntax *toLiteral = (yapSyntax *)list->v.a->data[index - 1];
             if(toLiteral->type == YST_IDENTIFIER)
+            {
                 toLiteral->type = YST_KSTRING;
+            }
         }
     }
     return list;

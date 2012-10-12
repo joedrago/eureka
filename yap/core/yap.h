@@ -8,7 +8,7 @@
 #ifndef YAP_H
 #define YAP_H
 
-// This is the external header for Yap embedding. Nothing inside of the yap 
+// This is the external header for Yap embedding. Nothing inside of the yap
 // core/modules include this file, but all of the demos should.
 
 #include "yapTypes.h"

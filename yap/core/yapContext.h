@@ -81,7 +81,7 @@ void yapContextRecover(yapContext *Y); // cleans out frames, clears error
 
 void yapContextSetError(struct yapContext *Y, yU32 errorType, const char *errorFormat, ...);
 void yapContextClearError(yapContext *Y);
-const char * yapContextGetError(yapContext *Y);
+const char *yapContextGetError(yapContext *Y);
 
 void yapContextGC(struct yapContext *Y);
 
@@ -92,7 +92,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop); // stopAtPop means t
 
 void yapContextPopValues(struct yapContext *Y, yU32 count);
 yapValue *yapContextGetValue(struct yapContext *Y, yU32 howDeep);  // 0 is "top of stack"
-yapValue * yapContextThis(yapContext *Y); // returns 'this' in current context
+yapValue *yapContextThis(yapContext *Y);  // returns 'this' in current context
 
 yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
 int yapContextArgsFailure(struct yapContext *Y, int argCount, const char *errorFormat, ...); // Will always pop all arguments!

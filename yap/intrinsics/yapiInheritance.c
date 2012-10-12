@@ -42,19 +42,29 @@ static yU32 prototype(struct yapContext *Y, yU32 argCount)
     {
         yapValue *arg = yapContextGetArg(Y, 0, argCount);
         if(arg->type == YVT_REF)
+        {
             arg = *arg->refVal;
+        }
         if(arg->type == YVT_OBJECT)
+        {
             object = arg->objectVal;
+        }
     }
     if(object && (argCount > 1))
     {
         yapValue *arg = yapContextGetArg(Y, 1, argCount);
         if(arg->type == YVT_REF)
+        {
             arg = *arg->refVal;
+        }
         if(arg->type == YVT_OBJECT)
+        {
             newProto = arg;
+        }
         else if(arg->type == YVT_NULL)
+        {
             newProto = NULL;
+        }
         else
         {
             yapContextSetError(Y, YVE_RUNTIME, "prototype(): replacement prototype must be object or null");
