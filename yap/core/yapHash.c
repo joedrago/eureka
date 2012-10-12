@@ -127,11 +127,12 @@ void **yapHashLookup(struct yapContext *Y, yapHash *yh, const char *key, yBool c
     return NULL;
 }
 
-void yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value)
+void **yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value)
 {
     void **ref = yapHashLookup(Y, yh, key, yTrue);
     yapAssert(ref);
     *ref = value;
+    return ref;
 }
 
 void yapHashDelete(struct yapContext *Y, yapHash *yh, const char *key, yapDestroyCB cb)

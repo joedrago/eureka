@@ -11,7 +11,6 @@
 #include "yapHash.h"
 #include "yapObject.h"
 #include "yapLexer.h"
-#include "yapVariable.h"
 #include "yapContext.h"
 
 #include <stdio.h>
@@ -22,22 +21,6 @@ static char *NULL_STRING_FORM = "(null)";
 
 // ---------------------------------------------------------------------------
 // Helper funcs
-
-yapClosureVariable *yapClosureVariableCreate(struct yapContext *Y, const char *name, yapVariable *variable)
-{
-    yapClosureVariable *cv = yapAlloc(sizeof(yapClosureVariable));
-    cv->name = yapStrdup(Y, name);
-    cv->variable = variable;
-    return cv;
-}
-
-void yapClosureVariableDestroy(struct yapContext *Y, yapClosureVariable *cv)
-{
-    free(cv->name);
-    free(cv);
-}
-
-// ---------------------------------------------------------------------------
 
 yapDumpParams *yapDumpParamsCreate(struct yapContext *Y)
 {
@@ -137,7 +120,9 @@ static void nullFuncRegister(struct yapContext *Y)
 static void blockFuncClear(struct yapContext *Y, struct yapValue *p)
 {
     if(p->closureVars)
-        yapArrayDestroy(Y, p->closureVars, (yapDestroyCB)yapClosureVariableDestroy);
+    {
+        yapHashDestroy(Y, p->closureVars, (yapDestroyCB)yapValueDestroy);
+    }
 }
 
 static void blockFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
@@ -145,16 +130,16 @@ static void blockFuncClone(struct yapContext *Y, struct yapValue *dst, struct ya
     dst->blockVal = src->blockVal;
 }
 
+static void yapHashEntryValueMark(struct yapContext *Y, yapHashEntry *entry)
+{
+    yapValueMark(Y, entry->value);
+}
+
 static void blockFuncMark(struct yapContext *Y, struct yapValue *value)
 {
     if(value->closureVars)
     {
-        int i;
-        for(i=0; i<value->closureVars->count; i++)
-        {
-            yapClosureVariable *cv = (yapClosureVariable *)value->closureVars->data[i];
-            yapVariableMark(Y, cv->variable);
-        }
+        yapHashIterate(Y, value->closureVars, (yapIterateCB)yapHashEntryValueMark);
     }
 }
 
@@ -849,10 +834,9 @@ yapValue *yapValueDonateString(struct yapContext *Y, char *s)
     return p;
 }
 
-static void yapValueAddClosureVar(yapContext *Y, yapArray *closureVars, yapHashEntry *entry)
+static void yapValueAddClosureVar(yapContext *Y, yapHash *closureVars, yapHashEntry *entry)
 {
-    yapClosureVariable *cv = yapClosureVariableCreate(Y, entry->key, entry->value);
-    yapArrayPush(Y, closureVars, cv);
+    yapHashSet(Y, closureVars, entry->key, entry->value);
 }
 
 void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
@@ -882,9 +866,10 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
             frame = Y->frames.data[frameIndex];
             if(frame->locals->count)
             {
-                int i;
                 if(!p->closureVars)
-                    p->closureVars = yapArrayCreate();
+                {
+                    p->closureVars = yapHashCreate(Y, 0);
+                }
                 yapHashIterateP1(Y, frame->locals, (yapIterateCB1)yapValueAddClosureVar, p->closureVars);
             }
         }

@@ -16,9 +16,9 @@
 //#define YAP_DEBUG_SYMBOLS
 //#define YAP_TRACE_MEMORY
 //#define YAP_TRACE_PARSER
-#define YAP_TRACE_EXECUTION
-#define YAP_TRACE_REFS
-#define YAP_TRACE_VALUES
+//#define YAP_TRACE_EXECUTION
+//#define YAP_TRACE_REFS
+//#define YAP_TRACE_VALUES
 
 // ---------------------------------------------------------------------------
 // Forwards

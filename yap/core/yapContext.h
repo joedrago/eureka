@@ -15,7 +15,6 @@
 // Forwards
 
 struct yapHash;
-struct yapVariable;
 
 // ---------------------------------------------------------------------------
 
@@ -54,7 +53,6 @@ typedef struct yapContext
 
     // GC data
     yapArray usedValues;               // All values used by the system
-    yapArray usedVariables;            // All variables used by the system
     yapArray freeValues;               // Free value pool
 
     // state
@@ -87,7 +85,7 @@ const char * yapContextGetError(yapContext *Y);
 
 void yapContextGC(struct yapContext *Y);
 
-struct yapFrame *yapContextPushFrame(struct yapContext *Y, struct yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal);
+struct yapFrame *yapContextPushFrame(struct yapContext *Y, struct yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal, yapValue *closure);
 struct yapFrame *yapContextPopFrames(struct yapContext *Y, yU32 frameTypeToFind, yBool keepIt);
 
 void yapContextLoop(struct yapContext *Y, yBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with

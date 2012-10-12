@@ -43,13 +43,14 @@ typedef struct yapFrame
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // In function scope, it is "this"
+    struct yapValue *closure;          // to resolve variables after locals but before globals
     yU32 type;                         // YFT_*
     yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
     yU32 argCount;                     // Number of args available on the stack when entering the frame; used by varargs
     yU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
 } yapFrame;
 
-yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount);
+yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount, struct yapValue *closure);
 void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart);
 void yapFrameDestroy(struct yapContext *Y, yapFrame *frame);
 

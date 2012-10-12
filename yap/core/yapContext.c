@@ -15,7 +15,6 @@
 #include "yapFrame.h"
 #include "yapOp.h"
 #include "yapValue.h"
-#include "yapVariable.h"
 
 #include "yapmAll.h"
 #include "yapiCore.h"
@@ -31,8 +30,7 @@
 
 void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *value)
 {
-    yapVariable *variable = yapVariableCreate(Y, value);
-    yapHashSet(Y, Y->globals, name, variable);
+    yapHashSet(Y, Y->globals, name, value);
 }
 
 void yapContextRegisterGlobalFunction(struct yapContext *Y, const char *name, yapCFunction func)
@@ -105,7 +103,7 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
             yapTraceExecution(("--- begin chunk execution ---\n"));
 #endif
             // Execute the chunk's block
-            yapContextPushFrame(Y, chunk->block, 0, YFT_FUNC|YFT_CHUNK, yapValueNullPtr);
+            yapContextPushFrame(Y, chunk->block, 0, YFT_FUNC|YFT_CHUNK, yapValueNullPtr, NULL);
             yapContextLoop(Y, yTrue);
 
 #ifdef YAP_TRACE_EXECUTION
@@ -205,7 +203,6 @@ void yapContextDestroy(yapContext *Y)
     yapArrayClear(Y, &Y->stack, NULL);
     yapArrayClear(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
 
-    yapArrayClear(Y, &Y->usedVariables, (yapDestroyCB)yapVariableDestroy);
     yapArrayClear(Y, &Y->usedValues, (yapDestroyCB)yapValueDestroy);
     yapArrayClear(Y, &Y->freeValues, (yapDestroyCB)yapValueDestroy);
 
@@ -215,32 +212,38 @@ void yapContextDestroy(yapContext *Y)
     yapFree(Y);
 }
 
-static yapVariable *yapContextResolveVariable(struct yapContext *Y, const char *name)
+static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
 {
     int i;
     yapFrame *frame;
-    yapVariable **variableRef;
+    yapValue **valueRef;
 
     for(i = Y->frames.count - 1; i >= 0; i--)
     {
         frame = (yapFrame *)Y->frames.data[i];
 
-        // Check the local variables
-        variableRef = (yapVariable **)yapHashLookup(Y, frame->locals, name, yFalse);
-        if(variableRef) return *variableRef;
+        // Check the locals
+        valueRef = (yapValue **)yapHashLookup(Y, frame->locals, name, yFalse);
+        if(valueRef) return valueRef;
+
+        if(frame->closure && frame->closure->closureVars)
+        {
+            valueRef = (yapValue **)yapHashLookup(Y, frame->closure->closureVars, name, yFalse);
+            if(valueRef) return valueRef;
+        }
 
         if(frame->type == YFT_FUNC)
             break;
     }
 
-    // check global vars
-    variableRef = (yapVariable **)yapHashLookup(Y, Y->globals, name, yFalse);
-    if(variableRef) return *variableRef;
+    // check globals
+    valueRef = (yapValue **)yapHashLookup(Y, Y->globals, name, yFalse);
+    if(valueRef) return valueRef;
 
     return NULL;
 }
 
-yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal)
+yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCount, yU32 frameType, struct yapValue *thisVal, yapValue *closure)
 {
     yapFrame *frame;
     int i;
@@ -267,7 +270,7 @@ yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCoun
         }
     }
 
-    frame = yapFrameCreate(Y, frameType, thisVal, block, Y->stack.count, argCount);
+    frame = yapFrameCreate(Y, frameType, thisVal, block, Y->stack.count, argCount, closure);
     yapArrayPush(Y, &Y->frames, frame);
 
     return frame;
@@ -303,17 +306,8 @@ static yBool yapContextCall(struct yapContext *Y, yapFrame **framePtr, yapValue 
     }
     else
     {
-        *framePtr = yapContextPushFrame(Y, callable->blockVal, argCount, YFT_FUNC, thisVal);
-        if(*framePtr && callable->closureVars)
-        {
-            // Hand over all closure variables into the new local scope
-            int i;
-            for(i=0; i<callable->closureVars->count; i++)
-            {
-                yapClosureVariable *cv = (yapClosureVariable *)callable->closureVars->data[i];
-                yapHashSet(Y, (*framePtr)->locals, cv->name, cv->variable);
-            }
-        }
+        yapValue *closure = (callable->closureVars) ? callable : NULL;
+        *framePtr = yapContextPushFrame(Y, callable->blockVal, argCount, YFT_FUNC, thisVal, closure);
     }
     return yTrue;
 }
@@ -338,10 +332,10 @@ static yapValue *yapFindFunc(struct yapContext *Y, yapValue *object, const char 
 yBool yapContextCallFuncByName(struct yapContext *Y, yapValue *thisVal, const char *name, int argCount)
 {
     yapFrame *frame = NULL;
-    yapVariable *variable = yapContextResolveVariable(Y, name);
-    if(!variable)
+    yapValue **valueRef = yapContextResolve(Y, name);
+    if(!valueRef || !(*valueRef))
         return yFalse;
-    if(yapContextCall(Y, &frame, thisVal, variable->value, argCount))
+    if(yapContextCall(Y, &frame, thisVal, *valueRef, argCount))
     {
         yapContextLoop(Y, yTrue);
         return yTrue;
@@ -364,30 +358,29 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 }
 
 // TODO: this needs to protect against variable masking/shadowing
-static yapVariable *yapContextRegisterVariable(struct yapContext *Y, const char *name, yapValue *value)
+static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yapValue *value)
 {
-    yapVariable *variable;
+    yapValue **valueRef;
     yapFrame *frame = yapArrayTop(Y, &Y->frames);
     if(!frame)
         return NULL;
 
-    variable = yapVariableCreate(Y, value);
     if(frame->block == frame->block->chunk->block)
     {
         // If we're in the chunk's "main" function, all variable
         // registration goes into the globals
-        yapHashSet(Y, Y->globals, name, variable);
+        valueRef = (yapValue**)yapHashSet(Y, Y->globals, name, value);
     }
     else
     {
-        yapHashSet(Y, frame->locals, name, variable);
+        valueRef = (yapValue**)yapHashSet(Y, frame->locals, name, value);
     }
-    return variable;
+    return valueRef;
 }
 
-static void yapContextPushRef(struct yapContext *Y, yapVariable *variable)
+static void yapContextPushRef(struct yapContext *Y, yapValue **valueRef)
 {
-    yapValue *value = yapValueCreateRef(Y, &variable->value);
+    yapValue *value = yapValueCreateRef(Y, valueRef);
     yapArrayPush(Y, &Y->stack, value);
 }
 
@@ -395,7 +388,7 @@ static void yapContextPushRef(struct yapContext *Y, yapVariable *variable)
 static yBool yapContextCallCFunction(struct yapContext *Y, yapCFunction func, yU32 argCount, yapValue *thisVal)
 {
     int retCount;
-    yapFrame *frame = yapFrameCreate(Y, YFT_FUNC, thisVal, NULL, Y->stack.count, argCount);
+    yapFrame *frame = yapFrameCreate(Y, YFT_FUNC, thisVal, NULL, Y->stack.count, argCount, NULL);
     yapArrayPush(Y, &Y->frames, frame);
 
     retCount = func(Y, argCount);
@@ -775,17 +768,17 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
         case YOP_VARREG_KS:
         {
-            yapVariable *variable = yapContextRegisterVariable(Y, frame->block->chunk->kStrings.data[operand], yapValueNullPtr);
-            yapContextPushRef(Y, variable);
+            yapValue **valueRef = yapContextRegister(Y, frame->block->chunk->kStrings.data[operand], yapValueNullPtr);
+            yapContextPushRef(Y, valueRef);
         }
         break;
 
         case YOP_VARREF_KS:
         {
-            yapVariable *variable = yapContextResolveVariable(Y, frame->block->chunk->kStrings.data[operand]);
-            if(variable)
+            yapValue **valueRef = yapContextResolve(Y, frame->block->chunk->kStrings.data[operand]);
+            if(valueRef)
             {
-                yapContextPushRef(Y, variable);
+                yapContextPushRef(Y, valueRef);
             }
             else
             {
@@ -1114,7 +1107,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             if(block)
             {
-                frame = yapContextPushFrame(Y, block, 0, YFT_COND, NULL);
+                frame = yapContextPushFrame(Y, block, 0, YFT_COND, NULL, NULL);
                 if(frame)
                     newFrame = yTrue;
                 else
@@ -1130,7 +1123,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
             {
                 yU32 frameType = operand;
-                frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL);
+                frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
                 if(frame)
                     newFrame = yTrue;
                 else
@@ -1341,9 +1334,9 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
     yapContextGC(Y);
 }
 
-static void yapHashEntryVariableMark(struct yapContext *Y, yapHashEntry *entry)
+static void yapHashEntryValueMark(struct yapContext *Y, yapHashEntry *entry)
 {
-    yapVariableMark(Y, entry->value);
+    yapValueMark(Y, entry->value);
 }
 
 void yapContextGC(struct yapContext *Y)
@@ -1359,23 +1352,19 @@ void yapContextGC(struct yapContext *Y)
         value->used = yFalse;
     }
 
-    for(i = 0; i < Y->usedVariables.count; i++)
-    {
-        yapVariable *variable = (yapVariable *)Y->usedVariables.data[i];
-        variable->used = yFalse;
-    }
-
     // -----------------------------------------------------------------------
     // mark all values used by things the VM still cares about
 
-    yapHashIterate(Y, Y->globals, (yapIterateCB)yapHashEntryVariableMark);
+    yapHashIterate(Y, Y->globals, (yapIterateCB)yapHashEntryValueMark);
 
     for(i = 0; i < Y->frames.count; i++)
     {
         yapFrame *frame = (yapFrame *)Y->frames.data[i];
         if(frame->thisVal)
             yapValueMark(Y, frame->thisVal);
-        yapHashIterate(Y, frame->locals, (yapIterateCB)yapHashEntryVariableMark);
+        if(frame->closure)
+            yapValueMark(Y, frame->closure);
+        yapHashIterate(Y, frame->locals, (yapIterateCB)yapHashEntryValueMark);
     }
 
     for(i = 0; i < Y->stack.count; i++)
@@ -1397,16 +1386,4 @@ void yapContextGC(struct yapContext *Y)
         }
     }
     yapArraySquash(Y, &Y->usedValues);
-
-    for(i = 0; i < Y->usedVariables.count; i++)
-    {
-        yapVariable *variable = (yapVariable *)Y->usedVariables.data[i];
-        if(!variable->used)
-        {
-            yapVariableDestroy(Y, variable);
-            Y->usedVariables.data[i] = NULL; // for future squashing
-        }
-    }
-
-    yapArraySquash(Y, &Y->usedVariables);
 }

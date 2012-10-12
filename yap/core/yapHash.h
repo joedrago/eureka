@@ -35,7 +35,7 @@ typedef void (*yapIterateCB1)(struct yapContext *Y, void *arg1, yapHashEntry *en
 void yapHashIterateP1(struct yapContext *Y, yapHash *yh, yapIterateCB1 cb, void *arg1); // One prefixed argument: cb(arg1, p)
 
 void **yapHashLookup(struct yapContext *Y, yapHash *yh, const char *key, yBool create);
-void yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value);       // assumes 'create' and 'replace'
+void **yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value);       // assumes 'create' and 'replace'
 void yapHashDelete(struct yapContext *Y, yapHash *yh, const char *key, yapDestroyCB cb);
 
 #endif

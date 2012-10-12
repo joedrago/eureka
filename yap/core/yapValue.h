@@ -14,6 +14,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapHash;
 struct yapObject;
 struct yapValue;
 
@@ -33,7 +34,7 @@ typedef enum yapValueBasicType
     YVT_ARRAY,
     YVT_OBJECT,
 
-    YVT_REF,                           // Variable reference
+    YVT_REF,                           // Value reference
 
     YVT_COUNT,
     YVT_CUSTOM = YVT_COUNT,            // First custom value type
@@ -114,18 +115,6 @@ void yapValueTypeRegisterAllBasicTypes(struct yapContext *Y);
     (((yapValueType*)Y->types.data[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
    : ((yapValueType*)Y->types.data[id])->func ## funcName
 
-
-// ---------------------------------------------------------------------------
-
-typedef struct yapClosureVariable
-{
-    char *name;
-    struct yapVariable *variable;
-} yapClosureVariable;
-
-yapClosureVariable *yapClosureVariableCreate(struct yapContext *Y, const char *name, struct yapVariable *variable);
-void yapClosureVariableDestroy(struct yapContext *Y, yapClosureVariable *cv);
-
 // ---------------------------------------------------------------------------
 
 // Should return how many values it is returning on the stack
@@ -136,18 +125,20 @@ typedef yU32(yapCFunction)(struct yapContext *Y, yU32 argCount);
 typedef struct yapValue
 {
     yU8 type;
-    yFlag constant: 1;                 // Pointing at a constant table, do not free
-    yFlag used: 1;                     // The "mark" during the GC's mark-and-sweep
-    yS32 refs;                         // reference count!
+    yFlag used: 1;                       // The "mark" during the GC's mark-and-sweep
+    yS32 refs;                           // reference count!
     union
     {
         yS32 intVal;
         yF32 floatVal;
         struct {
-            yapArray *closureVars;         // Populated at runtime when a reference to a new function() is created
-            struct yapBlock *blockVal;     // Hurr, Shield Slam
+            struct yapHash *closureVars; // Populated at runtime when a reference to a new function() is created
+            struct yapBlock *blockVal;   // Hurr, Shield Slam
         };
-        yapString stringVal;
+        struct {
+            yapString stringVal;
+            yFlag constant: 1;           // Pointing at a constant table, do not free
+        };
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
         yapArray *arrayVal;

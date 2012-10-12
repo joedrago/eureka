@@ -79,8 +79,6 @@ set(yap_src
     core/yapTypes.c
     core/yapValue.h
     core/yapValue.c
-    core/yapVariable.h
-    core/yapVariable.c
 )
 
 set(yap_intrinsics

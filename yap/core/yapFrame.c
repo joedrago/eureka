@@ -12,7 +12,7 @@
 #include "yapHash.h"
 #include "yapOp.h"
 
-yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount)
+yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount, yapValue *closure)
 {
     yapFrame *frame = (yapFrame *)yapAlloc(sizeof(yapFrame));
     frame->locals = yapHashCreate(Y, 0);
@@ -21,6 +21,7 @@ yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisV
     frame->block = block;
     frame->prevStackCount = prevStackCount;
     frame->argCount = argCount;
+    frame->closure = closure;
     frame->cleanupCount = 0;
     yapFrameReset(Y, frame, yFalse);
     return frame;
