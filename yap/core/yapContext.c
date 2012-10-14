@@ -31,11 +31,14 @@
 void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *value)
 {
     yapHashSet(Y, Y->globals, name, value);
+    yapValueAddRef(Y, value, "yapContextRegisterGlobal");
 }
 
 void yapContextRegisterGlobalFunction(struct yapContext *Y, const char *name, yapCFunction func)
 {
-    yapContextRegisterGlobal(Y, name, yapValueCreateCFunction(Y, func));
+    yapValue *p = yapValueCreateCFunction(Y, func);
+    yapContextRegisterGlobal(Y, name, p);
+    yapValueRemoveRef(Y, p, "granted ownership to RegisterGlobal");
 }
 
 static yBool yapChunkCanBeTemporary(yapChunk *chunk)
@@ -232,6 +235,7 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
         valueRef = (yapValue **)yapHashLookup(Y, frame->locals, name, yFalse);
         if(valueRef) { return valueRef; }
 
+        // Check closure vars
         if(frame->closure && frame->closure->closureVars)
         {
             valueRef = (yapValue **)yapHashLookup(Y, frame->closure->closureVars, name, yFalse);
@@ -391,6 +395,8 @@ static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yap
         return NULL;
     }
 
+    yapValueAddRef(Y, value, "yapContextRegister");
+
     if(frame->block == frame->block->chunk->block)
     {
         // If we're in the chunk's "main" function, all variable
@@ -459,6 +465,7 @@ static yapContextFrameCleanup(struct yapContext *Y, yapFrame *frame)
         for(i=0; i < frame->cleanupCount; i++)
         {
             int index = ((Y->stack.count - 1) - Y->lastRet) - i;
+            yapValueRemoveRef(Y, Y->stack.data[index], "yapContextFrameCleanup");
             Y->stack.data[index] = NULL;
         }
         yapArraySquash(Y, &Y->stack);
@@ -980,6 +987,11 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapArrayPop(Y, &Y->stack);
                 }
                 continueLooping = yapValueSetRefVal(Y, ref, val);
+                yapValueRemoveRef(Y, ref, "SETVAR temporary reference");
+                if(!operand)
+                {
+                    yapValueRemoveRef(Y, val, "SETVAR value not needed anymore");
+                }
             }
             break;
 
@@ -1214,6 +1226,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 {
                     yU32 frameType = operand;
                     frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
+                    yapValueRemoveRef(Y, blockRef, "ENTER: removing block ref");
                     if(frame)
                     {
                         newFrame = yTrue;

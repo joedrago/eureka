@@ -151,8 +151,8 @@ typedef struct yapValue
 yapValue *yapValueCreate(struct yapContext *Y);
 void yapValueDestroy(struct yapContext *Y, yapValue *p);
 
-void yapValueAddRef(struct yapContext *Y, yapValue *p);
-void yapValueRemoveRef(struct yapContext *Y, yapValue *p);
+void yapValueAddRef(struct yapContext *Y, yapValue *p, const char *note);
+void yapValueRemoveRef(struct yapContext *Y, yapValue *p, const char *note);
 
 void yapValueMark(struct yapContext *Y, yapValue *value); // used by yapContextGC()
 
@@ -202,6 +202,12 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
 yapValue *yapValueIndex(struct yapContext *Y, yapValue *p, yapValue *index, yBool lvalue);
 
 const char *yapValueTypeName(struct yapContext *Y, int type); // used in error reporting
+
+#ifdef YAP_TRACE_REFS
+void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, const char *note);
+#else
+#define yapValueTraceRefs(A, B, C, D)
+#endif
 
 void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p);
 

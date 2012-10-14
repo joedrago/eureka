@@ -27,9 +27,14 @@ yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisV
     return frame;
 }
 
+static void yapFrameDestroyLocal(struct yapContext *Y, yapValue *v)
+{
+    yapValueRemoveRef(Y, v, "yapFrameDestroyLocal");
+}
+
 void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart)
 {
-    yapHashClear(Y, frame->locals, NULL);
+    yapHashClear(Y, frame->locals, (yapDestroyCB)yapFrameDestroyLocal);
     frame->ip = (frame->block) ? frame->block->ops : NULL;
     if(frame->ip && jumpToStart)
     {

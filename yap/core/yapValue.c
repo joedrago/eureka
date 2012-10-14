@@ -20,7 +20,6 @@
 static char *NULL_STRING_FORM = "(null)";
 
 // ---------------------------------------------------------------------------
-// Helper funcs
 
 yapDumpParams *yapDumpParamsCreate(struct yapContext *Y)
 {
@@ -987,8 +986,10 @@ yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
         return yFalse;
     }
 
+    yapValueRemoveRef(Y, *(ref->refVal), "SetRefVal: forgetting previous val");
     *(ref->refVal) = p;
     p->used = yTrue;
+    yapValueAddRef(Y, p, "SetRefVal: taking ownership of val");
 
     yapTraceValues(("yapValueSetRefVal %p = %p\n", ref, p));
     return yTrue;
@@ -1139,6 +1140,8 @@ void yapValueRelease(struct yapContext *Y, yapValue *p)
 yapValue *yapValueCreate(yapContext *Y)
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
+    value->refs = 1;
+    yapValueTraceRefs(Y, value, 1, "yapValueCreate");
     yapTraceValues(("yapValueCreate %p\n", value));
     return value;
 }
@@ -1148,6 +1151,34 @@ void yapValueDestroy(struct yapContext *Y, yapValue *p)
     yapTraceValues(("yapValueFree %p\n", p));
     yapValueClear(Y, p);
     yapFree(p);
+}
+
+void yapValueAddRef(struct yapContext *Y, yapValue *p, const char *note)
+{
+    if(p == yapValueNullPtr)
+    {
+        yapValueTraceRefs(Y, p, 0, "AddRef ignored (yapValueNull)");
+        return;
+    }
+
+    ++p->refs;
+    yapValueTraceRefs(Y, p, 1, note);
+}
+
+void yapValueRemoveRef(struct yapContext *Y, yapValue *p, const char *note)
+{
+    if(p == yapValueNullPtr)
+    {
+        yapValueTraceRefs(Y, p, 0, "RemoveRef ignored (yapValueNull)");
+        return;
+    }
+
+    --p->refs;
+    yapValueTraceRefs(Y, p, -1, note);
+    if(p->refs == 0)
+    {
+        // TODO: Destroy here when ready to remove GC
+    }
 }
 
 yS32 yapValueCmp(struct yapContext *Y, yapValue *a, yapValue *b)
@@ -1356,3 +1387,24 @@ void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p)
 {
     yapValueTypeSafeCall(p->type, Dump)(Y, params, p);
 }
+
+#ifdef YAP_TRACE_REFS
+void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, const char *note)
+{
+    const char *destroySoon = "";
+    char tempPtr[32];
+    if(p == yapValueNullPtr)
+    {
+        sprintf(tempPtr, "0xYAP_NULL");
+    }
+    else
+    {
+        sprintf(tempPtr, "%10p", p);
+        if((delta < 0) && !p->refs)
+        {
+            destroySoon = " - DESTROY SOON";
+        }
+    }
+    yapTraceRefs(("\t\t\t\t\t\t\t\tREFS: yapValue %s [%2d delta -> %d]: %s%s\n", tempPtr, delta, p->refs, note, destroySoon));
+}
+#endif
