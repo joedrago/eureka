@@ -16,12 +16,20 @@ yapObject *yapObjectCreate(struct yapContext *Y, yapValue *isa)
 {
     yapObject *v = (yapObject *)yapAlloc(sizeof(yapObject));
     v->isa = isa;
+    if(v->isa)
+    {
+        yapValueAddRefNote(Y, v->isa, "yapObject isa");
+    }
     v->hash = yapHashCreate(Y, 0);
     return v;
 }
 
 void yapObjectDestroy(struct yapContext *Y, yapObject *v)
 {
+    if(v->isa)
+    {
+        yapValueAddRefNote(Y, v->isa, "yapObject isa done");
+    }
     yapHashDestroy(Y, v->hash, (yapDestroyCB)yapValueRemoveRefHashed);
     yapFree(v);
 }

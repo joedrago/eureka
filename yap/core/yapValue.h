@@ -123,7 +123,6 @@ typedef yU32(yapCFunction)(struct yapContext *Y, yU32 argCount);
 typedef struct yapValue
 {
     yU8 type;
-    yFlag used: 1;                       // The "mark" during the GC's mark-and-sweep
     yS32 refs;                           // reference count!
     union
     {
@@ -188,6 +187,8 @@ yapValue *yapValueDiv(struct yapContext *Y, yapValue *a, yapValue *b);
 
 yS32 yapValueCmp(struct yapContext *Y, yapValue *a, yapValue *b);
 
+// It is assumed that you are using the pattern: v = yapValueTo*(Y, v)
+// and auto-unrefs the passed-in value for you.
 yapValue *yapValueToBool(struct yapContext *Y, yapValue *p);
 yapValue *yapValueToInt(struct yapContext *Y, yapValue *p);
 yapValue *yapValueToFloat(struct yapContext *Y, yapValue *p);
@@ -202,9 +203,11 @@ const char *yapValueTypeName(struct yapContext *Y, int type); // used in error r
 #ifdef YAP_TRACE_REFS
 void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, const char *note);
 void yapValueRemoveRefHashed(struct yapContext *Y, struct yapValue *p); // used for tracing cleanup of hashes of values
+void yapValueRemoveRefArray(struct yapContext *Y, struct yapValue *p);  // used for tracing cleanup of arrays of values
 #else
 #define yapValueTraceRefs(A, B, C, D)
-void yapValueRemoveRefHashed yapValueRemoveRef
+#define yapValueRemoveRefHashed yapValueRemoveRef
+#define yapValueRemoveRefArray yapValueRemoveRef
 #endif
 #define yapValueAddRefNote(Y, V, N) { yapValueTraceRefs(Y, V, 1, N); yapValueAddRef(Y, V); }
 #define yapValueRemoveRefNote(Y, V, N) { yapValueTraceRefs(Y, V, -1, N); yapValueRemoveRef(Y, V); }

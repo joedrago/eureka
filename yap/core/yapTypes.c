@@ -71,9 +71,11 @@ void yapMemoryStatsDumpLeaks()
     {
         if(sMemoryTrackers[i].ptr != 0)
         {
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
             yapTraceMem(("                                     LEAK %p [%d]\n",
                          sMemoryTrackers[i].ptr,
                          sMemoryTrackers[i].bytes));
+#endif
         }
     }
 }
@@ -85,7 +87,9 @@ void yapTrackAlloc(void *ptr, int bytes)
     {
         if(sMemoryTrackers[i].ptr == 0)
         {
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
             yapTraceMem(("                                     ALLOC %p [%d]\n", ptr, bytes));
+#endif
             sMemoryStats.allocs++;
             sMemoryStats.allocSize += bytes;
             sMemoryStats.totalAllocSize += bytes;
@@ -98,17 +102,28 @@ void yapTrackAlloc(void *ptr, int bytes)
     yapAssert(0 && "out of trackers");
 }
 
-void yapTrackFree(void *ptr)
+void yapTrackFree(void *ptr, int stomp)
 {
     int i;
     for(i=0; i<MAX_TRACKERS; i++)
     {
         if(sMemoryTrackers[i].ptr == ptr)
         {
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
             yapTraceMem(("                                     FREE %p [%d]\n", ptr, sMemoryTrackers[i].bytes));
+#endif
             sMemoryStats.frees++;
             sMemoryStats.freeSize += sMemoryTrackers[i].bytes;
             sMemoryStats.totalFreeSize += sMemoryTrackers[i].bytes;
+
+            if(stomp)
+            {
+                // stomp the freed memory
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
+                yapTraceMem(("                                     STOMP %p [%d]\n", ptr, sMemoryTrackers[i].bytes));
+#endif
+                memset(ptr, 0xbb, sMemoryTrackers[i].bytes);
+            }
 
             sMemoryTrackers[i].ptr = 0;
             sMemoryTrackers[i].bytes = 0;
@@ -120,12 +135,12 @@ void yapTrackFree(void *ptr)
 
 void yapTrackRealloc(void *oldptr, void *newptr, int bytes)
 {
-    if(oldptr) { yapTrackFree(oldptr); }
+    if(oldptr) { yapTrackFree(oldptr, 0); }
     yapTrackAlloc(newptr, bytes);
 }
 
 #define TRACK_ALLOC(PTR, BYTES) yapTrackAlloc(PTR, BYTES);
-#define TRACK_FREE(PTR) if(PTR) yapTrackFree(PTR);
+#define TRACK_FREE(PTR) if(PTR) yapTrackFree(PTR, 1);
 #define TRACK_REALLOC(OLDPTR, NEWPTR, BYTES) yapTrackRealloc(OLDPTR, NEWPTR, BYTES);
 #else
 #define TRACK_ALLOC(PTR, BYTES)
@@ -150,8 +165,8 @@ void *yapDefaultRealloc(void *ptr, ySize bytes)
 void yapDefaultFree(void *ptr)
 {
     yapAssert(ptr);
-    free(ptr);
     TRACK_FREE(ptr)
+    free(ptr);
 }
 
 void yapDestroyCBFree(struct yapContext *Y, void *ptr)

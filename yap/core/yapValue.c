@@ -247,28 +247,33 @@ static struct yapValue *intFuncToString(struct yapContext *Y, struct yapValue *p
 
 static struct yapValue *intFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
+    yapValue *c = NULL;
+    yapValueAddRefNote(Y, b, "intFuncArithmetic keep b during int conversion");
     b = yapValueToInt(Y, b);
     switch(op)
     {
         case YVAO_ADD:
-            a = yapValueCreateInt(Y, a->intVal + b->intVal);
+            c = yapValueCreateInt(Y, a->intVal + b->intVal);
             break;
         case YVAO_SUB:
-            a = yapValueCreateInt(Y, a->intVal - b->intVal);
+            c = yapValueCreateInt(Y, a->intVal - b->intVal);
             break;
         case YVAO_MUL:
-            a = yapValueCreateInt(Y, a->intVal * b->intVal);
+            c = yapValueCreateInt(Y, a->intVal * b->intVal);
             break;
         case YVAO_DIV:
             if(!b->intVal)
             {
                 yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
-                return NULL;
             }
-            a = yapValueCreateInt(Y, a->intVal / b->intVal);
+            else
+            {
+                c = yapValueCreateInt(Y, a->intVal / b->intVal);
+            }
             break;
     };
-    return a;
+    yapValueRemoveRefNote(Y, b, "intFuncArithmetic temp b done");
+    return c;
 }
 
 static yBool intFuncCmp(struct yapContext *Y, struct yapValue *a, struct yapValue *b, int *cmpResult)
@@ -353,6 +358,7 @@ static struct yapValue *floatFuncToString(struct yapContext *Y, struct yapValue 
 
 static struct yapValue *floatFuncArithmetic(struct yapContext *Y, struct yapValue *a, struct yapValue *b, yapValueArithmeticOp op)
 {
+    yapValueAddRefNote(Y, b, "floatFuncArithmetic keep b during float conversion");
     b = yapValueToFloat(Y, b);
     switch(op)
     {
@@ -369,11 +375,14 @@ static struct yapValue *floatFuncArithmetic(struct yapContext *Y, struct yapValu
             if(b->floatVal == 0.0f)
             {
                 yapContextSetError(Y, YVE_RUNTIME, "divide by zero!");
-                return NULL;
             }
-            a = yapValueCreateFloat(Y, a->floatVal / b->floatVal);
+            else
+            {
+                a = yapValueCreateFloat(Y, a->floatVal / b->floatVal);
+            }
             break;
     };
+    yapValueRemoveRefNote(Y, b, "floatFuncArithmetic temp b done");
     return a;
 }
 
@@ -478,10 +487,14 @@ struct yapValue *stringFuncArithmetic(struct yapContext *Y, struct yapValue *a, 
     yapValue *ret = NULL;
     if(op == YVAO_ADD)
     {
+        yapValueAddRefNote(Y, a, "stringFuncArithmetic keep a during string conversion");
+        yapValueAddRefNote(Y, b, "stringFuncArithmetic keep b during string conversion");
         a = yapValueToString(Y, a);
         b = yapValueToString(Y, b);
         ret = yapValueCreateString(Y, yapStringSafePtr(&a->stringVal));
         yapStringConcatStr(Y, &ret->stringVal, &a->stringVal);
+        yapValueRemoveRefNote(Y, a, "stringFuncArithmetic temp a done");
+        yapValueRemoveRefNote(Y, b, "stringFuncArithmetic temp b done");
     }
     else
     {
@@ -529,7 +542,7 @@ static void stringFuncRegister(struct yapContext *Y)
 
 static void arrayFuncClear(struct yapContext *Y, struct yapValue *p)
 {
-    yapArrayDestroy(Y, p->arrayVal, NULL);
+    yapArrayDestroy(Y, p->arrayVal, (yapDestroyCB)yapValueRemoveRefHashed);
 }
 
 static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
@@ -567,6 +580,7 @@ static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *va
         else
         {
             ret = *ref;
+            yapValueAddRefNote(Y, ret, "arrayFuncIndex");
         }
     }
     else
@@ -657,6 +671,7 @@ static struct yapValue *objectFuncIndex(struct yapContext *Y, struct yapValue *v
     else
     {
         ret = *ref;
+        yapValueAddRefNote(Y, ret, "objectFuncIndex");
     }
     return ret;
 }
@@ -776,7 +791,6 @@ yapValue *yapValueCreateInt(struct yapContext *Y, int v)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_INT;
     p->intVal = v;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateInt %p [%d]\n", p, v));
     return p;
 }
@@ -786,7 +800,6 @@ yapValue *yapValueCreateFloat(struct yapContext *Y, yF32 v)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_FLOAT;
     p->floatVal = v;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateFloat %p [%f]\n", p, v));
     return p;
 }
@@ -796,7 +809,6 @@ yapValue *yapValueCreateKString(struct yapContext *Y, const char *s)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_STRING;
     yapStringSetK(Y, &p->stringVal, s);
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateKString %p\n", p));
     return p;
 }
@@ -806,7 +818,6 @@ yapValue *yapValueCreateString(struct yapContext *Y, const char *s)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_STRING;
     yapStringSet(Y, &p->stringVal, s);
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateString %p\n", p));
     return p;
 }
@@ -816,13 +827,13 @@ yapValue *yapValueDonateString(struct yapContext *Y, char *s)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_STRING;
     yapStringDonate(Y, &p->stringVal, s);
-    p->used = yTrue;
     yapTraceValues(("yapValueDonateString %p\n", p));
     return p;
 }
 
 static void yapValueAddClosureVar(yapContext *Y, yapHash *closureVars, yapHashEntry *entry)
 {
+    yapValueAddRefNote(Y, entry->value, "+ref closure variable");
     yapHashSet(Y, closureVars, entry->key, entry->value);
 }
 
@@ -871,7 +882,6 @@ yapValue *yapValueCreateFunction(struct yapContext *Y, struct yapBlock *block)
     p->type = YVT_BLOCK;
     p->closureVars = NULL;
     p->blockVal = block;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateFunction %p\n", p));
     return p;
 }
@@ -881,7 +891,6 @@ yapValue *yapValueCreateCFunction(struct yapContext *Y, yapCFunction func)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_CFUNCTION;
     p->cFuncVal = func;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateCFunction %p\n", p));
     return p;
 }
@@ -891,7 +900,6 @@ yapValue *yapValueCreateRef(struct yapContext *Y, struct yapValue **ref)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_REF;
     p->refVal = ref;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateRef %p\n", p));
     return p;
 }
@@ -902,7 +910,6 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapObject *object)
     yapValue *p = yapValueCreate(Y);
     p->type = YVT_OBJECT;
     p->objectVal = object;
-    p->used = yTrue;
     yapTraceValues(("yapValueCreateObject %p\n", p));
     return p;
 }
@@ -942,7 +949,6 @@ yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
 
     yapValueRemoveRefNote(Y, *(ref->refVal), "SetRefVal: forgetting previous val");
     *(ref->refVal) = p;
-    p->used = yTrue;
     yapValueAddRefNote(Y, p, "SetRefVal: taking ownership of val");
 
     yapTraceValues(("yapValueSetRefVal %p = %p\n", ref, p));
@@ -984,7 +990,6 @@ yapValue *yapValueCreateArray(struct yapContext *Y)
     yapValue *p = yapValueCreate(Y);
     p->arrayVal = yapArrayCreate();
     p->type = YVT_ARRAY;
-    p->used = yTrue;
     return p;
 }
 
@@ -1002,7 +1007,6 @@ void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v)
     yapAssert(p->type == YVT_ARRAY);
 
     yapArrayPush(Y, p->arrayVal, v);
-    v->used = yTrue;
 }
 
 // ---------------------------------------------------------------------------
@@ -1035,7 +1039,6 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int a
     }
     p->objectVal = yapObjectCreate(Y, isa);
     p->type = YVT_OBJECT;
-    p->used = yTrue;
 
     if(argCount)
     {
@@ -1094,8 +1097,8 @@ void yapValueRelease(struct yapContext *Y, yapValue *p)
 yapValue *yapValueCreate(yapContext *Y)
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
-    value->refs = 1;
     yapValueTraceRefs(Y, value, 1, "yapValueCreate");
+    value->refs = 1;
     yapTraceValues(("yapValueCreate %p\n", value));
     return value;
 }
@@ -1113,7 +1116,8 @@ void yapValueAddRef(struct yapContext *Y, yapValue *p)
     {
         return;
     }
-
+    
+    yapAssert(p->refs);
     ++p->refs;
 }
 
@@ -1208,19 +1212,25 @@ yapValue *yapValueDiv(struct yapContext *Y, yapValue *a, yapValue *b)
 yapValue *yapValueToBool(struct yapContext *Y, yapValue *p)
 {
     yBool boolVal = yapValueTypeSafeCall(p->type, ToBool)(Y, p);
-    return yapValueCreateInt(Y, boolVal);
+    yapValue *value = yapValueCreateInt(Y, boolVal);
+    yapValueRemoveRefNote(Y, p, "yapValueToBool");
+    return value;
 }
 
 yapValue *yapValueToInt(struct yapContext *Y, yapValue *p)
 {
     yS32 intVal = yapValueTypeSafeCall(p->type, ToInt)(Y, p);
-    return yapValueCreateInt(Y, intVal);
+    yapValue *ret = yapValueCreateInt(Y, intVal);
+    yapValueRemoveRefNote(Y, p, "yapValueToInt");
+    return ret;
 }
 
 yapValue *yapValueToFloat(struct yapContext *Y, yapValue *p)
 {
     yF32 floatVal = yapValueTypeSafeCall(p->type, ToFloat)(Y, p);
-    return yapValueCreateFloat(Y, floatVal);
+    yapValue *ret = yapValueCreateFloat(Y, floatVal);
+    yapValueRemoveRefNote(Y, p, "yapValueToFloat");
+    return ret;
 }
 
 yapValue *yapValueToString(struct yapContext *Y, yapValue *p)
@@ -1230,6 +1240,7 @@ yapValue *yapValueToString(struct yapContext *Y, yapValue *p)
     {
         yapTraceExecution(("yapValueToString: unable to convert type '%s' to string\n", yapValueTypePtr(p->type)->name));
     }
+    yapValueRemoveRefNote(Y, p, "yapValueToString");
     return value;
 }
 
@@ -1342,6 +1353,12 @@ void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, cons
         }
     }
     yapTraceRefs(("\t\t\t\t\t\t\t\tREFS: yapValue %s [%2d delta -> %d]: %s%s\n", tempPtr, delta, newRefs, note, destroyed));
+}
+
+void yapValueRemoveRefArray(struct yapContext *Y, struct yapValue *p)
+{
+    yapValueTraceRefs(Y, p, -1, "array cleared");
+    yapValueRemoveRef(Y, p);
 }
 
 void yapValueRemoveRefHashed(struct yapContext *Y, struct yapValue *p)

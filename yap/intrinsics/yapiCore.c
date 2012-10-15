@@ -26,6 +26,7 @@ static yU32 make_array(struct yapContext *Y, yU32 argCount)
         {
             yapValue *v = yapContextGetArg(Y, i, argCount);
             yapValueArrayPush(Y, a, v);
+        yapValueAddRefNote(Y, v, "make_array push");
         }
         yapContextPopValues(Y, argCount);
     }
@@ -47,6 +48,7 @@ yU32 array_push(struct yapContext *Y, yU32 argCount)
     {
         yapValue *v = (yapValue *)values.data[i];
         yapValueArrayPush(Y, a, v);
+        yapValueAddRefNote(Y, v, "array_push");
     }
 
     yapArrayClear(Y, &values, NULL);

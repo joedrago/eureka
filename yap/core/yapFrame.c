@@ -23,6 +23,11 @@ yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisV
     frame->argCount = argCount;
     frame->closure = closure;
     frame->cleanupCount = 0;
+    yapValueAddRefNote(Y, frame->thisVal, "this ptr");
+    if(frame->closure)
+    {
+        yapValueAddRefNote(Y, frame->closure, "closure ptr");
+    }
     yapFrameReset(Y, frame, yFalse);
     return frame;
 }
@@ -43,6 +48,11 @@ void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart)
 void yapFrameDestroy(struct yapContext *Y, yapFrame *frame)
 {
     yapFrameReset(Y, frame, yFalse);
+    yapValueRemoveRefNote(Y, frame->thisVal, "this ptr done");
+    if(frame->closure)
+    {
+        yapValueRemoveRefNote(Y, frame->closure, "closure ptr done");
+    }
     yapHashDestroy(Y, frame->locals, NULL);
     yapFree(frame);
 }

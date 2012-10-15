@@ -207,7 +207,7 @@ void yapContextDestroy(yapContext *Y)
 {
     yapHashDestroy(Y, Y->globals, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayClear(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
-    yapArrayClear(Y, &Y->stack, NULL);
+    yapArrayClear(Y, &Y->stack, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayClear(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
 
     yapArrayClear(Y, &Y->freeValues, (yapDestroyCB)yapValueDestroy);
@@ -271,7 +271,8 @@ yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCoun
             int i;
             for(i = 0; i < (argCount - block->argCount); i++)
             {
-                yapArrayPop(Y, &Y->stack);
+                yapValue *v = yapArrayPop(Y, &Y->stack);
+                yapValueRemoveRefNote(Y, v, "removing unused args");
             }
         }
         else if(block->argCount > argCount)
@@ -280,7 +281,7 @@ yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCoun
             int i;
             for(i = 0; i < (block->argCount - argCount); i++)
             {
-                yapArrayPush(Y, &Y->stack, &yapValueNull);
+                yapArrayPush(Y, &Y->stack, &yapValueNull); // No need to refcount here
             }
         }
     }
@@ -374,7 +375,9 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 
     if(initFunc)
     {
-        return yapContextCall(Y, framePtr, newObject, initFunc, argCount);
+        ret = yapContextCall(Y, framePtr, newObject, initFunc, argCount);
+        yapValueRemoveRefNote(Y, newObject, "created object passed into call");
+        return ret;
     }
 
     yapArrayPush(Y, &Y->stack, newObject);
@@ -439,7 +442,8 @@ void yapContextPopValues(struct yapContext *Y, yU32 count)
 {
     while(count)
     {
-        yapArrayPop(Y, &Y->stack);
+        yapValue *p = yapArrayPop(Y, &Y->stack);
+        yapValueRemoveRefNote(Y, p, "yapContextPopValues");
         count--;
     }
 }
@@ -506,11 +510,9 @@ static yS32 yapContextPopInts(struct yapContext *Y, int count, int *output)
             return i;
         }
         v = yapValueToInt(Y, v);
-        if(!v)
-        {
-            return i;
-        }
+        yapAssert(v);
         output[i] = v->intVal;
+        yapValueRemoveRefNote(Y, v, "yapContextPopInts");
     }
     return i;
 }
@@ -523,6 +525,7 @@ yapValue *yapContextThis(yapContext *Y)
         yapFrame *frame = (yapFrame *)Y->frames.data[i];
         if(frame->type & YFT_FUNC)
         {
+            yapValueAddRefNote(Y, frame->thisVal, "yapContextThis");
             return frame->thisVal;
         }
     }
@@ -662,7 +665,7 @@ static const char *yapValueDebugString(struct yapContext *Y, yapValue *v)
             break;
     }
 
-    sprintf(buffer, "%s 0x%p %s", yapValueTypeName(Y, v->type), v, valString);
+    sprintf(buffer, "[%02d] %s 0x%p %s", v->refs, yapValueTypeName(Y, v->type), v, valString);
     return buffer;
 }
 
@@ -742,6 +745,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_SKIP: empty stack!");
                     continueLooping = yFalse;
                 }
+                yapValueAddRefNote(Y, performSkipValue, "YOP_AND/YOP_OR skip value staying on top of stack");
                 performSkipValue = yapValueToBool(Y, performSkipValue);
                 performSkip = (performSkipValue->intVal) ? yTrue : yFalse;
                 if(opcode == YOP_AND)
@@ -757,7 +761,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 }
                 else
                 {
-                    yapArrayPop(Y, &Y->stack);
+                    yapValue *p = yapArrayPop(Y, &Y->stack);
+                    yapValueRemoveRefNote(Y, p, "YOP_AND/YOP_OR popping skip value");
                 }
             }
             break;
@@ -770,7 +775,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             case YOP_PUSHTHIS:
             {
-                yapArrayPush(Y, &Y->stack, yapContextThis(Y));
+                yapArrayPush(Y, &Y->stack, yapContextThis(Y)); // yapContextThis +refs
             }
             break;
 
@@ -813,7 +818,6 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 {
                     value = yapValueCreateKString(Y, frame->block->chunk->kStrings.data[operand]);
                 }
-
                 yapArrayPush(Y, &Y->stack, value);
             }
             break;
@@ -856,6 +860,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     break;
                 }
                 yapArrayPush(Y, &Y->stack, *value->refVal);
+                yapValueAddRefNote(Y, *value->refVal, "RefVal value");
+                yapValueRemoveRefNote(Y, value, "RefVal ref");
             }
             break;
 
@@ -863,10 +869,12 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             {
                 yapValue *b = yapArrayPop(Y, &Y->stack);
                 yapValue *a = yapArrayPop(Y, &Y->stack);
-                a = yapValueAdd(Y, a, b);
-                if(a)
+                yapValue *c = yapValueAdd(Y, a, b);
+                yapValueRemoveRefNote(Y, b, "add operand 2");
+                yapValueRemoveRefNote(Y, a, "add operand 1");
+                if(c)
                 {
-                    yapArrayPush(Y, &Y->stack, a);
+                    yapArrayPush(Y, &Y->stack, c);
                 }
                 else
                 {
@@ -886,6 +894,11 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapArrayPush(Y, &Y->stack, a);
                     yapArrayPush(Y, &Y->stack, b);
                 }
+                else
+                {
+                    yapValueRemoveRefNote(Y, b, "sub operand 2");
+                    yapValueRemoveRefNote(Y, a, "sub operand 1");
+                }
                 if(c)
                 {
                     yapArrayPush(Y, &Y->stack, c);
@@ -901,10 +914,12 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             {
                 yapValue *b = yapArrayPop(Y, &Y->stack);
                 yapValue *a = yapArrayPop(Y, &Y->stack);
-                a = yapValueMul(Y, a, b);
-                if(a)
+                yapValue *c = yapValueMul(Y, a, b);
+                yapValueRemoveRefNote(Y, b, "mul operand 2");
+                yapValueRemoveRefNote(Y, a, "mul operand 1");
+                if(c)
                 {
-                    yapArrayPush(Y, &Y->stack, a);
+                    yapArrayPush(Y, &Y->stack, c);
                 }
                 else
                 {
@@ -917,10 +932,12 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             {
                 yapValue *b = yapArrayPop(Y, &Y->stack);
                 yapValue *a = yapArrayPop(Y, &Y->stack);
-                a = yapValueDiv(Y, a, b);
-                if(a)
+                yapValue *c = yapValueDiv(Y, a, b);
+                yapValueRemoveRefNote(Y, b, "div operand 2");
+                yapValueRemoveRefNote(Y, a, "div operand 1");
+                if(c)
                 {
-                    yapArrayPush(Y, &Y->stack, a);
+                    yapArrayPush(Y, &Y->stack, c);
                 }
                 else
                 {
@@ -940,6 +957,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValue *b = yapArrayPop(Y, &Y->stack);
                 yapValue *a = yapArrayPop(Y, &Y->stack);
                 yS32 cmp = yapValueCmp(Y, a, b);
+                yapValueRemoveRefNote(Y, b, "cmp operand 2");
+                yapValueRemoveRefNote(Y, a, "cmp operand 1");
                 if(opcode != YOP_CMP)
                 {
                     if((opcode == YOP_EQUALS) || (opcode == YOP_NOTEQUALS))
@@ -997,6 +1016,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValue *l = yapArrayPop(Y, &Y->stack);
                 yapValue *r = yapArrayPop(Y, &Y->stack);
                 yBool inherits = yapValueTestInherits(Y, l, r);
+                yapValueRemoveRefNote(Y, r, "inherits operand 2");
+                yapValueRemoveRefNote(Y, l, "inherits operand 1");
 
                 yapArrayPush(Y, &Y->stack, yapValueCreateInt(Y, inherits ? 1 : 0));
             }
@@ -1032,14 +1053,15 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapValue *ret = yapValueIndex(Y, value, index, (opFlags & YOF_LVALUE) ? yTrue : yFalse);
                     if(ret)
                     {
-                        yapArrayPush(Y, &Y->stack, ret);
+                        yapArrayPush(Y, &Y->stack, ret); // +ref implicit in yapValueIndex
                         if(opFlags & YOF_PUSHOBJ)
                         {
+                            yapValueAddRefNote(Y, value, "INDEX + YOF_PUSHOBJ");
                             yapArrayPush(Y, &Y->stack, value);
                         }
                         else if(opFlags & YOF_PUSHTHIS)
                         {
-                            yapArrayPush(Y, &Y->stack, yapContextThis(Y));
+                            yapArrayPush(Y, &Y->stack, yapContextThis(Y)); // +ref from yapContextThis
                         }
                     }
                     else
@@ -1055,6 +1077,14 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_INDEX: empty stack!");
                     continueLooping = yFalse;
+                }
+                if(value)
+                {
+                    yapValueRemoveRefNote(Y, value, "INDEX value done");
+                }
+                if(index)
+                {
+                    yapValueRemoveRefNote(Y, index, "INDEX index done");
                 }
             }
             break;
@@ -1076,6 +1106,10 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                         Y->stack.data[requestedIndex] = NULL;
                         yapArraySquash(Y, &Y->stack);
                     }
+                    else
+                    {
+                        yapValueAddRefNote(Y, val, "DUPE");
+                    }
                     yapArrayPush(Y, &Y->stack, val);
                 }
                 else
@@ -1091,7 +1125,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 int i;
                 for(i = 0; i < operand; i++)
                 {
-                    yapArrayPop(Y, &Y->stack);
+                    yapValue *v = yapArrayPop(Y, &Y->stack);
+                    yapValueRemoveRefNote(Y, v, "POP");
                 }
             }
             break;
@@ -1103,6 +1138,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValue *thisVal = yapArrayPop(Y, &Y->stack);
                 yapValue *callable = yapArrayPop(Y, &Y->stack);
                 continueLooping = yapContextCall(Y, &frame, thisVal, callable, argCount);
+                yapValueRemoveRefNote(Y, thisVal, "CALL this done");
+                yapValueRemoveRefNote(Y, callable, "CALL callable done");
                 if(frame != oldFrame)
                 {
                     newFrame = yTrue;
@@ -1156,7 +1193,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     for(i = 0; i < (offerCount - keepCount); i++)
                     {
                         yapTraceExecution(("-- cleaning stack entry --\n"));
-                        yapArrayPop(Y, &Y->stack);
+                        yapValue *v = yapArrayPop(Y, &Y->stack);
+                        yapValueRemoveRefNote(Y, v, "KEEP cleaning stack");
                     }
                 }
                 else if(keepCount > offerCount)
@@ -1212,6 +1250,13 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                         continueLooping = yFalse;
                     }
                 }
+
+                yapValueRemoveRefNote(Y, cond, "IF cond done");
+                yapValueRemoveRefNote(Y, ifBody, "IF ifBody done");
+                if(elseBody)
+                {
+                    yapValueRemoveRefNote(Y, elseBody, "IF elseBody done");
+                }
             }
             break;
 
@@ -1219,19 +1264,22 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
             {
                 yapValue *blockRef = yapArrayPop(Y, &Y->stack);
 
-                if(blockRef && blockRef->type == YVT_BLOCK && blockRef->blockVal)
+                if(blockRef)
                 {
-                    yU32 frameType = operand;
-                    frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
+                    if(blockRef->type == YVT_BLOCK && blockRef->blockVal)
+                    {
+                        yU32 frameType = operand;
+                        frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
+                        if(frame)
+                        {
+                            newFrame = yTrue;
+                        }
+                        else
+                        {
+                            continueLooping = yFalse;
+                        }
+                    }
                     yapValueRemoveRefNote(Y, blockRef, "ENTER: removing block ref");
-                    if(frame)
-                    {
-                        newFrame = yTrue;
-                    }
-                    else
-                    {
-                        continueLooping = yFalse;
-                    }
                 }
                 else
                 {
@@ -1249,6 +1297,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapValue *cond = yapArrayPop(Y, &Y->stack);
                     cond = yapValueToBool(Y, cond);
                     performLeave   = !cond->intVal; // don't leave if expr is true!
+                    yapValueRemoveRefNote(Y, cond, "LEAVE cond done");
                 }
 
                 if(performLeave)
@@ -1285,6 +1334,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             case YOP_NOT:
             {
+                yapValue *not;
                 yapValue *value = yapArrayPop(Y, &Y->stack);
                 if(!value)
                 {
@@ -1293,8 +1343,9 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     break;
                 };
                 value = yapValueToBool(Y, value);
-                value = yapValueCreateInt(Y, !value->intVal); // Double temporary?
-                yapArrayPush(Y, &Y->stack, value);
+                not = yapValueCreateInt(Y, !value->intVal); // Double temporary?
+                yapArrayPush(Y, &Y->stack, not);
+                yapValueRemoveRefNote(Y, value, "NOT value done");
             }
             break;
 
@@ -1339,6 +1390,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     break;
                 };
                 val = yapValueStringFormat(Y, format, operand);
+                yapValueRemoveRefNote(Y, format, "FORMAT format done");
                 if(!val)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_FORMAT: bad format");
@@ -1358,38 +1410,42 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapValue *nth = yapArrayPop(Y, &Y->stack);
                     if(nth->intVal >= 0 && nth->intVal < val->arrayVal->count)
                     {
-                        yapArrayPush(Y, &Y->stack, val->arrayVal->data[nth->intVal]);
+                        yapValue *indexedValue = val->arrayVal->data[nth->intVal];
+                        yapValueAddRefNote(Y, indexedValue, "NTH indexed value");
+                        yapArrayPush(Y, &Y->stack, indexedValue);
                         Y->lastRet = 1;
                     }
                     else
                     {
                         yapContextSetError(Y, YVE_RUNTIME, "YOP_NTH: index out of range");
                         continueLooping = yFalse;
-                        break;
                     }
+                    yapValueRemoveRefNote(Y, nth, "NTH nth done");
                 }
                 else if(val->type == YVT_OBJECT)
                 {
                     yapFrame *oldFrame = frame;
                     yapValue *getFunc = yapFindFunc(Y, val, "get");
-                    if(!getFunc)
+                    if(getFunc)
+                    {
+                        continueLooping = yapContextCall(Y, &frame, val, getFunc, 1 /* the index */);
+                        if(frame != oldFrame)
+                        {
+                            newFrame = yTrue;
+                        }
+                    }
+                    else
                     {
                         yapContextSetError(Y, YVE_RUNTIME, "YVT_NTH: iterable does not have a get() function");
                         continueLooping = yFalse;
-                        break;
-                    }
-                    continueLooping = yapContextCall(Y, &frame, val, getFunc, 1 /* the index */);
-                    if(frame != oldFrame)
-                    {
-                        newFrame = yTrue;
                     }
                 }
                 else
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_NTH: Invalid value type %d", val->type);
                     continueLooping = yFalse;
-                    break;
                 }
+                yapValueRemoveRefNote(Y, val, "NTH val done");
             }
             break;
 
@@ -1406,24 +1462,26 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 {
                     yapFrame *oldFrame = frame;
                     yapValue *countFunc = yapFindFunc(Y, val, "count");
-                    if(!countFunc)
+                    if(countFunc)
+                    {
+                        continueLooping = yapContextCall(Y, &frame, val, countFunc, 0);
+                        if(frame != oldFrame)
+                        {
+                            newFrame = yTrue;
+                        }
+                    }
+                    else
                     {
                         yapContextSetError(Y, YVE_RUNTIME, "YVT_COUNT: iterable does not have a count() function");
                         continueLooping = yFalse;
-                        break;
-                    }
-                    continueLooping = yapContextCall(Y, &frame, val, countFunc, 0);
-                    if(frame != oldFrame)
-                    {
-                        newFrame = yTrue;
                     }
                 }
                 else
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YVT_COUNT: Invalid value type %d", val->type);
                     continueLooping = yFalse;
-                    break;
                 }
+                yapValueRemoveRefNote(Y, val, "COUNT val done");
             }
             break;
 

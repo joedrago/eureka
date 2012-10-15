@@ -1,17 +1,19 @@
 // Coverage test. This script should use every grammar feature and op that Yap can parse/perform.
 
-print("Yep!\n");
-
 var a = 1 + -2;
 var b = 1.2 - -1.3;
-var c = null;
 
 if(a < b) {}
+
+
 if(a <= b) {}
 if(a > b) {}
 if(a >= b) {}
 if(a == b) {}
 if(a != b) {}
+
+print("Yep!\n");
+
 
 var d = a * a;
 d = a / a;
