@@ -22,22 +22,8 @@ yapObject *yapObjectCreate(struct yapContext *Y, yapValue *isa)
 
 void yapObjectDestroy(struct yapContext *Y, yapObject *v)
 {
-    yapHashDestroy(Y, v->hash, NULL);
+    yapHashDestroy(Y, v->hash, (yapDestroyCB)yapValueRemoveRefHashed);
     yapFree(v);
-}
-
-static void yapHashValueMark(struct yapContext *Y, yapHashEntry *entry)
-{
-    yapValueMark(Y, entry->value);
-}
-
-void yapObjectMark(struct yapContext *Y, yapObject *v)
-{
-    yapHashIterate(Y, v->hash, (yapIterateCB)yapHashValueMark);
-    if(v->isa)
-    {
-        yapValueMark(Y, v->isa);    // Is this necessary?
-    }
 }
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)

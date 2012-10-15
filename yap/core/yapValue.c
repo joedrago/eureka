@@ -69,7 +69,6 @@ int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
     // If you don't want to do anything for a particular function, explicitly set it to yapValueTypeFuncNotUsed.
     yapAssert(newType->funcClear);
     yapAssert(newType->funcClone);
-    yapAssert(newType->funcMark);
     yapAssert(newType->funcToBool);
     yapAssert(newType->funcToInt);
     yapAssert(newType->funcToFloat);
@@ -102,7 +101,6 @@ static void nullFuncRegister(struct yapContext *Y)
     yapValueType *type   = yapValueTypeCreate(Y, "null");
     type->funcClear      = yapValueTypeFuncNotUsed;
     type->funcClone      = yapValueTypeFuncNotUsed;
-    type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = yapValueTypeFuncNotUsed;
     type->funcToInt      = yapValueTypeFuncNotUsed;
     type->funcToFloat    = yapValueTypeFuncNotUsed;
@@ -122,26 +120,13 @@ static void blockFuncClear(struct yapContext *Y, struct yapValue *p)
 {
     if(p->closureVars)
     {
-        yapHashDestroy(Y, p->closureVars, (yapDestroyCB)yapValueDestroy);
+        yapHashDestroy(Y, p->closureVars, (yapDestroyCB)yapValueRemoveRef);
     }
 }
 
 static void blockFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
 {
     dst->blockVal = src->blockVal;
-}
-
-static void yapHashEntryValueMark(struct yapContext *Y, yapHashEntry *entry)
-{
-    yapValueMark(Y, entry->value);
-}
-
-static void blockFuncMark(struct yapContext *Y, struct yapValue *value)
-{
-    if(value->closureVars)
-    {
-        yapHashIterate(Y, value->closureVars, (yapIterateCB)yapHashEntryValueMark);
-    }
 }
 
 static yBool blockFuncToBool(struct yapContext *Y, struct yapValue *p)
@@ -171,7 +156,6 @@ static void blockFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "block");
     type->funcClear      = blockFuncClear;
     type->funcClone      = blockFuncClone;
-    type->funcMark       = blockFuncMark;
     type->funcToBool     = blockFuncToBool;
     type->funcToInt      = blockFuncToInt;
     type->funcToFloat    = blockFuncToFloat;
@@ -219,7 +203,6 @@ static void cfunctionFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "cfunction");
     type->funcClear      = yapValueTypeFuncNotUsed;
     type->funcClone      = cfunctionFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = cfunctionFuncToBool;
     type->funcToInt      = cfunctionFuncToInt;
     type->funcToFloat    = cfunctionFuncToFloat;
@@ -326,7 +309,6 @@ static void intFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "int");
     type->funcClear      = yapValueTypeFuncNotUsed;
     type->funcClone      = intFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = intFuncToBool;
     type->funcToInt      = intFuncToInt;
     type->funcToFloat    = intFuncToFloat;
@@ -444,7 +426,6 @@ static void floatFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "float");
     type->funcClear      = yapValueTypeFuncNotUsed;
     type->funcClone      = floatFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = floatFuncToBool;
     type->funcToInt      = floatFuncToInt;
     type->funcToFloat    = floatFuncToFloat;
@@ -531,7 +512,6 @@ static void stringFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "string");
     type->funcClear      = stringFuncClear;
     type->funcClone      = stringFuncClone;
-    type->funcMark       = yapValueTypeFuncNotUsed;
     type->funcToBool     = stringFuncToBool;
     type->funcToInt      = stringFuncToInt;
     type->funcToFloat    = stringFuncToFloat;
@@ -555,16 +535,6 @@ static void arrayFuncClear(struct yapContext *Y, struct yapValue *p)
 static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
 {
     yapAssert(0 && "arrayFuncClone not implemented");
-}
-
-static void arrayFuncMark(struct yapContext *Y, struct yapValue *value)
-{
-    int i;
-    for(i = 0; i < value->arrayVal->count; i++)
-    {
-        yapValue *child = (yapValue *)value->arrayVal->data[i];
-        yapValueMark(Y, child);
-    }
 }
 
 static yBool arrayFuncToBool(struct yapContext *Y, struct yapValue *p)
@@ -627,7 +597,6 @@ static void arrayFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "array");
     type->funcClear      = arrayFuncClear;
     type->funcClone      = arrayFuncClone;
-    type->funcMark       = arrayFuncMark;
     type->funcToBool     = arrayFuncToBool;
     type->funcToInt      = arrayFuncToInt;
     type->funcToFloat    = arrayFuncToFloat;
@@ -651,11 +620,6 @@ static void objectFuncClear(struct yapContext *Y, struct yapValue *p)
 static void objectFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
 {
     yapAssert(0 && "objectFuncClone not implemented");
-}
-
-static void objectFuncMark(struct yapContext *Y, struct yapValue *value)
-{
-    yapObjectMark(Y, value->objectVal);
 }
 
 static yBool objectFuncToBool(struct yapContext *Y, struct yapValue *p)
@@ -728,7 +692,6 @@ static void objectFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "object");
     type->funcClear      = objectFuncClear;
     type->funcClone      = objectFuncClone;
-    type->funcMark       = objectFuncMark;
     type->funcToBool     = objectFuncToBool;
     type->funcToInt      = objectFuncToInt;
     type->funcToFloat    = objectFuncToFloat;
@@ -747,14 +710,6 @@ static void objectFuncRegister(struct yapContext *Y)
 static void refFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
 {
     dst->refVal = src->refVal;
-}
-
-static void refFuncMark(struct yapContext *Y, struct yapValue *value)
-{
-    if(*value->refVal)
-    {
-        yapValueMark(Y, *value->refVal);
-    }
 }
 
 static yBool refFuncToBool(struct yapContext *Y, struct yapValue *p)
@@ -784,7 +739,6 @@ static void refFuncRegister(struct yapContext *Y)
     yapValueType *type = yapValueTypeCreate(Y, "ref");
     type->funcClear      = yapValueTypeFuncNotUsed;
     type->funcClone      = refFuncClone;
-    type->funcMark       = refFuncMark;
     type->funcToBool     = refFuncToBool;
     type->funcToInt      = refFuncToInt;
     type->funcToFloat    = refFuncToFloat;
@@ -986,10 +940,10 @@ yBool yapValueSetRefVal(struct yapContext *Y, yapValue *ref, yapValue *p)
         return yFalse;
     }
 
-    yapValueRemoveRef(Y, *(ref->refVal), "SetRefVal: forgetting previous val");
+    yapValueRemoveRefNote(Y, *(ref->refVal), "SetRefVal: forgetting previous val");
     *(ref->refVal) = p;
     p->used = yTrue;
-    yapValueAddRef(Y, p, "SetRefVal: taking ownership of val");
+    yapValueAddRefNote(Y, p, "SetRefVal: taking ownership of val");
 
     yapTraceValues(("yapValueSetRefVal %p = %p\n", ref, p));
     return yTrue;
@@ -1153,31 +1107,27 @@ void yapValueDestroy(struct yapContext *Y, yapValue *p)
     yapFree(p);
 }
 
-void yapValueAddRef(struct yapContext *Y, yapValue *p, const char *note)
+void yapValueAddRef(struct yapContext *Y, yapValue *p)
 {
     if(p == yapValueNullPtr)
     {
-        yapValueTraceRefs(Y, p, 0, "AddRef ignored (yapValueNull)");
         return;
     }
 
     ++p->refs;
-    yapValueTraceRefs(Y, p, 1, note);
 }
 
-void yapValueRemoveRef(struct yapContext *Y, yapValue *p, const char *note)
+void yapValueRemoveRef(struct yapContext *Y, yapValue *p)
 {
     if(p == yapValueNullPtr)
     {
-        yapValueTraceRefs(Y, p, 0, "RemoveRef ignored (yapValueNull)");
         return;
     }
 
     --p->refs;
-    yapValueTraceRefs(Y, p, -1, note);
     if(p->refs == 0)
     {
-        // TODO: Destroy here when ready to remove GC
+        yapValueDestroy(Y, p);
     }
 }
 
@@ -1213,23 +1163,6 @@ yapValue *yapValueClone(struct yapContext *Y, yapValue *p)
     yapValueCloneData(Y, n, p);
     yapTraceValues(("yapValueClone %p -> %p\n", p, n));
     return n;
-}
-
-void yapValueMark(struct yapContext *Y, yapValue *value)
-{
-    if(value->type == YVT_NULL)
-    {
-        return;
-    }
-
-    if(value->used)
-    {
-        return;
-    }
-
-    value->used = yTrue;
-
-    yapValueTypeSafeCall(value->type, Mark)(Y, value);
 }
 
 yapValue *yapValueAdd(struct yapContext *Y, yapValue *a, yapValue *b)
@@ -1391,20 +1324,29 @@ void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p)
 #ifdef YAP_TRACE_REFS
 void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, const char *note)
 {
-    const char *destroySoon = "";
+    const char *destroyed = "";
     char tempPtr[32];
+    int newRefs = p->refs;
     if(p == yapValueNullPtr)
     {
         sprintf(tempPtr, "0xYAP_NULL");
+        note = "-- ignoring yapValueNull --";
     }
     else
     {
         sprintf(tempPtr, "%10p", p);
-        if((delta < 0) && !p->refs)
+        newRefs += delta;
+        if((delta < 0) && !newRefs)
         {
-            destroySoon = " - DESTROY SOON";
+            destroyed = " - DESTROYED";
         }
     }
-    yapTraceRefs(("\t\t\t\t\t\t\t\tREFS: yapValue %s [%2d delta -> %d]: %s%s\n", tempPtr, delta, p->refs, note, destroySoon));
+    yapTraceRefs(("\t\t\t\t\t\t\t\tREFS: yapValue %s [%2d delta -> %d]: %s%s\n", tempPtr, delta, newRefs, note, destroyed));
+}
+
+void yapValueRemoveRefHashed(struct yapContext *Y, struct yapValue *p)
+{
+    yapValueTraceRefs(Y, p, -1, "hash cleared");
+    yapValueRemoveRef(Y, p);
 }
 #endif

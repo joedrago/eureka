@@ -52,7 +52,6 @@ typedef struct yapContext
     yapArray chunks;                   // the VM owns all chunks, making cheap vars
 
     // GC data
-    yapArray usedValues;               // All values used by the system
     yapArray freeValues;               // Free value pool
 
     // state

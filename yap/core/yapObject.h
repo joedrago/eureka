@@ -26,7 +26,6 @@ typedef struct yapObject
 
 yapObject *yapObjectCreate(struct yapContext *Y, struct yapValue *isa);
 void yapObjectDestroy(struct yapContext *Y, yapObject *v);
-void yapObjectMark(struct yapContext *Y, yapObject *v);
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create);
 

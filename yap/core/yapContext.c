@@ -31,14 +31,14 @@
 void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *value)
 {
     yapHashSet(Y, Y->globals, name, value);
-    yapValueAddRef(Y, value, "yapContextRegisterGlobal");
+    yapValueAddRefNote(Y, value, "yapContextRegisterGlobal");
 }
 
 void yapContextRegisterGlobalFunction(struct yapContext *Y, const char *name, yapCFunction func)
 {
     yapValue *p = yapValueCreateCFunction(Y, func);
     yapContextRegisterGlobal(Y, name, p);
-    yapValueRemoveRef(Y, p, "granted ownership to RegisterGlobal");
+    yapValueRemoveRefNote(Y, p, "granted ownership to globals table");
 }
 
 static yBool yapChunkCanBeTemporary(yapChunk *chunk)
@@ -170,8 +170,6 @@ void yapContextRecover(yapContext *Y)
             yapContextPopFrames(Y, YFT_CHUNK, yFalse);
         }
         yapArrayShrink(Y, &Y->stack, prevStackCount, NULL);
-
-        yapContextGC(Y);
     }
     yapContextClearError(Y);
 }
@@ -207,12 +205,11 @@ const char *yapContextGetError(yapContext *Y)
 
 void yapContextDestroy(yapContext *Y)
 {
-    yapHashDestroy(Y, Y->globals, NULL);
+    yapHashDestroy(Y, Y->globals, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayClear(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(Y, &Y->stack, NULL);
     yapArrayClear(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
 
-    yapArrayClear(Y, &Y->usedValues, (yapDestroyCB)yapValueDestroy);
     yapArrayClear(Y, &Y->freeValues, (yapDestroyCB)yapValueDestroy);
 
     yapArrayClear(Y, &Y->types, (yapDestroyCB)yapValueTypeDestroy);
@@ -395,7 +392,7 @@ static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yap
         return NULL;
     }
 
-    yapValueAddRef(Y, value, "yapContextRegister");
+    yapValueAddRefNote(Y, value, "yapContextRegister");
 
     if(frame->block == frame->block->chunk->block)
     {
@@ -465,7 +462,7 @@ static yapContextFrameCleanup(struct yapContext *Y, yapFrame *frame)
         for(i=0; i < frame->cleanupCount; i++)
         {
             int index = ((Y->stack.count - 1) - Y->lastRet) - i;
-            yapValueRemoveRef(Y, Y->stack.data[index], "yapContextFrameCleanup");
+            yapValueRemoveRefNote(Y, Y->stack.data[index], "yapContextFrameCleanup");
             Y->stack.data[index] = NULL;
         }
         yapArraySquash(Y, &Y->stack);
@@ -987,10 +984,10 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     yapArrayPop(Y, &Y->stack);
                 }
                 continueLooping = yapValueSetRefVal(Y, ref, val);
-                yapValueRemoveRef(Y, ref, "SETVAR temporary reference");
+                yapValueRemoveRefNote(Y, ref, "SETVAR temporary reference");
                 if(!operand)
                 {
-                    yapValueRemoveRef(Y, val, "SETVAR value not needed anymore");
+                    yapValueRemoveRefNote(Y, val, "SETVAR value not needed anymore");
                 }
             }
             break;
@@ -1226,7 +1223,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 {
                     yU32 frameType = operand;
                     frame = yapContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
-                    yapValueRemoveRef(Y, blockRef, "ENTER: removing block ref");
+                    yapValueRemoveRefNote(Y, blockRef, "ENTER: removing block ref");
                     if(frame)
                     {
                         newFrame = yTrue;
@@ -1440,67 +1437,5 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
         {
             frame->ip++;
         }
-
-        yapContextGC(Y); // TODO: Only do this when (new var) Y->gc == 0, then reset
     }
-
-    yapContextGC(Y);
-}
-
-static void yapHashEntryValueMark(struct yapContext *Y, yapHashEntry *entry)
-{
-    yapValueMark(Y, entry->value);
-}
-
-void yapContextGC(struct yapContext *Y)
-{
-    int i, j;
-
-    // -----------------------------------------------------------------------
-    // walk all used values and clear their GC flags
-
-    for(i = 0; i < Y->usedValues.count; i++)
-    {
-        yapValue *value = (yapValue *)Y->usedValues.data[i];
-        value->used = yFalse;
-    }
-
-    // -----------------------------------------------------------------------
-    // mark all values used by things the VM still cares about
-
-    yapHashIterate(Y, Y->globals, (yapIterateCB)yapHashEntryValueMark);
-
-    for(i = 0; i < Y->frames.count; i++)
-    {
-        yapFrame *frame = (yapFrame *)Y->frames.data[i];
-        if(frame->thisVal)
-        {
-            yapValueMark(Y, frame->thisVal);
-        }
-        if(frame->closure)
-        {
-            yapValueMark(Y, frame->closure);
-        }
-        yapHashIterate(Y, frame->locals, (yapIterateCB)yapHashEntryValueMark);
-    }
-
-    for(i = 0; i < Y->stack.count; i++)
-    {
-        yapValue *value = (yapValue *)Y->stack.data[i];
-        yapValueMark(Y, value);
-    }
-
-    // -----------------------------------------------------------------------
-    // sweep!
-
-    for(i = 0; i < Y->usedValues.count; i++)
-    {
-        yapValue *value = (yapValue *)Y->usedValues.data[i];
-        if(!value->used)
-        {
-            yapValueDestroy(Y, value);
-            Y->usedValues.data[i] = NULL; // for future squashing
-        }
-    }
-    yapArraySquash(Y, &Y->usedValues);
 }

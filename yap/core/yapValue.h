@@ -68,7 +68,6 @@ typedef void (*yapValueTypeDestroyUserData)(struct yapContext *Y, struct yapValu
 
 typedef void (*yapValueTypeFuncClear)(struct yapContext *Y, struct yapValue *p);
 typedef void (*yapValueTypeFuncClone)(struct yapContext *Y, struct yapValue *dst, struct yapValue *src);
-typedef void (*yapValueTypeFuncMark)(struct yapContext *Y, struct yapValue *value);
 typedef yBool(*yapValueTypeFuncToBool)(struct yapContext *Y, struct yapValue *p);
 typedef yS32(*yapValueTypeFuncToInt)(struct yapContext *Y, struct yapValue *p);
 typedef yF32(*yapValueTypeFuncToFloat)(struct yapContext *Y, struct yapValue *p);
@@ -91,7 +90,6 @@ typedef struct yapValueType
 
     yapValueTypeFuncClear funcClear;
     yapValueTypeFuncClone funcClone;
-    yapValueTypeFuncMark funcMark;
     yapValueTypeFuncToBool funcToBool;
     yapValueTypeFuncToInt funcToInt;
     yapValueTypeFuncToFloat funcToFloat;
@@ -151,10 +149,8 @@ typedef struct yapValue
 yapValue *yapValueCreate(struct yapContext *Y);
 void yapValueDestroy(struct yapContext *Y, yapValue *p);
 
-void yapValueAddRef(struct yapContext *Y, yapValue *p, const char *note);
-void yapValueRemoveRef(struct yapContext *Y, yapValue *p, const char *note);
-
-void yapValueMark(struct yapContext *Y, yapValue *value); // used by yapContextGC()
+void yapValueAddRef(struct yapContext *Y, yapValue *p);
+void yapValueRemoveRef(struct yapContext *Y, yapValue *p);
 
 void yapValueClear(struct yapContext *Y, yapValue *p);
 
@@ -205,9 +201,13 @@ const char *yapValueTypeName(struct yapContext *Y, int type); // used in error r
 
 #ifdef YAP_TRACE_REFS
 void yapValueTraceRefs(struct yapContext *Y, struct yapValue *p, int delta, const char *note);
+void yapValueRemoveRefHashed(struct yapContext *Y, struct yapValue *p); // used for tracing cleanup of hashes of values
 #else
 #define yapValueTraceRefs(A, B, C, D)
+void yapValueRemoveRefHashed yapValueRemoveRef
 #endif
+#define yapValueAddRefNote(Y, V, N) { yapValueTraceRefs(Y, V, 1, N); yapValueAddRef(Y, V); }
+#define yapValueRemoveRefNote(Y, V, N) { yapValueTraceRefs(Y, V, -1, N); yapValueRemoveRef(Y, V); }
 
 void yapValueDump(struct yapContext *Y, yapDumpParams *params, yapValue *p);
 
