@@ -1,3 +1,2 @@
-var formatted = "%d" % 5;
-
-var anonfunc = function(g, h){};
+var ar = array(1, 2, 3);
+push(ar, 4);

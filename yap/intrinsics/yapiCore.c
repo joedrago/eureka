@@ -26,9 +26,9 @@ static yU32 make_array(struct yapContext *Y, yU32 argCount)
         {
             yapValue *v = yapContextGetArg(Y, i, argCount);
             yapValueArrayPush(Y, a, v);
-        yapValueAddRefNote(Y, v, "make_array push");
+            yapValueAddRefNote(Y, v, "make_array push");
         }
-        yapContextPopValues(Y, argCount, yFalse);
+        yapContextPopValues(Y, argCount, yTrue);
     }
     yapArrayPush(Y, &Y->stack, a);
     return 1;
@@ -48,9 +48,9 @@ yU32 array_push(struct yapContext *Y, yU32 argCount)
     {
         yapValue *v = (yapValue *)values.data[i];
         yapValueArrayPush(Y, a, v);
-        yapValueAddRefNote(Y, v, "array_push");
     }
 
+    yapValueRemoveRefNote(Y, a, "array_push a done");
     yapArrayClear(Y, &values, NULL);
     return 0;
 }
@@ -65,6 +65,7 @@ yU32 length(struct yapContext *Y, yU32 argCount)
     }
 
     c = yapValueCreateInt(Y, a->arrayVal->count);
+    yapValueRemoveRefNote(Y, a, "length a done");
     yapArrayPush(Y, &Y->stack, c);
     return 1;
 }
@@ -87,6 +88,7 @@ static yU32 keys(struct yapContext *Y, yU32 argCount)
 
     yapHashIterateP1(Y, object->objectVal->hash, (yapIterateCB1)yapAppendKey, arrayVal);
 
+    yapValueRemoveRefNote(Y, object, "keys object done");
     yapArrayPush(Y, &Y->stack, arrayVal);
     return 1;
 }
@@ -116,7 +118,7 @@ static yU32 eval(struct yapContext *Y, yU32 argCount)
                 }
             }
         }
-        yapContextPopValues(Y, argCount, yFalse);
+        yapContextPopValues(Y, argCount, yTrue);
     }
     if(!ret)
     {
