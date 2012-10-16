@@ -89,7 +89,7 @@ struct yapFrame *yapContextPopFrames(struct yapContext *Y, yU32 frameTypeToFind,
 
 void yapContextLoop(struct yapContext *Y, yBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
 
-void yapContextPopValues(struct yapContext *Y, yU32 count);
+void yapContextPopValues(struct yapContext *Y, yU32 count, yBool removeRefs);
 yapValue *yapContextGetValue(struct yapContext *Y, yU32 howDeep);  // 0 is "top of stack"
 yapValue *yapContextThis(yapContext *Y);  // returns 'this' in current context
 

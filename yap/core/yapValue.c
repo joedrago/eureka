@@ -1061,7 +1061,7 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int a
             ref = yapObjectGetRef(Y, p->objectVal, yapStringSafePtr(&key->stringVal), yTrue);
             *ref = val;
         }
-        yapContextPopValues(Y, argCount);
+        yapContextPopValues(Y, argCount, yFalse);
     }
     return p;
 }
@@ -1157,7 +1157,6 @@ yS32 yapValueCmp(struct yapContext *Y, yapValue *a, yapValue *b)
 void yapValueCloneData(struct yapContext *Y, yapValue *dst, yapValue *src)
 {
     dst->type = src->type;
-    dst->constant = src->constant;
     yapValueTypeSafeCall(dst->type, Clone)(Y, dst, src);
 }
 
@@ -1240,7 +1239,6 @@ yapValue *yapValueToString(struct yapContext *Y, yapValue *p)
     {
         yapTraceExecution(("yapValueToString: unable to convert type '%s' to string\n", yapValueTypePtr(p->type)->name));
     }
-    yapValueRemoveRefNote(Y, p, "yapValueToString");
     return value;
 }
 
@@ -1275,6 +1273,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                 {
                     arg = yapValueToString(Y, arg);
                     yapStringConcatStr(Y, str, &arg->stringVal);
+                    yapValueRemoveRefNote(Y, arg, "StringFormat 's' done");
                 }
                 break;
             case 'd':
@@ -1285,6 +1284,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                     arg = yapValueToInt(Y, arg);
                     sprintf(temp, "%d", arg->intVal);
                     yapStringConcat(Y, str, temp);
+                    yapValueRemoveRefNote(Y, arg, "StringFormat 'd' done");
                 }
                 break;
             case 'f':
@@ -1295,6 +1295,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                     arg = yapValueToFloat(Y, arg);
                     sprintf(temp, "%f", arg->floatVal);
                     yapStringConcat(Y, str, temp);
+                    yapValueRemoveRefNote(Y, arg, "StringFormat 'f' done");
                 }
                 break;
         };
@@ -1308,7 +1309,8 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
         yapStringConcat(Y, str, curr);
     }
 
-    yapContextPopValues(Y, argCount);
+    yapContextPopValues(Y, argCount, yFalse);
+    yapValueRemoveRefNote(Y, format, "FORMAT format done");
     return ret;
 }
 

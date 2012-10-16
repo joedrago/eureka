@@ -1,5 +1,3 @@
-var arr = array(1, 2);
-for(q in arr)
-{
-}
+var formatted = "%d" % 5;
 
+var anonfunc = function(g, h){};

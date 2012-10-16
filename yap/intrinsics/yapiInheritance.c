@@ -73,7 +73,7 @@ static yU32 prototype(struct yapContext *Y, yU32 argCount)
         replaceProto = yTrue;
     }
 
-    yapContextPopValues(Y, argCount);
+    yapContextPopValues(Y, argCount, yTrue);
 
     if(object && replaceProto)
     {

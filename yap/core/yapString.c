@@ -19,7 +19,7 @@ void yapStringClear(struct yapContext *Y, yapString *str)
 {
     if((str->maxlen > 0) && str->text)
     {
-        free(str->text);
+        yapFree(str->text);
     }
 
     str->text = NULL;

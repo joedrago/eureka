@@ -133,11 +133,7 @@ typedef struct yapValue
             struct yapHash *closureVars; // Populated at runtime when a reference to a new function() is created
             struct yapBlock *blockVal;   // Hurr, Shield Slam
         };
-        struct
-        {
-            yapString stringVal;
-            yFlag constant: 1;           // Pointing at a constant table, do not free
-        };
+        yapString stringVal;
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
         yapArray *arrayVal;

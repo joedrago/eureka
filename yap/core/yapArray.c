@@ -31,8 +31,10 @@ yOperand yap32ArrayPush(struct yapContext *Y, yap32Array *p, yU32 v)
     if(p->count == p->capacity)
     {
         int newSize = (p->capacity) ? p->capacity * 2 : 2;
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
         yapTraceMem(("                                     "
                      "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
+#endif
         p->capacity = newSize;
         p->data = yapRealloc(p->data, p->capacity * sizeof(yU32));
     }
@@ -138,8 +140,10 @@ yOperand yapArrayPush(struct yapContext *Y, yapArray *p, void *v)
     if(p->count == p->capacity)
     {
         int newSize = (p->capacity) ? p->capacity * 2 : 2;
+#ifndef YAP_TRACE_MEMORY_STATS_ONLY
         yapTraceMem(("                                     "
                      "ARRAYPUSH %p resize %p [%d] -> [%d]\n", p, p->data, p->capacity, newSize));
+#endif
         p->capacity = newSize;
         p->data = yapRealloc(p->data, p->capacity * sizeof(char **));
     }

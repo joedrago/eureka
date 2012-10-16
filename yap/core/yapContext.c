@@ -438,12 +438,15 @@ static yBool yapContextCallCFunction(struct yapContext *Y, yapCFunction func, yU
     return yTrue;
 }
 
-void yapContextPopValues(struct yapContext *Y, yU32 count)
+void yapContextPopValues(struct yapContext *Y, yU32 count, yBool removeRefs)
 {
     while(count)
     {
         yapValue *p = yapArrayPop(Y, &Y->stack);
-        yapValueRemoveRefNote(Y, p, "yapContextPopValues");
+        if(removeRefs)
+        {
+            yapValueRemoveRefNote(Y, p, "yapContextPopValues");
+        }
         count--;
     }
 }
@@ -564,7 +567,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
             // If not, what we've gathered is "enough". Pop the args and return success.
             if(!required)
             {
-                yapContextPopValues(Y, argCount);
+                yapContextPopValues(Y, argCount, yFalse);
                 return yTrue;
             }
             return yFalse;
@@ -620,7 +623,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
     }
 
     va_end(args);
-    yapContextPopValues(Y, argCount);
+    yapContextPopValues(Y, argCount, yFalse);
     return yTrue;
 }
 
@@ -638,7 +641,7 @@ int yapContextArgsFailure(struct yapContext *Y, int argCount, const char *errorF
     Y->errorType = YVE_RUNTIME;
     Y->error = yapStrdup(Y, tempStr);
 
-    yapContextPopValues(Y, argCount);
+    yapContextPopValues(Y, argCount, yFalse);
     return 0;
 }
 
@@ -1390,7 +1393,6 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                     break;
                 };
                 val = yapValueStringFormat(Y, format, operand);
-                yapValueRemoveRefNote(Y, format, "FORMAT format done");
                 if(!val)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_FORMAT: bad format");
