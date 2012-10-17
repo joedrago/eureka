@@ -82,6 +82,7 @@ void yapDestroyCBFree(struct yapContext *Y, void *ptr); // calls Y->free() on ea
 
 #ifdef YAP_TRACE_MEMORY
 void yapMemoryStatsReset();
+int yapMemoryStatsLeftovers();
 void yapMemoryStatsPrint(const char *prefix);
 void yapMemoryStatsDumpLeaks();
 #define yapTraceMem(ARGS) printf ARGS
@@ -96,6 +97,7 @@ void yapMemoryStatsDumpLeaks();
 #endif
 
 #ifdef YAP_TRACE_REFS
+int yapValueDebugCount();
 #define yapTraceRefs(ARGS) printf ARGS
 #else
 #define yapTraceRefs(ARGS)

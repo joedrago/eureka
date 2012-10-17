@@ -64,6 +64,11 @@ void yapMemoryStatsPrint(const char *prefix)
                 ));
 }
 
+int yapMemoryStatsLeftovers()
+{
+    return sMemoryStats.allocs - sMemoryStats.frees;
+}
+
 void yapMemoryStatsDumpLeaks()
 {
     int i;

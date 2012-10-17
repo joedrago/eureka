@@ -60,7 +60,6 @@ if(UNIX)
     endif()
 endif()
 
-
 if(MSVC)
     set(CMAKE_C_FLAGS /wd4996)
 endif()
@@ -81,3 +80,7 @@ add_subdirectory(external)
 add_subdirectory(yap)
 add_subdirectory(demos)
 
+add_custom_target(tests
+    COMMAND perl ${CMAKE_SOURCE_DIR}/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}"
+    DEPENDS yaptest
+)

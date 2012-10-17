@@ -1,0 +1,19 @@
+var a = 100;
+var b = 10;
+var c = 1;
+var d = a;
+var e = a + b;
+var f = a + b + c;
+var g = a - b;
+var h = a * b;
+var i = a / b;
+var k = a < b;
+var l = a <= b;
+var m = a > b;
+var n = a >= b;
+var o = "%d" % a;
+
+a += 5;
+a -= 5;
+a *= 5;
+a /= 5;

@@ -13,26 +13,54 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // ---------------------------------------------------------------------------
 
-void loadChunk(const char *code)
+enum
 {
+    FAIL_EVAL   = (1 << 0),
+    FAIL_MEMORY = (1 << 1),
+    FAIL_REFS   = (1 << 2)
+};
+
+int loadChunk(const char *code)
+{
+    int ret = 0; // 0 for success
 #ifdef YAP_TRACE_MEMORY
     yapMemoryStatsReset();
 #endif
     {
+        char *error = NULL;
         yapContext *Y = yapContextCreate(NULL);
         yapContextEval(Y, code, YEO_DUMP);
         if(yapContextGetError(Y))
         {
-            printf("VM Bailed out: %s\n", yapContextGetError(Y));
+            error = strdup(yapContextGetError(Y));
+            ret |= FAIL_EVAL;
         }
         yapContextDestroy(Y);
+        if(error)
+        {
+            printf("VM Bailed out: %s\n", error);
+        }
+        free(error);
     }
 #ifdef YAP_TRACE_MEMORY
     yapMemoryStatsPrint("yapChunk End: ");
+    if(yapMemoryStatsLeftovers() > 0)
+    {
+        ret |= FAIL_MEMORY;
+    }
 #endif
+#ifdef YAP_TRACE_REFS
+    if(yapValueDebugCount() != 0)
+    {
+        printf("Leftover yapValues: %d\n", yapValueDebugCount());
+        ret |= FAIL_REFS;
+    }
+#endif
+    return ret;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +133,7 @@ enum
 
 int main(int argc, char *argv[])
 {
+    int ret = 0;
 #ifdef PLATFORM_WIN32
     //_CrtSetBreakAlloc(212);
 #endif
@@ -134,7 +163,7 @@ int main(int argc, char *argv[])
                 switch(mode)
                 {
                     case YTM_LOADCHUNK:
-                        loadChunk(code);
+                        ret = loadChunk(code);
                         break;
                     case YTM_DOT:
                         outputDot(code);
@@ -152,5 +181,5 @@ int main(int argc, char *argv[])
 #ifdef PLATFORM_WIN32
     _CrtDumpMemoryLeaks();
 #endif
-    return 0;
+    return ret;
 }

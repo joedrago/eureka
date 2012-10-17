@@ -1094,12 +1094,22 @@ void yapValueRelease(struct yapContext *Y, yapValue *p)
 }
 #endif
 
+#ifdef YAP_TRACE_REFS
+static int sYapValueDebugCount = 0;
+
+int yapValueDebugCount()
+{
+    return sYapValueDebugCount;
+}
+#endif
+
 yapValue *yapValueCreate(yapContext *Y)
 {
     yapValue *value = yapAlloc(sizeof(yapValue));
     yapValueTraceRefs(Y, value, 1, "yapValueCreate");
     value->refs = 1;
     yapTraceValues(("yapValueCreate %p\n", value));
+    sYapValueDebugCount++;
     return value;
 }
 
@@ -1108,6 +1118,7 @@ void yapValueDestroy(struct yapContext *Y, yapValue *p)
     yapTraceValues(("yapValueFree %p\n", p));
     yapValueClear(Y, p);
     yapFree(p);
+    sYapValueDebugCount--;
 }
 
 void yapValueAddRef(struct yapContext *Y, yapValue *p)
