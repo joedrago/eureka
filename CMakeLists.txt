@@ -51,9 +51,9 @@ if(UNIX)
         set(COVERAGE_HTML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage" CACHE STRING "Coverage HTML output")
         MESSAGE(STATUS "Coverage HTML Output: ${COVERAGE_HTML_OUTPUT_DIR}")
         add_custom_target(covgen
-            COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info
+            COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/lcov.ouptut
             COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/coverage
-            COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/yap.info
+            COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/genhtml.output
         )
     else()
         MESSAGE(STATUS "Coverage disabled.")

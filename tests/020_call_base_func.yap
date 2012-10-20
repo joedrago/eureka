@@ -1,0 +1,11 @@
+var base = object(
+    X => 5,
+    f => function() { return this.X; }
+);
+var derived = inherit(base,
+    f => function() {
+        base::f();
+        }
+);
+
+derived.f();

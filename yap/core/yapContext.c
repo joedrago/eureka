@@ -132,6 +132,7 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
     Y->allocFunc = yapDefaultAlloc;
     Y->reallocFunc = yapDefaultRealloc;
     Y->freeFunc = yapDefaultFree;
+    // LCOV_EXCL_START - I don't care about testing other allocators.
     if(memFuncs)
     {
         if(memFuncs->allocFunc)
@@ -147,6 +148,7 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
             Y->freeFunc = memFuncs->freeFunc;
         }
     }
+    // LCOV_EXCL_STOP
     Y->globals = yapHashCreate(Y, 0);
 
     yapValueTypeRegisterAllBasicTypes(Y);
@@ -157,6 +159,7 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
     return Y;
 }
 
+// LCOV_EXCL_START - TODO: yaptest embedding
 void yapContextRecover(yapContext *Y)
 {
     if(Y->errorType == YVE_RUNTIME)
@@ -173,6 +176,7 @@ void yapContextRecover(yapContext *Y)
     }
     yapContextClearError(Y);
 }
+// LCOV_EXCL_STOP
 
 void yapContextSetError(struct yapContext *Y, yU32 errorType, const char *errorFormat, ...)
 {
@@ -297,6 +301,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 
 static yBool yapContextCall(struct yapContext *Y, yapFrame **framePtr, yapValue *thisVal, yapValue *callable, int argCount)
 {
+    // LCOV_EXCL_START - TODO: yaptest embedding
     if(!callable)
     {
         yapContextSetError(Y, YVE_RUNTIME, "YOP_CALL: empty stack!");
@@ -306,6 +311,7 @@ static yBool yapContextCall(struct yapContext *Y, yapFrame **framePtr, yapValue 
     {
         callable = *callable->refVal;
     }
+    // LCOV_EXCL_STOP
     if(!yapValueIsCallable(callable))
     {
         yapContextSetError(Y, YVE_RUNTIME, "YOP_CALL: variable not callable");
@@ -315,7 +321,7 @@ static yBool yapContextCall(struct yapContext *Y, yapFrame **framePtr, yapValue 
     {
         if(!yapContextCallCFunction(Y, *callable->cFuncVal, argCount, thisVal))
         {
-            return yFalse;
+            return yFalse; // LCOV_EXCL_LINE - TODO: yaptest embedding. A cfunction needs to ruin the stack frame array for this to return false.
         }
     }
     else if(callable->type == YVT_OBJECT)
@@ -351,6 +357,7 @@ static yapValue *yapFindFunc(struct yapContext *Y, yapValue *object, const char 
     return v;
 }
 
+// LCOV_EXCL_START - TODO: yaptest embedding
 yBool yapContextCallFuncByName(struct yapContext *Y, yapValue *thisVal, const char *name, int argCount)
 {
     yapFrame *frame = NULL;
@@ -366,6 +373,7 @@ yBool yapContextCallFuncByName(struct yapContext *Y, yapValue *thisVal, const ch
     }
     return yFalse;
 }
+// LCOV_EXCL_STOP
 
 static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, yapValue *isa, int argCount)
 {

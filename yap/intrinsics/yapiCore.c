@@ -273,6 +273,39 @@ yU32 dump(struct yapContext *Y, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+yU32 yap_assert(struct yapContext *Y, yU32 argCount)
+{
+    yBool doAssert = yTrue;
+    yapValue *v = NULL;
+    yapValue *s = NULL;
+    if(!yapContextGetArgs(Y, argCount, "|?s", &v, &s))
+    {
+        return yapContextArgsFailure(Y, argCount, "assert(expr, [string] explanation)");
+    }
+
+    if(v)
+    {
+        yapValueAddRef(Y, v);
+        v = yapValueToInt(Y, v);
+        doAssert = (!v->intVal) ? yTrue : yFalse;
+    }
+
+    if(doAssert)
+    {
+        const char *reason = "assert fired";
+        if(s && s->type == YVT_STRING)
+        {
+            reason = yapStringSafePtr(&s->stringVal);
+        }
+        return yapContextArgsFailure(Y, argCount, reason);
+    }
+
+    yapContextPopValues(Y, argCount, yFalse);
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
 void yapIntrinsicsRegisterCore(struct yapContext *Y)
 {
     yapContextRegisterGlobalFunction(Y, "array", make_array);
@@ -283,6 +316,7 @@ void yapIntrinsicsRegisterCore(struct yapContext *Y)
     yapContextRegisterGlobalFunction(Y, "eval", eval);
     yapContextRegisterGlobalFunction(Y, "type", type);
     yapContextRegisterGlobalFunction(Y, "dump", dump);
+    yapContextRegisterGlobalFunction(Y, "assert", yap_assert);
 
     // TODO: Move these out of here
     yapContextRegisterGlobalFunction(Y, "print", standard_print);
