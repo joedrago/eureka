@@ -570,6 +570,7 @@ static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *va
 {
     yapValue *ret = NULL;
     yapValue **ref = NULL;
+    yapValueAddRefNote(Y, index, "keep index around after int conversion");
     index = yapValueToInt(Y, index);
     if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
     {
@@ -588,6 +589,7 @@ static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *va
     {
         yapContextSetError(Y, YVE_RUNTIME, "array index %d out of range", index->intVal);
     }
+    yapValueRemoveRefNote(Y, index, "temp index (int) done");
     return ret;
 }
 
@@ -1052,7 +1054,7 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int a
             *ref = val;
             yapValueAddRefNote(Y, val, "yapValueCreateObject add member value");
         }
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
     }
     return p;
 }
@@ -1273,6 +1275,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                 arg = yapContextGetArg(Y, argIndex++, argCount);
                 if(arg)
                 {
+                    yapValueAddRefNote(Y, arg, "string conversion");
                     arg = yapValueToString(Y, arg);
                     yapStringConcatStr(Y, str, &arg->stringVal);
                     yapValueRemoveRefNote(Y, arg, "StringFormat 's' done");
@@ -1283,6 +1286,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                 if(arg)
                 {
                     char temp[32];
+                    yapValueAddRefNote(Y, arg, "int conversion");
                     arg = yapValueToInt(Y, arg);
                     sprintf(temp, "%d", arg->intVal);
                     yapStringConcat(Y, str, temp);
@@ -1294,6 +1298,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
                 if(arg)
                 {
                     char temp[32];
+                    yapValueAddRefNote(Y, arg, "float conversion");
                     arg = yapValueToFloat(Y, arg);
                     sprintf(temp, "%f", arg->floatVal);
                     yapStringConcat(Y, str, temp);
@@ -1311,7 +1316,7 @@ yapValue *yapValueStringFormat(struct yapContext *Y, yapValue *format, yS32 argC
         yapStringConcat(Y, str, curr);
     }
 
-    yapContextPopValues(Y, argCount, yFalse);
+    yapContextPopValues(Y, argCount);
     yapValueRemoveRefNote(Y, format, "FORMAT format done");
     return ret;
 }

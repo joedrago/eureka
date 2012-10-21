@@ -28,7 +28,7 @@ static yU32 make_array(struct yapContext *Y, yU32 argCount)
             yapValueArrayPush(Y, a, v);
             yapValueAddRefNote(Y, v, "make_array push");
         }
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
     }
     yapArrayPush(Y, &Y->stack, a);
     return 1;
@@ -118,7 +118,7 @@ static yU32 eval(struct yapContext *Y, yU32 argCount)
                 }
             }
         }
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
     }
     if(!ret)
     {
@@ -156,7 +156,7 @@ static yU32 standard_print(struct yapContext *Y, yU32 argCount)
                     break;
             };
         }
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
     }
     else
     {
@@ -212,7 +212,7 @@ static yU32 import(struct yapContext *Y, yU32 argCount)
         code = loadFile(Y, yapStringSafePtr(&filenameValue->stringVal));
     }
 
-    yapContextPopValues(Y, argCount, yTrue);
+    yapContextPopValues(Y, argCount);
 
     if(!filenameValue)
     {
@@ -243,7 +243,7 @@ yU32 type(struct yapContext *Y, yU32 argCount)
     {
         yapValue *a = yapContextGetArg(Y, 0, argCount);
         yapValue *ret = yapValueCreateKString(Y, (char *)yapValueTypeName(Y, a->type));
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
         yapArrayPush(Y, &Y->stack, ret);
         return 1;
     }
@@ -264,7 +264,7 @@ yU32 dump(struct yapContext *Y, yU32 argCount)
         yapStringDonateStr(Y, &ret->stringVal, &params->output);
 
         yapDumpParamsDestroy(Y, params);
-        yapContextPopValues(Y, argCount, yTrue);
+        yapContextPopValues(Y, argCount);
         yapArrayPush(Y, &Y->stack, ret);
         return 1;
     }
@@ -285,22 +285,24 @@ yU32 yap_assert(struct yapContext *Y, yU32 argCount)
 
     if(v)
     {
-        yapValueAddRef(Y, v);
         v = yapValueToInt(Y, v);
         doAssert = (!v->intVal) ? yTrue : yFalse;
+        yapValueRemoveRefNote(Y, v, "doAssert temp");
     }
 
     if(doAssert)
     {
-        const char *reason = "assert fired";
+        const char *reason = "(unknown)";
         if(s && s->type == YVT_STRING)
         {
             reason = yapStringSafePtr(&s->stringVal);
         }
-        return yapContextArgsFailure(Y, argCount, reason);
+        yapContextSetError(Y, YVE_RUNTIME, "Yap Runtime Assert: %s", reason);
     }
-
-    yapContextPopValues(Y, argCount, yFalse);
+    if(s)
+    {
+        yapValueRemoveRefNote(Y, s, "temporary reason string");
+    }
     return 0;
 }
 

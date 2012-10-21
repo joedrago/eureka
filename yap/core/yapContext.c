@@ -446,15 +446,12 @@ static yBool yapContextCallCFunction(struct yapContext *Y, yapCFunction func, yU
     return yTrue;
 }
 
-void yapContextPopValues(struct yapContext *Y, yU32 count, yBool removeRefs)
+void yapContextPopValues(struct yapContext *Y, yU32 count)
 {
     while(count)
     {
         yapValue *p = yapArrayPop(Y, &Y->stack);
-        if(removeRefs)
-        {
-            yapValueRemoveRefNote(Y, p, "yapContextPopValues");
-        }
+        yapValueRemoveRefNote(Y, p, "yapContextPopValues");
         count--;
     }
 }
@@ -575,7 +572,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
             // If not, what we've gathered is "enough". Pop the args and return success.
             if(!required)
             {
-                yapContextPopValues(Y, argCount, yFalse);
+                yapContextPopValues(Y, argCount);
                 return yTrue;
             }
             return yFalse;
@@ -614,6 +611,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
 
         valuePtr = va_arg(args, yapValue **);
         *valuePtr = v;
+        yapValueAddRefNote(Y, v, "yapContextGetArgs");
     }
 
     if(leftovers)
@@ -631,7 +629,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
     }
 
     va_end(args);
-    yapContextPopValues(Y, argCount, yFalse);
+    yapContextPopValues(Y, argCount);
     return yTrue;
 }
 
@@ -649,7 +647,7 @@ int yapContextArgsFailure(struct yapContext *Y, int argCount, const char *errorF
     Y->errorType = YVE_RUNTIME;
     Y->error = yapStrdup(Y, tempStr);
 
-    yapContextPopValues(Y, argCount, yFalse);
+    yapContextPopValues(Y, argCount);
     return 0;
 }
 
