@@ -759,6 +759,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValueAddRefNote(Y, performSkipValue, "YOP_AND/YOP_OR skip value staying on top of stack");
                 performSkipValue = yapValueToBool(Y, performSkipValue);
                 performSkip = (performSkipValue->intVal) ? yTrue : yFalse;
+                yapValueRemoveRefNote(Y, performSkipValue, "removing skip value in bool form");
                 if(opcode == YOP_AND)
                 {
                     performSkip = !performSkip;
