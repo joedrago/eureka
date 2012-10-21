@@ -28,7 +28,7 @@ void yapObjectDestroy(struct yapContext *Y, yapObject *v)
 {
     if(v->isa)
     {
-        yapValueAddRefNote(Y, v->isa, "yapObject isa done");
+        yapValueRemoveRefNote(Y, v->isa, "yapObject isa done");
     }
     yapHashDestroy(Y, v->hash, (yapDestroyCB)yapValueRemoveRefHashed);
     yapFree(v);

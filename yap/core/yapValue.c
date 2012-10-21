@@ -479,6 +479,7 @@ static yF32 stringFuncToFloat(struct yapContext *Y, struct yapValue *p)
 
 struct yapValue *stringFuncToString(struct yapContext *Y, struct yapValue *p)
 {
+    // Implicit 'create' of new value (addref p), followed by 'destroy' of old value (removeref p)
     return p;
 }
 
@@ -904,17 +905,6 @@ yapValue *yapValueCreateRef(struct yapContext *Y, struct yapValue **ref)
     return p;
 }
 
-#if 0
-yapValue *yapValueCreateObject(struct yapContext *Y, struct yapObject *object)
-{
-    yapValue *p = yapValueCreate(Y);
-    p->type = YVT_OBJECT;
-    p->objectVal = object;
-    yapTraceValues(("yapValueCreateObject %p\n", p));
-    return p;
-}
-#endif
-
 static yBool yapValueCheckRef(struct yapContext *Y, yapValue *ref, yapValue *p)
 {
     if(!p)
@@ -1060,8 +1050,9 @@ yapValue *yapValueCreateObject(struct yapContext *Y, struct yapValue *isa, int a
             key = yapValueToString(Y, key);
             ref = yapObjectGetRef(Y, p->objectVal, yapStringSafePtr(&key->stringVal), yTrue);
             *ref = val;
+            yapValueAddRefNote(Y, val, "yapValueCreateObject add member value");
         }
-        yapContextPopValues(Y, argCount, yFalse);
+        yapContextPopValues(Y, argCount, yTrue);
     }
     return p;
 }
