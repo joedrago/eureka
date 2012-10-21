@@ -242,6 +242,7 @@ static struct yapValue *intFuncToString(struct yapContext *Y, struct yapValue *p
 {
     char temp[32];
     sprintf(temp, "%d", p->intVal);
+    yapValueRemoveRefNote(Y, p, "intFuncToString doesnt need int anymore");
     return yapValueCreateString(Y, temp);
 }
 
@@ -353,6 +354,7 @@ static struct yapValue *floatFuncToString(struct yapContext *Y, struct yapValue 
 {
     char temp[64];
     sprintf(temp, "%f", p->floatVal);
+    yapValueRemoveRefNote(Y, p, "floatFuncToString doesnt need float anymore");
     return yapValueCreateString(Y, temp);
 }
 
