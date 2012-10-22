@@ -153,6 +153,7 @@ static yU32 standard_print(struct yapContext *Y, yU32 argCount)
                 default:
                     v = yapValueToString(Y, v);
                     printf("%s", yapStringSafePtr(&v->stringVal));
+                    yapValueRemoveRefNote(Y, v, "done with temp string (default)");
                     break;
             };
         }

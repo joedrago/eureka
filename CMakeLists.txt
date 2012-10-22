@@ -44,17 +44,8 @@ if(UNIX)
     if(COVERAGE)
         MESSAGE(STATUS "Coverage enabled.")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -O0")
-
-        add_custom_target(covclear
-            COMMAND lcov -z -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info
-        )
         set(COVERAGE_HTML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage" CACHE STRING "Coverage HTML output")
         MESSAGE(STATUS "Coverage HTML Output: ${COVERAGE_HTML_OUTPUT_DIR}")
-        add_custom_target(covgen
-            COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/lcov.ouptut
-            COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/coverage
-            COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/genhtml.output
-        )
     else()
         MESSAGE(STATUS "Coverage disabled.")
     endif()
@@ -84,3 +75,16 @@ add_custom_target(tests
     COMMAND perl ${CMAKE_SOURCE_DIR}/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}"
     DEPENDS yaptest
 )
+
+if(COVERAGE)
+    add_custom_target(coverage_clean
+        COMMAND lcov -z -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info
+    )
+    add_dependencies(tests coverage_clean)
+    add_custom_target(coverage
+        COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/lcov.ouptut
+        COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/coverage
+        COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/yap.info > ${CMAKE_BINARY_DIR}/genhtml.output
+        DEPENDS tests
+    )
+endif()
