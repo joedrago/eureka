@@ -23,7 +23,7 @@ enum
 
 enum
 {
-    YOP_NOP = 0,                      // does nothing
+    YOP_NOP = 0,                       // does nothing
 
     YOP_PUSHNULL,                      // push null value on top of stack
     YOP_PUSHTHIS,                      // push 'this' value on top of stack

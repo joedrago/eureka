@@ -243,7 +243,7 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
             if(valueRef) { return valueRef; }
         }
 
-        if(frame->type == YFT_FUNC)
+        if(frame->type & YFT_FUNC)
         {
             break;
         }
@@ -708,8 +708,8 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
     yapFrame *frame = yapArrayTop(Y, &Y->frames);
     yBool continueLooping = yTrue;
     yBool newFrame;
-    yU16 opcode;
-    yU16 operand;
+    yOpcode opcode;
+    yOperand operand;
     yU32 startingFrameCount = Y->frames.count;
 
     if(!frame)
@@ -752,7 +752,6 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 if(!performSkipValue)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_SKIP: empty stack!");
-                    continueLooping = yFalse;
                 }
                 yapValueAddRefNote(Y, performSkipValue, "YOP_AND/YOP_OR skip value staying on top of stack");
                 performSkipValue = yapValueToBool(Y, performSkipValue);
@@ -849,7 +848,6 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 else
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings.data[operand]);
-                    continueLooping = yFalse;
                 }
             }
             break;
@@ -860,13 +858,11 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 if(!value)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_REFVAL: empty stack!");
-                    continueLooping = yFalse;
                     break;
                 };
                 if(value->type != YVT_REF)
                 {
                     yapContextSetError(Y, YVE_RUNTIME, "YOP_REFVAL: requires ref on top of stack");
-                    continueLooping = yFalse;
                     break;
                 }
                 yapArrayPush(Y, &Y->stack, *value->refVal);

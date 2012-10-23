@@ -14,11 +14,11 @@
 // Debug Defines
 
 //#define YAP_DEBUG_SYMBOLS
-#define YAP_TRACE_MEMORY
-#define YAP_TRACE_MEMORY_STATS_ONLY
+//#define YAP_TRACE_MEMORY
+//#define YAP_TRACE_MEMORY_STATS_ONLY
 //#define YAP_TRACE_PARSER
-#define YAP_TRACE_EXECUTION
-#define YAP_TRACE_REFS
+//#define YAP_TRACE_EXECUTION
+//#define YAP_TRACE_REFS
 //#define YAP_TRACE_VALUES
 
 // ---------------------------------------------------------------------------
@@ -40,8 +40,8 @@ typedef unsigned char yU8;
 typedef size_t ySize;
 typedef int yFlag;
 
-typedef yS16 yOpcode;
-typedef yS16 yOperand;
+typedef yS32 yOpcode;
+typedef yS32 yOperand;
 
 typedef int yBool;
 #define yTrue 1
@@ -79,6 +79,7 @@ void yapDestroyCBFree(struct yapContext *Y, void *ptr); // calls Y->free() on ea
 
 #include <assert.h>
 #define yapAssert assert
+#define yapInline inline
 
 #ifdef YAP_TRACE_MEMORY
 void yapMemoryStatsReset();
