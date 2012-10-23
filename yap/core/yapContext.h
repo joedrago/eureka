@@ -48,7 +48,7 @@ typedef struct yapContext
     // things that can own values
     struct yapHash *globals;           // Global variables
     struct yapFrame **frames;          // Current stack frames
-    yapArray stack;                    // Value stack
+    struct yapValue ** stack;          // Value stack
     struct yapChunk **chunks;          // the VM owns all chunks, making cheap vars
 
     // GC data

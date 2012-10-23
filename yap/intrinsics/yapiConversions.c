@@ -25,7 +25,7 @@ static yU32 convert_to_string(struct yapContext *Y, yU32 argCount)
         return yapContextArgsFailure(Y, argCount, "string(value)");
     }
 
-    yapArrayPush(Y, &Y->stack, yapValueToString(Y, v));
+    yap2ArrayPush(Y, &Y->stack, yapValueToString(Y, v));
     return 1;
 }
 
@@ -37,7 +37,7 @@ static yU32 convert_to_int(struct yapContext *Y, yU32 argCount)
         return yapContextArgsFailure(Y, argCount, "int(value)");
     }
 
-    yapArrayPush(Y, &Y->stack, yapValueToInt(Y, v));
+    yap2ArrayPush(Y, &Y->stack, yapValueToInt(Y, v));
     return 1;
 }
 
@@ -49,7 +49,7 @@ static yU32 convert_to_float(struct yapContext *Y, yU32 argCount)
         return yapContextArgsFailure(Y, argCount, "float(value)");
     }
 
-    yapArrayPush(Y, &Y->stack, yapValueToFloat(Y, v));
+    yap2ArrayPush(Y, &Y->stack, yapValueToFloat(Y, v));
     return 1;
 }
 

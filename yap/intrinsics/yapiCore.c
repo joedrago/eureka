@@ -30,7 +30,7 @@ static yU32 make_array(struct yapContext *Y, yU32 argCount)
         }
         yapContextPopValues(Y, argCount);
     }
-    yapArrayPush(Y, &Y->stack, a);
+    yap2ArrayPush(Y, &Y->stack, a);
     return 1;
 }
 
@@ -66,7 +66,7 @@ yU32 length(struct yapContext *Y, yU32 argCount)
 
     c = yapValueCreateInt(Y, yap2ArraySize(Y, &a->arrayVal));
     yapValueRemoveRefNote(Y, a, "length a done");
-    yapArrayPush(Y, &Y->stack, c);
+    yap2ArrayPush(Y, &Y->stack, c);
     return 1;
 }
 
@@ -89,7 +89,7 @@ static yU32 keys(struct yapContext *Y, yU32 argCount)
     yapHashIterateP1(Y, object->objectVal->hash, (yapIterateCB1)yapAppendKey, arrayVal);
 
     yapValueRemoveRefNote(Y, object, "keys object done");
-    yapArrayPush(Y, &Y->stack, arrayVal);
+    yap2ArrayPush(Y, &Y->stack, arrayVal);
     return 1;
 }
 
@@ -124,7 +124,7 @@ static yU32 eval(struct yapContext *Y, yU32 argCount)
     {
         ret = yapValueCreateInt(Y, 0);
     }
-    yapArrayPush(Y, &Y->stack, ret);
+    yap2ArrayPush(Y, &Y->stack, ret);
     return 1;
 }
 
@@ -218,19 +218,19 @@ static yU32 import(struct yapContext *Y, yU32 argCount)
     if(!filenameValue)
     {
         yapValue *reason = yapValueCreateString(Y, "import() takes a single string argument");
-        yapArrayPush(Y, &Y->stack, reason);
+        yap2ArrayPush(Y, &Y->stack, reason);
         return 1;
     }
 
     if(!code)
     {
         yapValue *reason = yapValueCreateString(Y, "can't read file");
-        yapArrayPush(Y, &Y->stack, reason);
+        yap2ArrayPush(Y, &Y->stack, reason);
         return 1;
     }
 
     codeValue = yapValueCreateKString(Y, code);
-    yapArrayPush(Y, &Y->stack, codeValue);
+    yap2ArrayPush(Y, &Y->stack, codeValue);
     ret = eval(Y, 1);
     yapFree(code);
     return ret;
@@ -245,7 +245,7 @@ yU32 type(struct yapContext *Y, yU32 argCount)
         yapValue *a = yapContextGetArg(Y, 0, argCount);
         yapValue *ret = yapValueCreateKString(Y, (char *)yapValueTypeName(Y, a->type));
         yapContextPopValues(Y, argCount);
-        yapArrayPush(Y, &Y->stack, ret);
+        yap2ArrayPush(Y, &Y->stack, ret);
         return 1;
     }
     return 0;
@@ -266,7 +266,7 @@ yU32 dump(struct yapContext *Y, yU32 argCount)
 
         yapDumpParamsDestroy(Y, params);
         yapContextPopValues(Y, argCount);
-        yapArrayPush(Y, &Y->stack, ret);
+        yap2ArrayPush(Y, &Y->stack, ret);
         return 1;
     }
     return 0;

@@ -43,6 +43,7 @@ void yap2ArraySetCapacityP1(struct yapContext *Y, void *daptr, ySize newCapacity
 void yap2ArraySetCapacityP2(struct yapContext *Y, void *daptr, ySize newCapacity, void * /*dynDestroyFuncP2*/ destroyFunc, void *p1, void *p2);
 ySize yap2ArrayCapacity(struct yapContext *Y, void *daptr);
 void yap2ArraySquash(struct yapContext *Y, void *daptr);
+void yap2ArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb); // Causes array to be at-most n in count (does not affect capacity)
 
 // ---------------------------------------------------------------------------
 // Dynamic Array macros

@@ -361,3 +361,22 @@ void yap2ArraySquash(struct yapContext *Y, void *daptr)
         da->size = head;
     }
 }
+
+void yap2ArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb)
+{
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    if(!da || !da->size)
+    {
+        return;
+    }
+
+    while(da->size > n)
+    {
+        if(cb)
+        {
+            cb(Y, da->values[da->size - 1]);
+        }
+        --da->size;
+    }
+}
+
