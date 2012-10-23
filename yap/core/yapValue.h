@@ -105,12 +105,12 @@ int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType); // takes 
 
 void yapValueTypeRegisterAllBasicTypes(struct yapContext *Y);
 
-#define yapValueTypePtr(id) ((yapValueType*)Y->types.data[id])
+#define yapValueTypePtr(id) ((yapValueType*)Y->types[id])
 
 // If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro
 #define yapValueTypeSafeCall(id, funcName) \
-    (((yapValueType*)Y->types.data[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
-    : ((yapValueType*)Y->types.data[id])->func ## funcName
+    (((yapValueType*)Y->types[id])->func ## funcName == yapValueTypeFuncNotUsed) ? 0 \
+    : ((yapValueType*)Y->types[id])->func ## funcName
 
 // ---------------------------------------------------------------------------
 

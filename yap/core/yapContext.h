@@ -43,7 +43,7 @@ typedef struct yapContext
     yapFreeFunc freeFunc;
 
     // type information
-    yapArray types;
+    yapValueType **types;
 
     // things that can own values
     struct yapHash *globals;           // Global variables

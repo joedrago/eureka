@@ -55,9 +55,9 @@ void yapValueTypeDestroy(struct yapContext *Y, yapValueType *type)
 int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
 {
     int i;
-    for(i=0; i<Y->types.count; i++)
+    for(i=0; i<yap2ArraySize(Y, &Y->types); i++)
     {
-        yapValueType *t = Y->types.data[i];
+        yapValueType *t = Y->types[i];
         if(!strcmp(newType->name, t->name))
         {
             return YVT_INVALID;
@@ -79,7 +79,7 @@ int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
     yapAssert(newType->funcDump);
     yapAssert(newType->funcDump != yapValueTypeFuncNotUsed); // required!
 
-    newType->id = yapArrayPush(Y, &Y->types, newType);
+    newType->id = yap2ArrayPush(Y, &Y->types, newType);
     return newType->id;
 }
 
@@ -1334,9 +1334,9 @@ yapValue *yapValueIndex(struct yapContext *Y, yapValue *p, yapValue *index, yBoo
 
 const char *yapValueTypeName(struct yapContext *Y, int type)
 {
-    if((type >= 0) && (type < Y->types.count))
+    if((type >= 0) && (type < yap2ArraySize(Y, &Y->types)))
     {
-        yapValueType *valueType = ((yapValueType *)Y->types.data[type]);
+        yapValueType *valueType = Y->types[type];
         return valueType->name;
     }
     return "unknown";

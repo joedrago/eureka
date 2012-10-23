@@ -216,7 +216,7 @@ void yapContextDestroy(yapContext *Y)
 
     yapArrayClear(Y, &Y->freeValues, (yapDestroyCB)yapValueDestroy);
 
-    yapArrayClear(Y, &Y->types, (yapDestroyCB)yapValueTypeDestroy);
+    yap2ArrayDestroy(Y, &Y->types, (yapDestroyCB)yapValueTypeDestroy);
     yapContextClearError(Y);
 
     yapFree(Y);
