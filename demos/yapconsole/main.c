@@ -69,7 +69,7 @@ char *loadFile(const char *filename)
 static char *getprompt(yapContext *Y)
 {
     static char prompt[1024];
-    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", Y->chunks.count, Y->globals->count);
+    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", (int)yap2ArraySize(Y, &Y->chunks), Y->globals->count);
     return prompt;
 }
 

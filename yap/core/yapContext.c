@@ -114,7 +114,7 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
 #endif
             if(!chunk->temporary)
             {
-                yapArrayPush(Y, &Y->chunks, chunk);
+                yap2ArrayPush(Y, &Y->chunks, chunk);
                 chunk = NULL; // forget the ptr
             }
         }
@@ -212,7 +212,7 @@ void yapContextDestroy(yapContext *Y)
     yapHashDestroy(Y, Y->globals, (yapDestroyCB)yapValueRemoveRefHashed);
     yap2ArrayDestroy(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(Y, &Y->stack, (yapDestroyCB)yapValueRemoveRefHashed);
-    yapArrayClear(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
+    yap2ArrayDestroy(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
 
     yap2ArrayDestroy(Y, &Y->freeValues, (yapDestroyCB)yapValueDestroy);
 
