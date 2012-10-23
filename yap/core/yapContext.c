@@ -96,7 +96,7 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
             if(evalOpts & YEO_DUMP)
             {
 #ifdef YAP_ENABLE_EXT_DISASM
-                yapChunkDump(chunk);
+                yapChunkDump(Y, chunk);
 #else
                 yapAssert(0 && "Requesting disasm dump when disasm support is disabled");
 #endif
@@ -797,7 +797,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             case YOP_PUSH_KB:
             {
-                yapValue *value = yapValueCreateFunction(Y, frame->block->chunk->blocks.data[operand]);
+                yapValue *value = yapValueCreateFunction(Y, frame->block->chunk->blocks[operand]);
                 yapArrayPush(Y, &Y->stack, value);
             }
             break;
@@ -821,11 +821,11 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValue *value;
                 if(frame->block->chunk->temporary)
                 {
-                    value = yapValueCreateString(Y, frame->block->chunk->kStrings.data[operand]);
+                    value = yapValueCreateString(Y, frame->block->chunk->kStrings[operand]);
                 }
                 else
                 {
-                    value = yapValueCreateKString(Y, frame->block->chunk->kStrings.data[operand]);
+                    value = yapValueCreateKString(Y, frame->block->chunk->kStrings[operand]);
                 }
                 yapArrayPush(Y, &Y->stack, value);
             }
@@ -833,21 +833,21 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             case YOP_VARREG_KS:
             {
-                yapValue **valueRef = yapContextRegister(Y, frame->block->chunk->kStrings.data[operand], yapValueNullPtr);
+                yapValue **valueRef = yapContextRegister(Y, frame->block->chunk->kStrings[operand], yapValueNullPtr);
                 yapContextPushRef(Y, valueRef);
             }
             break;
 
             case YOP_VARREF_KS:
             {
-                yapValue **valueRef = yapContextResolve(Y, frame->block->chunk->kStrings.data[operand]);
+                yapValue **valueRef = yapContextResolve(Y, frame->block->chunk->kStrings[operand]);
                 if(valueRef)
                 {
                     yapContextPushRef(Y, valueRef);
                 }
                 else
                 {
-                    yapContextSetError(Y, YVE_RUNTIME, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings.data[operand]);
+                    yapContextSetError(Y, YVE_RUNTIME, "YOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings[operand]);
                 }
             }
             break;

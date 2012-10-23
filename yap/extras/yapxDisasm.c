@@ -103,13 +103,13 @@ void yapOpsDump(yapOp *ops, int count)
     }
 }
 
-void yapChunkDump(yapChunk *chunk)
+void yapChunkDump(struct yapContext *Y, yapChunk *chunk)
 {
     int i;
 
-    for(i = 0; i < chunk->kStrings.count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &chunk->kStrings); i++)
     {
-        printf(".kstr %3d    \"%s\"\n", i, (char *)chunk->kStrings.data[i]);
+        printf(".kstr %3d    \"%s\"\n", i, (char *)chunk->kStrings[i]);
     }
 
     for(i = 0; i < chunk->kInts.count; i++)
@@ -122,9 +122,9 @@ void yapChunkDump(yapChunk *chunk)
         printf(".kfloat %3d    %f\n", i, *((yF32 *)&chunk->kFloats.data[i]));
     }
 
-    for(i = 0; i < chunk->blocks.count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &chunk->blocks); i++)
     {
-        yapBlock *block = chunk->blocks.data[i];
+        yapBlock *block = chunk->blocks[i];
         if(block != chunk->block)
         {
             printf("\n.block %d\n", i);

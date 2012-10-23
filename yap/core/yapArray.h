@@ -25,6 +25,7 @@ void yap2ArrayClearStrings(struct yapContext *Y, void *daptr);
 void *daShift(struct yapContext *Y, void *daptr);
 void yap2ArrayUnshift(struct yapContext *Y, void *daptr, void *p);
 ySize yap2ArrayPush(struct yapContext *Y, void *daptr, void *entry);
+ySize yap2ArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s);
 void *daPop(struct yapContext *Y, void *daptr);
 
 // random access manipulation

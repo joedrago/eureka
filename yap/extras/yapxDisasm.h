@@ -12,12 +12,13 @@
 // Forwards
 
 struct yapChunk;
+struct yapContext;
 struct yapOp;
 
 // ---------------------------------------------------------------------------
 
 void yapOpsDump(struct yapOp *ops, int count);
 
-void yapChunkDump(struct yapChunk *chunk);
+void yapChunkDump(struct yapContext *Y, struct yapChunk *chunk);
 
 #endif

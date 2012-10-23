@@ -54,7 +54,7 @@ static yap2Array *yap2ArrayChangeCapacity(struct yapContext *Y, ySize newCapacit
 }
 
 // finds / lazily creates a yap2Array from a regular ptr**
-static yap2Array *yap2ArrayGet(struct yapContext *Y, char ***daptr, int autoCreate)
+static yap2Array *yap2ArrayGet(struct yapContext *Y, char ***daptr, yBool autoCreate)
 {
     yap2Array *da = NULL;
     if(daptr && *daptr)
@@ -228,6 +228,22 @@ ySize yap2ArrayPush(struct yapContext *Y, void *daptr, void *entry)
     yap2Array *da = daMakeRoom(Y, daptr, 1);
     da->values[da->size++] = entry;
     return da->size - 1;
+}
+
+ySize yap2ArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s)
+{
+    yap2Array *da = yap2ArrayGet(Y, daptr, yTrue);
+    ySize i;
+    for(i = 0; i < da->size; i++)
+    {
+        const char *v = (const char *)da->values[i];
+        if(!strcmp(s, v))
+        {
+            yapFree(s);
+            return i;
+        }
+    }
+    return yap2ArrayPush(Y, daptr, s);
 }
 
 void *yap2ArrayPop(struct yapContext *Y, void *daptr)

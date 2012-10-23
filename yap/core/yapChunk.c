@@ -13,9 +13,9 @@
 void yapChunkDestroy(struct yapContext *Y, yapChunk *chunk)
 {
     // chunk->block is either NULL or pointing inside chunk->blocks
-    yapArrayClear(Y, &chunk->blocks, (yapDestroyCB)yapBlockDestroy);
+    yap2ArrayDestroy(Y, &chunk->blocks, (yapDestroyCB)yapBlockDestroy);
 
-    yapArrayClear(Y, &chunk->kStrings, (yapDestroyCB)yapDestroyCBFree);
+    yap2ArrayDestroy(Y, &chunk->kStrings, (yapDestroyCB)yapDestroyCBFree);
     yap32ArrayClear(Y, &chunk->kInts);
     yap32ArrayClear(Y, &chunk->kFloats);
 
@@ -25,5 +25,5 @@ void yapChunkDestroy(struct yapContext *Y, yapChunk *chunk)
 yOperand yapChunkAddBlock(struct yapContext *Y, yapChunk *chunk, struct yapBlock *block)
 {
     block->chunk = chunk;
-    return yapArrayPush(Y, &chunk->blocks, block);
+    return yap2ArrayPush(Y, &chunk->blocks, block);
 }

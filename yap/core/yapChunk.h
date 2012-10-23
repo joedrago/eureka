@@ -10,15 +10,17 @@
 
 #include "yapArray.h"
 
+struct yapContext;
+
 typedef struct yapChunk
 {
     struct yapBlock *block;            // Chunks are callable
 
     // "assembly"
-    yapArray blocks;
+    struct yapBlock **blocks;
 
     // constants
-    yapArray kStrings;                 // constant string table
+    char **kStrings;                   // constant string table
     yap32Array kInts;                  // constant integer table
     yap32Array kFloats;                // constant float table
 

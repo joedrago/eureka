@@ -373,7 +373,7 @@ asmFunc(Nop)
 asmFunc(KString)
 {
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, YOP_PUSH_KS, yapArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, syntax->v.s)), syntax->line);
+    yapCodeAppend(Y, dst, YOP_PUSH_KS, yap2ArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, syntax->v.s)), syntax->line);
     return PAD(1);
 }
 
@@ -399,7 +399,7 @@ asmFunc(Identifier)
         opcode = YOP_VARREG_KS;
     }
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, opcode, yapArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, syntax->v.s)), syntax->line);
+    yapCodeAppend(Y, dst, opcode, yap2ArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, syntax->v.s)), syntax->line);
     if(!(flags & ASM_LVALUE))
     {
         yapCodeGrow(Y, dst, 1);
@@ -822,7 +822,7 @@ asmFunc(Function)
     yapCodeAppend(Y, dst, YOP_CLOSE, 0, syntax->line);          // Give the VM an opportunity to pepper it with closure data
     if(name)
     {
-        yapCodeAppend(Y, dst, YOP_VARREG_KS, yapArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, name)), syntax->line);
+        yapCodeAppend(Y, dst, YOP_VARREG_KS, yap2ArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, name)), syntax->line);
         yapCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
     };
     compiler->chunk->hasFuncs = yTrue;
@@ -839,7 +839,7 @@ asmFunc(FunctionArgs)
     {
         yapCodeGrow(Y, dst, 3);
         varargsOpIndex = yapCodeAppend(Y, dst, YOP_VARARGS, 0, args->line);
-        yapCodeAppend(Y, dst, YOP_VARREG_KS, yapArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, varargsName)), syntax->line);
+        yapCodeAppend(Y, dst, YOP_VARREG_KS, yap2ArrayPushUniqueString(Y, &compiler->chunk->kStrings, yapStrdup(Y, varargsName)), syntax->line);
         yapCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
     }
 
@@ -925,7 +925,7 @@ yBool yapAssemble(struct yapContext *Y, yapCompiler *compiler)
         yapCodeGrow(Y, compiler->code, 1);
         yapCodeAppend(Y, compiler->code, YOP_RET, 0, 0);
         blockIndex = yapBlockConvertCode(Y, compiler->code, compiler->chunk, 0);
-        compiler->chunk->block = (yapBlock *)compiler->chunk->blocks.data[blockIndex];
+        compiler->chunk->block = compiler->chunk->blocks[blockIndex];
     }
     return yTrue;
 }
