@@ -52,7 +52,7 @@ typedef struct yapContext
     yapArray chunks;                   // the VM owns all chunks, making cheap vars
 
     // GC data
-    yapArray freeValues;               // Free value pool
+    yapValue ** freeValues;            // Free value pool
 
     // state
     int lastRet;
