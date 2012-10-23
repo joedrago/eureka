@@ -64,7 +64,7 @@ yU32 length(struct yapContext *Y, yU32 argCount)
         return yapContextArgsFailure(Y, argCount, "length([array] a)");
     }
 
-    c = yapValueCreateInt(Y, a->arrayVal->count);
+    c = yapValueCreateInt(Y, yap2ArraySize(Y, &a->arrayVal));
     yapValueRemoveRefNote(Y, a, "length a done");
     yapArrayPush(Y, &Y->stack, c);
     return 1;

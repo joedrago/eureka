@@ -545,7 +545,7 @@ static void stringFuncRegister(struct yapContext *Y)
 
 static void arrayFuncClear(struct yapContext *Y, struct yapValue *p)
 {
-    yapArrayDestroy(Y, p->arrayVal, (yapDestroyCB)yapValueRemoveRefHashed);
+    yap2ArrayDestroy(Y, &p->arrayVal, (yapDestroyCB)yapValueRemoveRefHashed);
 }
 
 static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
@@ -555,17 +555,17 @@ static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct ya
 
 static yBool arrayFuncToBool(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal && p->arrayVal->count) ? yTrue : yFalse;
+    return (p->arrayVal && yap2ArraySize(Y, &p->arrayVal)) ? yTrue : yFalse;
 }
 
 static yS32 arrayFuncToInt(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal) ? p->arrayVal->count : 0;
+    return (p->arrayVal) ? yap2ArraySize(Y, &p->arrayVal) : 0;
 }
 
 static yF32 arrayFuncToFloat(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal) ? (yF32)p->arrayVal->count : 0;
+    return (p->arrayVal) ? (yF32)yap2ArraySize(Y, &p->arrayVal) : 0;
 }
 
 static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
@@ -574,9 +574,9 @@ static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *va
     yapValue **ref = NULL;
     yapValueAddRefNote(Y, index, "keep index around after int conversion");
     index = yapValueToInt(Y, index);
-    if(index->intVal >= 0 && index->intVal < value->arrayVal->count)
+    if(index->intVal >= 0 && index->intVal < yap2ArraySize(Y, &value->arrayVal))
     {
-        ref = (yapValue **) & (value->arrayVal->data[index->intVal]);
+        ref = (yapValue **) & (value->arrayVal[index->intVal]);
         if(lvalue)
         {
             ret = yapValueCreateRef(Y, ref);
@@ -599,9 +599,9 @@ static void arrayFuncDump(struct yapContext *Y, yapDumpParams *params, struct ya
 {
     int i;
     yapStringConcat(Y, &params->output, "[ ");
-    for(i=0; i<p->arrayVal->count; i++)
+    for(i=0; i<yap2ArraySize(Y, &p->arrayVal); i++)
     {
-        yapValue *child = (yapValue *)p->arrayVal->data[i];
+        yapValue *child = (yapValue *)p->arrayVal[i];
         if(i > 0)
         {
             yapStringConcat(Y, &params->output, ", ");
@@ -982,7 +982,7 @@ yBool yapValueTestInherits(struct yapContext *Y, yapValue *child, yapValue *pare
 yapValue *yapValueCreateArray(struct yapContext *Y)
 {
     yapValue *p = yapValueCreate(Y);
-    p->arrayVal = yapArrayCreate();
+    p->arrayVal = NULL;
     p->type = YVT_ARRAY;
     return p;
 }
@@ -1000,7 +1000,7 @@ void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v)
 #endif
     yapAssert(p->type == YVT_ARRAY);
 
-    yapArrayPush(Y, p->arrayVal, v);
+    yap2ArrayPush(Y, &p->arrayVal, v);
 }
 
 // ---------------------------------------------------------------------------

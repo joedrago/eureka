@@ -670,7 +670,7 @@ static const char *yapValueDebugString(struct yapContext *Y, yapValue *v)
             sprintf(valString, "(%s)", yapStringSafePtr(&v->stringVal));
             break;
         case YVT_ARRAY:
-            sprintf(valString, "(count: %d)", v->arrayVal->count);
+            sprintf(valString, "(count: %d)", (int)yap2ArraySize(Y, &v->arrayVal));
             break;
     }
 
@@ -1042,7 +1042,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 }
                 for(; varargCount > 0; varargCount--)
                 {
-                    yapArrayUnshift(Y, varargsArray->arrayVal, yapArrayPop(Y, &Y->stack));
+                    yap2ArrayUnshift(Y, &varargsArray->arrayVal, yapArrayPop(Y, &Y->stack));
                 }
 
                 yapArrayPush(Y, &Y->stack, varargsArray);
@@ -1413,9 +1413,9 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 if(val->type == YVT_ARRAY)
                 {
                     yapValue *nth = yapArrayPop(Y, &Y->stack);
-                    if(nth->intVal >= 0 && nth->intVal < val->arrayVal->count)
+                    if(nth->intVal >= 0 && nth->intVal < yap2ArraySize(Y, &val->arrayVal))
                     {
-                        yapValue *indexedValue = val->arrayVal->data[nth->intVal];
+                        yapValue *indexedValue = val->arrayVal[nth->intVal];
                         yapValueAddRefNote(Y, indexedValue, "NTH indexed value");
                         yapArrayPush(Y, &Y->stack, indexedValue);
                         Y->lastRet = 1;
@@ -1459,7 +1459,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
                 yapValue *val = yapArrayPop(Y, &Y->stack);
                 if(val->type == YVT_ARRAY)
                 {
-                    yapValue *count = yapValueCreateInt(Y, val->arrayVal->count);
+                    yapValue *count = yapValueCreateInt(Y, yap2ArraySize(Y, &val->arrayVal));
                     yapArrayPush(Y, &Y->stack, count);
                     Y->lastRet = 1;
                 }

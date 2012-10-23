@@ -49,6 +49,7 @@ project(yap)
 set(yap_src
     core/yapArray.h
     core/yapArray.c
+    core/yapArrayOld.c
     core/yapBlock.h
     core/yapBlock.c
     core/yapChunk.h

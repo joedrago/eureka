@@ -136,7 +136,7 @@ typedef struct yapValue
         yapString stringVal;
         struct yapValue **refVal;
         yapCFunction *cFuncVal;
-        yapArray *arrayVal;
+        struct yapValue **arrayVal;
         struct yapObject *objectVal;
     };
 } yapValue;
