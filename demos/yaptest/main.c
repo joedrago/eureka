@@ -71,18 +71,18 @@ void outputDot(const char *code)
     yapContext *Y = yapContextCreate(NULL);
     yapCompiler *compiler = yapCompilerCreate(Y);
     yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
-    if(compiler->errors.count)
+    if(yap2ArraySize(Y, &compiler->errors))
     {
         int i;
-        for(i = 0; i < compiler->errors.count; i++)
+        for(i = 0; i < yap2ArraySize(Y, &compiler->errors); i++)
         {
-            char *error = (char *)compiler->errors.data[i];
+            char *error = (char *)compiler->errors[i];
             fprintf(stderr, "Error: %s\n", error);
         }
     }
     if(compiler->root)
     {
-        yapSyntaxDot(compiler->root);
+        yapSyntaxDot(Y, compiler->root);
     }
     else
     {

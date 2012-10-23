@@ -12,22 +12,22 @@
 #include <stdio.h>
 #include <string.h>
 
-#define REC_CHILD(CHILD) yapSyntaxDotRecurse(CHILD, childLineOpts, syntax);
-#define REC_ARRAY(ARRAY) yapSyntaxDotRecurseArray(ARRAY, childLineOpts, syntax);
+#define REC_CHILD(CHILD) yapSyntaxDotRecurse(Y, CHILD, childLineOpts, syntax);
+#define REC_ARRAY(ARRAY) yapSyntaxDotRecurseArray(Y, ARRAY, childLineOpts, syntax);
 
-static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSyntax *parent);
+static void yapSyntaxDotRecurse(struct yapContext *Y, yapSyntax *syntax, const char *myLineOpts, yapSyntax *parent);
 
-static void yapSyntaxDotRecurseArray(yapArray *a, const char *myLineOpts, yapSyntax *syntax)
+static void yapSyntaxDotRecurseArray(struct yapContext *Y, yapSyntax **a, const char *myLineOpts, yapSyntax *syntax)
 {
     int i;
     const char *childLineOpts = myLineOpts;
-    for(i = 0; i < a->count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &a); i++)
     {
-        REC_CHILD((yapSyntax *)a->data[i]);
+        REC_CHILD(a[i]);
     }
 }
 
-static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSyntax *parent)
+static void yapSyntaxDotRecurse(struct yapContext *Y, yapSyntax *syntax, const char *myLineOpts, yapSyntax *parent)
 {
     char label[512];
     const char *myOpts = "shape=ellipse";
@@ -98,7 +98,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
 
         case YST_EXPRESSIONLIST:
         {
-            if(syntax->v.a->count)
+            if(yap2ArraySize(Y, &syntax->v.a))
             {
                 myOpts = "shape=egg";
                 strcpy(label, "ExprList");
@@ -122,7 +122,7 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
         case YST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
-            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", syntax->r.p->v.a->count);
+            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)yap2ArraySize(Y, &syntax->r.p->v.a));
             childLineOpts = "style=dotted,label=args";
             REC_CHILD(syntax->r.p);
         }
@@ -487,10 +487,10 @@ static void yapSyntaxDotRecurse(yapSyntax *syntax, const char *myLineOpts, yapSy
     printf("s%p [label=\"%s\",%s]\n", syntax, label, myOpts);
 }
 
-void yapSyntaxDot(struct yapSyntax *syntax)
+void yapSyntaxDot(struct yapContext *Y, struct yapSyntax *syntax)
 {
     printf("digraph AST {\n");
-    yapSyntaxDotRecurse(syntax, NULL, NULL);
+    yapSyntaxDotRecurse(Y, syntax, NULL, NULL);
     printf("}\n");
 }
 

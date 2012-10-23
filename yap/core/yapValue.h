@@ -8,7 +8,6 @@
 #ifndef YAPVALUE_H
 #define YAPVALUE_H
 
-#include "yapArray.h"
 #include "yapString.h"
 
 // ---------------------------------------------------------------------------

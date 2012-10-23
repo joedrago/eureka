@@ -11,10 +11,11 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct yapContext;
 struct yapSyntax;
 
 // ---------------------------------------------------------------------------
 
-void yapSyntaxDot(struct yapSyntax *syntax);
+void yapSyntaxDot(struct yapContext *Y, struct yapSyntax *syntax);
 
 #endif

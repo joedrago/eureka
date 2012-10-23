@@ -33,7 +33,7 @@ static void yapSyntaxElementClear(struct yapContext *Y, yapSyntaxElement *e)
     }
     if(e->a)
     {
-        yapArrayDestroy(Y, e->a, (yapDestroyCB)yapSyntaxDestroy);
+        yap2ArrayDestroy(Y, &e->a, (yapDestroyCB)yapSyntaxDestroy);
     }
 }
 
@@ -106,10 +106,10 @@ yapSyntax *yapSyntaxCreateThis(struct yapContext *Y, int line)
 yapSyntax *yapSyntaxCreateList(struct yapContext *Y, yU32 type, yapSyntax *firstExpr)
 {
     yapSyntax *syntax = yapSyntaxCreate(Y, type, (firstExpr) ? firstExpr->line : 0);
-    syntax->v.a = yapArrayCreate();
+    syntax->v.a = NULL;
     if(firstExpr)
     {
-        yapArrayPush(Y, syntax->v.a, firstExpr);
+        yap2ArrayPush(Y, &syntax->v.a, firstExpr);
     }
     return syntax;
 }
@@ -123,10 +123,10 @@ yapSyntax *yapSyntaxListAppend(struct yapContext *Y, yapSyntax *list, yapSyntax 
         {
             list->line = expr->line;
         }
-        index = yapArrayPush(Y, list->v.a, expr);
+        index = yap2ArrayPush(Y, &list->v.a, expr);
         if((flags & YSLF_AUTOLITERAL) && (index > 0))
         {
-            yapSyntax *toLiteral = (yapSyntax *)list->v.a->data[index - 1];
+            yapSyntax *toLiteral = list->v.a[index - 1];
             if(toLiteral->type == YST_IDENTIFIER)
             {
                 toLiteral->type = YST_KSTRING;
@@ -172,7 +172,7 @@ yapSyntax *yapSyntaxCreateStatementExpr(struct yapContext *Y, yapSyntax *expr)
 {
     yapSyntax *syntax;
 
-    if((expr->type == YST_EXPRESSIONLIST) && (expr->v.a->count == 0))
+    if((expr->type == YST_EXPRESSIONLIST) && (yap2ArraySize(Y, &expr->v.a) == 0))
     {
         // An empty statement. Without PYTHON_SCOPING, this only happens
         // when there are multiple semicolons in a row. However, when

@@ -57,21 +57,21 @@ void yapContextEval(struct yapContext *Y, const char *text, yU32 evalOpts)
     compiler = yapCompilerCreate(Y);
     yapCompile(compiler, text, YCO_DEFAULT);
 
-    if(compiler->errors.count)
+    if(yap2ArraySize(Y, &compiler->errors))
     {
         int i;
         int total = 0;
-        for(i = 0; i < compiler->errors.count; i++)
+        for(i = 0; i < yap2ArraySize(Y, &compiler->errors); i++)
         {
-            char *error = (char *)compiler->errors.data[i];
+            char *error = (char *)compiler->errors[i];
             total += strlen(error) + 3; // "* " + newline
         }
         if(total > 0)
         {
             char *s = (char *)yapAlloc(total+1);
-            for(i = 0; i < compiler->errors.count; i++)
+            for(i = 0; i < yap2ArraySize(Y, &compiler->errors); i++)
             {
-                char *error = (char *)compiler->errors.data[i];
+                char *error = compiler->errors[i];
                 strcat(s, "* ");
                 strcat(s, error);
                 strcat(s, "\n");

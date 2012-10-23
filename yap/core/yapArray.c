@@ -54,7 +54,7 @@ static yap2Array *yap2ArrayChangeCapacity(struct yapContext *Y, ySize newCapacit
 }
 
 // finds / lazily creates a yap2Array from a regular ptr**
-static yap2Array *daGet(struct yapContext *Y, char ***daptr, int autoCreate)
+static yap2Array *yap2ArrayGet(struct yapContext *Y, char ***daptr, int autoCreate)
 {
     yap2Array *da = NULL;
     if(daptr && *daptr)
@@ -76,7 +76,7 @@ static yap2Array *daGet(struct yapContext *Y, char ***daptr, int autoCreate)
 // this assumes you've already destroyed any soon-to-be orphaned values at the end
 static void yap2ArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSize)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     if(da->size == newSize)
         return;
 
@@ -94,7 +94,7 @@ static void yap2ArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSi
 // calls yap2ArrayChangeCapacity in preparation for new data, if necessary
 static yap2Array *daMakeRoom(struct yapContext *Y, char ***daptr, int incomingCount)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     int capacityNeeded = da->size + incomingCount;
     int newCapacity = da->capacity;
     while(newCapacity < capacityNeeded)
@@ -140,12 +140,12 @@ static void yap2ArrayClearRangeP1(struct yapContext *Y, yap2Array *da, int start
 
 void yap2ArrayCreate(struct yapContext *Y, void *daptr)
 {
-    daGet(Y, daptr, 1);
+    yap2ArrayGet(Y, daptr, 1);
 }
 
 void yap2ArrayDestroy(struct yapContext *Y, void *daptr, void * destroyFunc)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         yap2ArrayClear(Y, daptr, destroyFunc);
@@ -161,7 +161,7 @@ void yap2ArrayDestroyStrings(struct yapContext *Y, void *daptr)
 
 void yap2ArrayDestroyP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         yap2ArrayClearP1(Y, daptr, destroyFunc, p1);
@@ -172,7 +172,7 @@ void yap2ArrayDestroyP1(struct yapContext *Y, void *daptr, void * destroyFunc, v
 
 void yap2ArrayClear(struct yapContext *Y, void *daptr, void * destroyFunc)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         yap2ArrayClearRange(Y, da, 0, da->size, destroyFunc);
@@ -182,7 +182,7 @@ void yap2ArrayClear(struct yapContext *Y, void *daptr, void * destroyFunc)
 
 void yap2ArrayClearP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         yap2ArrayClearRangeP1(Y, da, 0, da->size, destroyFunc, p1);
@@ -199,9 +199,9 @@ void yap2ArrayClearStrings(struct yapContext *Y, void *daptr)
 // Front/back manipulation
 
 // aka "pop front"
-void *daShift(struct yapContext *Y, void *daptr)
+void *yap2ArrayShift(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da && da->size > 0)
     {
         void *ret = da->values[0];
@@ -232,7 +232,7 @@ ySize yap2ArrayPush(struct yapContext *Y, void *daptr, void *entry)
 
 void *yap2ArrayPop(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da && (da->size > 0))
     {
         return da->values[--da->size];
@@ -243,7 +243,7 @@ void *yap2ArrayPop(struct yapContext *Y, void *daptr)
 // ------------------------------------------------------------------------------------------------
 // Random access manipulation
 
-void daInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
+void yap2ArrayInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
 {
     yap2Array *da = daMakeRoom(Y, daptr, 1);
     if((index < 0) || (!da->size) || (index >= da->size))
@@ -258,9 +258,9 @@ void daInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
     }
 }
 
-void daErase(struct yapContext *Y, void *daptr, ySize index)
+void yap2ArrayErase(struct yapContext *Y, void *daptr, ySize index)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(!da)
         return;
     if((index < 0) || (!da->size) || (index >= da->size))
@@ -273,53 +273,53 @@ void daErase(struct yapContext *Y, void *daptr, ySize index)
 // ------------------------------------------------------------------------------------------------
 // Size manipulation
 
-void daSetSize(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc)
+void yap2ArraySetSize(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     yap2ArrayClearRange(Y, da, newSize, da->size, destroyFunc);
     yap2ArrayChangeSize(Y, daptr, newSize);
 }
 
-void daSetSizeP1(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc, void *p1)
+void yap2ArraySetSizeP1(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc, void *p1)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     yap2ArrayClearRangeP1(Y, da, newSize, da->size, destroyFunc, p1);
     yap2ArrayChangeSize(Y, daptr, newSize);
 }
 
 ySize yap2ArraySize(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
         return da->size;
     return 0;
 }
 
-void daSetCapacity(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc)
+void yap2ArraySetCapacity(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     yap2ArrayClearRange(Y, da, newCapacity, da->size, destroyFunc);
     yap2ArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
-void daSetCapacityP1(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc, void *p1)
+void yap2ArraySetCapacityP1(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc, void *p1)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 1);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     yap2ArrayClearRangeP1(Y, da, newCapacity, da->size, destroyFunc, p1);
     yap2ArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
 ySize yap2ArrayCapacity(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
         return da->capacity;
     return 0;
 }
 
-void daSquash(struct yapContext *Y, void *daptr)
+void yap2ArraySquash(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = daGet(Y, (char ***)daptr, 0);
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         int head = 0;

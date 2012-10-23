@@ -8,7 +8,7 @@
 #ifndef YAPPARSER_H
 #define YAPPARSER_H
 
-#include "yapArray.h"
+#include "yapTypes.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -35,7 +35,7 @@ typedef struct yapCompiler
     struct yapSyntax *root;
     struct yapChunk *chunk;
     struct yapCode *code;
-    yapArray errors;
+    char **errors;
 } yapCompiler;
 
 yapCompiler *yapCompilerCreate(struct yapContext *Y);

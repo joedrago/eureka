@@ -8,7 +8,7 @@
 #ifndef YAPSYNTAX_H
 #define YAPSYNTAX_H
 
-#include "yapArray.h"
+#include "yapTypes.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -88,7 +88,7 @@ typedef struct yapSyntaxElement
     char *s;                           // string value
     int   i;                           // int value
     yF32  f;                           // float value
-    yapArray *a;                       // array value
+    struct yapSyntax **a;              // array value
 } yapSyntaxElement;
 
 typedef struct yapSyntax

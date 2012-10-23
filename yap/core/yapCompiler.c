@@ -51,7 +51,7 @@ void yapCompilerDestroy(yapCompiler *compiler)
     {
         yapSyntaxDestroy(Y, compiler->root);
     }
-    yapArrayClear(Y, &compiler->errors, (yapDestroyCB)yapDestroyCBFree);
+    yap2ArrayDestroy(Y, &compiler->errors, (yapDestroyCB)yapDestroyCBFree);
     yapFree(compiler);
 }
 
@@ -77,7 +77,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
 
     if(compiler->root)
     {
-        if(!compiler->errors.count)
+        if(!yap2ArraySize(Y, &compiler->errors))
         {
             if(compileOpts & YCO_OPTIMIZE)
             {
@@ -109,7 +109,7 @@ yBool yapCompile(yapCompiler *compiler, const char *text, yU32 compileOpts)
 void yapCompileError(yapCompiler *compiler, const char *error)
 {
     struct yapContext *Y = compiler->Y;
-    yapArrayPush(Y, &compiler->errors, yapStrdup(Y, error));
+    yap2ArrayPush(Y, &compiler->errors, yapStrdup(Y, error));
 }
 
 static void appendInt(char *text, int i)
@@ -159,12 +159,12 @@ void yapCompileSyntaxError(yapCompiler *compiler, struct yapToken *token)
 
 static int yapCompileOptimizeChild(struct yapContext *Y, yapCompiler *compiler, yapSyntax *syntax);
 
-static void yapCompileOptimizeArray(struct yapContext *Y, yapCompiler *compiler, yapArray *a)
+static void yapCompileOptimizeArray(struct yapContext *Y, yapCompiler *compiler, yapSyntax **a)
 {
     int i;
-    for(i = 0; i < a->count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &a); i++)
     {
-        yapCompileOptimizeChild(Y, compiler, (yapSyntax *)a->data[i]);
+        yapCompileOptimizeChild(Y, compiler, (yapSyntax *)a[i]);
     }
 }
 
@@ -433,18 +433,18 @@ asmFunc(Index)
 
 asmFunc(IdentifierList)
 {
-    yapArray *args = syntax->v.a;
+    yapSyntax **args = syntax->v.a;
     int keepCount = 0;
     int i;
 
-    for(i = args->count - 1; i >= 0; i--)
+    for(i = yap2ArraySize(Y, &args) - 1; i >= 0; i--)
     {
-        yapSyntax *arg = (yapSyntax *)args->data[i];
+        yapSyntax *arg = (yapSyntax *)args[i];
         keepCount = asmDispatch[arg->type].assemble(Y, compiler, dst, arg, 1, flags);
         yapCodeGrow(Y, dst, 1);
         yapCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
     }
-    return PAD(args->count);
+    return PAD(yap2ArraySize(Y, &args));
 }
 
 asmFunc(Call)
@@ -770,8 +770,8 @@ asmFunc(For)
     yapCodeAppend(Y, loop, YOP_DUPE, 0, syntax->line);    // dupe counter
     yapCodeAppend(Y, loop, YOP_DUPE, 3, syntax->line);    // dupe object
     yapCodeAppend(Y, loop, YOP_NTH, 0, syntax->line);     // call nth
-    yapCodeAppend(Y, loop, YOP_KEEP, vars->v.a->count, syntax->line);
-    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, vars->v.a->count, ASM_LVALUE | ASM_VAR);
+    yapCodeAppend(Y, loop, YOP_KEEP, yap2ArraySize(Y, &vars->v.a), syntax->line);
+    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, yap2ArraySize(Y, &vars->v.a), ASM_LVALUE | ASM_VAR);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(Y, compiler, loop, body, 0, ASM_NORMAL);
@@ -876,15 +876,15 @@ asmFunc(Scope)
 asmFunc(ExpressionList)
 {
     int i = 0;
-    int last = syntax->v.a->count;
+    int last = yap2ArraySize(Y, &syntax->v.a);
     int increment = 1;
     int keepCount = 0;
     int reverseOrder = (flags & ASM_SETVAR); // values must be SETVAR'd by popping off the stack in reverse
-    for(i = 0; i < syntax->v.a->count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &syntax->v.a); i++)
     {
-        int index = (reverseOrder) ? (syntax->v.a->count - 1) - i : i;
+        int index = (reverseOrder) ? (yap2ArraySize(Y, &syntax->v.a) - 1) - i : i;
         int keepIt = ((keep == YAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
-        yapSyntax *child = (yapSyntax *)syntax->v.a->data[index];
+        yapSyntax *child = syntax->v.a[index];
         keepCount += asmDispatch[child->type].assemble(Y, compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
         if(flags & ASM_SETVAR)
         {
@@ -906,9 +906,9 @@ asmFunc(StatementList)
 {
     int keepCount = 0;
     int i;
-    for(i = 0; i < syntax->v.a->count; i++)
+    for(i = 0; i < yap2ArraySize(Y, &syntax->v.a); i++)
     {
-        yapSyntax *child = (yapSyntax *)syntax->v.a->data[i];
+        yapSyntax *child = syntax->v.a[i];
         keepCount = asmDispatch[child->type].assemble(Y, compiler, dst, child, 0, ASM_NORMAL);
     }
     return PAD(keepCount);
