@@ -210,7 +210,7 @@ const char *yapContextGetError(yapContext *Y)
 void yapContextDestroy(yapContext *Y)
 {
     yapHashDestroy(Y, Y->globals, (yapDestroyCB)yapValueRemoveRefHashed);
-    yapArrayClear(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
+    yap2ArrayDestroy(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayClear(Y, &Y->stack, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayClear(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
 
@@ -228,9 +228,9 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
     yapFrame *frame;
     yapValue **valueRef;
 
-    for(i = Y->frames.count - 1; i >= 0; i--)
+    for(i = yap2ArraySize(Y, &Y->frames) - 1; i >= 0; i--)
     {
-        frame = (yapFrame *)Y->frames.data[i];
+        frame = Y->frames[i];
 
         // Check the locals
         valueRef = (yapValue **)yapHashLookup(Y, frame->locals, name, yFalse);
@@ -291,7 +291,7 @@ yapFrame *yapContextPushFrame(struct yapContext *Y, yapBlock *block, int argCoun
     }
 
     frame = yapFrameCreate(Y, frameType, thisVal, block, Y->stack.count, argCount, closure);
-    yapArrayPush(Y, &Y->frames, frame);
+    yap2ArrayPush(Y, &Y->frames, frame);
 
     return frame;
 }
@@ -397,7 +397,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yapValue *value)
 {
     yapValue **valueRef;
-    yapFrame *frame = yapArrayTop(Y, &Y->frames);
+    yapFrame *frame = yap2ArrayTop(Y, &Y->frames);
     if(!frame)
     {
         return NULL;
@@ -429,13 +429,13 @@ static yBool yapContextCallCFunction(struct yapContext *Y, yapCFunction func, yU
 {
     int retCount;
     yapFrame *frame = yapFrameCreate(Y, YFT_FUNC, thisVal, NULL, Y->stack.count, argCount, NULL);
-    yapArrayPush(Y, &Y->frames, frame);
+    yap2ArrayPush(Y, &Y->frames, frame);
 
     retCount = func(Y, argCount);
 
-    yapArrayPop(Y, &Y->frames); // Removes 'frame' from top of stack
+    yap2ArrayPop(Y, &Y->frames); // Removes 'frame' from top of stack
     yapFrameDestroy(Y, frame);
-    frame = yapArrayTop(Y, &Y->frames);
+    frame = yap2ArrayTop(Y, &Y->frames);
     if(!frame)
     {
         return yFalse;
@@ -483,7 +483,7 @@ static yapContextFrameCleanup(struct yapContext *Y, yapFrame *frame)
 
 struct yapFrame *yapContextPopFrames(struct yapContext *Y, yU32 frameTypeToFind, yBool keepIt)
 {
-    yapFrame *frame = yapArrayTop(Y, &Y->frames);
+    yapFrame *frame = yap2ArrayTop(Y, &Y->frames);
 
     if(frameTypeToFind != YFT_ANY)
     {
@@ -491,8 +491,8 @@ struct yapFrame *yapContextPopFrames(struct yapContext *Y, yU32 frameTypeToFind,
         {
             yapContextFrameCleanup(Y, frame);
             yapFrameDestroy(Y, frame);
-            yapArrayPop(Y, &Y->frames);
-            frame = yapArrayTop(Y, &Y->frames);
+            yap2ArrayPop(Y, &Y->frames);
+            frame = yap2ArrayTop(Y, &Y->frames);
         };
     }
 
@@ -500,8 +500,8 @@ struct yapFrame *yapContextPopFrames(struct yapContext *Y, yU32 frameTypeToFind,
     {
         yapContextFrameCleanup(Y, frame);
         yapFrameDestroy(Y, frame);
-        yapArrayPop(Y, &Y->frames);
-        frame = yapArrayTop(Y, &Y->frames);
+        yap2ArrayPop(Y, &Y->frames);
+        frame = yap2ArrayTop(Y, &Y->frames);
     }
 
     return frame;
@@ -528,9 +528,9 @@ static yS32 yapContextPopInts(struct yapContext *Y, int count, int *output)
 yapValue *yapContextThis(yapContext *Y)
 {
     int i;
-    for(i = Y->frames.count - 1; i >= 0; i--)
+    for(i = yap2ArraySize(Y, &Y->frames) - 1; i >= 0; i--)
     {
-        yapFrame *frame = (yapFrame *)Y->frames.data[i];
+        yapFrame *frame = Y->frames[i];
         if(frame->type & YFT_FUNC)
         {
             yapValueAddRefNote(Y, frame->thisVal, "yapContextThis");
@@ -684,9 +684,9 @@ static void yapContextLogState(yapContext *Y)
 
     yapTraceExecution(("\n\n\n------------------------------------------\n"));
 
-    if(Y->frames.count > 0)
+    if(yap2ArraySize(Y, &Y->frames) > 0)
     {
-        yapFrame *frame = yapArrayTop(Y, &Y->frames);
+        yapFrame *frame = yap2ArrayTop(Y, &Y->frames);
         yapTraceExecution(("0x%p [cleanup:%d][lastRet:%d] IP: ", frame, frame->cleanupCount, Y->lastRet));
         yapOpsDump(frame->ip, 1);
     }
@@ -705,12 +705,12 @@ static void yapContextLogState(yapContext *Y)
 
 void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 {
-    yapFrame *frame = yapArrayTop(Y, &Y->frames);
+    yapFrame *frame = yap2ArrayTop(Y, &Y->frames);
     yBool continueLooping = yTrue;
     yBool newFrame;
     yOpcode opcode;
     yOperand operand;
-    yU32 startingFrameCount = Y->frames.count;
+    yU32 startingFrameCount = yap2ArraySize(Y, &Y->frames);
 
     if(!frame)
     {
@@ -721,7 +721,7 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
     // Main VM loop!
     while(continueLooping && !Y->error)
     {
-        if(stopAtPop && (Y->frames.count < startingFrameCount))
+        if(stopAtPop && (yap2ArraySize(Y, &Y->frames) < startingFrameCount))
         {
             break;
         }

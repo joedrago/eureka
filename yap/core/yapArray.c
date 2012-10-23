@@ -246,6 +246,16 @@ ySize yap2ArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s)
     return yap2ArrayPush(Y, daptr, s);
 }
 
+void *yap2ArrayTop(struct yapContext *Y, void *daptr)
+{
+    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    if(da && (da->size > 0))
+    {
+        return da->values[da->size - 1];
+    }
+    return NULL;
+}
+
 void *yap2ArrayPop(struct yapContext *Y, void *daptr)
 {
     yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);

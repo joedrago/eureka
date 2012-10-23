@@ -855,9 +855,9 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
 
     yapAssert(p->closureVars == NULL);
 
-    for(frameIndex = Y->frames.count - 1; frameIndex >= 0; frameIndex--)
+    for(frameIndex = yap2ArraySize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
     {
-        frame = Y->frames.data[frameIndex];
+        frame = Y->frames[frameIndex];
         if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
         {
             break;
@@ -866,9 +866,9 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
 
     if(frameIndex >= 0)
     {
-        for(; frameIndex < Y->frames.count; frameIndex++)
+        for(; frameIndex < yap2ArraySize(Y, &Y->frames); frameIndex++)
         {
-            frame = Y->frames.data[frameIndex];
+            frame = Y->frames[frameIndex];
             if(frame->locals->count)
             {
                 if(!p->closureVars)
