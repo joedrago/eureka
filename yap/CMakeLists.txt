@@ -63,11 +63,11 @@ set(yap_src
     core/yapObject.c
     core/yapFrame.h
     core/yapFrame.c
-    core/yapHash.h
-    core/yapHash.c
     core/yapLexer.c
     core/yapLexer.h
     core/yapLexer.re
+    core/yapMap.h
+    core/yapMap.c
     core/yapOp.h
     core/yapOp.c
     core/yapParser.y

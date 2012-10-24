@@ -75,7 +75,7 @@ static char *getprompt(yapContext *Y)
 
 // ---------------------------------------------------------------------------
 
-static void printVariable(struct yapContext *Y, void *ignored, yap2HashEntry *entry)
+static void printVariable(struct yapContext *Y, void *ignored, yapMapEntry *entry)
 {
     printf("* '%s'\n", entry->keyStr);
 }
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             char *code = NULL;
             if(!strcmp(line, "$globals"))
             {
-                yap2HashIterateP1(Y, Y->globals, printVariable, NULL);
+                yapMapIterateP1(Y, Y->globals, printVariable, NULL);
             }
             else if(!strncmp(line, "$load ", 6))
             {

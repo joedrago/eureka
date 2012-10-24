@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yap2Hash;
+struct yapMap;
 struct yapValue;
 
 // ---------------------------------------------------------------------------
@@ -39,7 +39,7 @@ enum
 
 typedef struct yapFrame
 {
-    struct yap2Hash *locals;
+    struct yapMap *locals;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // In function scope, it is "this"

@@ -13,7 +13,7 @@
 
 #include "yapTypes.h"
 #include "yapArray.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapCompiler.h"
 #include "yapContext.h"
 

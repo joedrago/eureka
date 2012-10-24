@@ -8,7 +8,7 @@
 #include "yapValue.h"
 
 #include "yapFrame.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapObject.h"
 #include "yapLexer.h"
 #include "yapContext.h"
@@ -120,7 +120,7 @@ static void blockFuncClear(struct yapContext *Y, struct yapValue *p)
 {
     if(p->closureVars)
     {
-        yap2HashDestroy(Y, p->closureVars, yapValueRemoveRef);
+        yapMapDestroy(Y, p->closureVars, yapValueRemoveRef);
     }
 }
 
@@ -681,7 +681,7 @@ static struct yapValue *objectFuncIndex(struct yapContext *Y, struct yapValue *v
     return ret;
 }
 
-void appendKeys(struct yapContext *Y, yapDumpParams *params, yap2HashEntry *entry)
+void appendKeys(struct yapContext *Y, yapDumpParams *params, yapMapEntry *entry)
 {
     yapValue *child = (yapValue *)entry->valuePtr;
     if(params->tempInt)
@@ -703,7 +703,7 @@ static void objectFuncDump(struct yapContext *Y, yapDumpParams *params, struct y
 {
     params->tempInt = 1;
     yapStringConcat(Y, &params->output, "{ ");
-    yap2HashIterateP1(Y, p->objectVal->hash, appendKeys, params);
+    yapMapIterateP1(Y, p->objectVal->hash, appendKeys, params);
     yapStringConcat(Y, &params->output, " }");
 }
 
@@ -836,10 +836,10 @@ yapValue *yapValueDonateString(struct yapContext *Y, char *s)
     return p;
 }
 
-static void yapValueAddClosureVar(yapContext *Y, yap2Hash *closureVars, yap2HashEntry *entry)
+static void yapValueAddClosureVar(yapContext *Y, yapMap *closureVars, yapMapEntry *entry)
 {
     yapValueAddRefNote(Y, entry->valuePtr, "+ref closure variable");
-    yap2HashGetS2P(Y, closureVars, entry->keyStr) = entry->valuePtr;
+    yapMapGetS2P(Y, closureVars, entry->keyStr) = entry->valuePtr;
 }
 
 void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
@@ -873,9 +873,9 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
             {
                 if(!p->closureVars)
                 {
-                    p->closureVars = yap2HashCreate(Y, KEYTYPE_STRING, 0);
+                    p->closureVars = yapMapCreate(Y, YMKT_STRING);
                 }
-                yap2HashIterateP1(Y, frame->locals, yapValueAddClosureVar, p->closureVars);
+                yapMapIterateP1(Y, frame->locals, yapValueAddClosureVar, p->closureVars);
             }
         }
     }

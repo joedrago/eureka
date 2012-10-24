@@ -8,7 +8,7 @@
 #include "yapObject.h"
 
 #include "yapTypes.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapValue.h"
 #include "yapContext.h"
 
@@ -20,7 +20,7 @@ yapObject *yapObjectCreate(struct yapContext *Y, yapValue *isa)
     {
         yapValueAddRefNote(Y, v->isa, "yapObject isa");
     }
-    v->hash = yap2HashCreate(Y, KEYTYPE_STRING, 0);
+    v->hash = yapMapCreate(Y, YMKT_STRING);
     return v;
 }
 
@@ -30,21 +30,21 @@ void yapObjectDestroy(struct yapContext *Y, yapObject *v)
     {
         yapValueRemoveRefNote(Y, v->isa, "yapObject isa done");
     }
-    yap2HashDestroy(Y, v->hash, yapValueRemoveRefHashed);
+    yapMapDestroy(Y, v->hash, yapValueRemoveRefHashed);
     yapFree(v);
 }
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)
 {
     struct yapValue **ref = NULL;
-    yap2HashEntry *hashEntry;
+    yapMapEntry *hashEntry;
     if(create)
     {
-        hashEntry = yap2HashGetString(Y, object->hash, key);
+        hashEntry = yapMapGetString(Y, object->hash, key);
     }
     else
     {
-        hashEntry = yap2HashHasString(Y, object->hash, key);
+        hashEntry = yapMapHasString(Y, object->hash, key);
     }
     if(hashEntry)
     {

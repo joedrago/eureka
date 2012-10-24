@@ -8,7 +8,7 @@
 #include "yapiCore.h"
 
 #include "yapTypes.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapObject.h"
 #include "yapValue.h"
 #include "yapContext.h"
@@ -70,7 +70,7 @@ yU32 length(struct yapContext *Y, yU32 argCount)
     return 1;
 }
 
-static void yapAppendKey(struct yapContext *Y, yapValue *arrayVal, yap2HashEntry *entry)
+static void yapAppendKey(struct yapContext *Y, yapValue *arrayVal, yapMapEntry *entry)
 {
     yapValue *keyVal = yapValueCreateString(Y, entry->keyStr);
     yapValueArrayPush(Y, arrayVal, keyVal);
@@ -86,7 +86,7 @@ static yU32 keys(struct yapContext *Y, yU32 argCount)
         return yapContextArgsFailure(Y, argCount, "keys([object/dict] o)");
     }
 
-    yap2HashIterateP1(Y, object->objectVal->hash, yapAppendKey, arrayVal);
+    yapMapIterateP1(Y, object->objectVal->hash, yapAppendKey, arrayVal);
 
     yapValueRemoveRefNote(Y, object, "keys object done");
     yapArrayPush(Y, &Y->stack, arrayVal);

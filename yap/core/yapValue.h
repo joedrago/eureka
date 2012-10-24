@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yapHash;
+struct yapMap;
 struct yapObject;
 struct yapValue;
 
@@ -129,7 +129,7 @@ typedef struct yapValue
         yF32 floatVal;
         struct
         {
-            struct yap2Hash *closureVars; // Populated at runtime when a reference to a new function() is created
+            struct yapMap *closureVars; // Populated at runtime when a reference to a new function() is created
             struct yapBlock *blockVal;    // Hurr, Shield Slam
         };
         yapString stringVal;

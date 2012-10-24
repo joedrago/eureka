@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yapHash;
+struct yapMap;
 
 // ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ typedef struct yapContext
     yapValueType **types;
 
     // things that can own values
-    struct yap2Hash *globals;          // Global variables
+    struct yapMap *globals;          // Global variables
     struct yapFrame **frames;          // Current stack frames
     struct yapValue ** stack;          // Value stack
     struct yapChunk **chunks;          // the VM owns all chunks, making cheap vars

@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
-struct yap2Hash;
+struct yapMap;
 struct yapValue;
 
 // ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ struct yapValue;
 typedef struct yapObject
 {
     struct yapValue *isa; // "is a": what this object is derived from. Can be NULL.
-    struct yap2Hash *hash;
+    struct yapMap *hash;
 } yapObject;
 
 yapObject *yapObjectCreate(struct yapContext *Y, struct yapValue *isa);

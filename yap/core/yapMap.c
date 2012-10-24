@@ -5,182 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapContext.h"
-
-#include <stdlib.h>
-#include <string.h>
-
-static yU32 djb2hash(const unsigned char *str)
-{
-    yU32 hash = 5381;
-    int c;
-
-    while(c = *str++)
-    {
-        hash = ((hash << 5) + hash) + c;    /* hash * 33 + c */
-    }
-
-    return hash;
-}
-
-yapHash *yapHashCreate(struct yapContext *Y, int sizeEstimate)
-{
-    int width = 7; // TODO: do something interesting to calculate width from sizeEstimate
-    yapHash *yh;
-    yh = yapAlloc(sizeof(yapHash));
-    yh->table = yapAlloc(sizeof(yapHashEntry *) * width);
-    yh->width = width;
-    return yh;
-}
-
-static void yapHashEntryDestroy(struct yapContext *Y, yapHashEntry *entry, yapDestroyCB cb)
-{
-    if(cb)
-    {
-        cb(Y, entry->value);
-    }
-    yapFree(entry->key);
-    yapFree(entry);
-}
-
-void yapHashIterate(struct yapContext *Y, yapHash *yh, yapIterateCB cb)
-{
-    int i;
-    if(!cb)
-    {
-        return;
-    }
-    for(i=0; i<yh->width; i++)
-    {
-        yapHashEntry *entry = yh->table[i];
-        while(entry)
-        {
-            cb(Y, entry);
-            entry = entry->next;
-        }
-    }
-}
-
-void yapHashIterateP1(struct yapContext *Y, yapHash *yh, yapIterateCB1 cb, void *arg1)
-{
-    int i;
-    if(!cb)
-    {
-        return;
-    }
-    for(i=0; i<yh->width; i++)
-    {
-        yapHashEntry *entry = yh->table[i];
-        while(entry)
-        {
-            cb(Y, arg1, entry);
-            entry = entry->next;
-        }
-    }
-}
-
-void yapHashClear(struct yapContext *Y, yapHash *yh, yapDestroyCB cb)
-{
-    int i;
-    for(i=0; i<yh->width; i++)
-    {
-        yapHashEntry *entry = yh->table[i];
-        while(entry)
-        {
-            yapHashEntry *freeme = entry;
-            entry = entry->next;
-            yapHashEntryDestroy(Y, freeme, cb);
-        }
-    }
-    memset(yh->table, 0, sizeof(yapHashEntry *) * yh->width);
-}
-
-void yapHashDestroy(struct yapContext *Y, yapHash *yh, yapDestroyCB cb)
-{
-    yapHashClear(Y, yh, cb);
-    yapFree(yh->table);
-    yapFree(yh);
-}
-
-void **yapHashLookup(struct yapContext *Y, yapHash *yh, const char *key, yBool create)
-{
-    yU32 hash = djb2hash(key);
-    yU32 index = hash % yh->width;
-    yapHashEntry *entry = yh->table[index];
-    yapHashEntry *found = NULL;
-    while(entry)
-    {
-        if((entry->hash == hash)
-           && (!strcmp(entry->key, key)))
-        {
-            found = entry;
-            break;
-        }
-        entry = entry->next;
-    }
-
-    if(found)
-    {
-        return &found->value;
-    }
-    if(create)
-    {
-        yh->count++;
-        entry = yapAlloc(sizeof(yapHashEntry));
-        entry->key = yapStrdup(Y, key);
-        entry->hash = hash;
-        entry->next = yh->table[index];
-        yh->table[index] = entry;
-        return &entry->value;
-    }
-    return NULL;
-}
-
-void **yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value)
-{
-    void **ref = yapHashLookup(Y, yh, key, yTrue);
-    yapAssert(ref);
-    *ref = value;
-    return ref;
-}
-
-void yapHashDelete(struct yapContext *Y, yapHash *yh, const char *key, yapDestroyCB cb)
-{
-    yU32 hash = djb2hash(key);
-    yU32 index = hash % yh->width;
-    yapHashEntry *entry = yh->table[index];
-    yapHashEntry *parent = NULL;
-    yapHashEntry *found = NULL;
-    while(entry)
-    {
-        if((entry->hash == hash)
-           && (!strcmp(entry->key, key)))
-        {
-            found = entry;
-            break;
-        }
-        parent = entry;
-        entry = entry->next;
-    }
-
-    if(found)
-    {
-        if(parent)
-        {
-            parent->next = found->next;
-        }
-        else
-        {
-            // No parent means it was the head
-            yh->table[index] = NULL;
-        }
-        yapHashEntryDestroy(Y, found, cb);
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -228,7 +54,7 @@ static unsigned int djb2int(yS32 i);
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
-static ySize linearHashCompute(yap2Hash *yh, yU32 hash)
+static ySize linearHashCompute(yapMap *yh, yU32 hash)
 {
     // Use a simple modulus on the hash, and if the resulting bucket is behind
     // "the split" (putting it in the front partition instead of the expansion),
@@ -242,13 +68,13 @@ static ySize linearHashCompute(yap2Hash *yh, yU32 hash)
     return addr;
 }
 
-// This is used by yap2HashNewEntry to chain a new entry into a bucket, and it is used
+// This is used by yapMapNewEntry to chain a new entry into a bucket, and it is used
 // by the split and rewind functions to rebucket everything in a single bucket.
-static void yap2HashBucketEntryChain(struct yapContext *Y, yap2Hash *yh, yap2HashEntry *chain)
+static void yapMapBucketEntryChain(struct yapContext *Y, yapMap *yh, yapMapEntry *chain)
 {
     while(chain)
     {
-        yap2HashEntry *entry = chain;
+        yapMapEntry *entry = chain;
         yS32 tableIndex = linearHashCompute(yh, entry->hash);
         chain = chain->next;
 
@@ -257,26 +83,26 @@ static void yap2HashBucketEntryChain(struct yapContext *Y, yap2Hash *yh, yap2Has
     }
 }
 
-static yap2HashEntry *yap2HashNewEntry(struct yapContext *Y, yap2Hash *yh, yU32 hash, void *key)
+static yapMapEntry *yapMapNewEntry(struct yapContext *Y, yapMap *yh, yU32 hash, void *key)
 {
-    yap2HashEntry *entry;
-    yap2HashEntry *chain;
+    yapMapEntry *entry;
+    yapMapEntry *chain;
     int found = 0;
 
     // Create the new entry and bucket it
-    entry = (yap2HashEntry *)yapAlloc(sizeof(*entry));
+    entry = (yapMapEntry *)yapAlloc(sizeof(*entry));
     switch(yh->keyType)
     {
-    case KEYTYPE_STRING:
+    case YMKT_STRING:
         entry->keyStr = yapStrdup(Y, (char *)key);
         break;
-    case KEYTYPE_INTEGER:
+    case YMKT_INTEGER:
         entry->keyInt = *((int *)key);
         break;
     }
     entry->hash = hash;
     entry->value64 = 0;
-    yap2HashBucketEntryChain(Y, yh, entry);
+    yapMapBucketEntryChain(Y, yh, entry);
 
     // Steal the chain at the split boundary...
     chain = yh->table[yh->split];
@@ -293,15 +119,15 @@ static yap2HashEntry *yap2HashNewEntry(struct yapContext *Y, yap2Hash *yh, yU32 
     }
 
     // ... and reattach the stolen chain.
-    yap2HashBucketEntryChain(Y, yh, chain);
+    yapMapBucketEntryChain(Y, yh, chain);
 
     ++yh->count;
     return entry;
 }
 
-static void dmRewindSplit(struct yapContext *Y, yap2Hash *yh)
+static void dmRewindSplit(struct yapContext *Y, yapMap *yh)
 {
-    yap2HashEntry *chain;
+    yapMapEntry *chain;
     ySize indexToRebucket;
 
     --yh->split;
@@ -322,15 +148,15 @@ static void dmRewindSplit(struct yapContext *Y, yap2Hash *yh)
     chain = yh->table[indexToRebucket];
     yh->table[indexToRebucket] = NULL;
 
-    yap2HashBucketEntryChain(Y, yh, chain);
+    yapMapBucketEntryChain(Y, yh, chain);
 }
 
 // ------------------------------------------------------------------------------------------------
 // creation / destruction / cleanup
 
-yap2Hash *yap2HashCreate(struct yapContext *Y, yap2HashKeyType keyType, yU32 estimatedSize)
+yapMap *yapMapCreate(struct yapContext *Y, yapMapKeyType keyType)
 {
-    yap2Hash *yh = (yap2Hash *)yapAlloc(sizeof(*yh));
+    yapMap *yh = (yapMap *)yapAlloc(sizeof(*yh));
     yh->keyType = keyType;
     yh->split = 0;
     yh->mod   = INITIAL_MODULUS;
@@ -339,24 +165,24 @@ yap2Hash *yap2HashCreate(struct yapContext *Y, yap2HashKeyType keyType, yU32 est
     return yh;
 }
 
-void yap2HashDestroy(struct yapContext *Y, yap2Hash *yh, void * /*yapDestroyCB*/ destroyFunc)
+void yapMapDestroy(struct yapContext *Y, yapMap *yh, void * /*yapDestroyCB*/ destroyFunc)
 {
     if(yh)
     {
-        yap2HashClear(Y, yh, destroyFunc);
+        yapMapClear(Y, yh, destroyFunc);
         yapArrayDestroy(Y, &yh->table, NULL);
         yapFree(yh);
     }
 }
 
-static void yap2HashDestroyEntry(struct yapContext *Y, yap2Hash *yh, yap2HashEntry *p)
+static void yapMapDestroyEntry(struct yapContext *Y, yapMap *yh, yapMapEntry *p)
 {
-    if(yh->keyType == KEYTYPE_STRING)
+    if(yh->keyType == YMKT_STRING)
         yapFree(p->keyStr);
     yapFree(p);
 }
 
-void yap2HashClear(struct yapContext *Y, yap2Hash *yh, void * /*yapDestroyCB*/ destroyFunc)
+void yapMapClear(struct yapContext *Y, yapMap *yh, void * /*yapDestroyCB*/ destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     if(yh)
@@ -364,25 +190,25 @@ void yap2HashClear(struct yapContext *Y, yap2Hash *yh, void * /*yapDestroyCB*/ d
         yS32 tableIndex;
         for(tableIndex = 0; tableIndex < yapArraySize(Y, &yh->table); ++tableIndex)
         {
-            yap2HashEntry *entry = yh->table[tableIndex];
+            yapMapEntry *entry = yh->table[tableIndex];
             while(entry)
             {
-                yap2HashEntry *freeme = entry;
+                yapMapEntry *freeme = entry;
                 if(func && entry->valuePtr)
                     func(Y, entry->valuePtr);
                 entry = entry->next;
-                yap2HashDestroyEntry(Y, yh, freeme);
+                yapMapDestroyEntry(Y, yh, freeme);
             }
         }
-        memset(yh->table, 0, yapArraySize(Y, &yh->table) * sizeof(yap2HashEntry*));
+        memset(yh->table, 0, yapArraySize(Y, &yh->table) * sizeof(yapMapEntry*));
     }
 }
 
-static yap2HashEntry *yap2HashFindString(struct yapContext *Y, yap2Hash *yh, const char *key, int autoCreate)
+static yapMapEntry *yapMapFindString(struct yapContext *Y, yapMap *yh, const char *key, int autoCreate)
 {
     yU32 hash = (yU32)HASHSTRING(key);
     yS32 index = linearHashCompute(yh, hash);
-    yap2HashEntry *entry = yh->table[index];
+    yapMapEntry *entry = yh->table[index];
     for( ; entry; entry = entry->next)
     {
         if(!strcmp(entry->keyStr, key))
@@ -392,16 +218,16 @@ static yap2HashEntry *yap2HashFindString(struct yapContext *Y, yap2Hash *yh, con
     if(autoCreate)
     {
         // A new entry!
-        return yap2HashNewEntry(Y, yh, hash, (void*)key);
+        return yapMapNewEntry(Y, yh, hash, (void*)key);
     }
     return NULL;
 }
 
-static yap2HashEntry *yap2HashFindInteger(struct yapContext *Y, yap2Hash *yh, yU32 key, int autoCreate)
+static yapMapEntry *yapMapFindInteger(struct yapContext *Y, yapMap *yh, yU32 key, int autoCreate)
 {
     yU32 hash = (yU32)HASHINT(key);
     yS32 index = linearHashCompute(yh, hash);
-    yap2HashEntry *entry = yh->table[index];
+    yapMapEntry *entry = yh->table[index];
     for( ; entry; entry = entry->next)
     {
         if(entry->keyInt == key)
@@ -411,28 +237,28 @@ static yap2HashEntry *yap2HashFindInteger(struct yapContext *Y, yap2Hash *yh, yU
     if(autoCreate)
     {
         // A new entry!
-        return yap2HashNewEntry(Y, yh, hash, (void*)&key);
+        return yapMapNewEntry(Y, yh, hash, (void*)&key);
     }
     return NULL;
 }
 
-yap2HashEntry *yap2HashGetString(struct yapContext *Y, yap2Hash *yh, const char *key)
+yapMapEntry *yapMapGetString(struct yapContext *Y, yapMap *yh, const char *key)
 {
-    return yap2HashFindString(Y, yh, key, 1);
+    return yapMapFindString(Y, yh, key, 1);
 }
 
-yap2HashEntry *yap2HashHasString(struct yapContext *Y, yap2Hash *yh, const char *key)
+yapMapEntry *yapMapHasString(struct yapContext *Y, yapMap *yh, const char *key)
 {
-    return yap2HashFindString(Y, yh, key, 0);
+    return yapMapFindString(Y, yh, key, 0);
 }
 
-void dmEraseString(struct yapContext *Y, yap2Hash *yh, const char *key, void * /*yapDestroyCB*/ destroyFunc)
+void dmEraseString(struct yapContext *Y, yapMap *yh, const char *key, void * /*yapDestroyCB*/ destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     yU32 hash = (yU32)HASHSTRING(key);
     yS32 index = linearHashCompute(yh, hash);
-    yap2HashEntry *prev = NULL;
-    yap2HashEntry *entry = yh->table[index];
+    yapMapEntry *prev = NULL;
+    yapMapEntry *entry = yh->table[index];
     for( ; entry; prev = entry, entry = entry->next)
     {
         if(!strcmp(entry->keyStr, key))
@@ -447,7 +273,7 @@ void dmEraseString(struct yapContext *Y, yap2Hash *yh, const char *key, void * /
             }
             if(func && entry->valuePtr)
                 func(Y, entry->valuePtr);
-            yap2HashDestroyEntry(Y, yh, entry);
+            yapMapDestroyEntry(Y, yh, entry);
             --yh->count;
             dmRewindSplit(Y, yh);
             return;
@@ -455,23 +281,23 @@ void dmEraseString(struct yapContext *Y, yap2Hash *yh, const char *key, void * /
     }
 }
 
-yap2HashEntry *yap2HashGetInteger(struct yapContext *Y, yap2Hash *yh, yU32 key)
+yapMapEntry *yapMapGetInteger(struct yapContext *Y, yapMap *yh, yU32 key)
 {
-    return yap2HashFindInteger(Y, yh, key, 1);
+    return yapMapFindInteger(Y, yh, key, 1);
 }
 
-yap2HashEntry *yap2HashHasInteger(struct yapContext *Y, yap2Hash *yh, yU32 key)
+yapMapEntry *yapMapHasInteger(struct yapContext *Y, yapMap *yh, yU32 key)
 {
-    return yap2HashFindInteger(Y, yh, key, 0);
+    return yapMapFindInteger(Y, yh, key, 0);
 }
 
-void yap2HashEraseInteger(struct yapContext *Y, yap2Hash *yh, yU32 key, void * /*yapDestroyCB*/ destroyFunc)
+void yapMapEraseInteger(struct yapContext *Y, yapMap *yh, yU32 key, void * /*yapDestroyCB*/ destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     yU32 hash = (yU32)HASHINT(key);
     yS32 index = linearHashCompute(yh, hash);
-    yap2HashEntry *prev = NULL;
-    yap2HashEntry *entry = yh->table[index];
+    yapMapEntry *prev = NULL;
+    yapMapEntry *entry = yh->table[index];
     for( ; entry; prev = entry, entry = entry->next)
     {
         if(entry->keyInt == key)
@@ -486,7 +312,7 @@ void yap2HashEraseInteger(struct yapContext *Y, yap2Hash *yh, yU32 key, void * /
             }
             if(func && entry->valuePtr)
                 func(Y, entry->valuePtr);
-            yap2HashDestroyEntry(Y, yh, entry);
+            yapMapDestroyEntry(Y, yh, entry);
             --yh->count;
             dmRewindSplit(Y, yh);
             return;
@@ -494,7 +320,7 @@ void yap2HashEraseInteger(struct yapContext *Y, yap2Hash *yh, yU32 key, void * /
     }
 }
 
-void yap2HashIterateP1(struct yapContext *Y, yap2Hash *yh, void *rawcb, void *arg1)
+void yapMapIterateP1(struct yapContext *Y, yapMap *yh, void *rawcb, void *arg1)
 {
     yap2IterateCB1 cb = (yap2IterateCB1)rawcb;
     int i;
@@ -505,7 +331,7 @@ void yap2HashIterateP1(struct yapContext *Y, yap2Hash *yh, void *rawcb, void *ar
     }
     for(i=0; i < endIndex; i++)
     {
-        yap2HashEntry *entry = yh->table[i];
+        yapMapEntry *entry = yh->table[i];
         while(entry)
         {
             cb(Y, arg1, entry);

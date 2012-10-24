@@ -8,7 +8,7 @@
 #include "yapiConversions.h"
 
 #include "yapTypes.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapObject.h"
 #include "yapValue.h"
 #include "yapContext.h"

@@ -10,7 +10,7 @@
 #include "yapBlock.h"
 #include "yapChunk.h"
 #include "yapCompiler.h"
-#include "yapHash.h"
+#include "yapMap.h"
 #include "yapObject.h"
 #include "yapFrame.h"
 #include "yapOp.h"
@@ -30,7 +30,7 @@
 
 void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *value)
 {
-    yap2HashGetS2P(Y, Y->globals, name) = value;
+    yapMapGetS2P(Y, Y->globals, name) = value;
     yapValueAddRefNote(Y, value, "yapContextRegisterGlobal");
 }
 
@@ -149,7 +149,7 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
         }
     }
     // LCOV_EXCL_STOP
-    Y->globals = yap2HashCreate(Y, KEYTYPE_STRING, 0);
+    Y->globals = yapMapCreate(Y, YMKT_STRING);
 
     yapValueTypeRegisterAllBasicTypes(Y);
     yapIntrinsicsRegisterCore(Y);
@@ -209,7 +209,7 @@ const char *yapContextGetError(yapContext *Y)
 
 void yapContextDestroy(yapContext *Y)
 {
-    yap2HashDestroy(Y, Y->globals, yapValueRemoveRefHashed);
+    yapMapDestroy(Y, Y->globals, yapValueRemoveRefHashed);
     yapArrayDestroy(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayDestroy(Y, &Y->stack, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayDestroy(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
@@ -227,20 +227,20 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
     int i;
     yapFrame *frame;
     yapValue **valueRef;
-    yap2HashEntry *hashEntry;
+    yapMapEntry *hashEntry;
 
     for(i = yapArraySize(Y, &Y->frames) - 1; i >= 0; i--)
     {
         frame = Y->frames[i];
 
         // Check the locals
-        hashEntry = yap2HashHasString(Y, frame->locals, name);
+        hashEntry = yapMapHasString(Y, frame->locals, name);
         if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
 
         // Check closure vars
         if(frame->closure && frame->closure->closureVars)
         {
-            hashEntry = yap2HashHasString(Y, frame->closure->closureVars, name);
+            hashEntry = yapMapHasString(Y, frame->closure->closureVars, name);
             if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
         }
 
@@ -251,7 +251,7 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
     }
 
     // check globals
-    hashEntry = yap2HashHasString(Y, Y->globals, name);
+    hashEntry = yapMapHasString(Y, Y->globals, name);
     if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
 
     return NULL;
@@ -397,7 +397,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 // TODO: this needs to protect against variable masking/shadowing
 static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yapValue *value)
 {
-    yap2HashEntry *hashEntry;
+    yapMapEntry *hashEntry;
     yapValue **valueRef;
     yapFrame *frame = yapArrayTop(Y, &Y->frames);
     if(!frame)
@@ -411,11 +411,11 @@ static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yap
     {
         // If we're in the chunk's "main" function, all variable
         // registration goes into the globals
-        hashEntry = yap2HashGetString(Y, Y->globals, name);
+        hashEntry = yapMapGetString(Y, Y->globals, name);
     }
     else
     {
-        hashEntry = yap2HashGetString(Y, frame->locals, name);
+        hashEntry = yapMapGetString(Y, frame->locals, name);
     }
     hashEntry->valuePtr = value;
     valueRef = (yapValue **)&hashEntry->valuePtr;
