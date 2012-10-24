@@ -19,6 +19,13 @@ typedef struct yap2Array
     ySize capacity;
 } yap2Array;
 
+typedef struct yap232Array
+{
+    yU32 *values;
+    ySize size;
+    ySize capacity;
+} yap232Array;
+
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
@@ -92,7 +99,7 @@ static void yap2ArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSi
 }
 
 // calls yap2ArrayChangeCapacity in preparation for new data, if necessary
-static yap2Array *daMakeRoom(struct yapContext *Y, char ***daptr, int incomingCount)
+static yap2Array *yap2ArrayMakeRoom(struct yapContext *Y, char ***daptr, int incomingCount)
 {
     yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
     int capacityNeeded = da->size + incomingCount;
@@ -214,7 +221,7 @@ void *yap2ArrayShift(struct yapContext *Y, void *daptr)
 
 void yap2ArrayUnshift(struct yapContext *Y, void *daptr, void *p)
 {
-    yap2Array *da = daMakeRoom(Y, daptr, 1);
+    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
     if(da->size > 0)
     {
         memmove(da->values + 1, da->values, sizeof(char*) * da->size);
@@ -225,7 +232,7 @@ void yap2ArrayUnshift(struct yapContext *Y, void *daptr, void *p)
 
 ySize yap2ArrayPush(struct yapContext *Y, void *daptr, void *entry)
 {
-    yap2Array *da = daMakeRoom(Y, daptr, 1);
+    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
     da->values[da->size++] = entry;
     return da->size - 1;
 }
@@ -271,7 +278,7 @@ void *yap2ArrayPop(struct yapContext *Y, void *daptr)
 
 void yap2ArrayInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
 {
-    yap2Array *da = daMakeRoom(Y, daptr, 1);
+    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
     if((index < 0) || (!da->size) || (index >= da->size))
     {
         yap2ArrayPush(Y, daptr, p);
@@ -378,5 +385,122 @@ void yap2ArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb)
         }
         --da->size;
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// yap232Array
+
+// workhorse function that does all of the allocation and copying
+static yap232Array *yap232ArrayChangeCapacity(struct yapContext *Y, ySize newCapacity, yU32 **prevptr)
+{
+    yap232Array *newArray;
+    yap232Array *prevArray = NULL;
+    if(prevptr && *prevptr)
+    {
+        prevArray = (yap232Array *)((char *)(*prevptr) - sizeof(yap232Array));
+        if(newCapacity == prevArray->capacity)
+            return prevArray;
+    }
+
+    newArray = (yap232Array *)yapAlloc(sizeof(yap232Array) + (sizeof(yU32) * newCapacity));
+    newArray->capacity = newCapacity;
+    newArray->values = (yU32 *)(((char *)newArray) + sizeof(yap232Array));
+    if(prevptr)
+    {
+        if(prevArray)
+        {
+            int copyCount = prevArray->size;
+            if(copyCount > newArray->capacity)
+                copyCount = newArray->capacity;
+            memcpy(newArray->values, prevArray->values, sizeof(yU32) * copyCount);
+            newArray->size = copyCount;
+            yapFree(prevArray);
+        }
+        *prevptr = newArray->values;
+    }
+    return newArray;
+}
+
+// finds / lazily creates a yap232Array from a regular ptr**
+static yap232Array *yap232ArrayGet(struct yapContext *Y, yU32 **daptr, yBool autoCreate)
+{
+    yap232Array *da = NULL;
+    if(daptr && *daptr)
+    {
+        // Move backwards one struct's worth (in bytes) to find the actual struct
+        da = (yap232Array *)((char *)(*daptr) - sizeof(yap232Array));
+    }
+    else
+    {
+        if(autoCreate)
+        {
+            // Create a new dynamic array
+            da = yap232ArrayChangeCapacity(Y, DYNAMIC_ARRAY_INITIAL_SIZE, daptr);
+        }
+    }
+    return da;
+}
+
+// calls yap2ArrayChangeCapacity in preparation for new data, if necessary
+static yap232Array *yap232ArrayMakeRoom(struct yapContext *Y, yU32 **daptr, int incomingCount)
+{
+    yap232Array *da = yap232ArrayGet(Y, daptr, 1);
+    int capacityNeeded = da->size + incomingCount;
+    int newCapacity = da->capacity;
+    while(newCapacity < capacityNeeded)
+        newCapacity *= 2; // is this dumb?
+    if(newCapacity != da->capacity)
+    {
+        da = yap232ArrayChangeCapacity(Y, newCapacity, daptr);
+    }
+    return da;
+}
+
+ySize yap232ArrayPushUnique(struct yapContext *Y, void *daptr, yU32 *v)
+{
+    int i;
+    yap232Array *da = yap232ArrayGet(Y, daptr, yTrue);
+    for(i = 0; i < da->size; ++i)
+    {
+        if(da->values[i] == *v)
+        {
+            return i;
+        }
+    }
+    return yap232ArrayPush(Y, daptr, v);
+}
+
+ySize yap232ArrayPush(struct yapContext *Y, void *daptr, yU32 *v)
+{
+    yap232Array *da = yap232ArrayMakeRoom(Y, daptr, 1);
+    da->values[da->size++] = *v;
+    return da->size - 1;
+}
+
+void yap232ArrayClear(struct yapContext *Y, void *daptr)
+{
+    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    if(da)
+    {
+        da->size = 0;
+    }
+}
+
+void yap232ArrayDestroy(struct yapContext *Y, void *daptr)
+{
+    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    if(da)
+    {
+        yapFree(da);
+        *((yU32 **)daptr) = NULL;
+    }
+}
+
+ySize yap232ArraySize(struct yapContext *Y, void *daptr)
+{
+    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    if(da)
+        return da->size;
+    return 0;
 }
 

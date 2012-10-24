@@ -989,15 +989,6 @@ yapValue *yapValueCreateArray(struct yapContext *Y)
 
 void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v)
 {
-#if 0
-    if(p->type != YVT_ARRAY)
-    {
-        p = yapValuePersonalize(Y, p);
-        yapValueClear(Y, p);
-        p->arrayVal = yapArrayCreate();
-        p->type = YVT_ARRAY;
-    }
-#endif
     yapAssert(p->type == YVT_ARRAY);
 
     yap2ArrayPush(Y, &p->arrayVal, v);
@@ -1079,15 +1070,6 @@ void yapValueClear(struct yapContext *Y, yapValue *p)
     memset(p, 0, sizeof(*p));
     p->type = YVT_NULL;
 }
-
-#if 0
-void yapValueRelease(struct yapContext *Y, yapValue *p)
-{
-    yapTraceValues(("yapValueRelease %p\n", p));
-    yapValueClear(Y, p);
-    yapArrayPush(Y, &Y->freeValues, p);
-}
-#endif
 
 #ifdef YAP_TRACE_REFS
 static int sYapValueDebugCount = 0;

@@ -38,20 +38,20 @@ yU32 array_push(struct yapContext *Y, yU32 argCount)
 {
     int i;
     yapValue *a;
-    yapArray values = {0};
+    yapValue **values = NULL;
     if(!yapContextGetArgs(Y, argCount, "a.", &a, &values))
     {
         return yapContextArgsFailure(Y, argCount, "push([array] a, ... values)");
     }
 
-    for(i=0; i<values.count; i++)
+    for(i=0; i<yap2ArraySize(Y, &values); i++)
     {
-        yapValue *v = (yapValue *)values.data[i];
+        yapValue *v = (yapValue *)values[i];
         yapValueArrayPush(Y, a, v);
     }
 
     yapValueRemoveRefNote(Y, a, "array_push a done");
-    yapArrayClear(Y, &values, NULL);
+    yap2ArrayDestroy(Y, &values, NULL);
     return 0;
 }
 

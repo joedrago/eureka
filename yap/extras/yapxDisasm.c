@@ -109,17 +109,18 @@ void yapChunkDump(struct yapContext *Y, yapChunk *chunk)
 
     for(i = 0; i < yap2ArraySize(Y, &chunk->kStrings); i++)
     {
-        printf(".kstr %3d    \"%s\"\n", i, (char *)chunk->kStrings[i]);
+        printf(".kstr %3d    \"%s\"\n", i, chunk->kStrings[i]);
     }
 
-    for(i = 0; i < chunk->kInts.count; i++)
+    for(i = 0; i < yap232ArraySize(Y, &chunk->kInts); i++)
     {
-        printf(".kint %3d    %d\n", i, chunk->kInts.data[i]);
+        printf(".kint %3d    %d\n", i, chunk->kInts[i]);
     }
 
-    for(i = 0; i < chunk->kFloats.count; i++)
+    for(i = 0; i < yap232ArraySize(Y, &chunk->kFloats); i++)
+
     {
-        printf(".kfloat %3d    %f\n", i, *((yF32 *)&chunk->kFloats.data[i]));
+        printf(".kfloat %3d    %f\n", i, chunk->kFloats[i]);
     }
 
     for(i = 0; i < yap2ArraySize(Y, &chunk->blocks); i++)

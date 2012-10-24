@@ -380,14 +380,14 @@ asmFunc(KString)
 asmFunc(KInt)
 {
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, YOP_PUSH_KI, yap32ArrayPushUnique(Y, &compiler->chunk->kInts, &syntax->v.i), syntax->line);
+    yapCodeAppend(Y, dst, YOP_PUSH_KI, yap232ArrayPushUnique(Y, &compiler->chunk->kInts, &syntax->v.i), syntax->line);
     return PAD(1);
 }
 
 asmFunc(KFloat)
 {
     yapCodeGrow(Y, dst, 1);
-    yapCodeAppend(Y, dst, YOP_PUSH_KF, yap32ArrayPushUnique(Y, &compiler->chunk->kFloats, (yU32 *)&syntax->v.f), syntax->line);
+    yapCodeAppend(Y, dst, YOP_PUSH_KF, yap232ArrayPushUnique(Y, &compiler->chunk->kFloats, (yU32 *)&syntax->v.f), syntax->line);
     return PAD(1);
 }
 

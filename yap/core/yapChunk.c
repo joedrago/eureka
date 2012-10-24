@@ -16,8 +16,8 @@ void yapChunkDestroy(struct yapContext *Y, yapChunk *chunk)
     yap2ArrayDestroy(Y, &chunk->blocks, (yapDestroyCB)yapBlockDestroy);
 
     yap2ArrayDestroy(Y, &chunk->kStrings, (yapDestroyCB)yapDestroyCBFree);
-    yap32ArrayClear(Y, &chunk->kInts);
-    yap32ArrayClear(Y, &chunk->kFloats);
+    yap232ArrayDestroy(Y, &chunk->kInts);
+    yap232ArrayDestroy(Y, &chunk->kFloats);
 
     yapFree(chunk);
 }

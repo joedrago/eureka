@@ -546,7 +546,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
     const char *c;
     yapValue *v;
     yapValue **valuePtr;
-    yapArray *leftovers = NULL;
+    yapValue ***leftovers = NULL;
     int argsTaken = 0; // from the yap stack (the amount of incoming varargs solely depends on argFormat)
     va_list args;
     va_start(args, argFormat);
@@ -561,7 +561,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
 
         if(*c == '.')
         {
-            leftovers = va_arg(args, yapArray *);
+            leftovers = va_arg(args, yapValue ***);
             break;
         };
 
@@ -618,7 +618,7 @@ yBool yapContextGetArgs(struct yapContext *Y, int argCount, const char *argForma
     {
         for(; argsTaken < argCount; argsTaken++)
         {
-            yapArrayPush(Y, leftovers, yapContextGetArg(Y, argsTaken, argCount));
+            yap2ArrayPush(Y, leftovers, yapContextGetArg(Y, argsTaken, argCount));
         }
     }
 
@@ -804,14 +804,14 @@ void yapContextLoop(struct yapContext *Y, yBool stopAtPop)
 
             case YOP_PUSH_KI:
             {
-                yapValue *value = yapValueCreateInt(Y, frame->block->chunk->kInts.data[operand]);
+                yapValue *value = yapValueCreateInt(Y, frame->block->chunk->kInts[operand]);
                 yap2ArrayPush(Y, &Y->stack, value);
             }
             break;
 
             case YOP_PUSH_KF:
             {
-                yapValue *value = yapValueCreateFloat(Y, *((yF32 *)&frame->block->chunk->kFloats.data[operand]));
+                yapValue *value = yapValueCreateFloat(Y, *((yF32 *)&frame->block->chunk->kFloats[operand]));
                 yap2ArrayPush(Y, &Y->stack, value);
             }
             break;

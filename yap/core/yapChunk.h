@@ -21,8 +21,8 @@ typedef struct yapChunk
 
     // constants
     char **kStrings;                   // constant string table
-    yap32Array kInts;                  // constant integer table
-    yap32Array kFloats;                // constant float table
+    yS32 *kInts;                       // constant integer table
+    yF32 *kFloats;                     // constant float table
 
     yBool hasFuncs;                    // at least one of the blocks represents a function
     yBool temporary;                   // signifies that the ktables aren't sticking around, and to dupe into values
