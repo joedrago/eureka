@@ -120,7 +120,7 @@ static void blockFuncClear(struct yapContext *Y, struct yapValue *p)
 {
     if(p->closureVars)
     {
-        yapHashDestroy(Y, p->closureVars, (yapDestroyCB)yapValueRemoveRef);
+        yap2HashDestroy(Y, p->closureVars, yapValueRemoveRef);
     }
 }
 
@@ -836,10 +836,10 @@ yapValue *yapValueDonateString(struct yapContext *Y, char *s)
     return p;
 }
 
-static void yapValueAddClosureVar(yapContext *Y, yapHash *closureVars, yapHashEntry *entry)
+static void yapValueAddClosureVar(yapContext *Y, yap2Hash *closureVars, yap2HashEntry *entry)
 {
-    yapValueAddRefNote(Y, entry->value, "+ref closure variable");
-    yapHashSet(Y, closureVars, entry->key, entry->value);
+    yapValueAddRefNote(Y, entry->valuePtr, "+ref closure variable");
+    yap2HashGetS2P(Y, closureVars, entry->keyStr) = entry->valuePtr;
 }
 
 void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
@@ -873,9 +873,9 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
             {
                 if(!p->closureVars)
                 {
-                    p->closureVars = yapHashCreate(Y, 0);
+                    p->closureVars = yap2HashCreate(Y, KEYTYPE_STRING, 0);
                 }
-                yapHashIterateP1(Y, frame->locals, (yapIterateCB1)yapValueAddClosureVar, p->closureVars);
+                yap2HashIterateP1(Y, frame->locals, yapValueAddClosureVar, p->closureVars);
             }
         }
     }

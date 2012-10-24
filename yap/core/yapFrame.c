@@ -15,7 +15,7 @@
 yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisVal, struct yapBlock *block, yU32 prevStackCount, yU32 argCount, yapValue *closure)
 {
     yapFrame *frame = (yapFrame *)yapAlloc(sizeof(yapFrame));
-    frame->locals = yapHashCreate(Y, 0);
+    frame->locals = yap2HashCreate(Y, KEYTYPE_STRING, 0);
     frame->type = type;
     frame->thisVal = thisVal;
     frame->block = block;
@@ -34,7 +34,7 @@ yapFrame *yapFrameCreate(struct yapContext *Y, yU32 type, struct yapValue *thisV
 
 void yapFrameReset(struct yapContext *Y, yapFrame *frame, yBool jumpToStart)
 {
-    yapHashClear(Y, frame->locals, (yapDestroyCB)yapValueRemoveRefHashed);
+    yap2HashClear(Y, frame->locals, yapValueRemoveRefHashed);
     frame->ip = (frame->block) ? frame->block->ops : NULL;
     if(frame->ip && jumpToStart)
     {
@@ -53,7 +53,7 @@ void yapFrameDestroy(struct yapContext *Y, yapFrame *frame)
     {
         yapValueRemoveRefNote(Y, frame->closure, "closure ptr done");
     }
-    yapHashDestroy(Y, frame->locals, NULL);
+    yap2HashDestroy(Y, frame->locals, NULL);
     yapFree(frame);
 }
 

@@ -39,7 +39,7 @@ enum
 
 typedef struct yapFrame
 {
-    struct yapHash *locals;
+    struct yap2Hash *locals;
     struct yapBlock *block;
     struct yapOp *ip;                  // Instruction Pointer
     struct yapValue *thisVal;          // In function scope, it is "this"

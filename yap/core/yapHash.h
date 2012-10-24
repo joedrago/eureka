@@ -38,4 +38,75 @@ void **yapHashLookup(struct yapContext *Y, yapHash *yh, const char *key, yBool c
 void **yapHashSet(struct yapContext *Y, yapHash *yh, const char *key, void *value);       // assumes 'create' and 'replace'
 void yapHashDelete(struct yapContext *Y, yapHash *yh, const char *key, yapDestroyCB cb);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+typedef enum yap2HashKeyType
+{
+    KEYTYPE_STRING = 1,
+    KEYTYPE_INTEGER
+} yap2HashKeyType;
+
+typedef struct yap2HashEntry
+{
+    union
+    {
+        char *keyStr;
+        yU32 keyInt;
+    };
+    union
+    {
+        void *valuePtr;
+        yU32 valueInt;
+        long long value64;
+    };
+    struct yap2HashEntry *next;
+    yU32 hash;
+} yap2HashEntry;
+
+typedef struct yap2Hash
+{
+    yap2HashEntry **table; // Hash table daArray
+    ySize split;       // Linear Hashing 'split'
+    ySize mod;         // pre-split modulus (use mod*2 for overflow)
+    int keyType;
+    int count;           // count tracking for convenience
+} yap2Hash;
+
+typedef void (*yap2IterateCB1)(struct yapContext *Y, void *arg1, yap2HashEntry *entry);
+
+yap2Hash *yap2HashCreate(struct yapContext *Y, yap2HashKeyType keyType, yU32 estimatedSize);
+void yap2HashDestroy(struct yapContext *Y, yap2Hash *yh, void * /*dynDestroyFunc*/ destroyFunc);
+void yap2HashClear(struct yapContext *Y, yap2Hash *yh, void * /*dynDestroyFunc*/ destroyFunc);
+
+yap2HashEntry *yap2HashGetString(struct yapContext *Y, yap2Hash *yh, const char *key);
+yap2HashEntry *yap2HashHasString(struct yapContext *Y, yap2Hash *yh, const char *key);
+void yap2HashEraseString(struct yapContext *Y, yap2Hash *yh, const char *key, void * /*dynDestroyFunc*/ destroyFunc);
+
+yap2HashEntry *yap2HashGetInteger(struct yapContext *Y, yap2Hash *yh, yU32 key);
+yap2HashEntry *yap2HashHasInteger(struct yapContext *Y, yap2Hash *yh, yU32 key);
+void yap2HashEraseInteger(struct yapContext *Y, yap2Hash *yh, yU32 key, void * /*dynDestroyFunc*/ destroyFunc);
+
+void yap2HashIterateP1(struct yapContext *Y, yap2Hash *yh, void * /*yapIterateCB1*/ cb, void *arg1); // One prefixed argument: cb(arg1, p)
+
+// Convenience macros
+
+#define yap2HashGetS2P(Y, MAP, KEY) (yap2HashGetString(Y, MAP, KEY)->valuePtr)
+#define yap2HashGetS2I(Y, MAP, KEY) (yap2HashGetString(Y, MAP, KEY)->valueInt)
+#define yap2HashGetI2P(Y, MAP, KEY) (yap2HashGetInteger(Y, MAP, KEY)->valuePtr)
+#define yap2HashGetI2I(Y, MAP, KEY) (yap2HashGetInteger(Y, MAP, KEY)->valueInt)
+#define yap2HashHasS yap2HashHasString
+#define yap2HashHasI yap2HashHasInteger
+
 #endif

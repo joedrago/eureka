@@ -122,15 +122,15 @@ typedef yU32(yapCFunction)(struct yapContext *Y, yU32 argCount);
 typedef struct yapValue
 {
     yU8 type;
-    yS32 refs;                           // reference count!
+    yS32 refs;                            // reference count!
     union
     {
         yS32 intVal;
         yF32 floatVal;
         struct
         {
-            struct yapHash *closureVars; // Populated at runtime when a reference to a new function() is created
-            struct yapBlock *blockVal;   // Hurr, Shield Slam
+            struct yap2Hash *closureVars; // Populated at runtime when a reference to a new function() is created
+            struct yapBlock *blockVal;    // Hurr, Shield Slam
         };
         yapString stringVal;
         struct yapValue **refVal;

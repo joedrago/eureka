@@ -30,7 +30,7 @@
 
 void yapContextRegisterGlobal(struct yapContext *Y, const char *name, yapValue *value)
 {
-    yapHashSet(Y, Y->globals, name, value);
+    yap2HashGetS2P(Y, Y->globals, name) = value;
     yapValueAddRefNote(Y, value, "yapContextRegisterGlobal");
 }
 
@@ -149,7 +149,7 @@ yapContext *yapContextCreate(yapMemFuncs *memFuncs)
         }
     }
     // LCOV_EXCL_STOP
-    Y->globals = yapHashCreate(Y, 0);
+    Y->globals = yap2HashCreate(Y, KEYTYPE_STRING, 0);
 
     yapValueTypeRegisterAllBasicTypes(Y);
     yapIntrinsicsRegisterCore(Y);
@@ -209,7 +209,7 @@ const char *yapContextGetError(yapContext *Y)
 
 void yapContextDestroy(yapContext *Y)
 {
-    yapHashDestroy(Y, Y->globals, (yapDestroyCB)yapValueRemoveRefHashed);
+    yap2HashDestroy(Y, Y->globals, yapValueRemoveRefHashed);
     yapArrayDestroy(Y, &Y->frames, (yapDestroyCB)yapFrameDestroy);
     yapArrayDestroy(Y, &Y->stack, (yapDestroyCB)yapValueRemoveRefHashed);
     yapArrayDestroy(Y, &Y->chunks, (yapDestroyCB)yapChunkDestroy);
@@ -227,20 +227,21 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
     int i;
     yapFrame *frame;
     yapValue **valueRef;
+    yap2HashEntry *hashEntry;
 
     for(i = yapArraySize(Y, &Y->frames) - 1; i >= 0; i--)
     {
         frame = Y->frames[i];
 
         // Check the locals
-        valueRef = (yapValue **)yapHashLookup(Y, frame->locals, name, yFalse);
-        if(valueRef) { return valueRef; }
+        hashEntry = yap2HashHasString(Y, frame->locals, name);
+        if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
 
         // Check closure vars
         if(frame->closure && frame->closure->closureVars)
         {
-            valueRef = (yapValue **)yapHashLookup(Y, frame->closure->closureVars, name, yFalse);
-            if(valueRef) { return valueRef; }
+            hashEntry = yap2HashHasString(Y, frame->closure->closureVars, name);
+            if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
         }
 
         if(frame->type & YFT_FUNC)
@@ -250,8 +251,8 @@ static yapValue **yapContextResolve(struct yapContext *Y, const char *name)
     }
 
     // check globals
-    valueRef = (yapValue **)yapHashLookup(Y, Y->globals, name, yFalse);
-    if(valueRef) { return valueRef; }
+    hashEntry = yap2HashHasString(Y, Y->globals, name);
+    if(hashEntry) { return (yapValue **)&hashEntry->valuePtr; }
 
     return NULL;
 }
@@ -396,6 +397,7 @@ static yBool yapContextCreateObject(struct yapContext *Y, yapFrame **framePtr, y
 // TODO: this needs to protect against variable masking/shadowing
 static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yapValue *value)
 {
+    yap2HashEntry *hashEntry;
     yapValue **valueRef;
     yapFrame *frame = yapArrayTop(Y, &Y->frames);
     if(!frame)
@@ -409,12 +411,14 @@ static yapValue **yapContextRegister(struct yapContext *Y, const char *name, yap
     {
         // If we're in the chunk's "main" function, all variable
         // registration goes into the globals
-        valueRef = (yapValue **)yapHashSet(Y, Y->globals, name, value);
+        hashEntry = yap2HashGetString(Y, Y->globals, name);
     }
     else
     {
-        valueRef = (yapValue **)yapHashSet(Y, frame->locals, name, value);
+        hashEntry = yap2HashGetString(Y, frame->locals, name);
     }
+    hashEntry->valuePtr = value;
+    valueRef = (yapValue **)&hashEntry->valuePtr;
     return valueRef;
 }
 
