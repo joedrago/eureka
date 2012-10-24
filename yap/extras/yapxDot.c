@@ -21,7 +21,7 @@ static void yapSyntaxDotRecurseArray(struct yapContext *Y, yapSyntax **a, const 
 {
     int i;
     const char *childLineOpts = myLineOpts;
-    for(i = 0; i < yap2ArraySize(Y, &a); i++)
+    for(i = 0; i < yapArraySize(Y, &a); i++)
     {
         REC_CHILD(a[i]);
     }
@@ -98,7 +98,7 @@ static void yapSyntaxDotRecurse(struct yapContext *Y, yapSyntax *syntax, const c
 
         case YST_EXPRESSIONLIST:
         {
-            if(yap2ArraySize(Y, &syntax->v.a))
+            if(yapArraySize(Y, &syntax->v.a))
             {
                 myOpts = "shape=egg";
                 strcpy(label, "ExprList");
@@ -122,7 +122,7 @@ static void yapSyntaxDotRecurse(struct yapContext *Y, yapSyntax *syntax, const c
         case YST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
-            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)yap2ArraySize(Y, &syntax->r.p->v.a));
+            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)yapArraySize(Y, &syntax->r.p->v.a));
             childLineOpts = "style=dotted,label=args";
             REC_CHILD(syntax->r.p);
         }

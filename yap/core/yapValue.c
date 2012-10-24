@@ -55,7 +55,7 @@ void yapValueTypeDestroy(struct yapContext *Y, yapValueType *type)
 int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
 {
     int i;
-    for(i=0; i<yap2ArraySize(Y, &Y->types); i++)
+    for(i=0; i<yapArraySize(Y, &Y->types); i++)
     {
         yapValueType *t = Y->types[i];
         if(!strcmp(newType->name, t->name))
@@ -79,7 +79,7 @@ int yapValueTypeRegister(struct yapContext *Y, yapValueType *newType)
     yapAssert(newType->funcDump);
     yapAssert(newType->funcDump != yapValueTypeFuncNotUsed); // required!
 
-    newType->id = yap2ArrayPush(Y, &Y->types, newType);
+    newType->id = yapArrayPush(Y, &Y->types, newType);
     return newType->id;
 }
 
@@ -545,7 +545,7 @@ static void stringFuncRegister(struct yapContext *Y)
 
 static void arrayFuncClear(struct yapContext *Y, struct yapValue *p)
 {
-    yap2ArrayDestroy(Y, &p->arrayVal, (yapDestroyCB)yapValueRemoveRefHashed);
+    yapArrayDestroy(Y, &p->arrayVal, (yapDestroyCB)yapValueRemoveRefHashed);
 }
 
 static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct yapValue *src)
@@ -555,17 +555,17 @@ static void arrayFuncClone(struct yapContext *Y, struct yapValue *dst, struct ya
 
 static yBool arrayFuncToBool(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal && yap2ArraySize(Y, &p->arrayVal)) ? yTrue : yFalse;
+    return (p->arrayVal && yapArraySize(Y, &p->arrayVal)) ? yTrue : yFalse;
 }
 
 static yS32 arrayFuncToInt(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal) ? yap2ArraySize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? yapArraySize(Y, &p->arrayVal) : 0;
 }
 
 static yF32 arrayFuncToFloat(struct yapContext *Y, struct yapValue *p)
 {
-    return (p->arrayVal) ? (yF32)yap2ArraySize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? (yF32)yapArraySize(Y, &p->arrayVal) : 0;
 }
 
 static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *value, struct yapValue *index, yBool lvalue)
@@ -574,7 +574,7 @@ static struct yapValue *arrayFuncIndex(struct yapContext *Y, struct yapValue *va
     yapValue **ref = NULL;
     yapValueAddRefNote(Y, index, "keep index around after int conversion");
     index = yapValueToInt(Y, index);
-    if(index->intVal >= 0 && index->intVal < yap2ArraySize(Y, &value->arrayVal))
+    if(index->intVal >= 0 && index->intVal < yapArraySize(Y, &value->arrayVal))
     {
         ref = (yapValue **) & (value->arrayVal[index->intVal]);
         if(lvalue)
@@ -599,7 +599,7 @@ static void arrayFuncDump(struct yapContext *Y, yapDumpParams *params, struct ya
 {
     int i;
     yapStringConcat(Y, &params->output, "[ ");
-    for(i=0; i<yap2ArraySize(Y, &p->arrayVal); i++)
+    for(i=0; i<yapArraySize(Y, &p->arrayVal); i++)
     {
         yapValue *child = (yapValue *)p->arrayVal[i];
         if(i > 0)
@@ -855,7 +855,7 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
 
     yapAssert(p->closureVars == NULL);
 
-    for(frameIndex = yap2ArraySize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
+    for(frameIndex = yapArraySize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
     {
         frame = Y->frames[frameIndex];
         if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
@@ -866,7 +866,7 @@ void yapValueAddClosureVars(struct yapContext *Y, yapValue *p)
 
     if(frameIndex >= 0)
     {
-        for(; frameIndex < yap2ArraySize(Y, &Y->frames); frameIndex++)
+        for(; frameIndex < yapArraySize(Y, &Y->frames); frameIndex++)
         {
             frame = Y->frames[frameIndex];
             if(frame->locals->count)
@@ -991,7 +991,7 @@ void yapValueArrayPush(struct yapContext *Y, yapValue *p, yapValue *v)
 {
     yapAssert(p->type == YVT_ARRAY);
 
-    yap2ArrayPush(Y, &p->arrayVal, v);
+    yapArrayPush(Y, &p->arrayVal, v);
 }
 
 // ---------------------------------------------------------------------------
@@ -1316,7 +1316,7 @@ yapValue *yapValueIndex(struct yapContext *Y, yapValue *p, yapValue *index, yBoo
 
 const char *yapValueTypeName(struct yapContext *Y, int type)
 {
-    if((type >= 0) && (type < yap2ArraySize(Y, &Y->types)))
+    if((type >= 0) && (type < yapArraySize(Y, &Y->types)))
     {
         yapValueType *valueType = Y->types[type];
         return valueType->name;

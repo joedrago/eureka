@@ -71,10 +71,10 @@ void outputDot(const char *code)
     yapContext *Y = yapContextCreate(NULL);
     yapCompiler *compiler = yapCompilerCreate(Y);
     yapCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
-    if(yap2ArraySize(Y, &compiler->errors))
+    if(yapArraySize(Y, &compiler->errors))
     {
         int i;
-        for(i = 0; i < yap2ArraySize(Y, &compiler->errors); i++)
+        for(i = 0; i < yapArraySize(Y, &compiler->errors); i++)
         {
             char *error = (char *)compiler->errors[i];
             fprintf(stderr, "Error: %s\n", error);

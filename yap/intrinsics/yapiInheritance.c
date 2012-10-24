@@ -21,7 +21,7 @@ static yU32 object(struct yapContext *Y, yU32 argCount)
 {
     yapValue *v;
     v = yapValueCreateObject(Y, NULL, argCount, yFalse);
-    yap2ArrayPush(Y, &Y->stack, v);
+    yapArrayPush(Y, &Y->stack, v);
     return 1;
 }
 
@@ -29,7 +29,7 @@ static yU32 inherit(struct yapContext *Y, yU32 argCount)
 {
     yapValue *v;
     v = yapValueCreateObject(Y, NULL, argCount, yTrue);
-    yap2ArrayPush(Y, &Y->stack, v);
+    yapArrayPush(Y, &Y->stack, v);
     return 1;
 }
 
@@ -82,11 +82,11 @@ static yU32 prototype(struct yapContext *Y, yU32 argCount)
 
     if(object && object->isa)
     {
-        yap2ArrayPush(Y, &Y->stack, object->isa);
+        yapArrayPush(Y, &Y->stack, object->isa);
     }
     else
     {
-        yap2ArrayPush(Y, &Y->stack, &yapValueNull);
+        yapArrayPush(Y, &Y->stack, &yapValueNull);
     }
 
     return 1;

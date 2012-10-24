@@ -33,7 +33,7 @@ static void yapSyntaxElementClear(struct yapContext *Y, yapSyntaxElement *e)
     }
     if(e->a)
     {
-        yap2ArrayDestroy(Y, &e->a, (yapDestroyCB)yapSyntaxDestroy);
+        yapArrayDestroy(Y, &e->a, (yapDestroyCB)yapSyntaxDestroy);
     }
 }
 
@@ -109,7 +109,7 @@ yapSyntax *yapSyntaxCreateList(struct yapContext *Y, yU32 type, yapSyntax *first
     syntax->v.a = NULL;
     if(firstExpr)
     {
-        yap2ArrayPush(Y, &syntax->v.a, firstExpr);
+        yapArrayPush(Y, &syntax->v.a, firstExpr);
     }
     return syntax;
 }
@@ -123,7 +123,7 @@ yapSyntax *yapSyntaxListAppend(struct yapContext *Y, yapSyntax *list, yapSyntax 
         {
             list->line = expr->line;
         }
-        index = yap2ArrayPush(Y, &list->v.a, expr);
+        index = yapArrayPush(Y, &list->v.a, expr);
         if((flags & YSLF_AUTOLITERAL) && (index > 0))
         {
             yapSyntax *toLiteral = list->v.a[index - 1];
@@ -172,7 +172,7 @@ yapSyntax *yapSyntaxCreateStatementExpr(struct yapContext *Y, yapSyntax *expr)
 {
     yapSyntax *syntax;
 
-    if((expr->type == YST_EXPRESSIONLIST) && (yap2ArraySize(Y, &expr->v.a) == 0))
+    if((expr->type == YST_EXPRESSIONLIST) && (yapArraySize(Y, &expr->v.a) == 0))
     {
         // An empty statement. Without PYTHON_SCOPING, this only happens
         // when there are multiple semicolons in a row. However, when

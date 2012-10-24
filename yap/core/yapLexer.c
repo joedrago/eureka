@@ -114,7 +114,7 @@ yBool yapLex(void *parser, const char *text, tokenCB cb, struct yapCompiler *com
         l.token = l.cur;
     }
 
-    if(!yap2ArraySize(Y, &compiler->errors))
+    if(!yapArraySize(Y, &compiler->errors))
     {
         token.line = l.line;
         CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);

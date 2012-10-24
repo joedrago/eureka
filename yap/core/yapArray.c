@@ -12,38 +12,38 @@
 // ------------------------------------------------------------------------------------------------
 // Internal structures
 
-typedef struct yap2Array
+typedef struct yapArray
 {
     char **values;
     ySize size;
     ySize capacity;
-} yap2Array;
+} yapArray;
 
-typedef struct yap232Array
+typedef struct yap32Array
 {
     yU32 *values;
     ySize size;
     ySize capacity;
-} yap232Array;
+} yap32Array;
 
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
 // workhorse function that does all of the allocation and copying
-static yap2Array *yap2ArrayChangeCapacity(struct yapContext *Y, ySize newCapacity, char ***prevptr)
+static yapArray *yapArrayChangeCapacity(struct yapContext *Y, ySize newCapacity, char ***prevptr)
 {
-    yap2Array *newArray;
-    yap2Array *prevArray = NULL;
+    yapArray *newArray;
+    yapArray *prevArray = NULL;
     if(prevptr && *prevptr)
     {
-        prevArray = (yap2Array *)((char *)(*prevptr) - sizeof(yap2Array));
+        prevArray = (yapArray *)((char *)(*prevptr) - sizeof(yapArray));
         if(newCapacity == prevArray->capacity)
             return prevArray;
     }
 
-    newArray = (yap2Array *)yapAlloc(sizeof(yap2Array) + (sizeof(char*) * newCapacity));
+    newArray = (yapArray *)yapAlloc(sizeof(yapArray) + (sizeof(char*) * newCapacity));
     newArray->capacity = newCapacity;
-    newArray->values = (char **)(((char *)newArray) + sizeof(yap2Array));
+    newArray->values = (char **)(((char *)newArray) + sizeof(yapArray));
     if(prevptr)
     {
         if(prevArray)
@@ -60,36 +60,36 @@ static yap2Array *yap2ArrayChangeCapacity(struct yapContext *Y, ySize newCapacit
     return newArray;
 }
 
-// finds / lazily creates a yap2Array from a regular ptr**
-static yap2Array *yap2ArrayGet(struct yapContext *Y, char ***daptr, yBool autoCreate)
+// finds / lazily creates a yapArray from a regular ptr**
+static yapArray *yapArrayGet(struct yapContext *Y, char ***daptr, yBool autoCreate)
 {
-    yap2Array *da = NULL;
+    yapArray *da = NULL;
     if(daptr && *daptr)
     {
         // Move backwards one struct's worth (in bytes) to find the actual struct
-        da = (yap2Array *)((char *)(*daptr) - sizeof(yap2Array));
+        da = (yapArray *)((char *)(*daptr) - sizeof(yapArray));
     }
     else
     {
         if(autoCreate)
         {
             // Create a new dynamic array
-            da = yap2ArrayChangeCapacity(Y, DYNAMIC_ARRAY_INITIAL_SIZE, daptr);
+            da = yapArrayChangeCapacity(Y, DYNAMIC_ARRAY_INITIAL_SIZE, daptr);
         }
     }
     return da;
 }
 
 // this assumes you've already destroyed any soon-to-be orphaned values at the end
-static void yap2ArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSize)
+static void yapArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSize)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
     if(da->size == newSize)
         return;
 
     if(newSize > da->capacity)
     {
-        da = yap2ArrayChangeCapacity(Y, newSize, daptr);
+        da = yapArrayChangeCapacity(Y, newSize, daptr);
     }
     if(newSize > da->size)
     {
@@ -98,23 +98,23 @@ static void yap2ArrayChangeSize(struct yapContext *Y, char ***daptr, ySize newSi
     da->size = newSize;
 }
 
-// calls yap2ArrayChangeCapacity in preparation for new data, if necessary
-static yap2Array *yap2ArrayMakeRoom(struct yapContext *Y, char ***daptr, int incomingCount)
+// calls yapArrayChangeCapacity in preparation for new data, if necessary
+static yapArray *yapArrayMakeRoom(struct yapContext *Y, char ***daptr, int incomingCount)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
     int capacityNeeded = da->size + incomingCount;
     int newCapacity = da->capacity;
     while(newCapacity < capacityNeeded)
         newCapacity *= 2; // is this dumb?
     if(newCapacity != da->capacity)
     {
-        da = yap2ArrayChangeCapacity(Y, newCapacity, daptr);
+        da = yapArrayChangeCapacity(Y, newCapacity, daptr);
     }
     return da;
 }
 
 // clears [start, (end-1)]
-static void yap2ArrayClearRange(struct yapContext *Y, yap2Array *da, int start, int end, void * destroyFunc)
+static void yapArrayClearRange(struct yapContext *Y, yapArray *da, int start, int end, void * destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     if(func)
@@ -128,7 +128,7 @@ static void yap2ArrayClearRange(struct yapContext *Y, yap2Array *da, int start, 
     }
 }
 
-static void yap2ArrayClearRangeP1(struct yapContext *Y, yap2Array *da, int start, int end, void * destroyFunc, void *p1)
+static void yapArrayClearRangeP1(struct yapContext *Y, yapArray *da, int start, int end, void * destroyFunc, void *p1)
 {
     yapDestroyCB1 func = destroyFunc;
     if(func)
@@ -145,70 +145,70 @@ static void yap2ArrayClearRangeP1(struct yapContext *Y, yap2Array *da, int start
 // ------------------------------------------------------------------------------------------------
 // creation / destruction / cleanup
 
-void yap2ArrayCreate(struct yapContext *Y, void *daptr)
+void yapArrayCreate(struct yapContext *Y, void *daptr)
 {
-    yap2ArrayGet(Y, daptr, 1);
+    yapArrayGet(Y, daptr, 1);
 }
 
-void yap2ArrayDestroy(struct yapContext *Y, void *daptr, void * destroyFunc)
+void yapArrayDestroy(struct yapContext *Y, void *daptr, void * destroyFunc)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
-        yap2ArrayClear(Y, daptr, destroyFunc);
+        yapArrayClear(Y, daptr, destroyFunc);
         yapFree(da);
         *((char ***)daptr) = NULL;
     }
 }
 
-void yap2ArrayDestroyStrings(struct yapContext *Y, void *daptr)
+void yapArrayDestroyStrings(struct yapContext *Y, void *daptr)
 {
-    //yap2ArrayDestroy(Y, daptr, dsDestroyIndirect);
+    //yapArrayDestroy(Y, daptr, dsDestroyIndirect);
 }
 
-void yap2ArrayDestroyP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
+void yapArrayDestroyP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
-        yap2ArrayClearP1(Y, daptr, destroyFunc, p1);
+        yapArrayClearP1(Y, daptr, destroyFunc, p1);
         yapFree(da);
         *((char ***)daptr) = NULL;
     }
 }
 
-void yap2ArrayClear(struct yapContext *Y, void *daptr, void * destroyFunc)
+void yapArrayClear(struct yapContext *Y, void *daptr, void * destroyFunc)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
-        yap2ArrayClearRange(Y, da, 0, da->size, destroyFunc);
+        yapArrayClearRange(Y, da, 0, da->size, destroyFunc);
         da->size = 0;
     }
 }
 
-void yap2ArrayClearP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
+void yapArrayClearP1(struct yapContext *Y, void *daptr, void * destroyFunc, void *p1)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
-        yap2ArrayClearRangeP1(Y, da, 0, da->size, destroyFunc, p1);
+        yapArrayClearRangeP1(Y, da, 0, da->size, destroyFunc, p1);
         da->size = 0;
     }
 }
 
-void yap2ArrayClearStrings(struct yapContext *Y, void *daptr)
+void yapArrayClearStrings(struct yapContext *Y, void *daptr)
 {
-    //yap2ArrayClear(Y, daptr, dsDestroyIndirect);
+    //yapArrayClear(Y, daptr, dsDestroyIndirect);
 }
 
 // ------------------------------------------------------------------------------------------------
 // Front/back manipulation
 
 // aka "pop front"
-void *yap2ArrayShift(struct yapContext *Y, void *daptr)
+void *yapArrayShift(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da && da->size > 0)
     {
         void *ret = da->values[0];
@@ -219,9 +219,9 @@ void *yap2ArrayShift(struct yapContext *Y, void *daptr)
     return NULL;
 }
 
-void yap2ArrayUnshift(struct yapContext *Y, void *daptr, void *p)
+void yapArrayUnshift(struct yapContext *Y, void *daptr, void *p)
 {
-    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
+    yapArray *da = yapArrayMakeRoom(Y, daptr, 1);
     if(da->size > 0)
     {
         memmove(da->values + 1, da->values, sizeof(char*) * da->size);
@@ -230,16 +230,16 @@ void yap2ArrayUnshift(struct yapContext *Y, void *daptr, void *p)
     da->size++;
 }
 
-ySize yap2ArrayPush(struct yapContext *Y, void *daptr, void *entry)
+ySize yapArrayPush(struct yapContext *Y, void *daptr, void *entry)
 {
-    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
+    yapArray *da = yapArrayMakeRoom(Y, daptr, 1);
     da->values[da->size++] = entry;
     return da->size - 1;
 }
 
-ySize yap2ArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s)
+ySize yapArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s)
 {
-    yap2Array *da = yap2ArrayGet(Y, daptr, yTrue);
+    yapArray *da = yapArrayGet(Y, daptr, yTrue);
     ySize i;
     for(i = 0; i < da->size; i++)
     {
@@ -250,12 +250,12 @@ ySize yap2ArrayPushUniqueString(struct yapContext *Y, void *daptr, char *s)
             return i;
         }
     }
-    return yap2ArrayPush(Y, daptr, s);
+    return yapArrayPush(Y, daptr, s);
 }
 
-void *yap2ArrayTop(struct yapContext *Y, void *daptr)
+void *yapArrayTop(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da && (da->size > 0))
     {
         return da->values[da->size - 1];
@@ -263,9 +263,9 @@ void *yap2ArrayTop(struct yapContext *Y, void *daptr)
     return NULL;
 }
 
-void *yap2ArrayPop(struct yapContext *Y, void *daptr)
+void *yapArrayPop(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da && (da->size > 0))
     {
         return da->values[--da->size];
@@ -276,12 +276,12 @@ void *yap2ArrayPop(struct yapContext *Y, void *daptr)
 // ------------------------------------------------------------------------------------------------
 // Random access manipulation
 
-void yap2ArrayInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
+void yapArrayInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
 {
-    yap2Array *da = yap2ArrayMakeRoom(Y, daptr, 1);
+    yapArray *da = yapArrayMakeRoom(Y, daptr, 1);
     if((index < 0) || (!da->size) || (index >= da->size))
     {
-        yap2ArrayPush(Y, daptr, p);
+        yapArrayPush(Y, daptr, p);
     }
     else
     {
@@ -291,9 +291,9 @@ void yap2ArrayInsert(struct yapContext *Y, void *daptr, ySize index, void *p)
     }
 }
 
-void yap2ArrayErase(struct yapContext *Y, void *daptr, ySize index)
+void yapArrayErase(struct yapContext *Y, void *daptr, ySize index)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(!da)
         return;
     if((index < 0) || (!da->size) || (index >= da->size))
@@ -306,53 +306,53 @@ void yap2ArrayErase(struct yapContext *Y, void *daptr, ySize index)
 // ------------------------------------------------------------------------------------------------
 // Size manipulation
 
-void yap2ArraySetSize(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc)
+void yapArraySetSize(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
-    yap2ArrayClearRange(Y, da, newSize, da->size, destroyFunc);
-    yap2ArrayChangeSize(Y, daptr, newSize);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
+    yapArrayClearRange(Y, da, newSize, da->size, destroyFunc);
+    yapArrayChangeSize(Y, daptr, newSize);
 }
 
-void yap2ArraySetSizeP1(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc, void *p1)
+void yapArraySetSizeP1(struct yapContext *Y, void *daptr, ySize newSize, void * destroyFunc, void *p1)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
-    yap2ArrayClearRangeP1(Y, da, newSize, da->size, destroyFunc, p1);
-    yap2ArrayChangeSize(Y, daptr, newSize);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
+    yapArrayClearRangeP1(Y, da, newSize, da->size, destroyFunc, p1);
+    yapArrayChangeSize(Y, daptr, newSize);
 }
 
-ySize yap2ArraySize(struct yapContext *Y, void *daptr)
+ySize yapArraySize(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
         return da->size;
     return 0;
 }
 
-void yap2ArraySetCapacity(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc)
+void yapArraySetCapacity(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
-    yap2ArrayClearRange(Y, da, newCapacity, da->size, destroyFunc);
-    yap2ArrayChangeCapacity(Y, newCapacity, daptr);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
+    yapArrayClearRange(Y, da, newCapacity, da->size, destroyFunc);
+    yapArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
-void yap2ArraySetCapacityP1(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc, void *p1)
+void yapArraySetCapacityP1(struct yapContext *Y, void *daptr, ySize newCapacity, void * destroyFunc, void *p1)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 1);
-    yap2ArrayClearRangeP1(Y, da, newCapacity, da->size, destroyFunc, p1);
-    yap2ArrayChangeCapacity(Y, newCapacity, daptr);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 1);
+    yapArrayClearRangeP1(Y, da, newCapacity, da->size, destroyFunc, p1);
+    yapArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
-ySize yap2ArrayCapacity(struct yapContext *Y, void *daptr)
+ySize yapArrayCapacity(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
         return da->capacity;
     return 0;
 }
 
-void yap2ArraySquash(struct yapContext *Y, void *daptr)
+void yapArraySquash(struct yapContext *Y, void *daptr)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(da)
     {
         int head = 0;
@@ -369,9 +369,9 @@ void yap2ArraySquash(struct yapContext *Y, void *daptr)
     }
 }
 
-void yap2ArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb)
+void yapArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb)
 {
-    yap2Array *da = yap2ArrayGet(Y, (char ***)daptr, 0);
+    yapArray *da = yapArrayGet(Y, (char ***)daptr, 0);
     if(!da || !da->size)
     {
         return;
@@ -388,23 +388,23 @@ void yap2ArrayShrink(struct yapContext *Y, void *daptr, int n, yapDestroyCB cb)
 }
 
 // ------------------------------------------------------------------------------------------------
-// yap232Array
+// yap32Array
 
 // workhorse function that does all of the allocation and copying
-static yap232Array *yap232ArrayChangeCapacity(struct yapContext *Y, ySize newCapacity, yU32 **prevptr)
+static yap32Array *yap32ArrayChangeCapacity(struct yapContext *Y, ySize newCapacity, yU32 **prevptr)
 {
-    yap232Array *newArray;
-    yap232Array *prevArray = NULL;
+    yap32Array *newArray;
+    yap32Array *prevArray = NULL;
     if(prevptr && *prevptr)
     {
-        prevArray = (yap232Array *)((char *)(*prevptr) - sizeof(yap232Array));
+        prevArray = (yap32Array *)((char *)(*prevptr) - sizeof(yap32Array));
         if(newCapacity == prevArray->capacity)
             return prevArray;
     }
 
-    newArray = (yap232Array *)yapAlloc(sizeof(yap232Array) + (sizeof(yU32) * newCapacity));
+    newArray = (yap32Array *)yapAlloc(sizeof(yap32Array) + (sizeof(yU32) * newCapacity));
     newArray->capacity = newCapacity;
-    newArray->values = (yU32 *)(((char *)newArray) + sizeof(yap232Array));
+    newArray->values = (yU32 *)(((char *)newArray) + sizeof(yap32Array));
     if(prevptr)
     {
         if(prevArray)
@@ -421,45 +421,45 @@ static yap232Array *yap232ArrayChangeCapacity(struct yapContext *Y, ySize newCap
     return newArray;
 }
 
-// finds / lazily creates a yap232Array from a regular ptr**
-static yap232Array *yap232ArrayGet(struct yapContext *Y, yU32 **daptr, yBool autoCreate)
+// finds / lazily creates a yap32Array from a regular ptr**
+static yap32Array *yap32ArrayGet(struct yapContext *Y, yU32 **daptr, yBool autoCreate)
 {
-    yap232Array *da = NULL;
+    yap32Array *da = NULL;
     if(daptr && *daptr)
     {
         // Move backwards one struct's worth (in bytes) to find the actual struct
-        da = (yap232Array *)((char *)(*daptr) - sizeof(yap232Array));
+        da = (yap32Array *)((char *)(*daptr) - sizeof(yap32Array));
     }
     else
     {
         if(autoCreate)
         {
             // Create a new dynamic array
-            da = yap232ArrayChangeCapacity(Y, DYNAMIC_ARRAY_INITIAL_SIZE, daptr);
+            da = yap32ArrayChangeCapacity(Y, DYNAMIC_ARRAY_INITIAL_SIZE, daptr);
         }
     }
     return da;
 }
 
-// calls yap2ArrayChangeCapacity in preparation for new data, if necessary
-static yap232Array *yap232ArrayMakeRoom(struct yapContext *Y, yU32 **daptr, int incomingCount)
+// calls yapArrayChangeCapacity in preparation for new data, if necessary
+static yap32Array *yap32ArrayMakeRoom(struct yapContext *Y, yU32 **daptr, int incomingCount)
 {
-    yap232Array *da = yap232ArrayGet(Y, daptr, 1);
+    yap32Array *da = yap32ArrayGet(Y, daptr, 1);
     int capacityNeeded = da->size + incomingCount;
     int newCapacity = da->capacity;
     while(newCapacity < capacityNeeded)
         newCapacity *= 2; // is this dumb?
     if(newCapacity != da->capacity)
     {
-        da = yap232ArrayChangeCapacity(Y, newCapacity, daptr);
+        da = yap32ArrayChangeCapacity(Y, newCapacity, daptr);
     }
     return da;
 }
 
-ySize yap232ArrayPushUnique(struct yapContext *Y, void *daptr, yU32 *v)
+ySize yap32ArrayPushUnique(struct yapContext *Y, void *daptr, yU32 *v)
 {
     int i;
-    yap232Array *da = yap232ArrayGet(Y, daptr, yTrue);
+    yap32Array *da = yap32ArrayGet(Y, daptr, yTrue);
     for(i = 0; i < da->size; ++i)
     {
         if(da->values[i] == *v)
@@ -467,28 +467,28 @@ ySize yap232ArrayPushUnique(struct yapContext *Y, void *daptr, yU32 *v)
             return i;
         }
     }
-    return yap232ArrayPush(Y, daptr, v);
+    return yap32ArrayPush(Y, daptr, v);
 }
 
-ySize yap232ArrayPush(struct yapContext *Y, void *daptr, yU32 *v)
+ySize yap32ArrayPush(struct yapContext *Y, void *daptr, yU32 *v)
 {
-    yap232Array *da = yap232ArrayMakeRoom(Y, daptr, 1);
+    yap32Array *da = yap32ArrayMakeRoom(Y, daptr, 1);
     da->values[da->size++] = *v;
     return da->size - 1;
 }
 
-void yap232ArrayClear(struct yapContext *Y, void *daptr)
+void yap32ArrayClear(struct yapContext *Y, void *daptr)
 {
-    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    yap32Array *da = yap32ArrayGet(Y, (yU32 **)daptr, 0);
     if(da)
     {
         da->size = 0;
     }
 }
 
-void yap232ArrayDestroy(struct yapContext *Y, void *daptr)
+void yap32ArrayDestroy(struct yapContext *Y, void *daptr)
 {
-    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    yap32Array *da = yap32ArrayGet(Y, (yU32 **)daptr, 0);
     if(da)
     {
         yapFree(da);
@@ -496,9 +496,9 @@ void yap232ArrayDestroy(struct yapContext *Y, void *daptr)
     }
 }
 
-ySize yap232ArraySize(struct yapContext *Y, void *daptr)
+ySize yap32ArraySize(struct yapContext *Y, void *daptr)
 {
-    yap232Array *da = yap232ArrayGet(Y, (yU32 **)daptr, 0);
+    yap32Array *da = yap32ArrayGet(Y, (yU32 **)daptr, 0);
     if(da)
         return da->size;
     return 0;
