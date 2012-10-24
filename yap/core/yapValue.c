@@ -681,9 +681,9 @@ static struct yapValue *objectFuncIndex(struct yapContext *Y, struct yapValue *v
     return ret;
 }
 
-void appendKeys(struct yapContext *Y, yapDumpParams *params, yapHashEntry *entry)
+void appendKeys(struct yapContext *Y, yapDumpParams *params, yap2HashEntry *entry)
 {
-    yapValue *child = (yapValue *)entry->value;
+    yapValue *child = (yapValue *)entry->valuePtr;
     if(params->tempInt)
     {
         yapStringConcat(Y, &params->output, "\"");
@@ -693,7 +693,7 @@ void appendKeys(struct yapContext *Y, yapDumpParams *params, yapHashEntry *entry
         yapStringConcat(Y, &params->output, ", \"");
     }
 
-    yapStringConcat(Y, &params->output, entry->key);
+    yapStringConcat(Y, &params->output, entry->keyStr);
     yapStringConcat(Y, &params->output, "\" : ");
     yapValueTypeSafeCall(child->type, Dump)(Y, params, child);
     params->tempInt = 0;
@@ -703,7 +703,7 @@ static void objectFuncDump(struct yapContext *Y, yapDumpParams *params, struct y
 {
     params->tempInt = 1;
     yapStringConcat(Y, &params->output, "{ ");
-    yapHashIterateP1(Y, p->objectVal->hash, (yapIterateCB1)appendKeys, params);
+    yap2HashIterateP1(Y, p->objectVal->hash, appendKeys, params);
     yapStringConcat(Y, &params->output, " }");
 }
 

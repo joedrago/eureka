@@ -20,7 +20,7 @@ yapObject *yapObjectCreate(struct yapContext *Y, yapValue *isa)
     {
         yapValueAddRefNote(Y, v->isa, "yapObject isa");
     }
-    v->hash = yapHashCreate(Y, 0);
+    v->hash = yap2HashCreate(Y, KEYTYPE_STRING, 0);
     return v;
 }
 
@@ -30,13 +30,27 @@ void yapObjectDestroy(struct yapContext *Y, yapObject *v)
     {
         yapValueRemoveRefNote(Y, v->isa, "yapObject isa done");
     }
-    yapHashDestroy(Y, v->hash, (yapDestroyCB)yapValueRemoveRefHashed);
+    yap2HashDestroy(Y, v->hash, yapValueRemoveRefHashed);
     yapFree(v);
 }
 
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)
 {
-    struct yapValue **ref = (struct yapValue **)yapHashLookup(Y, object->hash, key, create);
+    struct yapValue **ref = NULL;
+    yap2HashEntry *hashEntry;
+    if(create)
+    {
+        hashEntry = yap2HashGetString(Y, object->hash, key);
+    }
+    else
+    {
+        hashEntry = yap2HashHasString(Y, object->hash, key);
+    }
+    if(hashEntry)
+    {
+        ref = (struct yapValue **)&hashEntry->valuePtr;
+    }
+    
     if(create)
     {
         if(*ref == NULL)
