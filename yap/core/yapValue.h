@@ -129,7 +129,7 @@ typedef struct yapValue
         yF32 floatVal;
         struct
         {
-            struct yapMap *closureVars; // Populated at runtime when a reference to a new function() is created
+            struct yapMap *closureVars;   // Populated at runtime when a reference to a new function() is created
             struct yapBlock *blockVal;    // Hurr, Shield Slam
         };
         yapString stringVal;
@@ -182,8 +182,8 @@ yapValue *yapValueDiv(struct yapContext *Y, yapValue *a, yapValue *b);
 
 yS32 yapValueCmp(struct yapContext *Y, yapValue *a, yapValue *b);
 
-// It is assumed that you are using the pattern: v = yapValueTo*(Y, v)
-// and auto-unrefs the passed-in value for you.
+// These assume that you are using the pattern: v = yapValueTo*(Y, v)
+// and auto-unref the passed-in value for you.
 yapValue *yapValueToBool(struct yapContext *Y, yapValue *p);
 yapValue *yapValueToInt(struct yapContext *Y, yapValue *p);
 yapValue *yapValueToFloat(struct yapContext *Y, yapValue *p);
