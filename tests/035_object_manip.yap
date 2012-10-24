@@ -4,3 +4,7 @@ a.z = 3;
 a["test"] = 4;
 
 var k = keys(a);
+for(i in k)
+{
+    print("Key: ", i, "\n");
+}
