@@ -125,7 +125,7 @@ static yapMapEntry *yapMapNewEntry(struct yapContext *Y, yapMap *yh, yU32 hash, 
     return entry;
 }
 
-static void dmRewindSplit(struct yapContext *Y, yapMap *yh)
+static void yapMapRewindSplit(struct yapContext *Y, yapMap *yh)
 {
     yapMapEntry *chain;
     ySize indexToRebucket;
@@ -247,7 +247,7 @@ yapMapEntry *yapMapGetS(struct yapContext *Y, yapMap *yh, const char *key, yBool
     return yapMapFindString(Y, yh, key, create);
 }
 
-void dmEraseString(struct yapContext *Y, yapMap *yh, const char *key, void * /*yapDestroyCB*/ destroyFunc)
+void yapMapEraseS(struct yapContext *Y, yapMap *yh, const char *key, void * /*yapDestroyCB*/ destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     yU32 hash = (yU32)HASHSTRING(key);
@@ -270,7 +270,7 @@ void dmEraseString(struct yapContext *Y, yapMap *yh, const char *key, void * /*y
                 func(Y, entry->valuePtr);
             yapMapDestroyEntry(Y, yh, entry);
             --yh->count;
-            dmRewindSplit(Y, yh);
+            yapMapRewindSplit(Y, yh);
             return;
         }
     }
@@ -304,7 +304,7 @@ void yapMapEraseI(struct yapContext *Y, yapMap *yh, yU32 key, void * /*yapDestro
                 func(Y, entry->valuePtr);
             yapMapDestroyEntry(Y, yh, entry);
             --yh->count;
-            dmRewindSplit(Y, yh);
+            yapMapRewindSplit(Y, yh);
             return;
         }
     }
