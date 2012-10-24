@@ -37,15 +37,7 @@ void yapObjectDestroy(struct yapContext *Y, yapObject *v)
 struct yapValue **yapObjectGetRef(struct yapContext *Y, yapObject *object, const char *key, yBool create)
 {
     struct yapValue **ref = NULL;
-    yapMapEntry *hashEntry;
-    if(create)
-    {
-        hashEntry = yapMapGetString(Y, object->hash, key);
-    }
-    else
-    {
-        hashEntry = yapMapHasString(Y, object->hash, key);
-    }
+    yapMapEntry *hashEntry = yapMapGetS(Y, object->hash, key, create);
     if(hashEntry)
     {
         ref = (struct yapValue **)&hashEntry->valuePtr;

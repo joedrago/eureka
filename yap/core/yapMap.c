@@ -242,14 +242,9 @@ static yapMapEntry *yapMapFindInteger(struct yapContext *Y, yapMap *yh, yU32 key
     return NULL;
 }
 
-yapMapEntry *yapMapGetString(struct yapContext *Y, yapMap *yh, const char *key)
+yapMapEntry *yapMapGetS(struct yapContext *Y, yapMap *yh, const char *key, yBool create)
 {
-    return yapMapFindString(Y, yh, key, 1);
-}
-
-yapMapEntry *yapMapHasString(struct yapContext *Y, yapMap *yh, const char *key)
-{
-    return yapMapFindString(Y, yh, key, 0);
+    return yapMapFindString(Y, yh, key, create);
 }
 
 void dmEraseString(struct yapContext *Y, yapMap *yh, const char *key, void * /*yapDestroyCB*/ destroyFunc)
@@ -281,17 +276,12 @@ void dmEraseString(struct yapContext *Y, yapMap *yh, const char *key, void * /*y
     }
 }
 
-yapMapEntry *yapMapGetInteger(struct yapContext *Y, yapMap *yh, yU32 key)
+yapMapEntry *yapMapGetI(struct yapContext *Y, yapMap *yh, yU32 key, yBool create)
 {
-    return yapMapFindInteger(Y, yh, key, 1);
+    return yapMapFindInteger(Y, yh, key, create);
 }
 
-yapMapEntry *yapMapHasInteger(struct yapContext *Y, yapMap *yh, yU32 key)
-{
-    return yapMapFindInteger(Y, yh, key, 0);
-}
-
-void yapMapEraseInteger(struct yapContext *Y, yapMap *yh, yU32 key, void * /*yapDestroyCB*/ destroyFunc)
+void yapMapEraseI(struct yapContext *Y, yapMap *yh, yU32 key, void * /*yapDestroyCB*/ destroyFunc)
 {
     yapDestroyCB func = destroyFunc;
     yU32 hash = (yU32)HASHINT(key);
