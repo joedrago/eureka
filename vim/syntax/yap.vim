@@ -1,8 +1,8 @@
 " Vim syntax file
-" Language:    Yap
-" Maintainer:    Joe Drago <joedrago@gmail.com>
+" Language:   Yap
+" Maintainer: Joe Drago <joedrago@gmail.com>
 " URL:        http://www.github.com/joedrago/yap
-" This is basically a doctored javascript syntax file.
+" This is basically a doctored yap syntax file.
 
 if !exists("main_syntax")
   if version < 600
@@ -10,7 +10,7 @@ if !exists("main_syntax")
   elseif exists("b:current_syntax")
     finish
   endif
-  let main_syntax = 'javascript'
+  let main_syntax = 'yap'
 endif
 
 " Drop fold if it set but vim doesn't support it.
@@ -60,16 +60,16 @@ endif
 syn sync fromstart
 syn sync maxlines=100
 
-if main_syntax == "javascript"
+if main_syntax == "yap"
   syn sync ccomment yapComment
 endif
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
 " For version 5.8 and later: only when an item doesn't have highlighting yet
-if version >= 508 || !exists("did_javascript_syn_inits")
+if version >= 508 || !exists("did_yap_syn_inits")
   if version < 508
-    let did_javascript_syn_inits = 1
+    let did_yap_syn_inits = 1
     command -nargs=+ HiLink hi link <args>
   else
     command -nargs=+ HiLink hi def link <args>
@@ -105,8 +105,8 @@ if version >= 508 || !exists("did_javascript_syn_inits")
   delcommand HiLink
 endif
 
-let b:current_syntax = "javascript"
-if main_syntax == 'javascript'
+let b:current_syntax = "yap"
+if main_syntax == 'yap'
   unlet main_syntax
 endif
 
