@@ -35,60 +35,37 @@ static yU32 inherit(struct yapContext *Y, yU32 argCount)
 
 static yU32 prototype(struct yapContext *Y, yU32 argCount)
 {
-    yapObject *object = NULL;
-    yapValue *newProto = NULL;
-    yBool replaceProto = yFalse;
-    if(argCount > 0)
+    yapValue *object = NULL;
+    yapValue *newPrototype = NULL;
+    if(!yapContextGetArgs(Y, argCount, "o|o", &object, &newPrototype))
     {
-        yapValue *arg = yapContextGetArg(Y, 0, argCount);
-        if(arg->type == YVT_REF)
-        {
-            arg = *arg->refVal;
-        }
-        if(arg->type == YVT_OBJECT)
-        {
-            object = arg->objectVal;
-        }
-    }
-    if(object && (argCount > 1))
-    {
-        yapValue *arg = yapContextGetArg(Y, 1, argCount);
-        if(arg->type == YVT_REF)
-        {
-            arg = *arg->refVal;
-        }
-        if(arg->type == YVT_OBJECT)
-        {
-            newProto = arg;
-        }
-        else if(arg->type == YVT_NULL)
-        {
-            newProto = NULL;
-        }
-        else
-        {
-            yapContextSetError(Y, YVE_RUNTIME, "prototype(): replacement prototype must be object or null");
-            newProto = NULL;
-        }
-        replaceProto = yTrue;
+        return yapContextArgsFailure(Y, argCount, "prototype(object [, newPrototypetype])");
     }
 
-    yapContextPopValues(Y, argCount);
-
-    if(object && replaceProto)
+    if(object && newPrototype)
     {
-        object->isa = newProto;
+        if(object->objectVal->isa)
+        {
+            yapValueRemoveRefNote(Y, object->objectVal->isa, "prototype removing old isa");
+        }
+        object->objectVal->isa = newPrototype;
+        yapValueAddRefNote(Y, object->objectVal->isa, "prototype new isa");
     }
 
-    if(object && object->isa)
+    if(object && object->objectVal->isa)
     {
-        yapArrayPush(Y, &Y->stack, object->isa);
+        yapValueAddRefNote(Y, object->objectVal->isa, "prototype return isa");
+        yapArrayPush(Y, &Y->stack, object->objectVal->isa);
     }
     else
     {
         yapArrayPush(Y, &Y->stack, &yapValueNull);
     }
-
+    yapValueRemoveRefNote(Y, object, "prototype object done");
+    if(newPrototype)
+    {
+        yapValueRemoveRefNote(Y, newPrototype, "prototype newPrototype done");
+    }
     return 1;
 }
 

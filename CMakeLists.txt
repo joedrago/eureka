@@ -36,6 +36,8 @@ endif()
 
 # ----------------------------------------------------------------------------
 
+set(TEST_TRACING OFF CACHE BOOL "Turn on traces suitable for running make tests")
+
 if(UNIX)
     set(CMAKE_CXX_FLAGS "-g")
     set(CMAKE_C_FLAGS "-g")
@@ -47,13 +49,17 @@ if(UNIX)
         set(COVERAGE_HTML_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage" CACHE STRING "Coverage HTML output")
         MESSAGE(STATUS "Coverage HTML Output: ${COVERAGE_HTML_OUTPUT_DIR}")
 
-        add_definitions(-DYAP_TRACE_MEMORY=1)
-        add_definitions(-DYAP_TRACE_MEMORY_STATS_ONLY=1)
-        add_definitions(-DYAP_TRACE_EXECUTION=1)
-        add_definitions(-DYAP_TRACE_REFS=1)
+        set(TEST_TRACING ON)
     else()
         MESSAGE(STATUS "Coverage disabled.")
     endif()
+endif()
+
+if(TEST_TRACING)
+    add_definitions(-DYAP_TRACE_MEMORY=1)
+    add_definitions(-DYAP_TRACE_MEMORY_STATS_ONLY=1)
+    add_definitions(-DYAP_TRACE_EXECUTION=1)
+    add_definitions(-DYAP_TRACE_REFS=1)
 endif()
 
 if(MSVC)
