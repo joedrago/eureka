@@ -71,7 +71,7 @@ enum
     YST_BREAK,                         // break;
     YST_RETURN,                        // return a:r
 
-    YST_IFELSE,                        // if v: l else r
+    YST_IFELSE,                        // if v: l else r (if v.i, it is a ternary operator)
     YST_WHILE,                         // while v: l
     YST_FOR,                           // for vars in iter \n    body
     YST_FUNCTION,                      // s(l) { r }
@@ -133,7 +133,7 @@ yapSyntax *yapSyntaxCreateInherits(struct yapContext *Y, yapSyntax *l, yapSyntax
 yapSyntax *yapSyntaxCreateVar(struct yapContext *Y, yapSyntax *expr);
 yapSyntax *yapSyntaxCreateBreak(struct yapContext *Y, int line);
 yapSyntax *yapSyntaxCreateReturn(struct yapContext *Y, yapSyntax *expr);
-yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody);
+yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody, yBool ternary);
 yapSyntax *yapSyntaxCreateWhile(struct yapContext *Y, yapSyntax *cond, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFor(struct yapContext *Y, yapSyntax *vars, yapSyntax *iter, yapSyntax *body);
 yapSyntax *yapSyntaxCreateFunctionDecl(struct yapContext *Y, struct yapToken *name, yapSyntax *args, yapSyntax *body, int line);

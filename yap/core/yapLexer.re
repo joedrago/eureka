@@ -76,6 +76,8 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "]"             { return YTT_CLOSEBRACKET; }
     "."             { return YTT_PERIOD; }
     "::"            { return YTT_COLONCOLON; }
+    ":"             { return YTT_COLON; }
+    "\?"            { return YTT_QUESTIONMARK; }
 
     "break"         { return YTT_BREAK; }
     "this"          { return YTT_THIS; }

@@ -673,17 +673,19 @@ asmFunc(Inherits)
 
 asmFunc(IfElse)
 {
+    yBool      ternary  = syntax->v.i;
     yapSyntax *cond     = syntax->v.p;
     yapSyntax *ifBody   = syntax->l.p;
     yapSyntax *elseBody = syntax->r.p;
     yapCode *ifCode = yapCodeCreate();
     int index;
     int i;
+    int valuesLeftOnStack = (ternary) ? 1 : 0;
 
     if(elseBody)
     {
         yapCode *elseCode = yapCodeCreate();
-        asmDispatch[elseBody->type].assemble(Y, compiler, elseCode, elseBody, 0, ASM_NORMAL);
+        asmDispatch[elseBody->type].assemble(Y, compiler, elseCode, elseBody, valuesLeftOnStack, ASM_NORMAL);
         yapCodeGrow(Y, elseCode, 1);
         yapCodeAppend(Y, elseCode, YOP_LEAVE, 0, syntax->line);
         index = yapBlockConvertCode(Y, elseCode, compiler->chunk, 0);
@@ -691,7 +693,7 @@ asmFunc(IfElse)
         yapCodeAppend(Y, dst, YOP_PUSH_KB, index, syntax->line);
     }
 
-    asmDispatch[ifBody->type].assemble(Y, compiler, ifCode, ifBody, 0, ASM_NORMAL);
+    asmDispatch[ifBody->type].assemble(Y, compiler, ifCode, ifBody, valuesLeftOnStack, ASM_NORMAL);
     yapCodeGrow(Y, ifCode, 1);
     yapCodeAppend(Y, ifCode, YOP_LEAVE, 0, syntax->line);
     index = yapBlockConvertCode(Y, ifCode, compiler->chunk, 0);
@@ -704,7 +706,7 @@ asmFunc(IfElse)
     yapCodeGrow(Y, dst, 1);
     yapCodeAppend(Y, dst, YOP_IF, (elseBody) ? 1 : 0, syntax->line);
 
-    return PAD(0);
+    return PAD(valuesLeftOnStack);
 }
 
 asmFunc(While)

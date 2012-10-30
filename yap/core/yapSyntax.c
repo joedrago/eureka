@@ -224,9 +224,10 @@ yapSyntax *yapSyntaxCreateReturn(struct yapContext *Y, yapSyntax *expr)
     return syntax;
 }
 
-yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody)
+yapSyntax *yapSyntaxCreateIfElse(struct yapContext *Y, yapSyntax *cond, yapSyntax *ifBody, yapSyntax *elseBody, yBool ternary)
 {
     yapSyntax *syntax = yapSyntaxCreate(Y, YST_IFELSE, cond->line);
+    syntax->v.i = ternary;
     syntax->v.p = cond;
     syntax->l.p = ifBody;
     syntax->r.p = elseBody;

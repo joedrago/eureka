@@ -72,6 +72,8 @@
 %left PERIOD.
 %left LEFTPAREN.
 %left COLONCOLON.
+%left QUESTIONMARK.
+%left COLON.
 
 %left UNKNOWN.
 %left COMMENT.
@@ -161,10 +163,10 @@ statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = yapSyntaxCreateStatementExpr(C->Y, L); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
-    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY); }
+    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY, yFalse); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
-    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, NULL); }
+    { S = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, NULL, yFalse); }
 
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
     { S = yapSyntaxCreateWhile(C->Y, COND, BODY); }
@@ -350,6 +352,9 @@ expression(E) ::= NULL(N).
 
 expression(E) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
     { E = yapSyntaxCreateFunctionDecl(C->Y, NULL, ARGS, BODY, F.line); }
+
+expression(E) ::= expression(COND) QUESTIONMARK expression(IFBODY) COLON expression(ELSEBODY).
+    { E = yapSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY, yTrue); }
 
 
 // ---------------------------------------------------------------------------
