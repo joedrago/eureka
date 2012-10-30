@@ -3,17 +3,17 @@
 use strict;
 
 my $header;
-open($header, '>', 'yapLexerNames.h') or die "cant open yapLexerNames.h for write";
+open($header, '>', 'ekLexerNames.h') or die "cant open ekLexerNames.h for write";
 
 print $header <<END;
-const char * yapTokenIDToString(int id)
+const char * ekTokenIDToString(int id)
 {
     switch(id)
     {
 END
 
 my $fh;
-open($fh, '<', 'yapParser.h') or die "cant open yapParser.h for read";
+open($fh, '<', 'ekParser.h') or die "cant open ekParser.h for read";
 while(<$fh>)
 {
     if(/^#define\s+(\S+)\s+(\d+)/)
@@ -31,4 +31,4 @@ print $header <<END;
 END
 
 close($header);
-print "Generated yapLexerNames.h\n";
+print "Generated ekLexerNames.h\n";

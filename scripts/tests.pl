@@ -6,11 +6,11 @@ use Data::Dumper;
 $|=1;
 
 my($sourceDir, $binaryDir) = @ARGV;
-my $yapTestExe = "$binaryDir/demos/yaptest/yaptest";
-my $yapTestOutputDir = "$binaryDir/tests";
-my @tests = sort glob("$sourceDir/tests/*.yap");
+my $ekTestExe = "$binaryDir/demos/ektest/ektest";
+my $ekTestOutputDir = "$binaryDir/tests";
+my @tests = sort glob("$sourceDir/tests/*.ek");
 
-mkdir $yapTestOutputDir;
+mkdir $ekTestOutputDir;
 print("\n");
 
 my $i = 1;
@@ -18,8 +18,8 @@ my $passed = 0;
 my @failed;
 for my $test (@tests)
 {
-    my ($testBasename) = fileparse($test, qr/\Q.yap\E/);
-    my $yapTestOutput = "$yapTestOutputDir/$testBasename.txt";
+    my ($testBasename) = fileparse($test, qr/\Q.ek\E/);
+    my $ekTestOutput = "$ekTestOutputDir/$testBasename.txt";
     my $expected = 0;
     if($testBasename =~ /_E(\d+)$/)
     {
@@ -27,13 +27,13 @@ for my $test (@tests)
     }
 
     printf("                   \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
-    my $cmd = "$yapTestExe $test 2>&1 > $yapTestOutput";
+    my $cmd = "$ekTestExe $test 2>&1 > $ekTestOutput";
     my $ret = system($cmd);
     my $code = $ret >> 8;
     if($code != $expected)
     {
         print(" - FAILED\nEnd of $testBasename output:\n-------\n");
-        system("tail $yapTestOutput");
+        system("tail $ekTestOutput");
         print("-------\n");
         push(@failed, {
             name => $testBasename,

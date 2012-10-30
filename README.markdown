@@ -1,7 +1,7 @@
-Yap Programming Language
-========================
+Eureka Programming Language
+===========================
 
-Homepage: http://yaplang.org/
+Homepage: http://eurekalang.org/
 
 Released under the Boost Software License (Version 1.0).
 
