@@ -6,7 +6,7 @@ use Data::Dumper;
 $|=1;
 
 my($sourceDir, $binaryDir) = @ARGV;
-my $ekTestExe = "$binaryDir/demos/ektest/ektest";
+my $ekTestExe = "$binaryDir/tools/ektest/ektest";
 my $ekTestOutputDir = "$binaryDir/tests";
 my @tests = sort glob("$sourceDir/tests/*.ek");
 

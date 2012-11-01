@@ -81,9 +81,10 @@ endif()
 add_subdirectory(external)
 add_subdirectory(eureka)
 add_subdirectory(demos)
+add_subdirectory(tools)
 
 add_custom_target(tests
-    COMMAND perl ${CMAKE_SOURCE_DIR}/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}"
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tools/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}"
     DEPENDS ektest
 )
 

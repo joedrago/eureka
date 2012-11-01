@@ -8,10 +8,10 @@
 project(ektest C)
 
 include_directories (
-    ${ek_SOURCE_DIR}/core
-    ${ek_SOURCE_DIR}/intrinsics
-    ${ek_SOURCE_DIR}/modules
-    ${ek_SOURCE_DIR}/extras
+    ${eureka_SOURCE_DIR}/core
+    ${eureka_SOURCE_DIR}/intrinsics
+    ${eureka_SOURCE_DIR}/modules
+    ${eureka_SOURCE_DIR}/extras
 )
 
 add_executable(ektest
