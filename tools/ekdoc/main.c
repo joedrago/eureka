@@ -697,10 +697,18 @@ void ekdOutputText(ekdNode *root, char **output)
                 ekdWrapAndIndent(output, n->text, 80, 1, '|', 0);
                 break;
             case TYPE_TITLE1:
-                dsConcatf(output, "%s\n---\n", n->text);
-                break;
             case TYPE_TITLE2:
-                dsConcatf(output, "%s\n===\n", n->text);
+                {
+                    int i;
+                    char c = (n->type == TYPE_TITLE1) ? '-' : '=';
+                    dsConcatf(output, "%s\n", n->text);
+                    for(i=0; i < strlen(n->text); ++i)
+                    {
+                        dsConcatf(output, "%c", c);
+                    }
+                    dsConcatf(output, "\n");
+
+                }
                 break;
         };
     }
