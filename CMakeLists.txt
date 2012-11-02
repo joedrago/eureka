@@ -101,6 +101,7 @@ foreach(dsrc ${DOCSRC})
     set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")
     add_custom_command(OUTPUT ${ddst}
         COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc text "${dsrc}" > "${ddst}"
+        DEPENDS ${dsrc}
         DEPENDS ekdoc
     )
     LIST(APPEND DOCTXT ${ddst})
