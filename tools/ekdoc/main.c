@@ -137,9 +137,9 @@ ekdNode *ekdNodeAppend(ekdNode *parent, ekdNode *child)
 }
 
 // -------------------------------------------------------------------------------------------
-// Line tokenizer
+// Line tokenizers
 
-char *nextLine(char **linePtr)
+static char *nextLine(char **linePtr)
 {
     char *line = *linePtr;
     char *endLine;
@@ -152,8 +152,8 @@ char *nextLine(char **linePtr)
     {
         *endLine = 0;
     }
-    *linePtr = line + strlen(line) + 1;
-    if(endLine != line)
+    *linePtr = line + strlen(line) + (endLine ? 1 : 0);
+    if(endLine && (endLine != line))
     {
         --endLine;
         for(; endLine != line; --endLine)
@@ -168,6 +168,45 @@ char *nextLine(char **linePtr)
             }
         }
     }
+    return line;
+}
+
+static char *nextWrap(char **linePtr, int maxLen)
+{
+    char *line = *linePtr;
+    char *currBreak = NULL;
+    char *nextBreak;
+    if(!*line)
+    {
+        return NULL;
+    }
+    if(strlen(line) > maxLen)
+    {
+        while(1)
+        {
+            nextBreak = strchr(currBreak ? currBreak+1 : line, ' ');
+            if(nextBreak)
+            {
+                if((int)(nextBreak - line) > maxLen)
+                {
+                    break;
+                }
+                else
+                {
+                    currBreak = nextBreak;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    if(currBreak)
+    {
+        *currBreak = 0;
+    }
+    *linePtr = line + strlen(line) + (currBreak ? 1 : 0);
     return line;
 }
 
@@ -211,11 +250,12 @@ ekdNode *ekdParse(char *text)
             if((prev->type == TYPE_TEXT) || (prev->type == TYPE_LIST_ENTRY) || (prev->type == TYPE_CODE))
             {
                 int depth = 0;
+                int extraDepth = (prev->type == TYPE_LIST_ENTRY) ? 1 : 0;
                 while(*line == ' ')
                 {
                     ++depth;
                     ++line;
-                    if(depth == prev->depth)
+                    if(depth == prev->depth + extraDepth)
                     {
                         break;
                     }
@@ -431,6 +471,45 @@ char *ekdLinkFunc(ekdNode *root, struct ekdMarkup *markup, char *tag, int *lenRe
     return replaceText;
 }
 
+static void ekdWrapAndIndent(char **output, const char *text, int width, int indent, char prefix, int onlyPrefixFirst)
+{
+    int indentSpaces = indent * 2;
+    int maxLen = width - indentSpaces;
+    char *buffer = strdup(text);
+    char *front = buffer;
+    char *line = nextLine(&front);
+    for(; line; line = nextLine(&front))
+    {
+        char *wrapBuffer = strdup(line);
+        char *wrapFront = wrapBuffer;
+        char *subLine = nextWrap(&wrapFront, maxLen);
+        int curr = 0;
+        for(; subLine; subLine = nextWrap(&wrapFront, maxLen))
+        {
+            int i;
+            for(i = 0; i < indent; ++i)
+            {
+                dsConcatf(output, "  ");
+            }
+            if(prefix)
+            {
+                if(curr && onlyPrefixFirst)
+                {
+                    dsConcatf(output, "  ");
+                }
+                else
+                {
+                    dsConcatf(output, "%c ", prefix);
+                }
+            }
+            dsConcatf(output, "%s\n", subLine);
+            ++curr;
+        }
+        free(wrapBuffer);
+    }
+    free(buffer);
+}
+
 // -------------------------------------------------------------------------------------------
 // HTML Output
 
@@ -561,6 +640,73 @@ void ekdOutputWordpress(ekdNode *root, char **output)
 }
 
 // -------------------------------------------------------------------------------------------
+// Text Output
+
+static ekdMarkup textMarkup[] =
+{
+    { "**", "*",         "*",    NULL        },
+    { "__", "",          "",     NULL        },
+    { "I<", "Image: %s", NULL,   ekdLinkFunc },
+    { "^<", "(%s) ",     NULL,   ekdLinkFunc },
+    { "^^", "",          NULL,   NULL        },
+    { "{{", "",          NULL,   NULL        },
+    { "}}", "",          NULL,   NULL        },
+    { NULL }
+};
+
+void ekdOutputText(ekdNode *root, char **output)
+{
+    ekdNode *n = root;
+    ekdNode *prev = n;
+    for(; n; prev = n, n = n->next)
+    {
+        switch(n->type)
+        {
+            case TYPE_BLANK:
+                dsConcatf(output, "\n");
+                break;
+            case TYPE_LINE1:
+                dsConcatf(output, "----------------------------------------------------------------\n");
+                break;
+            case TYPE_LINE2:
+                dsConcatf(output, "================================================================\n");
+                break;
+            case TYPE_LIST_ENTRY:
+            {
+                char *t = ekdInterpolate(root, n->text, textMarkup);
+                /*
+                int depth;
+                for(depth = 1; depth < n->depth; ++depth)
+                {
+                    dsConcatf(output, "  ");
+                }
+                dsConcatf(output, "* %s\n", t);
+                */
+                ekdWrapAndIndent(output, t, 80, n->depth, '*', 1);
+                dsDestroy(&t);
+            }
+            break;
+            case TYPE_TEXT:
+            {
+                char *t = ekdInterpolate(root, n->text, textMarkup);
+                ekdWrapAndIndent(output, t, 80, 0, 0, 0);
+                dsDestroy(&t);
+            }
+            break;
+            case TYPE_CODE:
+                ekdWrapAndIndent(output, n->text, 80, 1, '|', 0);
+                break;
+            case TYPE_TITLE1:
+                dsConcatf(output, "%s\n---\n", n->text);
+                break;
+            case TYPE_TITLE2:
+                dsConcatf(output, "%s\n===\n", n->text);
+                break;
+        };
+    }
+}
+
+// -------------------------------------------------------------------------------------------
 // Entry point for ekdoc processing
 
 void ekdProcess(const char *mode, const char *filename)
@@ -586,6 +732,10 @@ void ekdProcess(const char *mode, const char *filename)
             if(!strcmp(mode, "wordpress"))
             {
                 ekdOutputWordpress(root, &output);
+            }
+            else if(!strcmp(mode, "text"))
+            {
+                ekdOutputText(root, &output);
             }
             else
             {
