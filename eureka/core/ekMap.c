@@ -48,8 +48,7 @@ static unsigned int djb2int(yS32 i);
 // Constants and Macros
 
 #define INITIAL_MODULUS 2  // "N" on Wikipedia's explanation of linear hashes
-#define SHRINK_FACTOR   4  // How many times bigger does the table capacity have to be to its
-                           // width to cause the table to shrink?
+#define SHRINK_FACTOR   4  // How many times bigger does the table capacity have to be to its width to cause the table to shrink?
 
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
@@ -93,12 +92,12 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, yU32 hash, void
     entry = (ekMapEntry *)ekAlloc(sizeof(*entry));
     switch(yh->keyType)
     {
-    case YMKT_STRING:
-        entry->keyStr = ekStrdup(Y, (char *)key);
-        break;
-    case YMKT_INTEGER:
-        entry->keyInt = *((int *)key);
-        break;
+        case YMKT_STRING:
+            entry->keyStr = ekStrdup(Y, (char *)key);
+            break;
+        case YMKT_INTEGER:
+            entry->keyInt = *((int *)key);
+            break;
     }
     entry->hash = hash;
     entry->value64 = 0;
@@ -178,7 +177,9 @@ void ekMapDestroy(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroy
 static void ekMapDestroyEntry(struct ekContext *Y, ekMap *yh, ekMapEntry *p)
 {
     if(yh->keyType == YMKT_STRING)
+    {
         ekFree(p->keyStr);
+    }
     ekFree(p);
 }
 
@@ -195,12 +196,14 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
             {
                 ekMapEntry *freeme = entry;
                 if(func && entry->valuePtr)
+                {
                     func(Y, entry->valuePtr);
+                }
                 entry = entry->next;
                 ekMapDestroyEntry(Y, yh, freeme);
             }
         }
-        memset(yh->table, 0, ekArraySize(Y, &yh->table) * sizeof(ekMapEntry*));
+        memset(yh->table, 0, ekArraySize(Y, &yh->table) * sizeof(ekMapEntry *));
     }
 }
 
@@ -209,16 +212,18 @@ static ekMapEntry *ekMapFindString(struct ekContext *Y, ekMap *yh, const char *k
     yU32 hash = (yU32)HASHSTRING(key);
     yS32 index = linearHashCompute(yh, hash);
     ekMapEntry *entry = yh->table[index];
-    for( ; entry; entry = entry->next)
+    for(; entry; entry = entry->next)
     {
         if(!strcmp(entry->keyStr, key))
+        {
             return entry;
+        }
     }
 
     if(autoCreate)
     {
         // A new entry!
-        return ekMapNewEntry(Y, yh, hash, (void*)key);
+        return ekMapNewEntry(Y, yh, hash, (void *)key);
     }
     return NULL;
 }
@@ -228,16 +233,18 @@ static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, yU32 key, in
     yU32 hash = (yU32)HASHINT(key);
     yS32 index = linearHashCompute(yh, hash);
     ekMapEntry *entry = yh->table[index];
-    for( ; entry; entry = entry->next)
+    for(; entry; entry = entry->next)
     {
         if(entry->keyInt == key)
+        {
             return entry;
+        }
     }
 
     if(autoCreate)
     {
         // A new entry!
-        return ekMapNewEntry(Y, yh, hash, (void*)&key);
+        return ekMapNewEntry(Y, yh, hash, (void *)&key);
     }
     return NULL;
 }
@@ -254,7 +261,7 @@ void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDes
     yS32 index = linearHashCompute(yh, hash);
     ekMapEntry *prev = NULL;
     ekMapEntry *entry = yh->table[index];
-    for( ; entry; prev = entry, entry = entry->next)
+    for(; entry; prev = entry, entry = entry->next)
     {
         if(!strcmp(entry->keyStr, key))
         {
@@ -267,7 +274,9 @@ void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDes
                 yh->table[index] = entry->next;
             }
             if(func && entry->valuePtr)
+            {
                 func(Y, entry->valuePtr);
+            }
             ekMapDestroyEntry(Y, yh, entry);
             --yh->count;
             ekMapRewindSplit(Y, yh);
@@ -288,7 +297,7 @@ void ekMapEraseI(struct ekContext *Y, ekMap *yh, yU32 key, void * /*ekDestroyCB*
     yS32 index = linearHashCompute(yh, hash);
     ekMapEntry *prev = NULL;
     ekMapEntry *entry = yh->table[index];
-    for( ; entry; prev = entry, entry = entry->next)
+    for(; entry; prev = entry, entry = entry->next)
     {
         if(entry->keyInt == key)
         {
@@ -301,7 +310,9 @@ void ekMapEraseI(struct ekContext *Y, ekMap *yh, yU32 key, void * /*ekDestroyCB*
                 yh->table[index] = entry->next;
             }
             if(func && entry->valuePtr)
+            {
                 func(Y, entry->valuePtr);
+            }
             ekMapDestroyEntry(Y, yh, entry);
             --yh->count;
             ekMapRewindSplit(Y, yh);
@@ -354,7 +365,7 @@ typedef unsigned __int64 uint64_t;
 
 // Other compilers
 
-#else	// defined(_MSC_VER)
+#else   // defined(_MSC_VER)
 
 #include <stdint.h>
 
@@ -362,9 +373,9 @@ typedef unsigned __int64 uint64_t;
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
-void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
-void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
+void MurmurHash3_x86_32(const void *key, int len, uint32_t seed, void *out);
+void MurmurHash3_x86_128(const void *key, int len, uint32_t seed, void *out);
+void MurmurHash3_x64_128(const void *key, int len, uint32_t seed, void *out);
 
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
@@ -373,33 +384,33 @@ void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out 
 
 #if defined(_MSC_VER)
 
-#define FORCE_INLINE	__forceinline
+#define FORCE_INLINE    __forceinline
 
 #include <stdlib.h>
 
-#define ROTL32(x,y)	_rotl(x,y)
-#define ROTL64(x,y)	_rotl64(x,y)
+#define ROTL32(x,y) _rotl(x,y)
+#define ROTL64(x,y) _rotl64(x,y)
 
 #define BIG_CONSTANT(x) (x)
 
 // Other compilers
 
-#else	// defined(_MSC_VER)
+#else   // defined(_MSC_VER)
 
-#define	FORCE_INLINE __attribute__((always_inline))
+#define FORCE_INLINE __attribute__((always_inline))
 
-inline uint32_t rotl32 ( uint32_t x, int8_t r )
+inline uint32_t rotl32(uint32_t x, int8_t r)
 {
     return (x << r) | (x >> (32 - r));
 }
 
-inline uint64_t rotl64 ( uint64_t x, int8_t r )
+inline uint64_t rotl64(uint64_t x, int8_t r)
 {
     return (x << r) | (x >> (64 - r));
 }
 
-#define	ROTL32(x,y)	rotl32(x,y)
-#define ROTL64(x,y)	rotl64(x,y)
+#define ROTL32(x,y) rotl32(x,y)
+#define ROTL64(x,y) rotl64(x,y)
 
 #define BIG_CONSTANT(x) (x##LLU)
 
@@ -409,12 +420,12 @@ inline uint64_t rotl64 ( uint64_t x, int8_t r )
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-FORCE_INLINE uint32_t getblock32 ( const uint32_t * p, int i )
+FORCE_INLINE uint32_t getblock32(const uint32_t *p, int i)
 {
     return p[i];
 }
 
-FORCE_INLINE uint64_t getblock64 ( const uint64_t * p, int i )
+FORCE_INLINE uint64_t getblock64(const uint64_t *p, int i)
 {
     return p[i];
 }
@@ -422,7 +433,7 @@ FORCE_INLINE uint64_t getblock64 ( const uint64_t * p, int i )
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
 
-FORCE_INLINE uint32_t fmix32 ( uint32_t h )
+FORCE_INLINE uint32_t fmix32(uint32_t h)
 {
     h ^= h >> 16;
     h *= 0x85ebca6b;
@@ -435,7 +446,7 @@ FORCE_INLINE uint32_t fmix32 ( uint32_t h )
 
 //----------
 
-FORCE_INLINE uint64_t fmix64 ( uint64_t k )
+FORCE_INLINE uint64_t fmix64(uint64_t k)
 {
     k ^= k >> 33;
     k *= BIG_CONSTANT(0xff51afd7ed558ccd);
@@ -448,13 +459,13 @@ FORCE_INLINE uint64_t fmix64 ( uint64_t k )
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32 ( const void * key, int len,
-                         uint32_t seed, void * out )
+void MurmurHash3_x86_32(const void *key, int len,
+                        uint32_t seed, void *out)
 {
-    const uint8_t * tail;
+    const uint8_t *tail;
     uint32_t k1;
 
-    const uint8_t * data = (const uint8_t*)key;
+    const uint8_t *data = (const uint8_t *)key;
     const int nblocks = len / 4;
 
     uint32_t h1 = seed;
@@ -467,7 +478,7 @@ void MurmurHash3_x86_32 ( const void * key, int len,
     //----------
     // body
 
-    const uint32_t * blocks = (const uint32_t *)(data + nblocks*4);
+    const uint32_t *blocks = (const uint32_t *)(data + nblocks*4);
 
     for(i = -nblocks; i; i++)
     {
@@ -478,23 +489,23 @@ void MurmurHash3_x86_32 ( const void * key, int len,
         k1 *= c2;
 
         h1 ^= k1;
-        h1 = ROTL32(h1,13); 
+        h1 = ROTL32(h1,13);
         h1 = h1*5+0xe6546b64;
     }
 
     //----------
     // tail
 
-    tail = (const uint8_t*)(data + nblocks*4);
+    tail = (const uint8_t *)(data + nblocks*4);
 
     k1 = 0;
 
     switch(len & 3)
     {
-    case 3: k1 ^= tail[2] << 16;
-    case 2: k1 ^= tail[1] << 8;
-    case 1: k1 ^= tail[0];
-        k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+        case 3: k1 ^= tail[2] << 16;
+        case 2: k1 ^= tail[1] << 8;
+        case 1: k1 ^= tail[0];
+            k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
     };
 
     //----------
@@ -504,17 +515,17 @@ void MurmurHash3_x86_32 ( const void * key, int len,
 
     h1 = fmix32(h1);
 
-    *(uint32_t*)out = h1;
-} 
+    *(uint32_t *)out = h1;
+}
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_128 ( const void * key, int len,
-                          uint32_t seed, void * out )
+void MurmurHash3_x86_128(const void *key, int len,
+                         uint32_t seed, void *out)
 {
     int i;
-    const uint8_t * tail;
-    const uint8_t * data = (const uint8_t*)key;
+    const uint8_t *tail;
+    const uint8_t *data = (const uint8_t *)key;
     const int nblocks = len / 16;
 
     uint32_t h1 = seed;
@@ -527,15 +538,15 @@ void MurmurHash3_x86_128 ( const void * key, int len,
     uint32_t k3 = 0;
     uint32_t k4 = 0;
 
-    const uint32_t c1 = 0x239b961b; 
+    const uint32_t c1 = 0x239b961b;
     const uint32_t c2 = 0xab0e9789;
-    const uint32_t c3 = 0x38b34ae5; 
+    const uint32_t c3 = 0x38b34ae5;
     const uint32_t c4 = 0xa1e38b93;
 
     //----------
     // body
 
-    const uint32_t * blocks = (const uint32_t *)(data + nblocks*16);
+    const uint32_t *blocks = (const uint32_t *)(data + nblocks*16);
 
     for(i = -nblocks; i; i++)
     {
@@ -564,32 +575,32 @@ void MurmurHash3_x86_128 ( const void * key, int len,
     //----------
     // tail
 
-    tail = (const uint8_t*)(data + nblocks*16);
+    tail = (const uint8_t *)(data + nblocks*16);
 
     switch(len & 15)
     {
-    case 15: k4 ^= tail[14] << 16;
-    case 14: k4 ^= tail[13] << 8;
-    case 13: k4 ^= tail[12] << 0;
-        k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+        case 15: k4 ^= tail[14] << 16;
+        case 14: k4 ^= tail[13] << 8;
+        case 13: k4 ^= tail[12] << 0;
+            k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
 
-    case 12: k3 ^= tail[11] << 24;
-    case 11: k3 ^= tail[10] << 16;
-    case 10: k3 ^= tail[ 9] << 8;
-    case  9: k3 ^= tail[ 8] << 0;
-        k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+        case 12: k3 ^= tail[11] << 24;
+        case 11: k3 ^= tail[10] << 16;
+        case 10: k3 ^= tail[ 9] << 8;
+        case  9: k3 ^= tail[ 8] << 0;
+            k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
 
-    case  8: k2 ^= tail[ 7] << 24;
-    case  7: k2 ^= tail[ 6] << 16;
-    case  6: k2 ^= tail[ 5] << 8;
-    case  5: k2 ^= tail[ 4] << 0;
-        k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+        case  8: k2 ^= tail[ 7] << 24;
+        case  7: k2 ^= tail[ 6] << 16;
+        case  6: k2 ^= tail[ 5] << 8;
+        case  5: k2 ^= tail[ 4] << 0;
+            k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
 
-    case  4: k1 ^= tail[ 3] << 24;
-    case  3: k1 ^= tail[ 2] << 16;
-    case  2: k1 ^= tail[ 1] << 8;
-    case  1: k1 ^= tail[ 0] << 0;
-        k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+        case  4: k1 ^= tail[ 3] << 24;
+        case  3: k1 ^= tail[ 2] << 16;
+        case  2: k1 ^= tail[ 1] << 8;
+        case  1: k1 ^= tail[ 0] << 0;
+            k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
     };
 
     //----------
@@ -608,21 +619,21 @@ void MurmurHash3_x86_128 ( const void * key, int len,
     h1 += h2; h1 += h3; h1 += h4;
     h2 += h1; h3 += h1; h4 += h1;
 
-    ((uint32_t*)out)[0] = h1;
-    ((uint32_t*)out)[1] = h2;
-    ((uint32_t*)out)[2] = h3;
-    ((uint32_t*)out)[3] = h4;
+    ((uint32_t *)out)[0] = h1;
+    ((uint32_t *)out)[1] = h2;
+    ((uint32_t *)out)[2] = h3;
+    ((uint32_t *)out)[3] = h4;
 }
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x64_128 ( const void * key, int len,
-                          uint32_t seed, void * out )
+void MurmurHash3_x64_128(const void *key, int len,
+                         uint32_t seed, void *out)
 {
     int i;
-    const uint8_t * data = (const uint8_t*)key;
+    const uint8_t *data = (const uint8_t *)key;
     const int nblocks = len / 16;
-    const uint8_t * tail;
+    const uint8_t *tail;
 
     uint64_t h1 = seed;
     uint64_t h2 = seed;
@@ -636,7 +647,7 @@ void MurmurHash3_x64_128 ( const void * key, int len,
     //----------
     // body
 
-    const uint64_t * blocks = (const uint64_t *)(data);
+    const uint64_t *blocks = (const uint64_t *)(data);
 
     for(i = 0; i < nblocks; i++)
     {
@@ -655,28 +666,28 @@ void MurmurHash3_x64_128 ( const void * key, int len,
     //----------
     // tail
 
-    tail = (const uint8_t*)(data + nblocks*16);
+    tail = (const uint8_t *)(data + nblocks*16);
 
     switch(len & 15)
     {
-    case 15: k2 ^= ((uint64_t)tail[14]) << 48;
-    case 14: k2 ^= ((uint64_t)tail[13]) << 40;
-    case 13: k2 ^= ((uint64_t)tail[12]) << 32;
-    case 12: k2 ^= ((uint64_t)tail[11]) << 24;
-    case 11: k2 ^= ((uint64_t)tail[10]) << 16;
-    case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
-    case  9: k2 ^= ((uint64_t)tail[ 8]) << 0;
-        k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
+        case 15: k2 ^= ((uint64_t)tail[14]) << 48;
+        case 14: k2 ^= ((uint64_t)tail[13]) << 40;
+        case 13: k2 ^= ((uint64_t)tail[12]) << 32;
+        case 12: k2 ^= ((uint64_t)tail[11]) << 24;
+        case 11: k2 ^= ((uint64_t)tail[10]) << 16;
+        case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
+        case  9: k2 ^= ((uint64_t)tail[ 8]) << 0;
+            k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
 
-    case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
-    case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
-    case  6: k1 ^= ((uint64_t)tail[ 5]) << 40;
-    case  5: k1 ^= ((uint64_t)tail[ 4]) << 32;
-    case  4: k1 ^= ((uint64_t)tail[ 3]) << 24;
-    case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
-    case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
-    case  1: k1 ^= ((uint64_t)tail[ 0]) << 0;
-        k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
+        case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
+        case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
+        case  6: k1 ^= ((uint64_t)tail[ 5]) << 40;
+        case  5: k1 ^= ((uint64_t)tail[ 4]) << 32;
+        case  4: k1 ^= ((uint64_t)tail[ 3]) << 24;
+        case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
+        case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
+        case  1: k1 ^= ((uint64_t)tail[ 0]) << 0;
+            k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
     };
 
     //----------
@@ -693,8 +704,8 @@ void MurmurHash3_x64_128 ( const void * key, int len,
     h1 += h2;
     h2 += h1;
 
-    ((uint64_t*)out)[0] = h1;
-    ((uint64_t*)out)[1] = h2;
+    ((uint64_t *)out)[0] = h1;
+    ((uint64_t *)out)[1] = h2;
 }
 
 static yU32 murmur3string(const unsigned char *str)
@@ -722,8 +733,10 @@ static yU32 djb2string(const unsigned char *str)
     yU32 hash = 5381;
     int c;
 
-    while (c = *str++)
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    while(c = *str++)
+    {
+        hash = ((hash << 5) + hash) + c;    /* hash * 33 + c */
+    }
 
     return hash;
 }

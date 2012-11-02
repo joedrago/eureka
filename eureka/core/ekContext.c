@@ -565,7 +565,7 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
 
         if(*c == '.')
         {
-            leftovers = va_arg(args, ekValue ***);
+            leftovers = va_arg(args, ekValue ** *);
             break;
         };
 

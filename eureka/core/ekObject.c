@@ -42,7 +42,7 @@ struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const cha
     {
         ref = (struct ekValue **)&hashEntry->valuePtr;
     }
-    
+
     if(create)
     {
         if(*ref == NULL)

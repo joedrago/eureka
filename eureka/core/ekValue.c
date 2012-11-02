@@ -1108,7 +1108,7 @@ void ekValueAddRef(struct ekContext *Y, ekValue *p)
     {
         return;
     }
-    
+
     ekAssert(p->refs);
     ++p->refs;
 }

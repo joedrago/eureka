@@ -88,6 +88,17 @@ add_custom_target(tests
     DEPENDS ektest
 )
 
+if(UNIX)
+    add_custom_target(astyle
+        COMMAND bash ${CMAKE_SOURCE_DIR}/tools/scripts/astyleAll.sh
+    )
+endif()
+
+add_custom_target(docs
+    COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc ${CMAKE_SOURCE_DIR}/docs/tour.ekd
+    DEPENDS ekdoc
+)
+
 if(COVERAGE)
     add_custom_target(coverage_clean
         COMMAND lcov -z -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/eureka.info

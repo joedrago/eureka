@@ -67,7 +67,7 @@ yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts)
 #endif
 
     ekTraceMem(("\n                                     "
-                 "--- start chunk compile ---\n"));
+                "--- start chunk compile ---\n"));
 
     parser = ekParseAlloc(Y);
     compiler->root = NULL;
@@ -101,7 +101,7 @@ yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts)
     ekParseFree(Y, parser);
 
     ekTraceMem(("                                     "
-                 "---  end  chunk compile ---\n\n"));
+                "---  end  chunk compile ---\n\n"));
 
     return success;
 }

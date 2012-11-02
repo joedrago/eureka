@@ -46,13 +46,13 @@ typedef struct ekContext
     ekValueType **types;
 
     // things that can own values
-    struct ekMap *globals;          // Global variables
+    struct ekMap *globals;            // Global variables
     struct ekFrame **frames;          // Current stack frames
-    struct ekValue ** stack;          // Value stack
+    struct ekValue **stack;           // Value stack
     struct ekChunk **chunks;          // the VM owns all chunks, making cheap vars
 
     // GC data
-    ekValue ** freeValues;            // Free value pool
+    ekValue **freeValues;             // Free value pool
 
     // state
     int lastRet;

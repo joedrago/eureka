@@ -51,17 +51,17 @@ void ekMemoryStatsReset()
 void ekMemoryStatsPrint(const char *prefix)
 {
     ekTraceMem(("%sMemory Stats: %d/%d A/F count [%d]. %d/%d A/F bytes [%d]. %d/%d A/F total [%d]\n",
-                 prefix,
-                 sMemoryStats.allocs,
-                 sMemoryStats.frees,
-                 sMemoryStats.allocs - sMemoryStats.frees,
-                 sMemoryStats.allocSize,
-                 sMemoryStats.freeSize,
-                 sMemoryStats.allocSize - sMemoryStats.freeSize,
-                 sMemoryStats.totalAllocSize,
-                 sMemoryStats.totalFreeSize,
-                 sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
-                ));
+                prefix,
+                sMemoryStats.allocs,
+                sMemoryStats.frees,
+                sMemoryStats.allocs - sMemoryStats.frees,
+                sMemoryStats.allocSize,
+                sMemoryStats.freeSize,
+                sMemoryStats.allocSize - sMemoryStats.freeSize,
+                sMemoryStats.totalAllocSize,
+                sMemoryStats.totalFreeSize,
+                sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
+               ));
 }
 
 int ekMemoryStatsLeftovers()
@@ -78,8 +78,8 @@ void ekMemoryStatsDumpLeaks()
         {
 #ifndef EUREKA_TRACE_MEMORY_STATS_ONLY
             ekTraceMem(("                                     LEAK %p [%d]\n",
-                         sMemoryTrackers[i].ptr,
-                         sMemoryTrackers[i].bytes));
+                        sMemoryTrackers[i].ptr,
+                        sMemoryTrackers[i].bytes));
 #endif
         }
     }
