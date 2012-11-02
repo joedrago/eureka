@@ -1,5 +1,3 @@
 tags
 eureka/core/ekLexer.re.inc
-eureka/core/ekParser.c
-eureka/core/ekParser.h
 eureka/core/ekParser.out
