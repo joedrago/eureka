@@ -565,10 +565,10 @@ void ekdOutputHTML(ekdNode *root, char **output)
                 dsConcatf(output, "<!--%s--><blockquote><pre>%s</pre></blockquote>\n", n->style ? n->style : "--", n->text);
                 break;
             case TYPE_TITLE1:
-                dsConcatf(output, "<h1>%s</h1>\n", n->text);
+                dsConcatf(output, "<h2>%s</h2>\n", n->text);
                 break;
             case TYPE_TITLE2:
-                dsConcatf(output, "<h2>%s</h2>\n", n->text);
+                dsConcatf(output, "<h1>%s</h1>\n", n->text);
                 break;
         };
     }

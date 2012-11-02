@@ -94,9 +94,20 @@ if(UNIX)
     )
 endif()
 
+set(DOCTXT)
+file(GLOB_RECURSE DOCSRC ${CMAKE_SOURCE_DIR}/eureka/docsrc/*.ekd)
+foreach(dsrc ${DOCSRC})
+    get_filename_component(basename "${dsrc}" NAME_WE)
+    set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")
+    add_custom_command(OUTPUT ${ddst}
+        COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc text "${dsrc}" > "${ddst}"
+        DEPENDS ekdoc
+    )
+    LIST(APPEND DOCTXT ${ddst})
+endforeach()
+
 add_custom_target(docs
-    COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc ${CMAKE_SOURCE_DIR}/docs/tour.ekd
-    DEPENDS ekdoc
+    DEPENDS ${DOCTXT}
 )
 
 if(COVERAGE)
