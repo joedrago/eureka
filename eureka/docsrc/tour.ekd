@@ -1,4 +1,26 @@
 A Tour Through Eureka
 =====================
 
-TBD
+* Features
+** refcounted
+** embeddable
+** portable (ANSI C)
+* Name / Reason for Creating
+* Comparison to other languages
+** Javascript
+** Lua
+** Perl
+* Varargs
+* Closures
+* Arrays
+* Maps
+* Conversion
+* String Formatting
+* Objects
+** Inheritance
+** prototype
+** duck typing
+* Embedding
+** creating context
+** calling functions
+** custom types

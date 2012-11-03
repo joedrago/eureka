@@ -1,0 +1,12 @@
+Guts
+====
+
+  * ekContext
+    * memory functions
+
+  | Eureka script --> ekContextEval()
+  | --> ekLexer --> ekToken stream
+  | --> ekParser --> ekSyntax tree
+  | --> ekAssemble*() --> ekBlock array, int/float/string tables
+  | --> ekChunk
+
