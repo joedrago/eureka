@@ -33,7 +33,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 /*!re2c
     "\"\"\""        { goto heredoc; }
     "//"            { goto comment; }
-    "#"             { goto comment; }
     "..."           { return YTT_ELLIPSIS; }
     "&&"            { return YTT_AND; }
     "&="            { return YTT_BITWISE_ANDEQUALS; }
