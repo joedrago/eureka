@@ -5,6 +5,13 @@ A Tour Through Eureka
 ** refcounted
 ** embeddable
 ** portable (ANSI C)
+** As embeddable and portable as Lua
+** Compiles to bytecode (serializable)
+** "Stackless" (does not rely on C stack for its own stack)
+** Small footprint
+** Easy to debug
+** Easy to extend
+
 * Name / Reason for Creating
 * Comparison to other languages
 ** Javascript

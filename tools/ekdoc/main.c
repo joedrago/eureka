@@ -419,7 +419,7 @@ char *ekdInterpolate(ekdNode *root, const char *rawText, ekdMarkup *markup)
                 else
                 {
                     // shrinking; move data first
-                    memmove(foundTag, foundTag - sizeDelta, strlen(foundTag) - sizeDelta);
+                    memmove(foundTag, foundTag - sizeDelta, strlen(foundTag) + sizeDelta);
                     memcpy(foundTag, replaceText, replaceTextLen);
                     dsSetLength(&output, dsLength(&output) + sizeDelta);
                 }
@@ -674,14 +674,6 @@ void ekdOutputText(ekdNode *root, char **output)
             case TYPE_LIST_ENTRY:
             {
                 char *t = ekdInterpolate(root, n->text, textMarkup);
-                /*
-                int depth;
-                for(depth = 1; depth < n->depth; ++depth)
-                {
-                    dsConcatf(output, "  ");
-                }
-                dsConcatf(output, "* %s\n", t);
-                */
                 ekdWrapAndIndent(output, t, 80, n->depth, '*', 1);
                 dsDestroy(&t);
             }
