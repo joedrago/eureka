@@ -1,0 +1,13 @@
+Frequently Asked Questions
+--------------------------
+
+  * Why the name "Eureka"?
+
+Answer
+
+  * Why did you make this language, instead of just using Lua?
+  * Why adopt elements from Javascript?
+  * Why adopt elements from Lua?
+  * Why adopt elements from Perl?
+  * Why use refcounting over garbage collection?
+
