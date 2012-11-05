@@ -88,6 +88,11 @@ add_custom_target(tests
     DEPENDS ektest
 )
 
+add_custom_target(dot
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tools/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" dot
+    DEPENDS ektest
+)
+
 if(UNIX)
     add_custom_target(astyle
         COMMAND bash ${CMAKE_SOURCE_DIR}/tools/scripts/astyleAll.sh

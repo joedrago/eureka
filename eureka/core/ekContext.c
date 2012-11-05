@@ -600,7 +600,7 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
             case 'i': if(v->type != YVT_INT) { return yFalse; } break;
             case 'f': if(v->type != YVT_FLOAT) { return yFalse; } break;
             case 'a': if(v->type != YVT_ARRAY) { return yFalse; } break;
-            case 'd': if(v->type != YVT_OBJECT) { return yFalse; } break;  // "dict"
+            case 'm': if(v->type != YVT_OBJECT) { return yFalse; } break;  // "map"
             case 'o': if(v->type != YVT_OBJECT) { return yFalse; } break;
             case 'c':
             {

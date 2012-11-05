@@ -1337,7 +1337,7 @@ void ekValueTraceRefs(struct ekContext *Y, struct ekValue *p, int delta, const c
     int newRefs = p->refs;
     if(p == ekValueNullPtr)
     {
-        sprintf(tempPtr, "0xEUREKA_NULL");
+        sprintf(tempPtr, "0xEK_NULL");
         note = "-- ignoring ekValueNull --";
     }
     else

@@ -115,6 +115,10 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
         case YST_IDENTIFIERLIST:
         {
             strcpy(label, "IdentList");
+            if(syntax->v.i)
+            {
+                strcat(label, " [var]");
+            }
             REC_ARRAY(syntax->v.a);
         }
         break;
@@ -393,13 +397,6 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
             strcpy(label, "Inherits");
             REC_CHILD(syntax->l.p);
             REC_CHILD(syntax->r.p);
-        }
-        break;
-
-        case YST_VAR:
-        {
-            strcpy(label, "Var");
-            REC_CHILD(syntax->v.p);
         }
         break;
 

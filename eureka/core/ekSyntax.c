@@ -203,12 +203,10 @@ ekSyntax *ekSyntaxCreateInherits(struct ekContext *Y, ekSyntax *l, ekSyntax *r)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateVar(struct ekContext *Y, ekSyntax *expr)
+ekSyntax *ekSyntaxMarkVar(struct ekContext *Y, ekSyntax *identList)
 {
-    ekSyntax *syntax = ekSyntaxCreate(Y, YST_VAR, expr->line);
-    syntax->v.p = expr;
-    syntax->line = expr->line;
-    return syntax;
+    identList->v.i = 1;
+    return identList;
 }
 
 ekSyntax *ekSyntaxCreateBreak(struct ekContext *Y, int line)

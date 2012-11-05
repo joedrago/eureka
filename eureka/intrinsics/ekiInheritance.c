@@ -74,7 +74,7 @@ static yU32 prototype(struct ekContext *Y, yU32 argCount)
 void ekIntrinsicsRegisterInheritance(struct ekContext *Y)
 {
     ekContextRegisterGlobalFunction(Y, "object", object);
-    ekContextRegisterGlobalFunction(Y, "dict", object); // alias
+    ekContextRegisterGlobalFunction(Y, "map", object); // alias
 
     ekContextRegisterGlobalFunction(Y, "inherit", inherit);
     ekContextRegisterGlobalFunction(Y, "prototype", prototype);

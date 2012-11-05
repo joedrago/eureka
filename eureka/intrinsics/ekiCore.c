@@ -83,7 +83,7 @@ static yU32 keys(struct ekContext *Y, yU32 argCount)
 
     if(!ekContextGetArgs(Y, argCount, "o", &object))
     {
-        return ekContextArgsFailure(Y, argCount, "keys([object/dict] o)");
+        return ekContextArgsFailure(Y, argCount, "keys([map/object] o)");
     }
 
     ekMapIterateP1(Y, object->objectVal->hash, ekAppendKey, arrayVal);

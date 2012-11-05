@@ -5,10 +5,16 @@ use File::Basename;
 use Data::Dumper;
 $|=1;
 
-my($sourceDir, $binaryDir) = @ARGV;
+my($sourceDir, $binaryDir, $cmd) = @ARGV;
 my $ekTestExe = "$binaryDir/tools/ektest/ektest";
 my $ekTestOutputDir = "$binaryDir/tests";
 my @tests = sort glob("$sourceDir/tests/*.ek");
+
+my $mode = 'test';
+if($cmd eq 'dot')
+{
+    $mode = 'dot';
+}
 
 mkdir $ekTestOutputDir;
 print("\n");
@@ -19,34 +25,47 @@ my @failed;
 for my $test (@tests)
 {
     my ($testBasename) = fileparse($test, qr/\Q.ek\E/);
-    my $ekTestOutput = "$ekTestOutputDir/$testBasename.txt";
+    my $ekTestOutput = "$ekTestOutputDir/$testBasename." . (($mode eq 'test') ? 'txt' : 'png');
     my $expected = 0;
     if($testBasename =~ /_E(\d+)$/)
     {
         $expected = $1;
     }
 
-    printf("                   \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
-    my $cmd = "$ekTestExe $test 2>&1 > $ekTestOutput";
-    my $ret = system($cmd);
-    my $code = $ret >> 8;
-    if($code != $expected)
+    if($mode eq 'test')
     {
-        print(" - FAILED\nEnd of $testBasename output:\n-------\n");
-        system("tail $ekTestOutput");
-        print("-------\n");
-        push(@failed, {
-            name => $testBasename,
-            expected => $expected,
-            code => $code,
-        });
+        printf("                   \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+        my $cmd = "$ekTestExe $test 2>&1 > $ekTestOutput";
+        my $ret = system($cmd);
+        my $code = $ret >> 8;
+        if($code != $expected)
+        {
+            print(" - FAILED\nEnd of $testBasename output:\n-------\n");
+            system("tail $ekTestOutput");
+            print("-------\n");
+            push(@failed, {
+                    name => $testBasename,
+                    expected => $expected,
+                    code => $code,
+                    });
+        }
+        else
+        {
+            $passed++;
+        }
     }
     else
     {
-        $passed++;
+        printf("                   \rGenerating dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+        my $cmd = "$ekTestExe -d $test | dot -Tpng > $ekTestOutput";
+        my $ret = system($cmd);
+        my $code = $ret >> 8;
     }
 }
-printf("             \nTest results: [%3d / %3d] passed.\n", $passed, scalar(@tests));
+if($mode eq 'test')
+{
+    printf("             \nTest results: [%3d / %3d] passed.\n", $passed, scalar(@tests));
+}
 
 if(scalar(@failed))
 {

@@ -382,7 +382,10 @@ lvalue(L) ::= lvalue_indexable(I).
     { L = I; }
 
 lvalue(L) ::= VAR IDENTIFIER(I).
-    { L = ekSyntaxCreateVar(C->Y, ekSyntaxCreateIdentifier(C->Y, &I)); }
+    { L = ekSyntaxMarkVar(C->Y, ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &I))); }
+
+lvalue(L) ::= VAR GROUPLEFTPAREN ident_list(I) RIGHTPAREN.
+    { L = ekSyntaxMarkVar(C->Y, I); }
 
 lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { L = EL; }

@@ -90,8 +90,8 @@ typedef union {
 #define ekParseARG_PDECL , ekCompiler *C 
 #define ekParseARG_FETCH  ekCompiler *C  = yypParser->C 
 #define ekParseARG_STORE yypParser->C  = C 
-#define YYNSTATE 163
-#define YYNRULE 81
+#define YYNSTATE 166
+#define YYNRULE 82
 #define YYERRORSYMBOL 74
 #define YYERRSYMDT yy173
 #define YYFALLBACK 1
@@ -164,128 +164,128 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    17,  140,    8,    4,  101,   43,  109,  119,   95,  122,
- /*    10 */    21,   15,   65,  107,   57,  105,  144,  154,   50,   52,
- /*    20 */    51,   54,   53,   45,   49,   47,   48,  161,   24,   13,
- /*    30 */   160,  107,   57,  112,  119,   22,   20,   34,   25,   35,
- /*    40 */   128,  129,   28,   29,   27,   32,   33,   30,   31,   40,
- /*    50 */    38,   37,   19,   23,   24,   13,   44,  118,  148,   12,
- /*    60 */    16,  102,  145,  103,  113,  124,   18,   39,  127,  130,
- /*    70 */   131,  132,  114,   21,   62,  107,   57,   41,   42,  117,
- /*    80 */   245,    9,  151,  126,   97,   21,   18,   39,   65,   88,
- /*    90 */    57,   21,   94,  107,   57,  125,   21,   13,   26,   36,
+ /*     0 */    17,   59,    8,    4,  102,   43,  112,  121,   96,  124,
+ /*    10 */    21,   15,   66,  110,   57,  108,  149,  122,   50,   52,
+ /*    20 */    51,   54,   53,   45,   49,   47,   48,  164,   24,   13,
+ /*    30 */   163,  110,   57,  115,  121,   22,   20,   34,   25,   35,
+ /*    40 */   130,  131,   28,   29,   27,   32,   33,   30,   31,   40,
+ /*    50 */    38,   37,   19,   23,   24,   13,   44,  117,  153,   12,
+ /*    60 */    16,  103,  150,  144,  116,  146,   18,   39,  129,  132,
+ /*    70 */   133,  134,  105,   21,   63,  110,   57,   41,   42,  120,
+ /*    80 */   249,    9,  156,  128,   98,   21,   18,   39,   66,   89,
+ /*    90 */    57,   21,   95,  110,   57,  127,   21,  142,   26,   36,
  /*   100 */    34,   25,   35,   18,   39,   28,   29,   27,   32,   33,
  /*   110 */    30,   31,   40,   38,   37,   19,   23,   24,   13,   21,
- /*   120 */    80,  107,   57,   41,   40,   38,   37,   19,   23,   24,
+ /*   120 */    81,  110,   57,   41,   40,   38,   37,   19,   23,   24,
  /*   130 */    13,   38,   37,   19,   23,   24,   13,   37,   19,   23,
- /*   140 */    24,   13,   43,   55,   26,   36,   34,   25,   35,    5,
- /*   150 */     3,   28,   29,   27,   32,   33,   30,   31,   40,   38,
- /*   160 */    37,   19,   23,   24,   13,   21,   56,  143,   96,   41,
- /*   170 */    18,   39,   65,  107,   57,    6,  117,    7,   58,  135,
- /*   180 */   110,   97,  142,  146,   21,   65,   88,   57,   21,  147,
- /*   190 */    26,   36,   34,   25,   35,  153,  150,   28,   29,   27,
+ /*   140 */    24,   13,  104,  147,   26,   36,   34,   25,   35,   13,
+ /*   150 */   106,   28,   29,   27,   32,   33,   30,   31,   40,   38,
+ /*   160 */    37,   19,   23,   24,   13,   21,  126,  148,   97,   41,
+ /*   170 */    18,   39,   66,  110,   57,  145,  120,    7,  117,  137,
+ /*   180 */   113,   98,   43,   55,   21,   66,   89,   57,   21,    3,
+ /*   190 */    26,   36,   34,   25,   35,   56,    5,   28,   29,   27,
  /*   200 */    32,   33,   30,   31,   40,   38,   37,   19,   23,   24,
- /*   210 */    13,   21,   99,  107,   57,   41,  141,   29,   27,   32,
+ /*   210 */    13,   21,  100,  110,   57,   41,  143,   29,   27,   32,
  /*   220 */    33,   30,   31,   40,   38,   37,   19,   23,   24,   13,
- /*   230 */    19,   23,   24,   13,  104,  121,   26,   36,   34,   25,
- /*   240 */    35,  246,  155,   28,   29,   27,   32,   33,   30,   31,
- /*   250 */    40,   38,   37,   19,   23,   24,   13,   17,  134,    8,
- /*   260 */     4,  101,  246,   21,  120,    1,   18,   39,   15,   65,
- /*   270 */   107,   57,  105,  144,   17,  156,    8,  117,  101,  246,
- /*   280 */   135,  137,   97,  154,  162,   15,   65,   88,   57,  105,
- /*   290 */   144,  246,   22,   20,  246,   28,   29,   27,   32,   33,
+ /*   230 */    19,   23,   24,   13,    6,  123,   26,   36,   34,   25,
+ /*   240 */    35,  107,   58,   28,   29,   27,   32,   33,   30,   31,
+ /*   250 */    40,   38,   37,   19,   23,   24,   13,   17,  136,    8,
+ /*   260 */     4,  102,  250,   21,  146,    1,   18,   39,   15,   66,
+ /*   270 */   110,   57,  108,  149,   17,  151,    8,  120,  102,  152,
+ /*   280 */   137,  139,   98,  147,  155,   15,   66,   89,   57,  108,
+ /*   290 */   149,  158,   22,   20,  159,   28,   29,   27,   32,   33,
  /*   300 */    30,   31,   40,   38,   37,   19,   23,   24,   13,   22,
- /*   310 */    20,  246,  153,   14,  246,  148,   12,   16,  102,  145,
- /*   320 */   246,  113,   81,  107,   57,  127,  130,  131,  132,  114,
- /*   330 */   246,  157,  148,   12,   16,  102,  145,   17,  113,    8,
- /*   340 */    21,  101,  127,  130,  131,  132,  114,  246,   15,  100,
- /*   350 */   107,   57,  105,  144,  163,   17,    2,    8,  246,  101,
- /*   360 */    65,  107,   57,  115,  116,  246,   15,   46,  246,  246,
- /*   370 */   105,  144,   22,   20,   27,   32,   33,   30,   31,   40,
- /*   380 */    38,   37,   19,   23,   24,   13,  246,   21,  246,  246,
- /*   390 */    22,   20,  246,  246,  152,  148,   12,   16,  102,  145,
- /*   400 */   246,  113,  106,  107,   57,  127,  130,  131,  132,  114,
- /*   410 */    79,  107,   57,  148,   12,   16,  102,  145,   17,  113,
- /*   420 */     8,   21,  101,  127,  130,  131,  132,  114,  246,   15,
- /*   430 */    23,   24,   13,  105,  144,   17,   98,    8,  246,  101,
- /*   440 */    65,  107,   57,   76,  107,   57,   15,   85,  107,   57,
- /*   450 */   105,  144,   55,   22,   20,  246,   32,   33,   30,   31,
- /*   460 */    40,   38,   37,   19,   23,   24,   13,   83,  107,   57,
- /*   470 */    22,   20,   23,   24,   13,  133,  148,   12,   16,  102,
- /*   480 */   145,  246,  113,   21,  246,  246,  127,  130,  131,  132,
- /*   490 */   114,  246,  149,  148,   12,   16,  102,  145,  246,  113,
- /*   500 */   246,  246,  246,  127,  130,  131,  132,  114,   26,   36,
- /*   510 */    34,   25,   35,  111,   21,   28,   29,   27,   32,   33,
+ /*   310 */    20,  165,  250,   14,  250,  153,   12,   16,  103,  150,
+ /*   320 */   250,  116,   82,  110,   57,  129,  132,  133,  134,  105,
+ /*   330 */   250,  160,  153,   12,   16,  103,  150,   17,  116,    8,
+ /*   340 */    21,  102,  129,  132,  133,  134,  105,  250,   15,  101,
+ /*   350 */   110,   57,  108,  149,  166,   17,    2,    8,  250,  102,
+ /*   360 */    66,  110,   57,  118,  119,  250,   15,   46,  250,  250,
+ /*   370 */   108,  149,   22,   20,   27,   32,   33,   30,   31,   40,
+ /*   380 */    38,   37,   19,   23,   24,   13,  250,   21,  250,  250,
+ /*   390 */    22,   20,  250,  250,  157,  153,   12,   16,  103,  150,
+ /*   400 */   250,  116,  109,  110,   57,  129,  132,  133,  134,  105,
+ /*   410 */    80,  110,   57,  153,   12,   16,  103,  150,   17,  116,
+ /*   420 */     8,   21,  102,  129,  132,  133,  134,  105,  250,   15,
+ /*   430 */    23,   24,   13,  108,  149,   17,   99,    8,  250,  102,
+ /*   440 */    66,  110,   57,   77,  110,   57,   15,   86,  110,   57,
+ /*   450 */   108,  149,   55,   22,   20,  250,   32,   33,   30,   31,
+ /*   460 */    40,   38,   37,   19,   23,   24,   13,   84,  110,   57,
+ /*   470 */    22,   20,   23,   24,   13,  135,  153,   12,   16,  103,
+ /*   480 */   150,  250,  116,   21,  250,  250,  129,  132,  133,  134,
+ /*   490 */   105,  250,  154,  153,   12,   16,  103,  150,  250,  116,
+ /*   500 */   250,  250,  250,  129,  132,  133,  134,  105,   26,   36,
+ /*   510 */    34,   25,   35,  114,   21,   28,   29,   27,   32,   33,
  /*   520 */    30,   31,   40,   38,   37,   19,   23,   24,   13,   17,
- /*   530 */   246,    8,  246,  101,   84,  107,   57,  246,   21,  246,
- /*   540 */    15,  246,   25,   35,  105,  144,   28,   29,   27,   32,
+ /*   530 */   250,    8,  250,  102,   85,  110,   57,  250,   21,  250,
+ /*   540 */    15,  250,   25,   35,  108,  149,   28,   29,   27,   32,
  /*   550 */    33,   30,   31,   40,   38,   37,   19,   23,   24,   13,
- /*   560 */   246,   89,  107,   57,   22,   20,   21,   35,  246,  246,
+ /*   560 */   250,   90,  110,   57,   22,   20,   21,   35,  250,  250,
  /*   570 */    28,   29,   27,   32,   33,   30,   31,   40,   38,   37,
- /*   580 */    19,   23,   24,   13,  246,  246,  246,  148,   12,   16,
- /*   590 */   102,  145,  246,  113,   21,  246,  246,  127,  130,  131,
- /*   600 */   132,  114,   33,   30,   31,   40,   38,   37,   19,   23,
- /*   610 */    24,   13,   90,  107,   57,  246,  246,   86,  107,   57,
- /*   620 */    36,   34,   25,   35,  246,  246,   28,   29,   27,   32,
+ /*   580 */    19,   23,   24,   13,  250,  250,  250,  153,   12,   16,
+ /*   590 */   103,  150,  250,  116,   21,  250,  250,  129,  132,  133,
+ /*   600 */   134,  105,   33,   30,   31,   40,   38,   37,   19,   23,
+ /*   610 */    24,   13,   91,  110,   57,  250,  250,   87,  110,   57,
+ /*   620 */    36,   34,   25,   35,  250,  250,   28,   29,   27,   32,
  /*   630 */    33,   30,   31,   40,   38,   37,   19,   23,   24,   13,
- /*   640 */    17,   14,   21,  246,  101,   87,  107,   57,  246,  246,
- /*   650 */   117,  246,  246,  135,  158,   97,  144,  246,   17,   65,
- /*   660 */    88,   57,  101,   78,  107,   57,   82,  107,   57,  246,
- /*   670 */   246,  246,  246,  246,  144,   22,   20,  246,  246,   30,
- /*   680 */    31,   40,   38,   37,   19,   23,   24,   13,   77,  107,
- /*   690 */    57,  246,  246,   22,   20,   93,  107,   57,  246,  246,
- /*   700 */    21,  108,  145,   92,  107,   57,  246,  246,  127,  130,
- /*   710 */   131,  132,  114,   63,  107,   57,   91,  107,   57,  108,
- /*   720 */   145,  159,  246,   59,  107,   57,  127,  130,  131,  132,
- /*   730 */   114,   17,  246,  246,  246,  101,  246,  246,   31,   40,
- /*   740 */    38,   37,   19,   23,   24,   13,  246,  144,  246,  117,
- /*   750 */   246,   10,  151,  246,   97,  246,  246,  246,   65,   88,
- /*   760 */    57,  246,  246,   66,  107,   57,   22,   20,  246,  117,
- /*   770 */   246,  246,  135,  136,   97,  246,  246,  246,   65,   88,
- /*   780 */    57,   64,  107,   57,  246,  117,  246,  246,  135,  138,
- /*   790 */    97,  246,  108,  145,   65,   88,   57,  246,  246,  127,
- /*   800 */   130,  131,  132,  114,  246,  117,  246,  246,  135,  139,
- /*   810 */    97,   60,  107,   57,   65,   88,   57,  117,  246,   11,
- /*   820 */   151,  246,   97,   67,  107,   57,   65,   88,   57,  117,
- /*   830 */   246,  246,  123,  246,   97,   61,  107,   57,   65,   88,
- /*   840 */    57,  246,   68,  107,   57,  246,  246,   69,  107,   57,
- /*   850 */    70,  107,   57,   71,  107,   57,   72,  107,   57,  246,
- /*   860 */   246,  246,   73,  107,   57,   74,  107,   57,  246,   75,
- /*   870 */   107,   57,
+ /*   640 */    17,   14,   21,  250,  102,   88,  110,   57,  250,  250,
+ /*   650 */   120,  250,  250,  137,  161,   98,  149,  250,   17,   66,
+ /*   660 */    89,   57,  102,   79,  110,   57,   83,  110,   57,  250,
+ /*   670 */   250,  250,  250,  250,  149,   22,   20,  250,  250,   30,
+ /*   680 */    31,   40,   38,   37,   19,   23,   24,   13,   78,  110,
+ /*   690 */    57,  250,  250,   22,   20,   94,  110,   57,  250,  250,
+ /*   700 */    21,  111,  150,   93,  110,   57,  250,  250,  129,  132,
+ /*   710 */   133,  134,  105,   64,  110,   57,   92,  110,   57,  111,
+ /*   720 */   150,  162,  250,   60,  110,   57,  129,  132,  133,  134,
+ /*   730 */   105,   17,  250,  250,  250,  102,  250,  250,   31,   40,
+ /*   740 */    38,   37,   19,   23,   24,   13,  250,  149,  250,  120,
+ /*   750 */   250,   10,  156,  250,   98,  250,  250,  250,   66,   89,
+ /*   760 */    57,  250,  250,   67,  110,   57,   22,   20,  250,  120,
+ /*   770 */   250,  250,  137,  138,   98,  250,  250,  250,   66,   89,
+ /*   780 */    57,   65,  110,   57,  250,  120,  250,  250,  137,  140,
+ /*   790 */    98,  250,  111,  150,   66,   89,   57,  250,  250,  129,
+ /*   800 */   132,  133,  134,  105,  250,  120,  250,  250,  137,  141,
+ /*   810 */    98,   61,  110,   57,   66,   89,   57,  120,  250,   11,
+ /*   820 */   156,  250,   98,   68,  110,   57,   66,   89,   57,  120,
+ /*   830 */   250,  250,  125,  250,   98,   62,  110,   57,   66,   89,
+ /*   840 */    57,  250,   69,  110,   57,  250,  250,   70,  110,   57,
+ /*   850 */    71,  110,   57,   72,  110,   57,   73,  110,   57,  250,
+ /*   860 */   250,  250,   74,  110,   57,   75,  110,   57,  250,   76,
+ /*   870 */   110,   57,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     1,   80,    3,    4,    5,    9,   81,   82,   79,   80,
- /*    10 */     6,   12,   83,   84,   85,   16,   17,   63,   22,   23,
+ /*     0 */     1,    1,    3,    4,    5,    9,   81,   82,   79,   80,
+ /*    10 */     6,   12,   83,   84,   85,   16,   17,   15,   22,   23,
  /*    20 */    24,   25,   26,   27,   28,   29,   30,   80,   50,   51,
  /*    30 */    83,   84,   85,   81,   82,   36,   37,   33,   34,   35,
  /*    40 */    69,   70,   38,   39,   40,   41,   42,   43,   44,   45,
  /*    50 */    46,   47,   48,   49,   50,   51,   66,   67,   59,   60,
- /*    60 */    61,   62,   63,   82,   65,   59,   67,   68,   69,   70,
+ /*    60 */    61,   62,   63,   63,   65,   63,   67,   68,   69,   70,
  /*    70 */    71,   72,   73,    6,   83,   84,   85,   10,   11,   74,
  /*    80 */    75,   76,   77,   64,   79,    6,   67,   68,   83,   84,
- /*    90 */    85,    6,   83,   84,   85,   59,    6,   51,   31,   32,
+ /*    90 */    85,    6,   83,   84,   85,   59,    6,   80,   31,   32,
  /*   100 */    33,   34,   35,   67,   68,   38,   39,   40,   41,   42,
  /*   110 */    43,   44,   45,   46,   47,   48,   49,   50,   51,    6,
  /*   120 */    83,   84,   85,   10,   45,   46,   47,   48,   49,   50,
  /*   130 */    51,   46,   47,   48,   49,   50,   51,   47,   48,   49,
- /*   140 */    50,   51,    9,    2,   31,   32,   33,   34,   35,   13,
- /*   150 */    64,   38,   39,   40,   41,   42,   43,   44,   45,   46,
- /*   160 */    47,   48,   49,   50,   51,    6,    2,   64,   79,   10,
- /*   170 */    67,   68,   83,   84,   85,   64,   74,   64,    2,   77,
- /*   180 */    78,   79,   63,   63,    6,   83,   84,   85,    6,   63,
- /*   190 */    31,   32,   33,   34,   35,   63,   59,   38,   39,   40,
+ /*   140 */    50,   51,   82,   63,   31,   32,   33,   34,   35,   51,
+ /*   150 */    82,   38,   39,   40,   41,   42,   43,   44,   45,   46,
+ /*   160 */    47,   48,   49,   50,   51,    6,   59,   64,   79,   10,
+ /*   170 */    67,   68,   83,   84,   85,   64,   74,   64,   67,   77,
+ /*   180 */    78,   79,    9,    2,    6,   83,   84,   85,    6,   64,
+ /*   190 */    31,   32,   33,   34,   35,    2,   13,   38,   39,   40,
  /*   200 */    41,   42,   43,   44,   45,   46,   47,   48,   49,   50,
  /*   210 */    51,    6,   83,   84,   85,   10,   57,   39,   40,   41,
  /*   220 */    42,   43,   44,   45,   46,   47,   48,   49,   50,   51,
- /*   230 */    48,   49,   50,   51,   67,   15,   31,   32,   33,   34,
- /*   240 */    35,   86,   63,   38,   39,   40,   41,   42,   43,   44,
+ /*   230 */    48,   49,   50,   51,   64,   15,   31,   32,   33,   34,
+ /*   240 */    35,   67,    2,   38,   39,   40,   41,   42,   43,   44,
  /*   250 */    45,   46,   47,   48,   49,   50,   51,    1,   59,    3,
- /*   260 */     4,    5,   86,    6,   15,   79,   67,   68,   12,   83,
- /*   270 */    84,   85,   16,   17,    1,   63,    3,   74,    5,   86,
+ /*   260 */     4,    5,   86,    6,   63,   79,   67,   68,   12,   83,
+ /*   270 */    84,   85,   16,   17,    1,   63,    3,   74,    5,   63,
  /*   280 */    77,   78,   79,   63,   59,   12,   83,   84,   85,   16,
- /*   290 */    17,   86,   36,   37,   86,   38,   39,   40,   41,   42,
+ /*   290 */    17,   63,   36,   37,   63,   38,   39,   40,   41,   42,
  /*   300 */    43,   44,   45,   46,   47,   48,   49,   50,   51,   36,
- /*   310 */    37,   86,   63,    2,   86,   59,   60,   61,   62,   63,
+ /*   310 */    37,   59,   86,    2,   86,   59,   60,   61,   62,   63,
  /*   320 */    86,   65,   83,   84,   85,   69,   70,   71,   72,   73,
  /*   330 */    86,   58,   59,   60,   61,   62,   63,    1,   65,    3,
  /*   340 */     6,    5,   69,   70,   71,   72,   73,   86,   12,   83,
@@ -343,51 +343,51 @@ static const YYCODETYPE yy_lookahead[] = {
  /*   860 */    86,   86,   83,   84,   85,   83,   84,   85,   86,   83,
  /*   870 */    84,   85,
 };
-#define YY_SHIFT_USE_DFLT (-47)
-#define YY_SHIFT_MAX 122
+#define YY_SHIFT_USE_DFLT (-30)
+#define YY_SHIFT_MAX 124
 static const short yy_shift_ofst[] = {
  /*     0 */   528,   -1,   -1,  256,  273,  256,  256,  256,  336,  354,
  /*    10 */   417,  434,  639,  639,  657,  730,  730,  730,  730,  730,
  /*    20 */   730,  730,  730,  730,  730,  730,  730,  730,  730,  730,
  /*    30 */   730,  730,  730,  730,  730,  730,  730,  730,  730,  730,
  /*    40 */   730,  730,  730,  730,  730,  730,  730,  730,  730,  730,
- /*    50 */   730,  730,  730,  730,  730,  220,  220,  311,  -46,   67,
- /*    60 */   113,  159,  205,  205,  205,  205,  477,  477,  477,  477,
- /*    70 */   477,  477,  477,  477,  477,  477,  588,    4,  508,  532,
- /*    80 */   257,  257,  257,  178,  334,  415,  560,  636,   -4,  694,
- /*    90 */    79,   85,   90,  182,  381,   36,   19,  199,  103,  423,
- /*   100 */   -22,  -29,  450,  -10,  249,    6,   46,  133,  141,   86,
- /*   110 */   136,  164,  111,  176,  119,  120,  126,  137,  132,  167,
- /*   120 */   179,  212,  225,
+ /*    50 */   730,  730,  730,  730,  730,  220,  220,  311,   80,   80,
+ /*    60 */    67,  113,  159,  205,  205,  205,  205,  477,  477,  477,
+ /*    70 */   477,  477,  477,  477,  477,  477,  477,  588,    4,  508,
+ /*    80 */   532,  257,  257,  257,  178,  334,  415,  560,  636,   -4,
+ /*    90 */   694,   79,   85,   90,  182,  381,   36,   19,  199,  103,
+ /*   100 */   423,  -22,  -29,  450,  -10,    0,  111,    2,  107,   98,
+ /*   110 */   173,  181,  125,  183,  193,  170,  240,  201,  212,  216,
+ /*   120 */   225,  174,  228,  231,  252,
 };
-#define YY_REDUCE_USE_DFLT (-80)
-#define YY_REDUCE_MAX 58
+#define YY_REDUCE_USE_DFLT (-76)
+#define YY_REDUCE_MAX 59
 static const short yy_reduce_ofst[] = {
  /*     0 */     5,  102,  203,  576,  675,  695,  711,  731,  743,  755,
  /*    10 */   755,  755,  -71,  -53,   89,  186,  277,  357,   -9,    9,
  /*    20 */    37,  129,  239,  266,  319,  327,  360,  364,  384,  451,
  /*    30 */   478,  529,  534,  562,  580,  583,  605,  612,  620,  630,
  /*    40 */   633,  640,  680,  698,  728,  740,  752,  759,  764,  767,
- /*    50 */   770,  773,  779,  782,  786,  -75,  -48,  -79,  -19,
+ /*    50 */   770,  773,  779,  782,  786,  -75,  -48,   17,   60,   68,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   244,  244,  244,  244,  244,  244,  244,  244,  244,  244,
- /*    10 */   244,  244,  244,  244,  244,  244,  244,  244,  244,  244,
- /*    20 */   244,  244,  244,  244,  244,  244,  244,  244,  244,  244,
- /*    30 */   244,  244,  244,  244,  244,  244,  244,  244,  244,  244,
- /*    40 */   244,  244,  244,  244,  244,  244,  244,  244,  244,  244,
- /*    50 */   244,  244,  244,  244,  244,  240,  240,  229,  240,  244,
- /*    60 */   244,  244,  193,  194,  218,  195,  228,  178,  179,  180,
- /*    70 */   181,  182,  183,  184,  185,  186,  203,  213,  211,  202,
- /*    80 */   196,  197,  212,  205,  206,  204,  209,  210,  220,  207,
- /*    90 */   208,  219,  215,  214,  198,  244,  244,  244,  244,  199,
- /*   100 */   200,  244,  244,  244,  244,  244,  201,  220,  244,  244,
- /*   110 */   174,  244,  244,  244,  244,  244,  244,  244,  244,  241,
- /*   120 */   244,  244,  244,  164,  169,  170,  191,  221,  222,  224,
- /*   130 */   223,  225,  226,  167,  172,  168,  173,  175,  176,  177,
- /*   140 */   233,  234,  230,  231,  232,  237,  235,  236,  187,  189,
- /*   150 */   190,  165,  188,  238,  239,  242,  243,  166,  227,  192,
- /*   160 */   217,  216,  171,
+ /*     0 */   248,  248,  248,  248,  248,  248,  248,  248,  248,  248,
+ /*    10 */   248,  248,  248,  248,  248,  248,  248,  248,  248,  248,
+ /*    20 */   248,  248,  248,  248,  248,  248,  248,  248,  248,  248,
+ /*    30 */   248,  248,  248,  248,  248,  248,  248,  248,  248,  248,
+ /*    40 */   248,  248,  248,  248,  248,  248,  248,  248,  248,  248,
+ /*    50 */   248,  248,  248,  248,  248,  244,  244,  232,  244,  244,
+ /*    60 */   248,  248,  248,  196,  197,  221,  198,  231,  181,  182,
+ /*    70 */   183,  184,  185,  186,  187,  188,  189,  206,  216,  214,
+ /*    80 */   205,  199,  200,  215,  208,  209,  207,  212,  213,  223,
+ /*    90 */   210,  211,  222,  218,  217,  201,  248,  248,  248,  248,
+ /*   100 */   202,  203,  248,  248,  248,  248,  248,  248,  248,  204,
+ /*   110 */   223,  248,  248,  177,  248,  248,  248,  248,  248,  248,
+ /*   120 */   248,  245,  248,  248,  248,  167,  172,  173,  194,  224,
+ /*   130 */   225,  227,  226,  228,  229,  170,  175,  171,  176,  178,
+ /*   140 */   179,  180,  237,  238,  233,  234,  242,  243,  235,  236,
+ /*   150 */   241,  239,  240,  190,  192,  193,  168,  191,  246,  247,
+ /*   160 */   169,  230,  195,  220,  219,  174,
 };
 #define YY_SZ_ACTTAB (int)(sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -585,19 +585,20 @@ static const char *const yyRuleName[] = {
  /*  65 */ "expression ::= expression QUESTIONMARK expression COLON expression",
  /*  66 */ "lvalue ::= lvalue_indexable",
  /*  67 */ "lvalue ::= VAR IDENTIFIER",
- /*  68 */ "lvalue ::= GROUPLEFTPAREN expr_list RIGHTPAREN",
- /*  69 */ "lvalue_indexable ::= THIS",
- /*  70 */ "lvalue_indexable ::= lvalue_indexable paren_expr_list",
- /*  71 */ "lvalue_indexable ::= lvalue_indexable OPENBRACKET expression CLOSEBRACKET",
- /*  72 */ "lvalue_indexable ::= lvalue_indexable PERIOD IDENTIFIER",
- /*  73 */ "lvalue_indexable ::= lvalue_indexable COLONCOLON IDENTIFIER",
- /*  74 */ "lvalue_indexable ::= IDENTIFIER",
- /*  75 */ "ident_list ::= ident_list COMMA IDENTIFIER",
- /*  76 */ "ident_list ::= IDENTIFIER",
- /*  77 */ "ident_list ::=",
- /*  78 */ "func_args ::= ident_list",
- /*  79 */ "func_args ::= ident_list COMMA ELLIPSIS IDENTIFIER",
- /*  80 */ "func_args ::= ELLIPSIS IDENTIFIER",
+ /*  68 */ "lvalue ::= VAR GROUPLEFTPAREN ident_list RIGHTPAREN",
+ /*  69 */ "lvalue ::= GROUPLEFTPAREN expr_list RIGHTPAREN",
+ /*  70 */ "lvalue_indexable ::= THIS",
+ /*  71 */ "lvalue_indexable ::= lvalue_indexable paren_expr_list",
+ /*  72 */ "lvalue_indexable ::= lvalue_indexable OPENBRACKET expression CLOSEBRACKET",
+ /*  73 */ "lvalue_indexable ::= lvalue_indexable PERIOD IDENTIFIER",
+ /*  74 */ "lvalue_indexable ::= lvalue_indexable COLONCOLON IDENTIFIER",
+ /*  75 */ "lvalue_indexable ::= IDENTIFIER",
+ /*  76 */ "ident_list ::= ident_list COMMA IDENTIFIER",
+ /*  77 */ "ident_list ::= IDENTIFIER",
+ /*  78 */ "ident_list ::=",
+ /*  79 */ "func_args ::= ident_list",
+ /*  80 */ "func_args ::= ident_list COMMA ELLIPSIS IDENTIFIER",
+ /*  81 */ "func_args ::= ELLIPSIS IDENTIFIER",
 };
 #endif /* NDEBUG */
 
@@ -688,7 +689,7 @@ static void yy_destructor(
 {
 #line 130 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
  ekSyntaxDestroy(C->Y, (yypminor->yy22)); 
-#line 692 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 693 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
@@ -984,6 +985,7 @@ static const struct {
   { 83, 5 },
   { 84, 1 },
   { 84, 2 },
+  { 84, 4 },
   { 84, 3 },
   { 85, 1 },
   { 85, 2 },
@@ -1054,370 +1056,375 @@ static void yy_reduce(
       case 0: /* chunk ::= statement_list */
 #line 121 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { C->root = yymsp[0].minor.yy22; }
-#line 1058 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1060 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 1: /* statement_list ::= statement_list statement */
 #line 133 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxListAppend(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22, 0); }
-#line 1063 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1065 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 2: /* statement_list ::= statement */
       case 5: /* statement_block ::= statement */ yytestcase(yyruleno==5);
 #line 136 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, yymsp[0].minor.yy22); }
-#line 1069 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1071 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 3: /* statement_block ::= STARTBLOCK ENDBLOCK */
       case 24: /* statement ::= ENDSTATEMENT */ yytestcase(yyruleno==24);
       case 25: /* statement ::= SCOPESTARTBLOCK ENDBLOCK */ yytestcase(yyruleno==25);
 #line 148 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
-#line 1076 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1078 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 4: /* statement_block ::= STARTBLOCK statement_list ENDBLOCK */
       case 28: /* paren_expr_list ::= LEFTPAREN expr_list RIGHTPAREN */ yytestcase(yyruleno==28);
-      case 68: /* lvalue ::= GROUPLEFTPAREN expr_list RIGHTPAREN */ yytestcase(yyruleno==68);
+      case 69: /* lvalue ::= GROUPLEFTPAREN expr_list RIGHTPAREN */ yytestcase(yyruleno==69);
 #line 151 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = yymsp[-1].minor.yy22; }
-#line 1083 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1085 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 6: /* statement ::= BREAK ENDSTATEMENT */
 #line 166 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBreak(C->Y, yymsp[-1].minor.yy0.line); }
-#line 1088 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1090 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 7: /* statement ::= RETURN expr_list ENDSTATEMENT */
       case 8: /* statement ::= RETURN paren_expr_list ENDSTATEMENT */ yytestcase(yyruleno==8);
 #line 169 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateReturn(C->Y, yymsp[-1].minor.yy22); }
-#line 1094 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1096 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 9: /* statement ::= expr_list ENDSTATEMENT */
 #line 175 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateStatementExpr(C->Y, yymsp[-1].minor.yy22); }
-#line 1099 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1101 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 10: /* statement ::= IF expr_list statement_block ELSE statement_block */
 #line 178 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-3].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1104 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1106 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 11: /* statement ::= IF expr_list statement_block */
 #line 181 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22, NULL, yFalse); }
-#line 1109 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1111 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 12: /* statement ::= WHILE expr_list statement_block */
 #line 184 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateWhile(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22); }
-#line 1114 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1116 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 13: /* statement ::= FUNCTION IDENTIFIER LEFTPAREN func_args RIGHTPAREN statement_block */
 #line 187 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateFunctionDecl(C->Y, &yymsp[-4].minor.yy0, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yymsp[-5].minor.yy0.line); }
-#line 1119 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1121 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 14: /* statement ::= FOR LEFTPAREN ident_list IN expression RIGHTPAREN statement_block */
 #line 190 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateFor(C->Y, yymsp[-4].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22); }
-#line 1124 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1126 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 15: /* statement ::= lvalue PLUSEQUALS expression */
 #line 193 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1129 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1131 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 16: /* statement ::= lvalue DASHEQUALS expression */
 #line 196 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1134 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1136 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 17: /* statement ::= lvalue STAREQUALS expression */
 #line 199 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1139 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1141 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 18: /* statement ::= lvalue SLASHEQUALS expression */
 #line 202 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1144 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1146 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 19: /* statement ::= lvalue BITWISE_OREQUALS expression */
 #line 205 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1149 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1151 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 20: /* statement ::= lvalue BITWISE_ANDEQUALS expression */
 #line 208 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1154 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1156 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 21: /* statement ::= lvalue BITWISE_XOREQUALS expression */
 #line 211 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1159 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1161 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 22: /* statement ::= lvalue SHIFTLEFTEQUALS expression */
 #line 214 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1164 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1166 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 23: /* statement ::= lvalue SHIFTRIGHTEQUALS expression */
 #line 217 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1169 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1171 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 26: /* statement ::= SCOPESTARTBLOCK statement_list ENDBLOCK */
 #line 226 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateScope(C->Y, yymsp[-1].minor.yy22); }
-#line 1174 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1176 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 29: /* paren_expr_list ::= LEFTPAREN RIGHTPAREN */
 #line 243 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, NULL); }
-#line 1179 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1181 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 30: /* expr_list ::= expr_list COMMA expression */
 #line 255 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxListAppend(C->Y, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, 0); }
-#line 1184 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1186 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 31: /* expr_list ::= expr_list FATCOMMA expression */
 #line 258 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxListAppend(C->Y, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, YSLF_AUTOLITERAL); }
-#line 1189 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1191 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 32: /* expr_list ::= expression */
 #line 261 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, yymsp[0].minor.yy22); }
-#line 1194 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1196 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 33: /* expression ::= NOT expression */
 #line 273 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateUnary(C->Y, YST_NOT, yymsp[0].minor.yy22); }
-#line 1199 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1201 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 34: /* expression ::= BITWISE_NOT expression */
 #line 276 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateUnary(C->Y, YST_BITWISE_NOT, yymsp[0].minor.yy22); }
-#line 1204 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1206 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 35: /* expression ::= expression PLUS expression */
 #line 279 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1209 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1211 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 36: /* expression ::= expression DASH expression */
 #line 282 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1214 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1216 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 37: /* expression ::= expression STAR expression */
 #line 285 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1219 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1221 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 38: /* expression ::= expression SLASH expression */
 #line 288 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1224 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1226 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 39: /* expression ::= expression AND expression */
 #line 291 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1229 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1231 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 40: /* expression ::= expression OR expression */
 #line 294 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1234 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1236 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 41: /* expression ::= expression CMP expression */
 #line 297 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_CMP, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1239 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1241 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 42: /* expression ::= expression EQUALS expression */
 #line 300 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_EQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1244 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1246 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 43: /* expression ::= expression NOTEQUALS expression */
 #line 303 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_NOTEQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1249 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1251 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 44: /* expression ::= expression GREATERTHAN expression */
 #line 306 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1254 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1256 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 45: /* expression ::= expression GREATERTHANOREQUAL expression */
 #line 309 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1259 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1261 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 46: /* expression ::= expression LESSTHAN expression */
 #line 312 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1264 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1266 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 47: /* expression ::= expression LESSTHANOREQUAL expression */
 #line 315 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1269 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1271 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 48: /* expression ::= expression BITWISE_XOR expression */
 #line 318 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1274 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1276 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 49: /* expression ::= expression BITWISE_AND expression */
 #line 321 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1279 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1281 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 50: /* expression ::= expression BITWISE_OR expression */
 #line 324 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1284 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1286 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 51: /* expression ::= expression SHIFTLEFT expression */
 #line 327 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1289 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1291 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 52: /* expression ::= expression SHIFTRIGHT expression */
 #line 330 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
-#line 1294 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1296 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 53: /* expression ::= expression MOD paren_expr_list */
       case 54: /* expression ::= expression MOD expression */ yytestcase(yyruleno==54);
 #line 333 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateStringFormat(C->Y, yymsp[-2].minor.yy22, yymsp[0].minor.yy22); }
-#line 1300 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1302 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 55: /* expression ::= lvalue ASSIGN expression */
 #line 339 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateAssignment(C->Y, yymsp[-2].minor.yy22, yymsp[0].minor.yy22); }
-#line 1305 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1307 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 56: /* expression ::= expression INHERITS expression */
 #line 342 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateInherits(C->Y, yymsp[-2].minor.yy22, yymsp[0].minor.yy22); }
-#line 1310 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1312 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 57: /* expression ::= lvalue */
       case 66: /* lvalue ::= lvalue_indexable */ yytestcase(yyruleno==66);
 #line 345 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = yymsp[0].minor.yy22; }
-#line 1316 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1318 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 58: /* expression ::= INTEGER */
 #line 348 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateKInt(C->Y, &yymsp[0].minor.yy0, 0); }
-#line 1321 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1323 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 59: /* expression ::= NEGATIVE INTEGER */
 #line 351 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateKInt(C->Y, &yymsp[0].minor.yy0, CKO_NEGATIVE); }
-#line 1326 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1328 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 60: /* expression ::= FLOATNUM */
 #line 354 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateKFloat(C->Y, &yymsp[0].minor.yy0, 0); }
-#line 1331 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1333 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 61: /* expression ::= NEGATIVE FLOATNUM */
 #line 357 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateKFloat(C->Y, &yymsp[0].minor.yy0, CKO_NEGATIVE); }
-#line 1336 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1338 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 62: /* expression ::= LITERALSTRING */
 #line 360 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0); }
-#line 1341 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1343 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 63: /* expression ::= NULL */
 #line 363 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateNull(C->Y, yymsp[0].minor.yy0.line); }
-#line 1346 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1348 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 64: /* expression ::= FUNCTION LEFTPAREN func_args RIGHTPAREN statement_block */
 #line 366 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateFunctionDecl(C->Y, NULL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yymsp[-4].minor.yy0.line); }
-#line 1351 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1353 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 65: /* expression ::= expression QUESTIONMARK expression COLON expression */
 #line 369 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-4].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
-#line 1356 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1358 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 67: /* lvalue ::= VAR IDENTIFIER */
 #line 385 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateVar(C->Y, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0)); }
-#line 1361 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxMarkVar(C->Y, ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0))); }
+#line 1363 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 69: /* lvalue_indexable ::= THIS */
-#line 400 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateThis(C->Y, yymsp[0].minor.yy0.line); }
-#line 1366 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+      case 68: /* lvalue ::= VAR GROUPLEFTPAREN ident_list RIGHTPAREN */
+#line 388 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
+{ yygotominor.yy22 = ekSyntaxMarkVar(C->Y, yymsp[-1].minor.yy22); }
+#line 1368 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 70: /* lvalue_indexable ::= lvalue_indexable paren_expr_list */
+      case 70: /* lvalue_indexable ::= THIS */
 #line 403 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateCall(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22); }
-#line 1371 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxCreateThis(C->Y, yymsp[0].minor.yy0.line); }
+#line 1373 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 71: /* lvalue_indexable ::= lvalue_indexable OPENBRACKET expression CLOSEBRACKET */
+      case 71: /* lvalue_indexable ::= lvalue_indexable paren_expr_list */
 #line 406 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-3].minor.yy22, yymsp[-1].minor.yy22, yFalse); }
-#line 1376 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxCreateCall(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22); }
+#line 1378 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 72: /* lvalue_indexable ::= lvalue_indexable PERIOD IDENTIFIER */
+      case 72: /* lvalue_indexable ::= lvalue_indexable OPENBRACKET expression CLOSEBRACKET */
 #line 409 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yFalse); }
-#line 1381 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-3].minor.yy22, yymsp[-1].minor.yy22, yFalse); }
+#line 1383 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 73: /* lvalue_indexable ::= lvalue_indexable COLONCOLON IDENTIFIER */
+      case 73: /* lvalue_indexable ::= lvalue_indexable PERIOD IDENTIFIER */
 #line 412 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yTrue); }
-#line 1386 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yFalse); }
+#line 1388 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 74: /* lvalue_indexable ::= IDENTIFIER */
+      case 74: /* lvalue_indexable ::= lvalue_indexable COLONCOLON IDENTIFIER */
 #line 415 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yTrue); }
+#line 1393 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+        break;
+      case 75: /* lvalue_indexable ::= IDENTIFIER */
+#line 418 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0); }
-#line 1391 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1398 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 75: /* ident_list ::= ident_list COMMA IDENTIFIER */
-#line 427 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxListAppend(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0), 0); }
-#line 1396 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
-        break;
-      case 76: /* ident_list ::= IDENTIFIER */
+      case 76: /* ident_list ::= ident_list COMMA IDENTIFIER */
 #line 430 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0)); }
-#line 1401 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxListAppend(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0), 0); }
+#line 1403 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 77: /* ident_list ::= */
+      case 77: /* ident_list ::= IDENTIFIER */
 #line 433 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
+{ yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &yymsp[0].minor.yy0)); }
+#line 1408 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+        break;
+      case 78: /* ident_list ::= */
+#line 436 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL); }
-#line 1406 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1413 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 78: /* func_args ::= ident_list */
-#line 442 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateFunctionArgs(C->Y, yymsp[0].minor.yy22, NULL); }
-#line 1411 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
-        break;
-      case 79: /* func_args ::= ident_list COMMA ELLIPSIS IDENTIFIER */
+      case 79: /* func_args ::= ident_list */
 #line 445 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateFunctionArgs(C->Y, yymsp[-3].minor.yy22, &yymsp[0].minor.yy0); }
-#line 1416 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+{ yygotominor.yy22 = ekSyntaxCreateFunctionArgs(C->Y, yymsp[0].minor.yy22, NULL); }
+#line 1418 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
-      case 80: /* func_args ::= ELLIPSIS IDENTIFIER */
+      case 80: /* func_args ::= ident_list COMMA ELLIPSIS IDENTIFIER */
 #line 448 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
+{ yygotominor.yy22 = ekSyntaxCreateFunctionArgs(C->Y, yymsp[-3].minor.yy22, &yymsp[0].minor.yy0); }
+#line 1423 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+        break;
+      case 81: /* func_args ::= ELLIPSIS IDENTIFIER */
+#line 451 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
 { yygotominor.yy22 = ekSyntaxCreateFunctionArgs(C->Y, ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL), &yymsp[0].minor.yy0); }
-#line 1421 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1428 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       default:
       /* (27) statement ::= error ENDSTATEMENT */ yytestcase(yyruleno==27);
@@ -1482,7 +1489,7 @@ static void yy_syntax_error(
 #define TOKEN (yyminor.yy0)
 #line 115 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
  ekCompileSyntaxError(C, &TOKEN); 
-#line 1486 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
+#line 1493 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
   ekParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

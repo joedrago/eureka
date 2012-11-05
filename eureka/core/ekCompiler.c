@@ -228,10 +228,11 @@ void ekCompileOptimize(struct ekContext *Y, ekCompiler *compiler)
 
 enum
 {
-    ASM_NORMAL = 0,
-    ASM_LVALUE = (1 << 0),
-    ASM_VAR    = (1 << 1),
-    ASM_SETVAR = (1 << 2)
+    ASM_NORMAL     = 0,
+    ASM_LVALUE     = (1 << 0),
+    ASM_VAR        = (1 << 1),
+    ASM_SETVAR     = (1 << 2),
+    ASM_LEAVE_LAST = (1 << 3)
 };
 
 #define asmFunc(NAME) \
@@ -322,7 +323,6 @@ static ekAssembleInfo asmDispatch[YST_COUNT] =
     { ekAssembleStatementExpr },   // YST_STATEMENT_EXPR
     { ekAssembleAssignment },      // YST_ASSIGNMENT
     { ekAssembleInherits },        // YST_INHERITS
-    { ekAssembleVar },             // YST_VAR
     { ekAssembleBreak },           // YST_BREAK
     { ekAssembleReturn },          // YST_RETURN
 
@@ -434,15 +434,19 @@ asmFunc(Index)
 asmFunc(IdentifierList)
 {
     ekSyntax **args = syntax->v.a;
+    int additionalFlags = (syntax->v.i) ? ASM_VAR : 0;
     int keepCount = 0;
     int i;
 
     for(i = ekArraySize(Y, &args) - 1; i >= 0; i--)
     {
         ekSyntax *arg = (ekSyntax *)args[i];
-        keepCount = asmDispatch[arg->type].assemble(Y, compiler, dst, arg, 1, flags);
-        ekCodeGrow(Y, dst, 1);
-        ekCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
+        keepCount = asmDispatch[arg->type].assemble(Y, compiler, dst, arg, 1, flags | additionalFlags);
+        if(flags & ASM_SETVAR)
+        {
+            ekCodeGrow(Y, dst, 1);
+            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
+        }
     }
     return PAD(ekArraySize(Y, &args));
 }
@@ -617,13 +621,6 @@ asmFunc(ShortCircuit)
     return PAD(1);
 }
 
-asmFunc(Var)
-{
-    ekSyntax *expr = syntax->v.p;
-    asmDispatch[expr->type].assemble(Y, compiler, dst, expr, 1, ASM_VAR | ASM_LVALUE);
-    return PAD(1);
-}
-
 asmFunc(Break)
 {
     ekCodeGrow(Y, dst, 1);
@@ -646,12 +643,13 @@ asmFunc(Assignment)
     ekSyntax *l = syntax->l.p;
     ekSyntax *r = syntax->r.p;
     int leave = (keep > 0) ? 1 : 0;
+    int lflags = ASM_LVALUE|ASM_SETVAR | ((leave) ? ASM_LEAVE_LAST : 0);
     ekCode *lvalueCode = ekCodeCreate();
-    int lvalueCount = asmDispatch[l->type].assemble(Y, compiler, lvalueCode, l, YAV_ALL_ARGS, ASM_LVALUE|ASM_SETVAR);
+    int lvalueCount = asmDispatch[l->type].assemble(Y, compiler, lvalueCode, l, YAV_ALL_ARGS, lflags);
     asmDispatch[r->type].assemble(Y, compiler, dst, r, lvalueCount, ASM_NORMAL);
     ekCodeConcat(Y, dst, lvalueCode);
     ekCodeDestroy(Y, lvalueCode);
-    if(l->type != YST_EXPRESSIONLIST)
+    if((l->type != YST_IDENTIFIERLIST) && (l->type != YST_EXPRESSIONLIST))
     {
         ekCodeGrow(Y, dst, 1);
         ekCodeAppend(Y, dst, YOP_SETVAR, leave, syntax->line);
@@ -808,7 +806,7 @@ asmFunc(Function)
     int additionalOpsForNaming = 0;
     int valuesLeftOnStack = 1;
 
-    int argCount = asmDispatch[args->type].assemble(Y, compiler, code, args, YAV_ALL_ARGS, ASM_VAR | ASM_LVALUE);
+    int argCount = asmDispatch[args->type].assemble(Y, compiler, code, args, YAV_ALL_ARGS, ASM_VAR | ASM_LVALUE | ASM_SETVAR);
     asmDispatch[body->type].assemble(Y, compiler, code, body, 0, ASM_NORMAL);
     ekCodeGrow(Y, code, 1);
     ekCodeAppend(Y, code, YOP_RET, 0, syntax->line);
@@ -891,7 +889,7 @@ asmFunc(ExpressionList)
         if(flags & ASM_SETVAR)
         {
             ekCodeGrow(Y, dst, 1);
-            ekCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
+            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(Y, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
         }
     }
     return PAD(keepCount);

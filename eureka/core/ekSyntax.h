@@ -67,7 +67,6 @@ enum
     YST_STATEMENT_EXPR,                // r: expr
     YST_ASSIGNMENT,                    // l = r
     YST_INHERITS,                      // ensures l is an object, and then makes r inherit from l
-    YST_VAR,                           // var s (= r)
     YST_BREAK,                         // break;
     YST_RETURN,                        // return a:r
 
@@ -130,7 +129,6 @@ ekSyntax *ekSyntaxCreateBinary(struct ekContext *Y, yU32 type, ekSyntax *l, ekSy
 ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *Y, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateAssignment(struct ekContext *Y, ekSyntax *l, ekSyntax *r);
 ekSyntax *ekSyntaxCreateInherits(struct ekContext *Y, ekSyntax *l, ekSyntax *r);
-ekSyntax *ekSyntaxCreateVar(struct ekContext *Y, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateBreak(struct ekContext *Y, int line);
 ekSyntax *ekSyntaxCreateReturn(struct ekContext *Y, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateIfElse(struct ekContext *Y, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, yBool ternary);
@@ -139,6 +137,7 @@ ekSyntax *ekSyntaxCreateFor(struct ekContext *Y, ekSyntax *vars, ekSyntax *iter,
 ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *Y, struct ekToken *name, ekSyntax *args, ekSyntax *body, int line);
 ekSyntax *ekSyntaxCreateFunctionArgs(struct ekContext *Y, ekSyntax *args, struct ekToken *varargs);
 ekSyntax *ekSyntaxCreateScope(struct ekContext *Y, ekSyntax *body);
+ekSyntax *ekSyntaxMarkVar(struct ekContext *Y, ekSyntax *identList);
 
 void ekSyntaxDestroy(struct ekContext *Y, ekSyntax *syntax);
 

@@ -40,7 +40,7 @@ syn keyword eurekaBoolean          true false
 syn keyword eurekaNull             null
 syn keyword eurekaIdentifier       this var
 syn keyword eurekaMessage          print
-syn keyword eurekaReserved         object dict inherit prototype string int float array length push keys eval type import
+syn keyword eurekaReserved         object map inherit prototype string int float array length push keys eval type import
 
 if exists("eureka_fold")
     syn match  eurekaFunction      "\<function\>"
