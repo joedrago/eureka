@@ -1,0 +1,6 @@
+function gimmeThree(a, b, c)
+{
+}
+
+gimmeThree();
+

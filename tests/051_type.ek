@@ -1,0 +1,7 @@
+var isInt = 3;
+var isFloat = 3.0;
+
+var intType = type(isInt);
+
+print("int  : ", intType, "\n");
+

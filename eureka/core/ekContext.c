@@ -476,6 +476,7 @@ ekValue *ekContextGetValue(struct ekContext *Y, ekU32 howDeep)
     return Y->stack[(ekArraySize(Y, &Y->stack) - 1) - howDeep];
 }
 
+// LCOV_EXCL_START - I don't care about testing this yet.
 static ekContextFrameCleanup(struct ekContext *Y, ekFrame *frame)
 {
     if(frame->cleanupCount)
@@ -490,6 +491,7 @@ static ekContextFrameCleanup(struct ekContext *Y, ekFrame *frame)
         ekArraySquash(Y, &Y->stack);
     }
 }
+// LCOV_EXCL_STOP
 
 struct ekFrame *ekContextPopFrames(struct ekContext *Y, ekU32 frameTypeToFind, ekBool keepIt)
 {
