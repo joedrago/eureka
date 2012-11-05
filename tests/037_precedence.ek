@@ -1,0 +1,14 @@
+assert(22 == 2 + 4 * 5, "multiplication before division");
+assert(2 + 4 * 5 == 22, "multiplication before division (alternate)");
+assert((2 + 4) * 5 == 30, "parens overriding regular order of operation");
+assert(0 * 5 ? 0 : 5 == 5, "multiplication before ternary operator");
+
+function five()
+{
+    return 5;
+}
+
+assert(five() == 5, "function calls before equality");
+assert(five() != 4, "function calls before not equals");
+
+// TODO: needs many more asserts

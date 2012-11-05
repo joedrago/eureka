@@ -41,64 +41,76 @@
 %fallback SCOPESTARTBLOCK STARTBLOCK.
 %fallback NEGATIVE DASH.
 
-%left HEREDOC.
-%left ELLIPSIS.
-%left BREAK.
-%left BITWISE_OREQUALS.
-%left BITWISE_ANDEQUALS.
-%left BITWISE_XOREQUALS.
-%left PLUSEQUALS.
-%left DASHEQUALS.
-%left STAREQUALS.
-%left SLASHEQUALS.
-%left SHIFTRIGHTEQUALS.
-%left SHIFTLEFTEQUALS.
+// Operators, ordered from lowest precedence to highest
 
+// Stuff that does not come into play with precedence is "lowest". They are only listed to establish left/nonassoc/right.
 %left NEWLINE.
-%left OPENBRACE.
-%left CLOSEBRACE.
-%left OPENBRACKET.
-%left CLOSEBRACKET.
 %left SEMI.
 %left ASSIGN.
-%left CMP.
-%left EQUALS.
-%left NOTEQUALS.
-%left LESSTHAN.
-%left LESSTHANOREQUAL.
-%left GREATERTHAN.
-%left GREATERTHANOREQUAL.
-%left INHERITS.
-%left PERIOD.
-%left LEFTPAREN.
-%left COLONCOLON.
 %left QUESTIONMARK.
 %left COLON.
-
+%left IF.
+%left ELSE.
+%left HEREDOC.
+%nonassoc ELLIPSIS.
+%nonassoc BREAK.
+%nonassoc THIS.
 %left UNKNOWN.
 %left COMMENT.
 %left SPACE.
 %left EOF.
 
+// Compound operators
+%left BITWISE_OREQUALS.
+%left BITWISE_XOREQUALS.
+%left BITWISE_ANDEQUALS.
+%left SHIFTRIGHTEQUALS.
+%left SHIFTLEFTEQUALS.
+%left PLUSEQUALS.
+%left SLASHEQUALS.
+%left DASHEQUALS.
+%left STAREQUALS.
+
+// Comparisons: ORs are lowest, then ANDs, then inequality and inherits
+%left OR.
 %left BITWISE_OR.
-%left BITWISE_AND.
 %left BITWISE_XOR.
-%left BITWISE_NOT.
+%left AND.
+%left BITWISE_AND.
+%right BITWISE_NOT.
+%right NOT.
+%left EQUALS.
+%left NOTEQUALS.
+%left CMP.
+%left LESSTHAN.
+%left LESSTHANOREQUAL.
+%left GREATERTHAN.
+%left GREATERTHANOREQUAL.
+%left INHERITS.
+
+// Bit shifting
 %left SHIFTRIGHT.
 %left SHIFTLEFT.
 
+// Arithmetic
 %left PLUS.
 %left DASH.
 %left STAR.
 %left SLASH.
-%left AND.
-%left OR.
-%left THIS.
-%left NOT.
 %left MOD.
 
-%left IF.
-%left ELSE.
+// Indexing
+%left PERIOD.
+%left COLONCOLON.
+
+// Function calls and whatnot
+%left LEFTPAREN.
+%left OPENBRACE.
+%left CLOSEBRACE.
+%left OPENBRACKET.
+%left CLOSEBRACKET.
+
+// End of operators (highest precedence here)
 
 %syntax_error { ekCompileSyntaxError(C, &TOKEN); }
 
