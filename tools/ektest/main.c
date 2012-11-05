@@ -7,7 +7,7 @@
 
 #include "ek.h"
 
-#ifdef EUREKA_ENABLE_EXT_DOT
+#ifdef EUREKA_ENABLE_EXT_GRAPH
 #include "ekxDot.h"
 #endif
 
@@ -24,7 +24,7 @@ enum
     FAIL_REFS   = (1 << 2)
 };
 
-int loadChunk(const char *code)
+int loadChunk(const char *code, ekU32 evalFlags)
 {
     int ret = 0; // 0 for success
 #ifdef EUREKA_TRACE_MEMORY
@@ -33,7 +33,7 @@ int loadChunk(const char *code)
     {
         char *error = NULL;
         ekContext *Y = ekContextCreate(NULL);
-        ekContextEval(Y, code, YEO_DUMP);
+        ekContextEval(Y, code, evalFlags);
         if(ekContextGetError(Y))
         {
             error = strdup(ekContextGetError(Y));
@@ -65,12 +65,17 @@ int loadChunk(const char *code)
 
 // ---------------------------------------------------------------------------
 
-void outputDot(const char *code)
+void outputGraph(const char *code, ekU32 evalFlags)
 {
 #ifdef EUREKA_ENABLE_EXT_DOT
+    ekU32 compileFlags = YCO_KEEP_SYNTAX_TREE;
     ekContext *Y = ekContextCreate(NULL);
     ekCompiler *compiler = ekCompilerCreate(Y);
-    ekCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
+    if(evalFlags & YEO_OPTIMIZE)
+    {
+        compileFlags |= YCO_OPTIMIZE;
+    }
+    ekCompile(compiler, code, compileFlags);
     if(ekArraySize(Y, &compiler->errors))
     {
         int i;
@@ -128,7 +133,7 @@ char *loadFile(const char *filename)
 enum
 {
     YTM_LOADCHUNK,
-    YTM_DOT
+    YTM_GRAPH
 };
 
 int main(int argc, char *argv[])
@@ -140,6 +145,7 @@ int main(int argc, char *argv[])
     {
         int mode = YTM_LOADCHUNK;
         int i;
+        ekU32 evalFlags = 0;
         char *filename = NULL;
         for(i = 1; i < argc; i++)
         {
@@ -148,7 +154,13 @@ int main(int argc, char *argv[])
                 switch(argv[i][1])
                 {
                     case 'd':
-                        mode = YTM_DOT;
+                        evalFlags |= YEO_DUMP;
+                        break;
+                    case 'o':
+                        evalFlags |= YEO_OPTIMIZE;
+                        break;
+                    case 'g':
+                        mode = YTM_GRAPH;
                         break;
                 };
             }
@@ -163,10 +175,10 @@ int main(int argc, char *argv[])
                 switch(mode)
                 {
                     case YTM_LOADCHUNK:
-                        ret = loadChunk(code);
+                        ret = loadChunk(code, evalFlags);
                         break;
-                    case YTM_DOT:
-                        outputDot(code);
+                    case YTM_GRAPH:
+                        outputGraph(code, evalFlags);
                         break;
                 };
                 free(code);

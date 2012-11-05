@@ -53,9 +53,15 @@ void ekContextEval(struct ekContext *Y, const char *text, ekU32 evalOpts)
 {
     ekChunk *chunk;
     ekCompiler *compiler;
+    ekU32 compileFlags = YCO_DEFAULT;
+
+    if(evalOpts & YEO_OPTIMIZE)
+    {
+        compileFlags |= YCO_OPTIMIZE;
+    }
 
     compiler = ekCompilerCreate(Y);
-    ekCompile(compiler, text, YCO_DEFAULT);
+    ekCompile(compiler, text, compileFlags);
 
     if(ekArraySize(Y, &compiler->errors))
     {

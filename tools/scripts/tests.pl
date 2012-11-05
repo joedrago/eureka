@@ -27,6 +27,11 @@ for my $test (@tests)
     my ($testBasename) = fileparse($test, qr/\Q.ek\E/);
     my $ekTestOutput = "$ekTestOutputDir/$testBasename." . (($mode eq 'test') ? 'txt' : 'png');
     my $expected = 0;
+    my $extraFlags = "";
+    if($testBasename =~ /_O_/)
+    {
+        $extraFlags .= "-o ";
+    }
     if($testBasename =~ /_E(\d+)$/)
     {
         $expected = $1;
@@ -35,7 +40,7 @@ for my $test (@tests)
     if($mode eq 'test')
     {
         printf("                   \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
-        my $cmd = "$ekTestExe $test 2>&1 > $ekTestOutput";
+        my $cmd = "$ekTestExe -d $extraFlags $test 2>&1 > $ekTestOutput";
         my $ret = system($cmd);
         my $code = $ret >> 8;
         if($code != $expected)
@@ -56,10 +61,18 @@ for my $test (@tests)
     }
     else
     {
-        printf("                   \rGenerating dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
-        my $cmd = "$ekTestExe -d $test | dot -Tpng > $ekTestOutput";
-        my $ret = system($cmd);
-        my $code = $ret >> 8;
+        if($expected)
+        {
+            # If we're expecting some kind of error, don't bother graphing
+            printf("                   \rSkipping dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+        }
+        else
+        {
+            printf("                   \rGenerating dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+            my $cmd = "$ekTestExe -g $extraFlags $test | dot -Tpng > $ekTestOutput";
+            my $ret = system($cmd);
+            my $code = $ret >> 8;
+        }
     }
 }
 if($mode eq 'test')
