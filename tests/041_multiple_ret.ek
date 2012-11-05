@@ -1,3 +1,8 @@
-var d = var (a, b, c) = (4, 5, 6);
-//print(a,b,c,"\n");
-//print(d,"\n");
+function returnMultiple(a, b, c)
+{
+    return (b, c);
+}
+
+var (x, y) = returnMultiple(1, 2, 3);
+//assert((x == 2) and (y == 3), "returning multiple values from a function is broken");
+assert(x == 2 and y == 3, "returning multiple values from a function is broken");
