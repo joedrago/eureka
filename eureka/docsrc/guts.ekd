@@ -1,7 +1,71 @@
-Guts
-====
+Overview
+--------
 
-* ekContext
+The goal of this document is to deep dive into the guts of Eureka, starting at
+the high level objects and drill all the way down into the parser / compiler /
+assembler / interpreter. If you're just interested in seeing what the language
+itself offers or finding out some basic information (why the language was
+created, etc), please ^<tour>take the tour^^ or ^<faq>read the FAQ^^.
+
+You've been warned... time to dig in!
+
+^tour tour
+^faq faq
+
+Common Programing Patterns
+--------------------------
+
+Just to save a bit of time when discussing various structures over the course of
+this document, I will give some general hints now that will help you understand
+how to find them in the codebase and expect certain functions to exist.
+
+For the most part, each structure described in this document is declared and
+implemented in a .h/.c combination named the same as the structure, most likely
+in the {{eureka/core}} subdirectory.  For each structure, every function call
+will be prefixed with the name of the structure, and will take an {{ekContext}}
+(explained in the next section) as its first argument. Every structure is likely
+to have a Create and a Destroy function.
+
+As an example, the struct {{ekContext}} is defined in
+{{eureka/core/ekContext.h}}, implemented in {{eureka/core/ekContext.c}}, and the
+functions {{ekContextCreate()}} and {{ekContextDestroy()}} exist.
+
+The only notable exception to this is {{ekTypes.h}}, which contain a base set of
+low level typedefs which aid in portability, such as {{ekS32}} for signed
+integers or ekBool for a boolean value. Everything structure in Eureka should be
+defined using these base types (or other Eureka structures, of course).
+
+Arrays and Strings ({{ekArray}} and {{ekString}}) also have a slightly different
+approach to them. They follow the naming convention and function calls, but are
+not defined directly in structures. To aid a little bit in code readability and
+type safety, ekArrays are declared as double pointers to the structure the array
+is intended to contain. For example, stack frames owned by {{ekContext}} are
+declared as such:
+
+    :c
+    struct ekFrame **frames;
+
+{{ekArray*()}} functions take references to these functions (a triple pointer!
+The horror!), and internally maintain capacity with a bit of pointer arithmetic.
+As an example, this is legal code:
+
+    :c
+    ekFrame **frames = NULL;
+    ekFrame *newFrame = ekFrameCreate();
+
+The Eureka Context
+------------------
+
+Everything Eureka does is performed inside of a single "context", contained
+completely in the struct {{ekContext}}. Each ekContext provides its own set of
+memory routines, types (built-in and custom), compiler information (syntax tree,
+etc), interpreter state (global variables, stack frames, values, pools), and
+errors (both compile and runtime). An {{ekContext}} completely owns all state,
+making tracking and cleanup fairly easy. Every C routine involving Eureka has an
+{{ekContext}} as its first argument.
+
+
+
 ** memory functions
 
     Eureka script --> ekContextEval()

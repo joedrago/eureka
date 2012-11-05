@@ -686,7 +686,7 @@ void ekdOutputText(ekdNode *root, char **output)
             }
             break;
             case TYPE_CODE:
-                ekdWrapAndIndent(output, n->text, 80, 1, '|', 0);
+                ekdWrapAndIndent(output, n->text, 80, 1, ' ', 0);
                 break;
             case TYPE_TITLE1:
             case TYPE_TITLE2:
