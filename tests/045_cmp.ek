@@ -1,0 +1,9 @@
+var a = "hello";
+var b = "hi";
+var c = "huh";
+
+assert((a cmp a) == 0);
+assert((a cmp b) < 0);
+assert((b cmp a) > 0);
+assert((b cmp c) < 0);
+assert((c cmp b) > 0);

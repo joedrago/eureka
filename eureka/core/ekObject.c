@@ -34,7 +34,7 @@ void ekObjectDestroy(struct ekContext *Y, ekObject *v)
     ekFree(v);
 }
 
-struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const char *key, yBool create)
+struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const char *key, ekBool create)
 {
     struct ekValue **ref = NULL;
     ekMapEntry *hashEntry = ekMapGetS(Y, object->hash, key, create);

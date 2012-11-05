@@ -65,7 +65,7 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
 
         case cJSON_Object:
         {
-            ret = ekValueCreateObject(Y, NULL, 0, yFalse);
+            ret = ekValueCreateObject(Y, NULL, 0, ekFalse);
             child = json->child;
             while(child)
             {
@@ -79,7 +79,7 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
     return ret;
 }
 
-static yU32 json_parse(struct ekContext *Y, yU32 argCount)
+static ekU32 json_parse(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *ret = ekValueNullPtr;
     cJSON *json;

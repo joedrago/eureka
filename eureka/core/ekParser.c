@@ -1101,12 +1101,12 @@ static void yy_reduce(
         break;
       case 10: /* statement ::= IF expr_list statement_block ELSE statement_block */
 #line 178 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-3].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-3].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1106 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 11: /* statement ::= IF expr_list statement_block */
 #line 181 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22, NULL, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-1].minor.yy22, yymsp[0].minor.yy22, NULL, ekFalse); }
 #line 1111 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 12: /* statement ::= WHILE expr_list statement_block */
@@ -1126,47 +1126,47 @@ static void yy_reduce(
         break;
       case 15: /* statement ::= lvalue PLUSEQUALS expression */
 #line 193 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1131 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 16: /* statement ::= lvalue DASHEQUALS expression */
 #line 196 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1136 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 17: /* statement ::= lvalue STAREQUALS expression */
 #line 199 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1141 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 18: /* statement ::= lvalue SLASHEQUALS expression */
 #line 202 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1146 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 19: /* statement ::= lvalue BITWISE_OREQUALS expression */
 #line 205 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1151 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 20: /* statement ::= lvalue BITWISE_ANDEQUALS expression */
 #line 208 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1156 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 21: /* statement ::= lvalue BITWISE_XOREQUALS expression */
 #line 211 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1161 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 22: /* statement ::= lvalue SHIFTLEFTEQUALS expression */
 #line 214 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1166 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 23: /* statement ::= lvalue SHIFTRIGHTEQUALS expression */
 #line 217 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1171 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 26: /* statement ::= SCOPESTARTBLOCK statement_list ENDBLOCK */
@@ -1206,92 +1206,92 @@ static void yy_reduce(
         break;
       case 35: /* expression ::= expression PLUS expression */
 #line 279 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_ADD, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1211 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 36: /* expression ::= expression DASH expression */
 #line 282 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SUB, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1216 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 37: /* expression ::= expression STAR expression */
 #line 285 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_MUL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1221 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 38: /* expression ::= expression SLASH expression */
 #line 288 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_DIV, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1226 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 39: /* expression ::= expression AND expression */
 #line 291 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1231 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 40: /* expression ::= expression OR expression */
 #line 294 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1236 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 41: /* expression ::= expression CMP expression */
 #line 297 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_CMP, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_CMP, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1241 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 42: /* expression ::= expression EQUALS expression */
 #line 300 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_EQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_EQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1246 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 43: /* expression ::= expression NOTEQUALS expression */
 #line 303 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_NOTEQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_NOTEQUALS, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1251 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 44: /* expression ::= expression GREATERTHAN expression */
 #line 306 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1256 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 45: /* expression ::= expression GREATERTHANOREQUAL expression */
 #line 309 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_GREATERTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1261 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 46: /* expression ::= expression LESSTHAN expression */
 #line 312 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHAN, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1266 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 47: /* expression ::= expression LESSTHANOREQUAL expression */
 #line 315 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_LESSTHANOREQUAL, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1271 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 48: /* expression ::= expression BITWISE_XOR expression */
 #line 318 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1276 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 49: /* expression ::= expression BITWISE_AND expression */
 #line 321 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1281 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 50: /* expression ::= expression BITWISE_OR expression */
 #line 324 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1286 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 51: /* expression ::= expression SHIFTLEFT expression */
 #line 327 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1291 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 52: /* expression ::= expression SHIFTRIGHT expression */
 #line 330 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekFalse); }
 #line 1296 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 53: /* expression ::= expression MOD paren_expr_list */
@@ -1353,7 +1353,7 @@ static void yy_reduce(
         break;
       case 65: /* expression ::= expression QUESTIONMARK expression COLON expression */
 #line 369 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-4].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateIfElse(C->Y, yymsp[-4].minor.yy22, yymsp[-2].minor.yy22, yymsp[0].minor.yy22, ekTrue); }
 #line 1358 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 67: /* lvalue ::= VAR IDENTIFIER */
@@ -1378,17 +1378,17 @@ static void yy_reduce(
         break;
       case 72: /* lvalue_indexable ::= lvalue_indexable OPENBRACKET expression CLOSEBRACKET */
 #line 409 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-3].minor.yy22, yymsp[-1].minor.yy22, yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-3].minor.yy22, yymsp[-1].minor.yy22, ekFalse); }
 #line 1383 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 73: /* lvalue_indexable ::= lvalue_indexable PERIOD IDENTIFIER */
 #line 412 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yFalse); }
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), ekFalse); }
 #line 1388 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 74: /* lvalue_indexable ::= lvalue_indexable COLONCOLON IDENTIFIER */
 #line 415 "/home/joe/private/work/eureka/eureka/core/ekParser.y"
-{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), yTrue); }
+{ yygotominor.yy22 = ekSyntaxCreateIndex(C->Y, yymsp[-2].minor.yy22, ekSyntaxCreateKString(C->Y, &yymsp[0].minor.yy0), ekTrue); }
 #line 1393 "/home/joe/private/work/eureka/eureka/core/ekParser.c"
         break;
       case 75: /* lvalue_indexable ::= IDENTIFIER */

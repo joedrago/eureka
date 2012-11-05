@@ -2,4 +2,8 @@ function wat(a, b, ... args)
 {
 }
 
+function theOtherVarargs(...onlyArgs)
+{
+}
+
 wat(1,2,3,4,5);

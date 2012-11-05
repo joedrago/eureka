@@ -21,16 +21,16 @@ typedef struct ekChunk
 
     // constants
     char **kStrings;                   // constant string table
-    yS32 *kInts;                       // constant integer table
-    yF32 *kFloats;                     // constant float table
+    ekS32 *kInts;                       // constant integer table
+    ekF32 *kFloats;                     // constant float table
 
-    yBool hasFuncs;                    // at least one of the blocks represents a function
-    yBool temporary;                   // signifies that the ktables aren't sticking around, and to dupe into values
+    ekBool hasFuncs;                    // at least one of the blocks represents a function
+    ekBool temporary;                   // signifies that the ktables aren't sticking around, and to dupe into values
 } ekChunk;
 
 #define ekChunkCreate() ((ekChunk*)ekAlloc(sizeof(ekChunk)))
 void ekChunkDestroy(struct ekContext *Y, ekChunk *chunk);
 
-yOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block);
+ekOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block);
 
 #endif

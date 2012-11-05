@@ -18,9 +18,9 @@ void ekBlockDestroy(struct ekContext *Y, ekBlock *block)
     ekFree(block);
 }
 
-yOperand ekBlockConvertCode(struct ekContext *Y, struct ekCode *code, struct ekChunk *owner, int argCount)
+ekOperand ekBlockConvertCode(struct ekContext *Y, struct ekCode *code, struct ekChunk *owner, int argCount)
 {
-    yOperand ret;
+    ekOperand ret;
     ekBlock *block = ekBlockCreate();
     block->ops = code->ops;
     block->opCount = code->count;

@@ -67,13 +67,13 @@ typedef void (*ekValueTypeDestroyUserData)(struct ekContext *Y, struct ekValueTy
 
 typedef void (*ekValueTypeFuncClear)(struct ekContext *Y, struct ekValue *p);
 typedef void (*ekValueTypeFuncClone)(struct ekContext *Y, struct ekValue *dst, struct ekValue *src);
-typedef yBool(*ekValueTypeFuncToBool)(struct ekContext *Y, struct ekValue *p);
-typedef yS32(*ekValueTypeFuncToInt)(struct ekContext *Y, struct ekValue *p);
-typedef yF32(*ekValueTypeFuncToFloat)(struct ekContext *Y, struct ekValue *p);
+typedef ekBool(*ekValueTypeFuncToBool)(struct ekContext *Y, struct ekValue *p);
+typedef ekS32(*ekValueTypeFuncToInt)(struct ekContext *Y, struct ekValue *p);
+typedef ekF32(*ekValueTypeFuncToFloat)(struct ekContext *Y, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *Y, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *Y, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
-typedef yBool(*ekValueTypeFuncCmp)(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult);
-typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *Y, struct ekValue *p, struct ekValue *index, yBool lvalue);
+typedef ekBool(*ekValueTypeFuncCmp)(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult);
+typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *Y, struct ekValue *p, struct ekValue *index, ekBool lvalue);
 typedef void (*ekValueTypeFuncDump)(struct ekContext *Y, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
 
 // This is used to enforce the setting of every function ptr in a ekValueType*; an explicit alternative to NULL
@@ -115,18 +115,18 @@ void ekValueTypeRegisterAllBasicTypes(struct ekContext *Y);
 // ---------------------------------------------------------------------------
 
 // Should return how many values it is returning on the stack
-typedef yU32(ekCFunction)(struct ekContext *Y, yU32 argCount);
+typedef ekU32(ekCFunction)(struct ekContext *Y, ekU32 argCount);
 
 // ---------------------------------------------------------------------------
 
 typedef struct ekValue
 {
-    yU8 type;
-    yS32 refs;                            // reference count!
+    ekU8 type;
+    ekS32 refs;                            // reference count!
     union
     {
-        yS32 intVal;
-        yF32 floatVal;
+        ekS32 intVal;
+        ekF32 floatVal;
         struct
         {
             struct ekMap *closureVars;   // Populated at runtime when a reference to a new function() is created
@@ -152,7 +152,7 @@ void ekValueCloneData(struct ekContext *Y, ekValue *dst, ekValue *src);
 ekValue *ekValueClone(struct ekContext *Y, ekValue *p);
 
 ekValue *ekValueCreateInt(struct ekContext *Y, int v);
-ekValue *ekValueCreateFloat(struct ekContext *Y, yF32 v);
+ekValue *ekValueCreateFloat(struct ekContext *Y, ekF32 v);
 ekValue *ekValueCreateKString(struct ekContext *Y, const char *s);
 ekValue *ekValueCreateString(struct ekContext *Y, const char *s);
 ekValue *ekValueDonateString(struct ekContext *Y, char *s);  // grants ownership to the char*
@@ -160,17 +160,17 @@ ekValue *ekValueCreateFunction(struct ekContext *Y, struct ekBlock *block);
 ekValue *ekValueCreateCFunction(struct ekContext *Y, ekCFunction func);
 ekValue *ekValueCreateRef(struct ekContext *Y, struct ekValue **ref);
 ekValue *ekValueCreateArray(struct ekContext *Y);
-ekValue *ekValueCreateObject(struct ekContext *Y, struct ekValue *isa, int argCount, yBool firstArgIsa);
+ekValue *ekValueCreateObject(struct ekContext *Y, struct ekValue *isa, int argCount, ekBool firstArgIsa);
 
 // Special calls for arrays
 void ekValueArrayPush(struct ekContext *Y, ekValue *p, ekValue *v);
 
 // Special calls for refs
-yBool ekValueSetRefVal(struct ekContext *Y, ekValue *ref, ekValue *p);
+ekBool ekValueSetRefVal(struct ekContext *Y, ekValue *ref, ekValue *p);
 
 // Special calls for objects
 void ekValueObjectSetMember(struct ekContext *Y, struct ekValue *object, const char *name, struct ekValue *value);
-yBool ekValueTestInherits(struct ekContext *Y, ekValue *child, ekValue *parent);
+ekBool ekValueTestInherits(struct ekContext *Y, ekValue *child, ekValue *parent);
 
 // Special calls for functions
 void ekValueAddClosureVars(struct ekContext *Y, ekValue *p);
@@ -180,7 +180,7 @@ ekValue *ekValueSub(struct ekContext *Y, ekValue *a, ekValue *b);
 ekValue *ekValueMul(struct ekContext *Y, ekValue *a, ekValue *b);
 ekValue *ekValueDiv(struct ekContext *Y, ekValue *a, ekValue *b);
 
-yS32 ekValueCmp(struct ekContext *Y, ekValue *a, ekValue *b);
+ekS32 ekValueCmp(struct ekContext *Y, ekValue *a, ekValue *b);
 
 // These assume that you are using the pattern: v = ekValueTo*(Y, v)
 // and auto-unref the passed-in value for you.
@@ -189,9 +189,9 @@ ekValue *ekValueToInt(struct ekContext *Y, ekValue *p);
 ekValue *ekValueToFloat(struct ekContext *Y, ekValue *p);
 ekValue *ekValueToString(struct ekContext *Y, ekValue *p);
 
-ekValue *ekValueStringFormat(struct ekContext *Y, ekValue *format, yS32 argCount);
+ekValue *ekValueStringFormat(struct ekContext *Y, ekValue *format, ekS32 argCount);
 
-ekValue *ekValueIndex(struct ekContext *Y, ekValue *p, ekValue *index, yBool lvalue);
+ekValue *ekValueIndex(struct ekContext *Y, ekValue *p, ekValue *index, ekBool lvalue);
 
 const char *ekValueTypeName(struct ekContext *Y, int type); // used in error reporting
 

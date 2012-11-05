@@ -41,7 +41,7 @@ void ekContextRegisterGlobalFunction(struct ekContext *Y, const char *name, ekCF
     ekValueRemoveRefNote(Y, p, "granted ownership to globals table");
 }
 
-static yBool ekChunkCanBeTemporary(ekChunk *chunk)
+static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
 {
     // A simple test ... if there aren't any functions in this chunk and all ktable lookups
     // are duped (chunk flagged as temporary), than the chunk can safely go away in between
@@ -49,7 +49,7 @@ static yBool ekChunkCanBeTemporary(ekChunk *chunk)
     return !chunk->hasFuncs;
 }
 
-void ekContextEval(struct ekContext *Y, const char *text, yU32 evalOpts)
+void ekContextEval(struct ekContext *Y, const char *text, ekU32 evalOpts)
 {
     ekChunk *chunk;
     ekCompiler *compiler;
@@ -57,11 +57,11 @@ void ekContextEval(struct ekContext *Y, const char *text, yU32 evalOpts)
     compiler = ekCompilerCreate(Y);
     ekCompile(compiler, text, YCO_DEFAULT);
 
-    if(ekArraySize(Y, &compiler->errors))
+    if(ekArraekSize(Y, &compiler->errors))
     {
         int i;
         int total = 0;
-        for(i = 0; i < ekArraySize(Y, &compiler->errors); i++)
+        for(i = 0; i < ekArraekSize(Y, &compiler->errors); i++)
         {
             char *error = (char *)compiler->errors[i];
             total += strlen(error) + 3; // "* " + newline
@@ -69,7 +69,7 @@ void ekContextEval(struct ekContext *Y, const char *text, yU32 evalOpts)
         if(total > 0)
         {
             char *s = (char *)ekAlloc(total+1);
-            for(i = 0; i < ekArraySize(Y, &compiler->errors); i++)
+            for(i = 0; i < ekArraekSize(Y, &compiler->errors); i++)
             {
                 char *error = compiler->errors[i];
                 strcat(s, "* ");
@@ -107,7 +107,7 @@ void ekContextEval(struct ekContext *Y, const char *text, yU32 evalOpts)
 #endif
             // Execute the chunk's block
             ekContextPushFrame(Y, chunk->block, 0, YFT_FUNC|YFT_CHUNK, ekValueNullPtr, NULL);
-            ekContextLoop(Y, yTrue);
+            ekContextLoop(Y, ekTrue);
 
 #ifdef EUREKA_TRACE_EXECUTION
             ekTraceExecution(("---  end  chunk execution ---\n"));
@@ -166,11 +166,11 @@ void ekContextRecover(ekContext *Y)
     {
         int prevStackCount = 0;
 
-        ekFrame *frame = ekContextPopFrames(Y, YFT_CHUNK, yTrue);
+        ekFrame *frame = ekContextPopFrames(Y, YFT_CHUNK, ekTrue);
         if(frame)  // recovery should work on an empty frame stack
         {
             prevStackCount = frame->prevStackCount;
-            ekContextPopFrames(Y, YFT_CHUNK, yFalse);
+            ekContextPopFrames(Y, YFT_CHUNK, ekFalse);
         }
         ekArrayShrink(Y, &Y->stack, prevStackCount, NULL);
     }
@@ -178,7 +178,7 @@ void ekContextRecover(ekContext *Y)
 }
 // LCOV_EXCL_STOP
 
-void ekContextSetError(struct ekContext *Y, yU32 errorType, const char *errorFormat, ...)
+void ekContextSetError(struct ekContext *Y, ekU32 errorType, const char *errorFormat, ...)
 {
     va_list args;
     char tempStr[MAX_ERROR_LENGTH + 1];
@@ -229,18 +229,18 @@ static ekValue **ekContextResolve(struct ekContext *Y, const char *name)
     ekValue **valueRef;
     ekMapEntry *hashEntry;
 
-    for(i = ekArraySize(Y, &Y->frames) - 1; i >= 0; i--)
+    for(i = ekArraekSize(Y, &Y->frames) - 1; i >= 0; i--)
     {
         frame = Y->frames[i];
 
         // Check the locals
-        hashEntry = ekMapGetS(Y, frame->locals, name, yFalse);
+        hashEntry = ekMapGetS(Y, frame->locals, name, ekFalse);
         if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
 
         // Check closure vars
         if(frame->closure && frame->closure->closureVars)
         {
-            hashEntry = ekMapGetS(Y, frame->closure->closureVars, name, yFalse);
+            hashEntry = ekMapGetS(Y, frame->closure->closureVars, name, ekFalse);
             if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
         }
 
@@ -251,13 +251,13 @@ static ekValue **ekContextResolve(struct ekContext *Y, const char *name)
     }
 
     // check globals
-    hashEntry = ekMapGetS(Y, Y->globals, name, yFalse);
+    hashEntry = ekMapGetS(Y, Y->globals, name, ekFalse);
     if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
 
     return NULL;
 }
 
-ekFrame *ekContextPushFrame(struct ekContext *Y, ekBlock *block, int argCount, yU32 frameType, struct ekValue *thisVal, ekValue *closure)
+ekFrame *ekContextPushFrame(struct ekContext *Y, ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure)
 {
     ekFrame *frame;
     int i;
@@ -291,22 +291,22 @@ ekFrame *ekContextPushFrame(struct ekContext *Y, ekBlock *block, int argCount, y
         }
     }
 
-    frame = ekFrameCreate(Y, frameType, thisVal, block, ekArraySize(Y, &Y->stack), argCount, closure);
+    frame = ekFrameCreate(Y, frameType, thisVal, block, ekArraekSize(Y, &Y->stack), argCount, closure);
     ekArrayPush(Y, &Y->frames, frame);
 
     return frame;
 }
 
-static yBool ekContextCallCFunction(struct ekContext *Y, ekCFunction func, yU32 argCount, ekValue *thisVal);
-static yBool ekContextCreateObject(struct ekContext *Y, ekFrame **framePtr, ekValue *isa, int argCount);
+static ekBool ekContextCallCFunction(struct ekContext *Y, ekCFunction func, ekU32 argCount, ekValue *thisVal);
+static ekBool ekContextCreateObject(struct ekContext *Y, ekFrame **framePtr, ekValue *isa, int argCount);
 
-static yBool ekContextCall(struct ekContext *Y, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
+static ekBool ekContextCall(struct ekContext *Y, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
 {
     // LCOV_EXCL_START - TODO: ektest embedding
     if(!callable)
     {
         ekContextSetError(Y, YVE_RUNTIME, "YOP_CALL: empty stack!");
-        return yFalse;
+        return ekFalse;
     }
     if(callable->type == YVT_REF)
     {
@@ -316,13 +316,13 @@ static yBool ekContextCall(struct ekContext *Y, ekFrame **framePtr, ekValue *thi
     if(!ekValueIsCallable(callable))
     {
         ekContextSetError(Y, YVE_RUNTIME, "YOP_CALL: variable not callable");
-        return yFalse;
+        return ekFalse;
     }
     if(callable->type == YVT_CFUNCTION)
     {
         if(!ekContextCallCFunction(Y, *callable->cFuncVal, argCount, thisVal))
         {
-            return yFalse; // LCOV_EXCL_LINE - TODO: ektest embedding. A cfunction needs to ruin the stack frame array for this to return false.
+            return ekFalse; // LCOV_EXCL_LINE - TODO: ektest embedding. A cfunction needs to ruin the stack frame array for this to return false.
         }
     }
     else if(callable->type == YVT_OBJECT)
@@ -334,12 +334,12 @@ static yBool ekContextCall(struct ekContext *Y, ekFrame **framePtr, ekValue *thi
         ekValue *closure = (callable->closureVars) ? callable : NULL;
         *framePtr = ekContextPushFrame(Y, callable->blockVal, argCount, YFT_FUNC, thisVal, closure);
     }
-    return yTrue;
+    return ekTrue;
 }
 
 static ekValue *ekFindFunc(struct ekContext *Y, ekValue *object, const char *name)
 {
-    ekValue *v = *(ekObjectGetRef(Y, object->objectVal, name, yFalse));
+    ekValue *v = *(ekObjectGetRef(Y, object->objectVal, name, ekFalse));
     if(v == &ekValueNull)
     {
         if(object->objectVal->isa)
@@ -359,28 +359,28 @@ static ekValue *ekFindFunc(struct ekContext *Y, ekValue *object, const char *nam
 }
 
 // LCOV_EXCL_START - TODO: ektest embedding
-yBool ekContextCallFuncByName(struct ekContext *Y, ekValue *thisVal, const char *name, int argCount)
+ekBool ekContextCallFuncByName(struct ekContext *Y, ekValue *thisVal, const char *name, int argCount)
 {
     ekFrame *frame = NULL;
     ekValue **valueRef = ekContextResolve(Y, name);
     if(!valueRef || !(*valueRef))
     {
-        return yFalse;
+        return ekFalse;
     }
     if(ekContextCall(Y, &frame, thisVal, *valueRef, argCount))
     {
-        ekContextLoop(Y, yTrue);
-        return yTrue;
+        ekContextLoop(Y, ekTrue);
+        return ekTrue;
     }
-    return yFalse;
+    return ekFalse;
 }
 // LCOV_EXCL_STOP
 
-static yBool ekContextCreateObject(struct ekContext *Y, ekFrame **framePtr, ekValue *isa, int argCount)
+static ekBool ekContextCreateObject(struct ekContext *Y, ekFrame **framePtr, ekValue *isa, int argCount)
 {
-    yBool ret = yTrue;
+    ekBool ret = ekTrue;
     ekValue *initFunc = ekFindFunc(Y, isa, "init");
-    ekValue *newObject = ekValueCreateObject(Y, isa, (initFunc) ? 0 : argCount, yFalse);
+    ekValue *newObject = ekValueCreateObject(Y, isa, (initFunc) ? 0 : argCount, ekFalse);
 
     if(initFunc)
     {
@@ -411,11 +411,11 @@ static ekValue **ekContextRegister(struct ekContext *Y, const char *name, ekValu
     {
         // If we're in the chunk's "main" function, all variable
         // registration goes into the globals
-        hashEntry = ekMapGetS(Y, Y->globals, name, yTrue);
+        hashEntry = ekMapGetS(Y, Y->globals, name, ekTrue);
     }
     else
     {
-        hashEntry = ekMapGetS(Y, frame->locals, name, yTrue);
+        hashEntry = ekMapGetS(Y, frame->locals, name, ekTrue);
     }
     hashEntry->valuePtr = value;
     valueRef = (ekValue **)&hashEntry->valuePtr;
@@ -429,10 +429,10 @@ static void ekContextPushRef(struct ekContext *Y, ekValue **valueRef)
 }
 
 // TODO: merge this function with PushFrame and _RET
-static yBool ekContextCallCFunction(struct ekContext *Y, ekCFunction func, yU32 argCount, ekValue *thisVal)
+static ekBool ekContextCallCFunction(struct ekContext *Y, ekCFunction func, ekU32 argCount, ekValue *thisVal)
 {
     int retCount;
-    ekFrame *frame = ekFrameCreate(Y, YFT_FUNC, thisVal, NULL, ekArraySize(Y, &Y->stack), argCount, NULL);
+    ekFrame *frame = ekFrameCreate(Y, YFT_FUNC, thisVal, NULL, ekArraekSize(Y, &Y->stack), argCount, NULL);
     ekArrayPush(Y, &Y->frames, frame);
 
     retCount = func(Y, argCount);
@@ -442,15 +442,15 @@ static yBool ekContextCallCFunction(struct ekContext *Y, ekCFunction func, yU32 
     frame = ekArrayTop(Y, &Y->frames);
     if(!frame)
     {
-        return yFalse;
+        return ekFalse;
     }
 
     // Stash lastRet for any YOP_KEEPs in the pipeline
     Y->lastRet = retCount;
-    return yTrue;
+    return ekTrue;
 }
 
-void ekContextPopValues(struct ekContext *Y, yU32 count)
+void ekContextPopValues(struct ekContext *Y, ekU32 count)
 {
     while(count)
     {
@@ -460,14 +460,14 @@ void ekContextPopValues(struct ekContext *Y, yU32 count)
     }
 }
 
-ekValue *ekContextGetValue(struct ekContext *Y, yU32 howDeep)
+ekValue *ekContextGetValue(struct ekContext *Y, ekU32 howDeep)
 {
-    if(howDeep >= ekArraySize(Y, &Y->stack))
+    if(howDeep >= ekArraekSize(Y, &Y->stack))
     {
         return NULL;
     }
 
-    return Y->stack[(ekArraySize(Y, &Y->stack) - 1) - howDeep];
+    return Y->stack[(ekArraekSize(Y, &Y->stack) - 1) - howDeep];
 }
 
 static ekContextFrameCleanup(struct ekContext *Y, ekFrame *frame)
@@ -477,7 +477,7 @@ static ekContextFrameCleanup(struct ekContext *Y, ekFrame *frame)
         int i;
         for(i=0; i < frame->cleanupCount; i++)
         {
-            int index = ((ekArraySize(Y, &Y->stack) - 1) - Y->lastRet) - i;
+            int index = ((ekArraekSize(Y, &Y->stack) - 1) - Y->lastRet) - i;
             ekValueRemoveRefNote(Y, Y->stack[index], "ekContextFrameCleanup");
             Y->stack[index] = NULL;
         }
@@ -485,7 +485,7 @@ static ekContextFrameCleanup(struct ekContext *Y, ekFrame *frame)
     }
 }
 
-struct ekFrame *ekContextPopFrames(struct ekContext *Y, yU32 frameTypeToFind, yBool keepIt)
+struct ekFrame *ekContextPopFrames(struct ekContext *Y, ekU32 frameTypeToFind, ekBool keepIt)
 {
     ekFrame *frame = ekArrayTop(Y, &Y->frames);
 
@@ -511,9 +511,9 @@ struct ekFrame *ekContextPopFrames(struct ekContext *Y, yU32 frameTypeToFind, yB
     return frame;
 }
 
-static yS32 ekContextPopInts(struct ekContext *Y, int count, int *output)
+static ekS32 ekContextPopInts(struct ekContext *Y, int count, int *output)
 {
-    yS32 i;
+    ekS32 i;
     for(i=0; i<count; i++)
     {
         ekValue *v = ekArrayPop(Y, &Y->stack);
@@ -532,7 +532,7 @@ static yS32 ekContextPopInts(struct ekContext *Y, int count, int *output)
 ekValue *ekContextThis(ekContext *Y)
 {
     int i;
-    for(i = ekArraySize(Y, &Y->frames) - 1; i >= 0; i--)
+    for(i = ekArraekSize(Y, &Y->frames) - 1; i >= 0; i--)
     {
         ekFrame *frame = Y->frames[i];
         if(frame->type & YFT_FUNC)
@@ -544,9 +544,9 @@ ekValue *ekContextThis(ekContext *Y)
     return ekValueNullPtr;
 }
 
-yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat, ...)
+ekBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat, ...)
 {
-    yBool required = yTrue;
+    ekBool required = ekTrue;
     const char *c;
     ekValue *v;
     ekValue **valuePtr;
@@ -559,7 +559,7 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
     {
         if(*c == '|')
         {
-            required = yFalse;
+            required = ekFalse;
             continue;
         }
 
@@ -577,9 +577,9 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
             if(!required)
             {
                 ekContextPopValues(Y, argCount);
-                return yTrue;
+                return ekTrue;
             }
-            return yFalse;
+            return ekFalse;
         };
 
         v = ekContextGetArg(Y, argsTaken, argCount);
@@ -587,7 +587,7 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
         {
             // this is a very serious failure (argCount doesn't agree with ekContextGetArg)
             ekContextSetError(Y, YVE_RUNTIME, "ekContextGetArgs(): VM stack and argCount disagree!");
-            return yFalse;
+            return ekFalse;
         }
         argsTaken++;
 
@@ -595,19 +595,19 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
         {
             default:
             case '?': /* can be anything */                    break;
-            case 'n': if(v->type != YVT_NULL) { return yFalse; } break;
-            case 's': if(v->type != YVT_STRING) { return yFalse; } break;
-            case 'i': if(v->type != YVT_INT) { return yFalse; } break;
-            case 'f': if(v->type != YVT_FLOAT) { return yFalse; } break;
-            case 'a': if(v->type != YVT_ARRAY) { return yFalse; } break;
-            case 'm': if(v->type != YVT_OBJECT) { return yFalse; } break;  // "map"
-            case 'o': if(v->type != YVT_OBJECT) { return yFalse; } break;
+            case 'n': if(v->type != YVT_NULL) { return ekFalse; } break;
+            case 's': if(v->type != YVT_STRING) { return ekFalse; } break;
+            case 'i': if(v->type != YVT_INT) { return ekFalse; } break;
+            case 'f': if(v->type != YVT_FLOAT) { return ekFalse; } break;
+            case 'a': if(v->type != YVT_ARRAY) { return ekFalse; } break;
+            case 'm': if(v->type != YVT_OBJECT) { return ekFalse; } break;  // "map"
+            case 'o': if(v->type != YVT_OBJECT) { return ekFalse; } break;
             case 'c':
             {
                 // "callable" - function, object, etc
                 if(!ekValueIsCallable(v))
                 {
-                    return yFalse;
+                    return ekFalse;
                 }
             }
             break;
@@ -631,12 +631,12 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
     if(argsTaken != argCount)
     {
         // too many args!
-        return yFalse;
+        return ekFalse;
     }
 
     va_end(args);
     ekContextPopValues(Y, argCount);
-    return yTrue;
+    return ekTrue;
 }
 
 // TODO: reuse code between ekContextArgsFailure and ekContextSetError
@@ -676,7 +676,7 @@ static const char *ekValueDebugString(struct ekContext *Y, ekValue *v)
             sprintf(valString, "(%s)", ekStringSafePtr(&v->stringVal));
             break;
         case YVT_ARRAY:
-            sprintf(valString, "(count: %d)", (int)ekArraySize(Y, &v->arrayVal));
+            sprintf(valString, "(count: %d)", (int)ekArraekSize(Y, &v->arrayVal));
             break;
     }
 
@@ -690,7 +690,7 @@ static void ekContextLogState(ekContext *Y)
 
     ekTraceExecution(("\n\n\n------------------------------------------\n"));
 
-    if(ekArraySize(Y, &Y->frames) > 0)
+    if(ekArraekSize(Y, &Y->frames) > 0)
     {
         ekFrame *frame = ekArrayTop(Y, &Y->frames);
         ekTraceExecution(("0x%p [cleanup:%d][lastRet:%d] IP: ", frame, frame->cleanupCount, Y->lastRet));
@@ -700,23 +700,23 @@ static void ekContextLogState(ekContext *Y)
     ekTraceExecution(("\n"));
 
     ekTraceExecution(("-- Stack Top --\n"));
-    for(i=0; i<ekArraySize(Y, &Y->stack); i++)
+    for(i=0; i<ekArraekSize(Y, &Y->stack); i++)
     {
-        ekValue *v = (ekValue *)Y->stack[ekArraySize(Y, &Y->stack) - 1 - i];
+        ekValue *v = (ekValue *)Y->stack[ekArraekSize(Y, &Y->stack) - 1 - i];
         ekTraceExecution(("%2.2d: %s\n", i, ekValueDebugString(Y, v)));
     }
     ekTraceExecution(("-- Stack Bot --\n"));
 }
 #endif
 
-void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
+void ekContextLoop(struct ekContext *Y, ekBool stopAtPop)
 {
     ekFrame *frame = ekArrayTop(Y, &Y->frames);
-    yBool continueLooping = yTrue;
-    yBool newFrame;
-    yOpcode opcode;
-    yOperand operand;
-    yU32 startingFrameCount = ekArraySize(Y, &Y->frames);
+    ekBool continueLooping = ekTrue;
+    ekBool newFrame;
+    ekOpcode opcode;
+    ekOperand operand;
+    ekU32 startingFrameCount = ekArraekSize(Y, &Y->frames);
 
     if(!frame)
     {
@@ -727,12 +727,12 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
     // Main VM loop!
     while(continueLooping && !Y->error)
     {
-        if(stopAtPop && (ekArraySize(Y, &Y->frames) < startingFrameCount))
+        if(stopAtPop && (ekArraekSize(Y, &Y->frames) < startingFrameCount))
         {
             break;
         }
 
-        newFrame = yFalse;
+        newFrame = ekFalse;
 
         // These are put into temporary variables for future ntohs() cross-platform safety
         opcode  = frame->ip->opcode;
@@ -754,14 +754,14 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             {
                 int i;
                 ekValue *performSkipValue = ekArrayTop(Y, &Y->stack);
-                yBool performSkip = yFalse;
+                ekBool performSkip = ekFalse;
                 if(!performSkipValue)
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_SKIP: empty stack!");
                 }
                 ekValueAddRefNote(Y, performSkipValue, "YOP_AND/YOP_OR skip value staying on top of stack");
                 performSkipValue = ekValueToBool(Y, performSkipValue);
-                performSkip = (performSkipValue->intVal) ? yTrue : yFalse;
+                performSkip = (performSkipValue->intVal) ? ekTrue : ekFalse;
                 ekValueRemoveRefNote(Y, performSkipValue, "removing skip value in bool form");
                 if(opcode == YOP_AND)
                 {
@@ -817,7 +817,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
 
             case YOP_PUSH_KF:
             {
-                ekValue *value = ekValueCreateFloat(Y, *((yF32 *)&frame->block->chunk->kFloats[operand]));
+                ekValue *value = ekValueCreateFloat(Y, *((ekF32 *)&frame->block->chunk->kFloats[operand]));
                 ekArrayPush(Y, &Y->stack, value);
             }
             break;
@@ -890,7 +890,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 }
                 else
                 {
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -917,7 +917,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 }
                 else
                 {
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -935,7 +935,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 }
                 else
                 {
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -953,7 +953,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 }
                 else
                 {
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -968,7 +968,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             {
                 ekValue *b = ekArrayPop(Y, &Y->stack);
                 ekValue *a = ekArrayPop(Y, &Y->stack);
-                yS32 cmp = ekValueCmp(Y, a, b);
+                ekS32 cmp = ekValueCmp(Y, a, b);
                 ekValueRemoveRefNote(Y, b, "cmp operand 2");
                 ekValueRemoveRefNote(Y, a, "cmp operand 1");
                 if(opcode != YOP_CMP)
@@ -1027,7 +1027,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             {
                 ekValue *l = ekArrayPop(Y, &Y->stack);
                 ekValue *r = ekArrayPop(Y, &Y->stack);
-                yBool inherits = ekValueTestInherits(Y, l, r);
+                ekBool inherits = ekValueTestInherits(Y, l, r);
                 ekValueRemoveRefNote(Y, r, "inherits operand 2");
                 ekValueRemoveRefNote(Y, l, "inherits operand 1");
 
@@ -1062,7 +1062,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 if(value && index)
                 {
                     int opFlags = operand;
-                    ekValue *ret = ekValueIndex(Y, value, index, (opFlags & YOF_LVALUE) ? yTrue : yFalse);
+                    ekValue *ret = ekValueIndex(Y, value, index, (opFlags & YOF_LVALUE) ? ekTrue : ekFalse);
                     if(ret)
                     {
                         ekArrayPush(Y, &Y->stack, ret); // +ref implicit in ekValueIndex
@@ -1082,13 +1082,13 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                         {
                             ekContextSetError(Y, YVE_RUNTIME, "YOP_INDEX: Failed attempt to index into type %s", ekValueTypeName(Y, value->type));
                         }
-                        continueLooping = yFalse;
+                        continueLooping = ekFalse;
                     }
                 }
                 else
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_INDEX: empty stack!");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
                 if(value)
                 {
@@ -1104,7 +1104,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             case YOP_DUPE:
             case YOP_MOVE:
             {
-                int topIndex = ekArraySize(Y, &Y->stack) - 1;
+                int topIndex = ekArraekSize(Y, &Y->stack) - 1;
                 int requestedIndex = topIndex - operand;
                 if(requestedIndex >= 0)
                 {
@@ -1127,7 +1127,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 else
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "%s: impossible index", (opcode == YOP_DUPE) ? "YOP_DUPE" : "YOP_MOVE");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -1154,7 +1154,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 ekValueRemoveRefNote(Y, callable, "CALL callable done");
                 if(frame != oldFrame)
                 {
-                    newFrame = yTrue;
+                    newFrame = ekTrue;
                 }
             }
             break;
@@ -1162,7 +1162,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             case YOP_RET:
             {
                 int argCount = operand;
-                frame = ekContextPopFrames(Y, YFT_FUNC, yTrue);
+                frame = ekContextPopFrames(Y, YFT_FUNC, ekTrue);
                 //                if(!argCount && frame && (frame->flags & YFF_INIT) && frame->thisVal)
                 //                {
                 //                    // We are leaving an init function that does not return any value (which
@@ -1173,7 +1173,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 //                    argCount = 1;
                 //                    ekArrayPush(Y, &Y->stack, frame->thisVal);
                 //                }
-                frame = ekContextPopFrames(Y, YFT_FUNC, yFalse);
+                frame = ekContextPopFrames(Y, YFT_FUNC, ekFalse);
                 if(frame)
                 {
                     // Stash lastRet for any YOP_KEEPs in the pipeline
@@ -1182,7 +1182,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 else
                 {
                     // Throw away return values and bail out of loop
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             };
             break;
@@ -1255,11 +1255,11 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                     frame = ekContextPushFrame(Y, block, 0, YFT_COND, NULL, NULL);
                     if(frame)
                     {
-                        newFrame = yTrue;
+                        newFrame = ekTrue;
                     }
                     else
                     {
-                        continueLooping = yFalse;
+                        continueLooping = ekFalse;
                     }
                 }
 
@@ -1280,15 +1280,15 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 {
                     if(blockRef->type == YVT_BLOCK && blockRef->blockVal)
                     {
-                        yU32 frameType = operand;
+                        ekU32 frameType = operand;
                         frame = ekContextPushFrame(Y, blockRef->blockVal, 0, frameType, NULL, NULL);
                         if(frame)
                         {
-                            newFrame = yTrue;
+                            newFrame = ekTrue;
                         }
                         else
                         {
-                            continueLooping = yFalse;
+                            continueLooping = ekFalse;
                         }
                     }
                     ekValueRemoveRefNote(Y, blockRef, "ENTER: removing block ref");
@@ -1296,14 +1296,14 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 else
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "hurr");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
 
             case YOP_LEAVE:
             {
-                yBool performLeave = yTrue;
+                ekBool performLeave = ekTrue;
                 if(operand)
                 {
                     ekValue *cond = ekArrayPop(Y, &Y->stack);
@@ -1314,8 +1314,8 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
 
                 if(performLeave)
                 {
-                    frame = ekContextPopFrames(Y, YFT_ANY, yFalse);
-                    continueLooping = (frame) ? yTrue : yFalse;
+                    frame = ekContextPopFrames(Y, YFT_ANY, ekFalse);
+                    continueLooping = (frame) ? ekTrue : ekFalse;
                 }
             }
             break;
@@ -1323,23 +1323,23 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
             case YOP_BREAK:
             {
                 // a C-style break. Find the innermost loop and kill it.
-                frame = ekContextPopFrames(Y, YFT_LOOP, yFalse);
-                continueLooping = (frame) ? yTrue : yFalse;
+                frame = ekContextPopFrames(Y, YFT_LOOP, ekFalse);
+                continueLooping = (frame) ? ekTrue : ekFalse;
             }
             break;
 
             case YOP_CONTINUE:
             {
                 // a C-style continue. Find the innermost loop and reset it.
-                frame = ekContextPopFrames(Y, YFT_LOOP, yTrue);
+                frame = ekContextPopFrames(Y, YFT_LOOP, ekTrue);
                 if(frame)
                 {
-                    ekFrameReset(Y, frame, yTrue);
-                    newFrame = yTrue;
+                    ekFrameReset(Y, frame, ekTrue);
+                    newFrame = ekTrue;
                 }
                 else
                 {
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
             }
             break;
@@ -1351,7 +1351,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 if(!value)
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_NOT: empty stack!");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                     break;
                 };
                 value = ekValueToBool(Y, value);
@@ -1374,7 +1374,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 if(ekContextPopInts(Y, argsNeeded, i) != argsNeeded)
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "Bitwise operations require integer friendly arguments");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                     break;
                 }
 
@@ -1398,14 +1398,14 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 if(!format)
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_FORMAT: empty stack!");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                     break;
                 };
                 val = ekValueStringFormat(Y, format, operand);
                 if(!val)
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_FORMAT: bad format");
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                     break;
                 };
                 ekArrayPush(Y, &Y->stack, val);
@@ -1419,7 +1419,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 if(val->type == YVT_ARRAY)
                 {
                     ekValue *nth = ekArrayPop(Y, &Y->stack);
-                    if(nth->intVal >= 0 && nth->intVal < ekArraySize(Y, &val->arrayVal))
+                    if(nth->intVal >= 0 && nth->intVal < ekArraekSize(Y, &val->arrayVal))
                     {
                         ekValue *indexedValue = val->arrayVal[nth->intVal];
                         ekValueAddRefNote(Y, indexedValue, "NTH indexed value");
@@ -1429,7 +1429,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                     else
                     {
                         ekContextSetError(Y, YVE_RUNTIME, "YOP_NTH: index out of range");
-                        continueLooping = yFalse;
+                        continueLooping = ekFalse;
                     }
                     ekValueRemoveRefNote(Y, nth, "NTH nth done");
                 }
@@ -1442,19 +1442,19 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                         continueLooping = ekContextCall(Y, &frame, val, getFunc, 1 /* the index */);
                         if(frame != oldFrame)
                         {
-                            newFrame = yTrue;
+                            newFrame = ekTrue;
                         }
                     }
                     else
                     {
                         ekContextSetError(Y, YVE_RUNTIME, "YVT_NTH: iterable does not have a get() function");
-                        continueLooping = yFalse;
+                        continueLooping = ekFalse;
                     }
                 }
                 else
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YOP_NTH: Invalid value type %d", val->type);
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
                 ekValueRemoveRefNote(Y, val, "NTH val done");
             }
@@ -1465,7 +1465,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                 ekValue *val = ekArrayPop(Y, &Y->stack);
                 if(val->type == YVT_ARRAY)
                 {
-                    ekValue *count = ekValueCreateInt(Y, ekArraySize(Y, &val->arrayVal));
+                    ekValue *count = ekValueCreateInt(Y, ekArraekSize(Y, &val->arrayVal));
                     ekArrayPush(Y, &Y->stack, count);
                     Y->lastRet = 1;
                 }
@@ -1478,19 +1478,19 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
                         continueLooping = ekContextCall(Y, &frame, val, countFunc, 0);
                         if(frame != oldFrame)
                         {
-                            newFrame = yTrue;
+                            newFrame = ekTrue;
                         }
                     }
                     else
                     {
                         ekContextSetError(Y, YVE_RUNTIME, "YVT_COUNT: iterable does not have a count() function");
-                        continueLooping = yFalse;
+                        continueLooping = ekFalse;
                     }
                 }
                 else
                 {
                     ekContextSetError(Y, YVE_RUNTIME, "YVT_COUNT: Invalid value type %d", val->type);
-                    continueLooping = yFalse;
+                    continueLooping = ekFalse;
                 }
                 ekValueRemoveRefNote(Y, val, "COUNT val done");
             }
@@ -1498,7 +1498,7 @@ void ekContextLoop(struct ekContext *Y, yBool stopAtPop)
 
             default:
                 ekContextSetError(Y, YVE_RUNTIME, "Unknown VM Opcode: %d", opcode);
-                continueLooping = yFalse;
+                continueLooping = ekFalse;
                 break;
         }
 

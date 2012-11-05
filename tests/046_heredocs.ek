@@ -1,0 +1,24 @@
+var a = """
+    does this work?
+""";
+
+print("How about this: ", """
+    more text
+    more text
+    more text
+    more text
+    more text
+    more text
+    more text
+    more text
+    " " " " " " " "
+    more text
+    more text
+    more text
+    more text
+""");
+
+function foo(b)
+{
+    return """yep""";
+}

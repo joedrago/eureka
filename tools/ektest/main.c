@@ -71,10 +71,10 @@ void outputDot(const char *code)
     ekContext *Y = ekContextCreate(NULL);
     ekCompiler *compiler = ekCompilerCreate(Y);
     ekCompile(compiler, code, YCO_KEEP_SYNTAX_TREE);
-    if(ekArraySize(Y, &compiler->errors))
+    if(ekArraekSize(Y, &compiler->errors))
     {
         int i;
-        for(i = 0; i < ekArraySize(Y, &compiler->errors); i++)
+        for(i = 0; i < ekArraekSize(Y, &compiler->errors); i++)
         {
             char *error = (char *)compiler->errors[i];
             fprintf(stderr, "Error: %s\n", error);

@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-ekSyntax *ekSyntaxCreate(struct ekContext *Y, yU32 type, int line)
+ekSyntax *ekSyntaxCreate(struct ekContext *Y, ekU32 type, int line)
 {
     ekSyntax *syntax = (ekSyntax *)ekAlloc(sizeof(ekSyntax));
     syntax->type = type;
@@ -53,7 +53,7 @@ ekSyntax *ekSyntaxCreateKString(struct ekContext *Y, struct ekToken *token)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateKInt(struct ekContext *Y, struct ekToken *token, yU32 opts)
+ekSyntax *ekSyntaxCreateKInt(struct ekContext *Y, struct ekToken *token, ekU32 opts)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, YST_KINT, token->line);
     syntax->v.i = ekTokenToInt(Y, token);
@@ -64,7 +64,7 @@ ekSyntax *ekSyntaxCreateKInt(struct ekContext *Y, struct ekToken *token, yU32 op
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateKFloat(struct ekContext *Y, struct ekToken *token, yU32 opts)
+ekSyntax *ekSyntaxCreateKFloat(struct ekContext *Y, struct ekToken *token, ekU32 opts)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, YST_KFLOAT, token->line);
     syntax->v.f = ekTokenToFloat(Y, token);
@@ -82,7 +82,7 @@ ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *Y, struct ekToken *token)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateIndex(struct ekContext *Y, ekSyntax *array, ekSyntax *index, yBool pushThis)
+ekSyntax *ekSyntaxCreateIndex(struct ekContext *Y, ekSyntax *array, ekSyntax *index, ekBool pushThis)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, YST_INDEX, array->line);
     syntax->v.i = pushThis;
@@ -103,7 +103,7 @@ ekSyntax *ekSyntaxCreateThis(struct ekContext *Y, int line)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateList(struct ekContext *Y, yU32 type, ekSyntax *firstExpr)
+ekSyntax *ekSyntaxCreateList(struct ekContext *Y, ekU32 type, ekSyntax *firstExpr)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, type, (firstExpr) ? firstExpr->line : 0);
     syntax->v.a = NULL;
@@ -114,7 +114,7 @@ ekSyntax *ekSyntaxCreateList(struct ekContext *Y, yU32 type, ekSyntax *firstExpr
     return syntax;
 }
 
-ekSyntax *ekSyntaxListAppend(struct ekContext *Y, ekSyntax *list, ekSyntax *expr, yU32 flags)
+ekSyntax *ekSyntaxListAppend(struct ekContext *Y, ekSyntax *list, ekSyntax *expr, ekU32 flags)
 {
     if(expr != NULL)
     {
@@ -152,14 +152,14 @@ ekSyntax *ekSyntaxCreateStringFormat(struct ekContext *Y, ekSyntax *format, ekSy
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateUnary(struct ekContext *Y, yU32 type, ekSyntax *expr)
+ekSyntax *ekSyntaxCreateUnary(struct ekContext *Y, ekU32 type, ekSyntax *expr)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, type, expr->line);
     syntax->v.p = expr;
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateBinary(struct ekContext *Y, yU32 type, ekSyntax *l, ekSyntax *r, yBool compound)
+ekSyntax *ekSyntaxCreateBinary(struct ekContext *Y, ekU32 type, ekSyntax *l, ekSyntax *r, ekBool compound)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, type, l->line);
     syntax->l.p = l;
@@ -172,7 +172,7 @@ ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *Y, ekSyntax *expr)
 {
     ekSyntax *syntax;
 
-    if((expr->type == YST_EXPRESSIONLIST) && (ekArraySize(Y, &expr->v.a) == 0))
+    if((expr->type == YST_EXPRESSIONLIST) && (ekArraekSize(Y, &expr->v.a) == 0))
     {
         // An empty statement. Without PYTHON_SCOPING, this only happens
         // when there are multiple semicolons in a row. However, when
@@ -222,7 +222,7 @@ ekSyntax *ekSyntaxCreateReturn(struct ekContext *Y, ekSyntax *expr)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateIfElse(struct ekContext *Y, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, yBool ternary)
+ekSyntax *ekSyntaxCreateIfElse(struct ekContext *Y, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, ekBool ternary)
 {
     ekSyntax *syntax = ekSyntaxCreate(Y, YST_IFELSE, cond->line);
     syntax->v.i = ternary;

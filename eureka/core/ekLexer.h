@@ -35,6 +35,6 @@ int ekTokenToInt(struct ekContext *Y, ekToken *t);
 float ekTokenToFloat(struct ekContext *Y, ekToken *t);
 
 typedef void (*tokenCB)(void *parser, int id, ekToken token, struct ekCompiler *compiler);
-yBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler);
+ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler);
 
 #endif

@@ -33,7 +33,7 @@ static int ekRegexOptionsToPCREFlags(const char *options)
     return pcreFlags;
 }
 
-static yU32 regex_match(struct ekContext *Y, yU32 argCount)
+static ekU32 regex_match(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *pattern = NULL;
     ekValue *subject = NULL;

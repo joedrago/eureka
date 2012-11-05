@@ -37,7 +37,7 @@ const char *ekStringSafePtr(ekString *str)
 }
 
 // Helper function
-static yBool ekStringMakeRoom(struct ekContext *Y, ekString *str, int len, yBool append)
+static ekBool ekStringMakeRoom(struct ekContext *Y, ekString *str, int len, ekBool append)
 {
     int newlen;
 
@@ -57,12 +57,12 @@ static yBool ekStringMakeRoom(struct ekContext *Y, ekString *str, int len, yBool
         str->maxlen = newlen;
     }
 
-    return yTrue;
+    return ekTrue;
 }
 
 void ekStringSetLen(struct ekContext *Y, ekString *str, const char *text, int len)
 {
-    ekStringMakeRoom(Y, str, len, yFalse);
+    ekStringMakeRoom(Y, str, len, ekFalse);
     memcpy(str->text, text, len);
     str->text[len] = 0;
     str->len = len;
@@ -121,7 +121,7 @@ void ekStringConcatLen(struct ekContext *Y, ekString *str, const char *text, int
         return;
     }
 
-    ekStringMakeRoom(Y, str, len, yTrue);
+    ekStringMakeRoom(Y, str, len, ekTrue);
     memcpy(&str->text[str->len], text, len);
     str->len += len;
     str->text[str->len] = 0;

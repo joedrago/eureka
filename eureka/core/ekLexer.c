@@ -38,7 +38,7 @@ typedef struct ekLexer
     const char *token;
     const char *end;
     int line;
-    yBool error;
+    ekBool error;
 } ekLexer;
 
 int getNextToken(ekLexer *l)
@@ -47,7 +47,7 @@ int getNextToken(ekLexer *l)
     return YTT_EOF;
 }
 
-yBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
+ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
 {
     struct ekContext *Y = compiler->Y;
     int id;
@@ -114,12 +114,12 @@ yBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compi
         l.token = l.cur;
     }
 
-    if(!ekArraySize(Y, &compiler->errors))
+    if(!ekArraekSize(Y, &compiler->errors))
     {
         token.line = l.line;
         CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
     }
-    return yTrue;
+    return ekTrue;
 }
 
 ekToken *ekTokenClone(struct ekContext *Y, ekToken *token)
@@ -135,7 +135,7 @@ char *ekTokenToString(struct ekContext *Y, ekToken *t)
     const char *end = src + t->len;
     char *str = ekAlloc(t->len + 1);
     char *dst = str;
-    yBool escaped = yFalse;
+    ekBool escaped = ekFalse;
 
     // Remove outer quotes
     if(t->len > 1)
@@ -172,13 +172,13 @@ char *ekTokenToString(struct ekContext *Y, ekToken *t)
                 default:
                     *dst = *src; // anything else should just be pass-through, such as \"
             }
-            escaped = yFalse;
+            escaped = ekFalse;
         }
         else
         {
             if(*src == '\\')
             {
-                escaped = yTrue;
+                escaped = ekTrue;
                 src++;
                 continue;
             }
@@ -230,6 +230,6 @@ float ekTokenToFloat(struct ekContext *Y, ekToken *t)
     temp[len] = 0;
 
     d = strtod(temp, &endptr);
-    return (yF32)d;
+    return (ekF32)d;
 }
 

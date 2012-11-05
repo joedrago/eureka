@@ -86,13 +86,13 @@ typedef struct ekSyntaxElement
     struct ekSyntax *p;               // ptr to syntax value
     char *s;                           // string value
     int   i;                           // int value
-    yF32  f;                           // float value
+    ekF32  f;                           // float value
     struct ekSyntax **a;              // array value
 } ekSyntaxElement;
 
 typedef struct ekSyntax
 {
-    yU32 type;
+    ekU32 type;
     int line;
     ekSyntaxElement v;                // "value" - name / value / main expr / cond expr
     ekSyntaxElement l;                // "left"  - lvalue / ifBody / loop body
@@ -112,26 +112,26 @@ enum
     YSLF_AUTOLITERAL = (1 << 0)        // Fat comma support, as in Perl. Morphs the bareword identifier prior to the fat comma into a literal string
 };
 
-ekSyntax *ekSyntaxCreate(struct ekContext *Y, yU32 type, int line);
+ekSyntax *ekSyntaxCreate(struct ekContext *Y, ekU32 type, int line);
 ekSyntax *ekSyntaxCreateKString(struct ekContext *Y, struct ekToken *token);
-ekSyntax *ekSyntaxCreateKInt(struct ekContext *Y, struct ekToken *token, yU32 opts);
-ekSyntax *ekSyntaxCreateKFloat(struct ekContext *Y, struct ekToken *token, yU32 opts);
+ekSyntax *ekSyntaxCreateKInt(struct ekContext *Y, struct ekToken *token, ekU32 opts);
+ekSyntax *ekSyntaxCreateKFloat(struct ekContext *Y, struct ekToken *token, ekU32 opts);
 ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *Y, struct ekToken *token);
-ekSyntax *ekSyntaxCreateIndex(struct ekContext *Y, ekSyntax *array, ekSyntax *index, yBool pushThis);
+ekSyntax *ekSyntaxCreateIndex(struct ekContext *Y, ekSyntax *array, ekSyntax *index, ekBool pushThis);
 ekSyntax *ekSyntaxCreateNull(struct ekContext *Y, int line);
 ekSyntax *ekSyntaxCreateThis(struct ekContext *Y, int line);
-ekSyntax *ekSyntaxCreateList(struct ekContext *Y, yU32 type, ekSyntax *firstExpr);
-ekSyntax *ekSyntaxListAppend(struct ekContext *Y, ekSyntax *list, ekSyntax *expr, yU32 flags);
+ekSyntax *ekSyntaxCreateList(struct ekContext *Y, ekU32 type, ekSyntax *firstExpr);
+ekSyntax *ekSyntaxListAppend(struct ekContext *Y, ekSyntax *list, ekSyntax *expr, ekU32 flags);
 ekSyntax *ekSyntaxCreateCall(struct ekContext *Y, ekSyntax *func, ekSyntax *args);
 ekSyntax *ekSyntaxCreateStringFormat(struct ekContext *Y, ekSyntax *format, ekSyntax *args);
-ekSyntax *ekSyntaxCreateUnary(struct ekContext *Y, yU32 type, ekSyntax *expr);
-ekSyntax *ekSyntaxCreateBinary(struct ekContext *Y, yU32 type, ekSyntax *l, ekSyntax *r, yBool compound);
+ekSyntax *ekSyntaxCreateUnary(struct ekContext *Y, ekU32 type, ekSyntax *expr);
+ekSyntax *ekSyntaxCreateBinary(struct ekContext *Y, ekU32 type, ekSyntax *l, ekSyntax *r, ekBool compound);
 ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *Y, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateAssignment(struct ekContext *Y, ekSyntax *l, ekSyntax *r);
 ekSyntax *ekSyntaxCreateInherits(struct ekContext *Y, ekSyntax *l, ekSyntax *r);
 ekSyntax *ekSyntaxCreateBreak(struct ekContext *Y, int line);
 ekSyntax *ekSyntaxCreateReturn(struct ekContext *Y, ekSyntax *expr);
-ekSyntax *ekSyntaxCreateIfElse(struct ekContext *Y, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, yBool ternary);
+ekSyntax *ekSyntaxCreateIfElse(struct ekContext *Y, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, ekBool ternary);
 ekSyntax *ekSyntaxCreateWhile(struct ekContext *Y, ekSyntax *cond, ekSyntax *body);
 ekSyntax *ekSyntaxCreateFor(struct ekContext *Y, ekSyntax *vars, ekSyntax *iter, ekSyntax *body);
 ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *Y, struct ekToken *name, ekSyntax *args, ekSyntax *body, int line);

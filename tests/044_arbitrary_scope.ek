@@ -1,0 +1,17 @@
+{
+    var a = 3;
+    {
+        var b = 3;
+        var c = 3;
+        print("arbitrary scopes are fun!");
+    }
+
+    var d = a;
+}
+
+{{{ }}}
+
+{
+}
+{
+}

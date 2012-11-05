@@ -22,7 +22,7 @@ void ekChunkDestroy(struct ekContext *Y, ekChunk *chunk)
     ekFree(chunk);
 }
 
-yOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block)
+ekOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block)
 {
     block->chunk = chunk;
     return ekArrayPush(Y, &chunk->blocks, block);

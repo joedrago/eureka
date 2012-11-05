@@ -17,23 +17,23 @@
 
 // ---------------------------------------------------------------------------
 
-static yU32 object(struct ekContext *Y, yU32 argCount)
+static ekU32 object(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *v;
-    v = ekValueCreateObject(Y, NULL, argCount, yFalse);
+    v = ekValueCreateObject(Y, NULL, argCount, ekFalse);
     ekArrayPush(Y, &Y->stack, v);
     return 1;
 }
 
-static yU32 inherit(struct ekContext *Y, yU32 argCount)
+static ekU32 inherit(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *v;
-    v = ekValueCreateObject(Y, NULL, argCount, yTrue);
+    v = ekValueCreateObject(Y, NULL, argCount, ekTrue);
     ekArrayPush(Y, &Y->stack, v);
     return 1;
 }
 
-static yU32 prototype(struct ekContext *Y, yU32 argCount)
+static ekU32 prototype(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *object = NULL;
     ekValue *newPrototype = NULL;

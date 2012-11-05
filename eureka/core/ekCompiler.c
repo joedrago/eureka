@@ -31,7 +31,7 @@ void ekParseTrace(FILE *TraceFILE, char *zTracePrompt);
 
 void ekCompileOptimize(struct ekContext *Y, ekCompiler *compiler);
 
-yBool ekAssemble(struct ekContext *Y, ekCompiler *compiler);
+ekBool ekAssemble(struct ekContext *Y, ekCompiler *compiler);
 
 ekCompiler *ekCompilerCreate(struct ekContext *Y)
 {
@@ -55,10 +55,10 @@ void ekCompilerDestroy(ekCompiler *compiler)
     ekFree(compiler);
 }
 
-yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts)
+ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
 {
     struct ekContext *Y = compiler->Y;
-    yBool success = yFalse;
+    ekBool success = ekFalse;
     ekToken emptyToken = {0};
     void *parser;
 
@@ -77,7 +77,7 @@ yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts)
 
     if(compiler->root)
     {
-        if(!ekArraySize(Y, &compiler->errors))
+        if(!ekArraekSize(Y, &compiler->errors))
         {
             if(compileOpts & YCO_OPTIMIZE)
             {
@@ -85,7 +85,7 @@ yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts)
             }
 
             ekAssemble(Y, compiler);
-            success = yTrue;
+            success = ekTrue;
         }
         if(!(compileOpts & YCO_KEEP_SYNTAX_TREE))
         {
@@ -162,7 +162,7 @@ static int ekCompileOptimizeChild(struct ekContext *Y, ekCompiler *compiler, ekS
 static void ekCompileOptimizeArray(struct ekContext *Y, ekCompiler *compiler, ekSyntax **a)
 {
     int i;
-    for(i = 0; i < ekArraySize(Y, &a); i++)
+    for(i = 0; i < ekArraekSize(Y, &a); i++)
     {
         ekCompileOptimizeChild(Y, compiler, (ekSyntax *)a[i]);
     }
@@ -236,8 +236,8 @@ enum
 };
 
 #define asmFunc(NAME) \
-    yS32 ekAssemble ## NAME (struct ekContext *Y, ekCompiler *compiler, ekCode *dst, ekSyntax *syntax, yS32 keep, yU32 flags)
-typedef yS32(*ekAssembleFunc)(struct ekContext *Y, ekCompiler *compiler, ekCode *dst, ekSyntax *syntax, yS32 keep, yU32 flags);
+    ekS32 ekAssemble ## NAME (struct ekContext *Y, ekCompiler *compiler, ekCode *dst, ekSyntax *syntax, ekS32 keep, ekU32 flags)
+typedef ekS32(*ekAssembleFunc)(struct ekContext *Y, ekCompiler *compiler, ekCode *dst, ekSyntax *syntax, ekS32 keep, ekU32 flags);
 
 typedef struct ekAssembleInfo
 {
@@ -346,7 +346,7 @@ int asmPad(struct ekContext *Y, ekCode *code, int keep, int offer, int line)
         if(offer > keep)
         {
             ekCodeGrow(Y, code, 1);
-            ekCodeAppend(Y, code, YOP_POP, (yOperand)(offer - keep), line);
+            ekCodeAppend(Y, code, YOP_POP, (ekOperand)(offer - keep), line);
         }
         else if(offer < keep)
         {
@@ -387,13 +387,13 @@ asmFunc(KInt)
 asmFunc(KFloat)
 {
     ekCodeGrow(Y, dst, 1);
-    ekCodeAppend(Y, dst, YOP_PUSH_KF, ek32ArrayPushUnique(Y, &compiler->chunk->kFloats, (yU32 *)&syntax->v.f), syntax->line);
+    ekCodeAppend(Y, dst, YOP_PUSH_KF, ek32ArrayPushUnique(Y, &compiler->chunk->kFloats, (ekU32 *)&syntax->v.f), syntax->line);
     return PAD(1);
 }
 
 asmFunc(Identifier)
 {
-    yOpcode opcode = YOP_VARREF_KS;
+    ekOpcode opcode = YOP_VARREF_KS;
     if(flags & ASM_VAR)
     {
         opcode = YOP_VARREG_KS;
@@ -410,9 +410,9 @@ asmFunc(Identifier)
 
 asmFunc(Index)
 {
-    yS32 offerCount = 1;
-    yOperand opFlags = 0;
-    yBool pushThis = (syntax->v.i) ? yTrue : yFalse;
+    ekS32 offerCount = 1;
+    ekOperand opFlags = 0;
+    ekBool pushThis = (syntax->v.i) ? ekTrue : ekFalse;
     ekSyntax *a = syntax->l.p;
     ekSyntax *b = syntax->r.p;
     asmDispatch[a->type].assemble(Y, compiler, dst, a, 1, ASM_NORMAL);
@@ -438,7 +438,7 @@ asmFunc(IdentifierList)
     int keepCount = 0;
     int i;
 
-    for(i = ekArraySize(Y, &args) - 1; i >= 0; i--)
+    for(i = ekArraekSize(Y, &args) - 1; i >= 0; i--)
     {
         ekSyntax *arg = (ekSyntax *)args[i];
         keepCount = asmDispatch[arg->type].assemble(Y, compiler, dst, arg, 1, flags | additionalFlags);
@@ -448,7 +448,7 @@ asmFunc(IdentifierList)
             ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
         }
     }
-    return PAD(ekArraySize(Y, &args));
+    return PAD(ekArraekSize(Y, &args));
 }
 
 asmFunc(Call)
@@ -513,7 +513,7 @@ asmFunc(Binary)
 {
     ekSyntax *a = syntax->l.p;
     ekSyntax *b = syntax->r.p;
-    yBool compound = syntax->v.i;
+    ekBool compound = syntax->v.i;
     int op = YOP_NOP;
     int aflags = ASM_NORMAL;
 
@@ -601,7 +601,7 @@ asmFunc(Binary)
 
 asmFunc(ShortCircuit)
 {
-    yS32 skipIndex;
+    ekS32 skipIndex;
     ekSyntax *a = syntax->l.p;
     ekSyntax *b = syntax->r.p;
 
@@ -671,7 +671,7 @@ asmFunc(Inherits)
 
 asmFunc(IfElse)
 {
-    yBool      ternary  = syntax->v.i;
+    ekBool      ternary  = syntax->v.i;
     ekSyntax *cond     = syntax->v.p;
     ekSyntax *ifBody   = syntax->l.p;
     ekSyntax *elseBody = syntax->r.p;
@@ -770,8 +770,8 @@ asmFunc(For)
     ekCodeAppend(Y, loop, YOP_DUPE, 0, syntax->line);    // dupe counter
     ekCodeAppend(Y, loop, YOP_DUPE, 3, syntax->line);    // dupe object
     ekCodeAppend(Y, loop, YOP_NTH, 0, syntax->line);     // call nth
-    ekCodeAppend(Y, loop, YOP_KEEP, ekArraySize(Y, &vars->v.a), syntax->line);
-    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, ekArraySize(Y, &vars->v.a), ASM_LVALUE | ASM_VAR);
+    ekCodeAppend(Y, loop, YOP_KEEP, ekArraekSize(Y, &vars->v.a), syntax->line);
+    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, ekArraekSize(Y, &vars->v.a), ASM_LVALUE | ASM_VAR);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(Y, compiler, loop, body, 0, ASM_NORMAL);
@@ -797,7 +797,7 @@ asmFunc(Function)
     ekSyntax *body = syntax->r.p;
     char *name = syntax->v.s;
     ekCode *code = ekCodeCreate();
-    yOperand index;
+    ekOperand index;
 
     // If a name is used ("func name()" vs "func()"), the
     // generated code will consume the block left on the stack
@@ -825,7 +825,7 @@ asmFunc(Function)
         ekCodeAppend(Y, dst, YOP_VARREG_KS, ekArrayPushUniqueString(Y, &compiler->chunk->kStrings, ekStrdup(Y, name)), syntax->line);
         ekCodeAppend(Y, dst, YOP_SETVAR, 0, syntax->line);
     };
-    compiler->chunk->hasFuncs = yTrue;
+    compiler->chunk->hasFuncs = ekTrue;
     return PAD(valuesLeftOnStack);
 }
 
@@ -876,20 +876,20 @@ asmFunc(Scope)
 asmFunc(ExpressionList)
 {
     int i = 0;
-    int last = ekArraySize(Y, &syntax->v.a);
+    int last = ekArraekSize(Y, &syntax->v.a);
     int increment = 1;
     int keepCount = 0;
     int reverseOrder = (flags & ASM_SETVAR); // values must be SETVAR'd by popping off the stack in reverse
-    for(i = 0; i < ekArraySize(Y, &syntax->v.a); i++)
+    for(i = 0; i < ekArraekSize(Y, &syntax->v.a); i++)
     {
-        int index = (reverseOrder) ? (ekArraySize(Y, &syntax->v.a) - 1) - i : i;
+        int index = (reverseOrder) ? (ekArraekSize(Y, &syntax->v.a) - 1) - i : i;
         int keepIt = ((keep == YAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
         ekSyntax *child = syntax->v.a[index];
         keepCount += asmDispatch[child->type].assemble(Y, compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
         if(flags & ASM_SETVAR)
         {
             ekCodeGrow(Y, dst, 1);
-            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(Y, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
+            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraekSize(Y, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
         }
     }
     return PAD(keepCount);
@@ -906,7 +906,7 @@ asmFunc(StatementList)
 {
     int keepCount = 0;
     int i;
-    for(i = 0; i < ekArraySize(Y, &syntax->v.a); i++)
+    for(i = 0; i < ekArraekSize(Y, &syntax->v.a); i++)
     {
         ekSyntax *child = syntax->v.a[i];
         keepCount = asmDispatch[child->type].assemble(Y, compiler, dst, child, 0, ASM_NORMAL);
@@ -914,7 +914,7 @@ asmFunc(StatementList)
     return PAD(keepCount);
 }
 
-yBool ekAssemble(struct ekContext *Y, ekCompiler *compiler)
+ekBool ekAssemble(struct ekContext *Y, ekCompiler *compiler)
 {
     if(compiler->root && (compiler->root->type == YST_STATEMENTLIST))
     {
@@ -927,5 +927,5 @@ yBool ekAssemble(struct ekContext *Y, ekCompiler *compiler)
         blockIndex = ekBlockConvertCode(Y, compiler->code, compiler->chunk, 0);
         compiler->chunk->block = compiler->chunk->blocks[blockIndex];
     }
-    return yTrue;
+    return ekTrue;
 }

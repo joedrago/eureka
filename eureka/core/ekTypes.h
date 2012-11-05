@@ -30,22 +30,22 @@ struct ekToken;
 // ---------------------------------------------------------------------------
 // Core Types
 
-typedef int yS32;
-typedef unsigned int yU32;
-typedef float yF32;
-typedef char yS8;
-typedef unsigned short yU16;
-typedef short yS16;
-typedef unsigned char yU8;
-typedef size_t ySize;
-typedef int yFlag;
+typedef int ekS32;
+typedef unsigned int ekU32;
+typedef float ekF32;
+typedef char ekS8;
+typedef unsigned short ekU16;
+typedef short ekS16;
+typedef unsigned char ekU8;
+typedef size_t ekSize;
+typedef int ekFlag;
 
-typedef yS32 yOpcode;
-typedef yS32 yOperand;
+typedef ekS32 ekOpcode;
+typedef ekS32 ekOperand;
 
-typedef int yBool;
-#define yTrue 1
-#define yFalse 0
+typedef int ekBool;
+#define ekTrue 1
+#define ekFalse 0
 
 #ifndef NULL
 #define NULL 0
@@ -54,12 +54,12 @@ typedef int yBool;
 // ---------------------------------------------------------------------------
 // Memory Routines
 
-typedef void *(*ekAllocFunc)(ySize bytes);
-typedef void *(*ekRellocFunc)(void *ptr, ySize bytes);
+typedef void *(*ekAllocFunc)(ekSize bytes);
+typedef void *(*ekRellocFunc)(void *ptr, ekSize bytes);
 typedef void (*ekFreeFunc)(void *ptr);
 
-void *ekDefaultAlloc(ySize bytes);
-void *ekDefaultRealloc(void *ptr, ySize bytes);
+void *ekDefaultAlloc(ekSize bytes);
+void *ekDefaultRealloc(void *ptr, ekSize bytes);
 void ekDefaultFree(void *ptr);
 
 #define ekAlloc Y->allocFunc

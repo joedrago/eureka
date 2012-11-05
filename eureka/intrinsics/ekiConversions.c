@@ -17,7 +17,7 @@
 
 // ---------------------------------------------------------------------------
 
-static yU32 convert_to_string(struct ekContext *Y, yU32 argCount)
+static ekU32 convert_to_string(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *v = NULL;
     if(!ekContextGetArgs(Y, argCount, "?", &v))
@@ -29,7 +29,7 @@ static yU32 convert_to_string(struct ekContext *Y, yU32 argCount)
     return 1;
 }
 
-static yU32 convert_to_int(struct ekContext *Y, yU32 argCount)
+static ekU32 convert_to_int(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *v = NULL;
     if(!ekContextGetArgs(Y, argCount, "?", &v))
@@ -41,7 +41,7 @@ static yU32 convert_to_int(struct ekContext *Y, yU32 argCount)
     return 1;
 }
 
-static yU32 convert_to_float(struct ekContext *Y, yU32 argCount)
+static ekU32 convert_to_float(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *v = NULL;
     if(!ekContextGetArgs(Y, argCount, "?", &v))

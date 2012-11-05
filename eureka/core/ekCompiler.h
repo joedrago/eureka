@@ -42,7 +42,7 @@ ekCompiler *ekCompilerCreate(struct ekContext *Y);
 void ekCompilerDestroy(ekCompiler *compiler);
 
 // Main entry point for the compiler
-yBool ekCompile(ekCompiler *compiler, const char *text, yU32 compileOpts);
+ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts);
 
 void ekCompileError(ekCompiler *compiler, const char *error);
 void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token);

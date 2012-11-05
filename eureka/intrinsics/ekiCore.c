@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 
-static yU32 make_array(struct ekContext *Y, yU32 argCount)
+static ekU32 make_array(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *a;
     a = ekValueCreateArray(Y);
@@ -34,7 +34,7 @@ static yU32 make_array(struct ekContext *Y, yU32 argCount)
     return 1;
 }
 
-yU32 array_push(struct ekContext *Y, yU32 argCount)
+ekU32 array_push(struct ekContext *Y, ekU32 argCount)
 {
     int i;
     ekValue *a;
@@ -44,7 +44,7 @@ yU32 array_push(struct ekContext *Y, yU32 argCount)
         return ekContextArgsFailure(Y, argCount, "push([array] a, ... values)");
     }
 
-    for(i=0; i<ekArraySize(Y, &values); i++)
+    for(i=0; i<ekArraekSize(Y, &values); i++)
     {
         ekValue *v = (ekValue *)values[i];
         ekValueArrayPush(Y, a, v);
@@ -55,7 +55,7 @@ yU32 array_push(struct ekContext *Y, yU32 argCount)
     return 0;
 }
 
-yU32 length(struct ekContext *Y, yU32 argCount)
+ekU32 length(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *a;
     ekValue *c = ekValueNullPtr;
@@ -64,7 +64,7 @@ yU32 length(struct ekContext *Y, yU32 argCount)
         return ekContextArgsFailure(Y, argCount, "length([array] a)");
     }
 
-    c = ekValueCreateInt(Y, ekArraySize(Y, &a->arrayVal));
+    c = ekValueCreateInt(Y, ekArraekSize(Y, &a->arrayVal));
     ekValueRemoveRefNote(Y, a, "length a done");
     ekArrayPush(Y, &Y->stack, c);
     return 1;
@@ -76,7 +76,7 @@ static void ekAppendKey(struct ekContext *Y, ekValue *arrayVal, ekMapEntry *entr
     ekValueArrayPush(Y, arrayVal, keyVal);
 }
 
-static yU32 keys(struct ekContext *Y, yU32 argCount)
+static ekU32 keys(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *object;
     ekValue *arrayVal = ekValueCreateArray(Y);
@@ -93,7 +93,7 @@ static yU32 keys(struct ekContext *Y, yU32 argCount)
     return 1;
 }
 
-static yU32 eval(struct ekContext *Y, yU32 argCount)
+static ekU32 eval(struct ekContext *Y, ekU32 argCount)
 {
     ekValue *ret = NULL;
     if(argCount)
@@ -131,7 +131,7 @@ static yU32 eval(struct ekContext *Y, yU32 argCount)
 // ---------------------------------------------------------------------------
 // global print() funcs -- someday to be moved into an optional lib
 
-static yU32 standard_print(struct ekContext *Y, yU32 argCount)
+static ekU32 standard_print(struct ekContext *Y, ekU32 argCount)
 {
     if(argCount)
     {
@@ -192,9 +192,9 @@ static char *loadFile(struct ekContext *Y, const char *filename)
     return NULL;
 }
 
-static yU32 import(struct ekContext *Y, yU32 argCount)
+static ekU32 import(struct ekContext *Y, ekU32 argCount)
 {
-    yU32 ret;
+    ekU32 ret;
     char *code;
     ekValue *filenameValue = NULL;
     ekValue *codeValue = NULL;
@@ -238,7 +238,7 @@ static yU32 import(struct ekContext *Y, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-yU32 type(struct ekContext *Y, yU32 argCount)
+ekU32 type(struct ekContext *Y, ekU32 argCount)
 {
     if(argCount)
     {
@@ -253,7 +253,7 @@ yU32 type(struct ekContext *Y, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-yU32 dump(struct ekContext *Y, yU32 argCount)
+ekU32 dump(struct ekContext *Y, ekU32 argCount)
 {
     if(argCount)
     {
@@ -274,9 +274,9 @@ yU32 dump(struct ekContext *Y, yU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-yU32 ek_assert(struct ekContext *Y, yU32 argCount)
+ekU32 ek_assert(struct ekContext *Y, ekU32 argCount)
 {
-    yBool doAssert = yTrue;
+    ekBool doAssert = ekTrue;
     ekValue *v = NULL;
     ekValue *s = NULL;
     if(!ekContextGetArgs(Y, argCount, "|?s", &v, &s))
@@ -287,7 +287,7 @@ yU32 ek_assert(struct ekContext *Y, yU32 argCount)
     if(v)
     {
         v = ekValueToInt(Y, v);
-        doAssert = (!v->intVal) ? yTrue : yFalse;
+        doAssert = (!v->intVal) ? ekTrue : ekFalse;
         ekValueRemoveRefNote(Y, v, "doAssert temp");
     }
 

@@ -27,15 +27,15 @@
 //#define USE_DJB2
 
 #ifdef USE_MURMUR3
-static yU32 murmur3string(const unsigned char *str);
-static yU32 murmur3int(yS32 i);
+static ekU32 murmur3string(const unsigned char *str);
+static ekU32 murmur3int(ekS32 i);
 #define HASHSTRING murmur3string
 #define HASHINT murmur3int
 #endif
 
 #ifdef USE_DJB2
-static yU32 djb2string(const unsigned char *str);
-static unsigned int djb2int(yS32 i);
+static ekU32 djb2string(const unsigned char *str);
+static unsigned int djb2int(ekS32 i);
 #define HASHSTRING djb2string
 #define HASHINT djb2int
 #endif
@@ -53,13 +53,13 @@ static unsigned int djb2int(yS32 i);
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
-static ySize linearHashCompute(ekMap *yh, yU32 hash)
+static ekSize linearHashCompute(ekMap *yh, ekU32 hash)
 {
     // Use a simple modulus on the hash, and if the resulting bucket is behind
     // "the split" (putting it in the front partition instead of the expansion),
     // rehash with the next-size-up modulus.
 
-    ySize addr = hash % yh->mod;
+    ekSize addr = hash % yh->mod;
     if(addr < yh->split)
     {
         addr = hash % (yh->mod << 1);
@@ -74,7 +74,7 @@ static void ekMapBucketEntryChain(struct ekContext *Y, ekMap *yh, ekMapEntry *ch
     while(chain)
     {
         ekMapEntry *entry = chain;
-        yS32 tableIndex = linearHashCompute(yh, entry->hash);
+        ekS32 tableIndex = linearHashCompute(yh, entry->hash);
         chain = chain->next;
 
         entry->next = yh->table[tableIndex];
@@ -82,7 +82,7 @@ static void ekMapBucketEntryChain(struct ekContext *Y, ekMap *yh, ekMapEntry *ch
     }
 }
 
-static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, yU32 hash, void *key)
+static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, ekU32 hash, void *key)
 {
     ekMapEntry *entry;
     ekMapEntry *chain;
@@ -127,7 +127,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, yU32 hash, void
 static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
 {
     ekMapEntry *chain;
-    ySize indexToRebucket;
+    ekSize indexToRebucket;
 
     --yh->split;
     if(yh->split < 0)
@@ -137,9 +137,9 @@ static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
         ekArraySetSize(Y, &yh->table, yh->mod << 1, NULL);
 
         // Time to shrink!
-        if((ekArraySize(Y, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(Y, &yh->table))
+        if((ekArraekSize(Y, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(Y, &yh->table))
         {
-            ekArraySetCapacity(Y, &yh->table, ekArraySize(Y, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
+            ekArraySetCapacity(Y, &yh->table, ekArraekSize(Y, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
         }
     }
 
@@ -188,8 +188,8 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
     ekDestroyCB func = destroyFunc;
     if(yh)
     {
-        yS32 tableIndex;
-        for(tableIndex = 0; tableIndex < ekArraySize(Y, &yh->table); ++tableIndex)
+        ekS32 tableIndex;
+        for(tableIndex = 0; tableIndex < ekArraekSize(Y, &yh->table); ++tableIndex)
         {
             ekMapEntry *entry = yh->table[tableIndex];
             while(entry)
@@ -203,14 +203,14 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
                 ekMapDestroyEntry(Y, yh, freeme);
             }
         }
-        memset(yh->table, 0, ekArraySize(Y, &yh->table) * sizeof(ekMapEntry *));
+        memset(yh->table, 0, ekArraekSize(Y, &yh->table) * sizeof(ekMapEntry *));
     }
 }
 
 static ekMapEntry *ekMapFindString(struct ekContext *Y, ekMap *yh, const char *key, int autoCreate)
 {
-    yU32 hash = (yU32)HASHSTRING(key);
-    yS32 index = linearHashCompute(yh, hash);
+    ekU32 hash = (ekU32)HASHSTRING(key);
+    ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *entry = yh->table[index];
     for(; entry; entry = entry->next)
     {
@@ -228,10 +228,10 @@ static ekMapEntry *ekMapFindString(struct ekContext *Y, ekMap *yh, const char *k
     return NULL;
 }
 
-static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, yU32 key, int autoCreate)
+static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, ekU32 key, int autoCreate)
 {
-    yU32 hash = (yU32)HASHINT(key);
-    yS32 index = linearHashCompute(yh, hash);
+    ekU32 hash = (ekU32)HASHINT(key);
+    ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *entry = yh->table[index];
     for(; entry; entry = entry->next)
     {
@@ -249,7 +249,7 @@ static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, yU32 key, in
     return NULL;
 }
 
-ekMapEntry *ekMapGetS(struct ekContext *Y, ekMap *yh, const char *key, yBool create)
+ekMapEntry *ekMapGetS(struct ekContext *Y, ekMap *yh, const char *key, ekBool create)
 {
     return ekMapFindString(Y, yh, key, create);
 }
@@ -257,8 +257,8 @@ ekMapEntry *ekMapGetS(struct ekContext *Y, ekMap *yh, const char *key, yBool cre
 void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
-    yU32 hash = (yU32)HASHSTRING(key);
-    yS32 index = linearHashCompute(yh, hash);
+    ekU32 hash = (ekU32)HASHSTRING(key);
+    ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *prev = NULL;
     ekMapEntry *entry = yh->table[index];
     for(; entry; prev = entry, entry = entry->next)
@@ -285,16 +285,16 @@ void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDes
     }
 }
 
-ekMapEntry *ekMapGetI(struct ekContext *Y, ekMap *yh, yU32 key, yBool create)
+ekMapEntry *ekMapGetI(struct ekContext *Y, ekMap *yh, ekU32 key, ekBool create)
 {
     return ekMapFindInteger(Y, yh, key, create);
 }
 
-void ekMapEraseI(struct ekContext *Y, ekMap *yh, yU32 key, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapEraseI(struct ekContext *Y, ekMap *yh, ekU32 key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
-    yU32 hash = (yU32)HASHINT(key);
-    yS32 index = linearHashCompute(yh, hash);
+    ekU32 hash = (ekU32)HASHINT(key);
+    ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *prev = NULL;
     ekMapEntry *entry = yh->table[index];
     for(; entry; prev = entry, entry = entry->next)
@@ -708,17 +708,17 @@ void MurmurHash3_x64_128(const void *key, int len,
     ((uint64_t *)out)[1] = h2;
 }
 
-static yU32 murmur3string(const unsigned char *str)
+static ekU32 murmur3string(const unsigned char *str)
 {
-    yU32 hash;
+    ekU32 hash;
     MurmurHash3_x86_32(str, strlen(str), 0, &hash);
     return hash;
 }
 
-static yU32 murmur3int(yS32 i)
+static ekU32 murmur3int(ekS32 i)
 {
-    yU32 hash;
-    MurmurHash3_x86_32(&i, sizeof(yS32), 0, &hash);
+    ekU32 hash;
+    MurmurHash3_x86_32(&i, sizeof(ekS32), 0, &hash);
     return hash;
 }
 
@@ -728,9 +728,9 @@ static yU32 murmur3int(yS32 i)
 
 #ifdef USE_DJB2
 
-static yU32 djb2string(const unsigned char *str)
+static ekU32 djb2string(const unsigned char *str)
 {
-    yU32 hash = 5381;
+    ekU32 hash = 5381;
     int c;
 
     while(c = *str++)
@@ -741,7 +741,7 @@ static yU32 djb2string(const unsigned char *str)
     return hash;
 }
 
-static unsigned int djb2int(yS32 i)
+static unsigned int djb2int(ekS32 i)
 {
     const char *p = (const char *)&i;
     unsigned int hash = 5381;

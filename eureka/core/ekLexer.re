@@ -145,11 +145,11 @@ heredoc:
     Newline
     {
         l->line++;
-		goto heredoc;
-	}
+	goto heredoc;
+    }
 
-	"\"\"\""
-	{
+    "\"\"\""
+    {
         return YTT_HEREDOC;
     }
 

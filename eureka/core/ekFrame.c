@@ -12,7 +12,7 @@
 #include "ekMap.h"
 #include "ekOp.h"
 
-ekFrame *ekFrameCreate(struct ekContext *Y, yU32 type, struct ekValue *thisVal, struct ekBlock *block, yU32 prevStackCount, yU32 argCount, ekValue *closure)
+ekFrame *ekFrameCreate(struct ekContext *Y, ekU32 type, struct ekValue *thisVal, struct ekBlock *block, ekU32 prevStackCount, ekU32 argCount, ekValue *closure)
 {
     ekFrame *frame = (ekFrame *)ekAlloc(sizeof(ekFrame));
     frame->locals = ekMapCreate(Y, YMKT_STRING);
@@ -28,11 +28,11 @@ ekFrame *ekFrameCreate(struct ekContext *Y, yU32 type, struct ekValue *thisVal, 
     {
         ekValueAddRefNote(Y, frame->closure, "closure ptr");
     }
-    ekFrameReset(Y, frame, yFalse);
+    ekFrameReset(Y, frame, ekFalse);
     return frame;
 }
 
-void ekFrameReset(struct ekContext *Y, ekFrame *frame, yBool jumpToStart)
+void ekFrameReset(struct ekContext *Y, ekFrame *frame, ekBool jumpToStart)
 {
     ekMapClear(Y, frame->locals, ekValueRemoveRefHashed);
     frame->ip = (frame->block) ? frame->block->ops : NULL;
@@ -47,7 +47,7 @@ void ekFrameReset(struct ekContext *Y, ekFrame *frame, yBool jumpToStart)
 
 void ekFrameDestroy(struct ekContext *Y, ekFrame *frame)
 {
-    ekFrameReset(Y, frame, yFalse);
+    ekFrameReset(Y, frame, ekFalse);
     ekValueRemoveRefNote(Y, frame->thisVal, "this ptr done");
     if(frame->closure)
     {

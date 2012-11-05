@@ -69,7 +69,7 @@ char *loadFile(const char *filename)
 static char *getprompt(ekContext *Y)
 {
     static char prompt[1024];
-    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", (int)ekArraySize(Y, &Y->chunks), Y->globals->count);
+    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", (int)ekArraekSize(Y, &Y->chunks), Y->globals->count);
     return prompt;
 }
 

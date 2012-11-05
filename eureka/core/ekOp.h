@@ -95,8 +95,8 @@ enum
 
 typedef struct ekOp
 {
-    yOpcode  opcode;
-    yOperand operand;
+    ekOpcode  opcode;
+    ekOperand operand;
 #ifdef EUREKA_DEBUG_SYMBOLS
     int line;
 #endif

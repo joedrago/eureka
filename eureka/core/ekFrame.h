@@ -44,14 +44,14 @@ typedef struct ekFrame
     struct ekOp *ip;                  // Instruction Pointer
     struct ekValue *thisVal;          // In function scope, it is "this"
     struct ekValue *closure;          // to resolve variables after locals but before globals
-    yU32 type;                         // YFT_*
-    yU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
-    yU32 argCount;                     // Number of args available on the stack when entering the frame; used by varargs
-    yU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
+    ekU32 type;                         // YFT_*
+    ekU32 prevStackCount;               // Remembers the stack count when the frame was pushed; used for recovery
+    ekU32 argCount;                     // Number of args available on the stack when entering the frame; used by varargs
+    ekU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
 } ekFrame;
 
-ekFrame *ekFrameCreate(struct ekContext *Y, yU32 type, struct ekValue *thisVal, struct ekBlock *block, yU32 prevStackCount, yU32 argCount, struct ekValue *closure);
-void ekFrameReset(struct ekContext *Y, ekFrame *frame, yBool jumpToStart);
+ekFrame *ekFrameCreate(struct ekContext *Y, ekU32 type, struct ekValue *thisVal, struct ekBlock *block, ekU32 prevStackCount, ekU32 argCount, struct ekValue *closure);
+void ekFrameReset(struct ekContext *Y, ekFrame *frame, ekBool jumpToStart);
 void ekFrameDestroy(struct ekContext *Y, ekFrame *frame);
 
 #endif

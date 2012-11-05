@@ -55,7 +55,7 @@ void ekValueTypeDestroy(struct ekContext *Y, ekValueType *type)
 int ekValueTypeRegister(struct ekContext *Y, ekValueType *newType)
 {
     int i;
-    for(i=0; i<ekArraySize(Y, &Y->types); i++)
+    for(i=0; i<ekArraekSize(Y, &Y->types); i++)
     {
         ekValueType *t = Y->types[i];
         if(!strcmp(newType->name, t->name))
@@ -129,17 +129,17 @@ static void blockFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekVa
     dst->blockVal = src->blockVal;
 }
 
-static yBool blockFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool blockFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return yTrue;
+    return ekTrue;
 }
 
-static yS32 blockFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 blockFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     return 1; // ?
 }
 
-static yF32 blockFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 blockFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     return 1.0f; // ?
 }
@@ -176,17 +176,17 @@ static void cfunctionFuncClone(struct ekContext *Y, struct ekValue *dst, struct 
     dst->cFuncVal = src->cFuncVal;
 }
 
-static yBool cfunctionFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool cfunctionFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return yTrue;
+    return ekTrue;
 }
 
-static yS32 cfunctionFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 cfunctionFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     return 1; // ?
 }
 
-static yF32 cfunctionFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 cfunctionFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     return 1.0f; // ?
 }
@@ -223,19 +223,19 @@ static void intFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekValu
     dst->intVal = src->intVal;
 }
 
-static yBool intFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool intFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->intVal) ? yTrue : yFalse;
+    return (p->intVal) ? ekTrue : ekFalse;
 }
 
-static yS32 intFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 intFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     return p->intVal;
 }
 
-static yF32 intFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 intFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
-    return (yF32)p->intVal;
+    return (ekF32)p->intVal;
 }
 
 static struct ekValue *intFuncToString(struct ekContext *Y, struct ekValue *p)
@@ -277,15 +277,15 @@ static struct ekValue *intFuncArithmetic(struct ekContext *Y, struct ekValue *a,
     return c;
 }
 
-static yBool intFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
+static ekBool intFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
     if(b->type == YVT_FLOAT)
     {
-        if((yF32)a->intVal > b->floatVal)
+        if((ekF32)a->intVal > b->floatVal)
         {
             *cmpResult = 1;
         }
-        else if((yF32)a->intVal < b->floatVal)
+        else if((ekF32)a->intVal < b->floatVal)
         {
             *cmpResult = -1;
         }
@@ -293,14 +293,14 @@ static yBool intFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *
         {
             *cmpResult = 0;
         }
-        return yTrue;
+        return ekTrue;
     }
     else if(b->type == YVT_INT)
     {
         *cmpResult = a->intVal - b->intVal;
-        return yTrue;
+        return ekTrue;
     }
-    return yFalse;
+    return ekFalse;
 }
 
 static void intFuncDump(struct ekContext *Y, ekDumpParams *params, struct ekValue *p)
@@ -335,17 +335,17 @@ static void floatFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekVa
     dst->floatVal = src->floatVal;
 }
 
-static yBool floatFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool floatFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->floatVal != 0.0f) ? yTrue : yFalse;
+    return (p->floatVal != 0.0f) ? ekTrue : ekFalse;
 }
 
-static yS32 floatFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 floatFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
-    return (yS32)p->floatVal;
+    return (ekS32)p->floatVal;
 }
 
-static yF32 floatFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 floatFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     return p->floatVal;
 }
@@ -388,15 +388,15 @@ static struct ekValue *floatFuncArithmetic(struct ekContext *Y, struct ekValue *
     return a;
 }
 
-static yBool floatFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
+static ekBool floatFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
     if(b->type == YVT_INT)
     {
-        if(a->floatVal > (yF32)b->intVal)
+        if(a->floatVal > (ekF32)b->intVal)
         {
             *cmpResult = 1;
         }
-        else if(a->floatVal < (yF32)b->intVal)
+        else if(a->floatVal < (ekF32)b->intVal)
         {
             *cmpResult = -1;
         }
@@ -404,7 +404,7 @@ static yBool floatFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue
         {
             *cmpResult = 0;
         }
-        return yTrue;
+        return ekTrue;
     }
     else if(b->type == YVT_FLOAT)
     {
@@ -420,9 +420,9 @@ static yBool floatFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue
         {
             *cmpResult = 0;
         }
-        return yTrue;
+        return ekTrue;
     }
-    return yFalse;
+    return ekFalse;
 }
 
 static void floatFuncDump(struct ekContext *Y, ekDumpParams *params, struct ekValue *p)
@@ -462,18 +462,18 @@ static void stringFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekV
     ekStringSetStr(Y, &dst->stringVal, &src->stringVal);
 }
 
-static yBool stringFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool stringFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->stringVal.len) ? yTrue : yFalse;
+    return (p->stringVal.len) ? ekTrue : ekFalse;
 }
 
-static yS32 stringFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 stringFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToInt(Y, &t);
 }
 
-static yF32 stringFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 stringFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToFloat(Y, &t);
@@ -506,14 +506,14 @@ struct ekValue *stringFuncArithmetic(struct ekContext *Y, struct ekValue *a, str
     return ret;
 }
 
-static yBool stringFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
+static ekBool stringFuncCmp(struct ekContext *Y, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
     if(b->type == YVT_STRING)
     {
         *cmpResult = ekStringCmpStr(Y, &a->stringVal, &b->stringVal);
-        return yTrue;
+        return ekTrue;
     }
-    return yFalse;
+    return ekFalse;
 }
 
 static void stringFuncDump(struct ekContext *Y, ekDumpParams *params, struct ekValue *p)
@@ -553,28 +553,28 @@ static void arrayFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekVa
     ekAssert(0 && "arrayFuncClone not implemented");
 }
 
-static yBool arrayFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool arrayFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal && ekArraySize(Y, &p->arrayVal)) ? yTrue : yFalse;
+    return (p->arrayVal && ekArraekSize(Y, &p->arrayVal)) ? ekTrue : ekFalse;
 }
 
-static yS32 arrayFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 arrayFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal) ? ekArraySize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? ekArraekSize(Y, &p->arrayVal) : 0;
 }
 
-static yF32 arrayFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 arrayFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal) ? (yF32)ekArraySize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? (ekF32)ekArraekSize(Y, &p->arrayVal) : 0;
 }
 
-static struct ekValue *arrayFuncIndex(struct ekContext *Y, struct ekValue *value, struct ekValue *index, yBool lvalue)
+static struct ekValue *arrayFuncIndex(struct ekContext *Y, struct ekValue *value, struct ekValue *index, ekBool lvalue)
 {
     ekValue *ret = NULL;
     ekValue **ref = NULL;
     ekValueAddRefNote(Y, index, "keep index around after int conversion");
     index = ekValueToInt(Y, index);
-    if(index->intVal >= 0 && index->intVal < ekArraySize(Y, &value->arrayVal))
+    if(index->intVal >= 0 && index->intVal < ekArraekSize(Y, &value->arrayVal))
     {
         ref = (ekValue **) & (value->arrayVal[index->intVal]);
         if(lvalue)
@@ -599,7 +599,7 @@ static void arrayFuncDump(struct ekContext *Y, ekDumpParams *params, struct ekVa
 {
     int i;
     ekStringConcat(Y, &params->output, "[ ");
-    for(i=0; i<ekArraySize(Y, &p->arrayVal); i++)
+    for(i=0; i<ekArraekSize(Y, &p->arrayVal); i++)
     {
         ekValue *child = (ekValue *)p->arrayVal[i];
         if(i > 0)
@@ -641,17 +641,17 @@ static void objectFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekV
     ekAssert(0 && "objectFuncClone not implemented");
 }
 
-static yBool objectFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool objectFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return yTrue;
+    return ekTrue;
 }
 
-static yS32 objectFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 objectFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     return 1; // ?
 }
 
-static yF32 objectFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 objectFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     return 1.0f; // ?
 }
@@ -663,7 +663,7 @@ static struct ekValue *objectFuncToString(struct ekContext *Y, struct ekValue *p
     return ekValueCreateString(Y, temp);
 }
 
-static struct ekValue *objectFuncIndex(struct ekContext *Y, struct ekValue *value, struct ekValue *index, yBool lvalue)
+static struct ekValue *objectFuncIndex(struct ekContext *Y, struct ekValue *value, struct ekValue *index, ekBool lvalue)
 {
     ekValue *ret = NULL;
     ekValue **ref = NULL;
@@ -732,17 +732,17 @@ static void refFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekValu
     dst->refVal = src->refVal;
 }
 
-static yBool refFuncToBool(struct ekContext *Y, struct ekValue *p)
+static ekBool refFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (*p->refVal) ? yTrue : yFalse;
+    return (*p->refVal) ? ekTrue : ekFalse;
 }
 
-static yS32 refFuncToInt(struct ekContext *Y, struct ekValue *p)
+static ekS32 refFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
     return 1; // ?
 }
 
-static yF32 refFuncToFloat(struct ekContext *Y, struct ekValue *p)
+static ekF32 refFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
     return 1.0f; // ?
 }
@@ -800,7 +800,7 @@ ekValue *ekValueCreateInt(struct ekContext *Y, int v)
     return p;
 }
 
-ekValue *ekValueCreateFloat(struct ekContext *Y, yF32 v)
+ekValue *ekValueCreateFloat(struct ekContext *Y, ekF32 v)
 {
     ekValue *p = ekValueCreate(Y);
     p->type = YVT_FLOAT;
@@ -855,7 +855,7 @@ void ekValueAddClosureVars(struct ekContext *Y, ekValue *p)
 
     ekAssert(p->closureVars == NULL);
 
-    for(frameIndex = ekArraySize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
+    for(frameIndex = ekArraekSize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
     {
         frame = Y->frames[frameIndex];
         if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
@@ -866,7 +866,7 @@ void ekValueAddClosureVars(struct ekContext *Y, ekValue *p)
 
     if(frameIndex >= 0)
     {
-        for(; frameIndex < ekArraySize(Y, &Y->frames); frameIndex++)
+        for(; frameIndex < ekArraekSize(Y, &Y->frames); frameIndex++)
         {
             frame = Y->frames[frameIndex];
             if(frame->locals->count)
@@ -909,36 +909,36 @@ ekValue *ekValueCreateRef(struct ekContext *Y, struct ekValue **ref)
     return p;
 }
 
-static yBool ekValueCheckRef(struct ekContext *Y, ekValue *ref, ekValue *p)
+static ekBool ekValueCheckRef(struct ekContext *Y, ekValue *ref, ekValue *p)
 {
     if(!p)
     {
         ekContextSetError(Y, YVE_RUNTIME, "ekValueSetRefVal: empty stack!");
-        return yFalse;
+        return ekFalse;
     }
     if(!ref)
     {
         ekContextSetError(Y, YVE_RUNTIME, "ekValueSetRefVal: empty stack!");
-        return yFalse;
+        return ekFalse;
     }
     if(!(*ref->refVal))
     {
         ekContextSetError(Y, YVE_RUNTIME, "ekValueSetRefVal: missing ref!");
-        return yFalse;
+        return ekFalse;
     }
     if(ref->type != YVT_REF)
     {
         ekContextSetError(Y, YVE_RUNTIME, "ekValueSetRefVal: value on top of stack, ref underneath");
-        return yFalse;
+        return ekFalse;
     }
-    return yTrue;
+    return ekTrue;
 }
 
-yBool ekValueSetRefVal(struct ekContext *Y, ekValue *ref, ekValue *p)
+ekBool ekValueSetRefVal(struct ekContext *Y, ekValue *ref, ekValue *p)
 {
     if(!ekValueCheckRef(Y, ref, p))
     {
-        return yFalse;
+        return ekFalse;
     }
 
     ekValueRemoveRefNote(Y, *(ref->refVal), "SetRefVal: forgetting previous val");
@@ -946,21 +946,21 @@ yBool ekValueSetRefVal(struct ekContext *Y, ekValue *ref, ekValue *p)
     ekValueAddRefNote(Y, p, "SetRefVal: taking ownership of val");
 
     ekTraceValues(("ekValueSetRefVal %p = %p\n", ref, p));
-    return yTrue;
+    return ekTrue;
 }
 
-yBool ekValueTestInherits(struct ekContext *Y, ekValue *child, ekValue *parent)
+ekBool ekValueTestInherits(struct ekContext *Y, ekValue *child, ekValue *parent)
 {
     ekValue *p;
 
     if(child->type != YVT_OBJECT)
     {
-        return yFalse;
+        return ekFalse;
     }
 
     if(parent->type != YVT_OBJECT)
     {
-        return yFalse;
+        return ekFalse;
     }
 
     p = child->objectVal->isa;
@@ -968,13 +968,13 @@ yBool ekValueTestInherits(struct ekContext *Y, ekValue *child, ekValue *parent)
     {
         if(p->objectVal == parent->objectVal)
         {
-            return yTrue;
+            return ekTrue;
         }
 
         p = p->objectVal->isa;
     }
 
-    return yFalse;
+    return ekFalse;
 }
 
 // ---------------------------------------------------------------------------
@@ -996,7 +996,7 @@ void ekValueArrayPush(struct ekContext *Y, ekValue *p, ekValue *v)
 
 // ---------------------------------------------------------------------------
 
-ekValue *ekValueCreateObject(struct ekContext *Y, struct ekValue *isa, int argCount, yBool firstArgIsa)
+ekValue *ekValueCreateObject(struct ekContext *Y, struct ekValue *isa, int argCount, ekBool firstArgIsa)
 {
     ekValue *p = ekValueCreate(Y);
     if(firstArgIsa)
@@ -1043,7 +1043,7 @@ ekValue *ekValueCreateObject(struct ekContext *Y, struct ekValue *isa, int argCo
                 val = ekContextGetArg(Y, valueArg, argCount);
             }
             key = ekValueToString(Y, key);
-            ref = ekObjectGetRef(Y, p->objectVal, ekStringSafePtr(&key->stringVal), yTrue);
+            ref = ekObjectGetRef(Y, p->objectVal, ekStringSafePtr(&key->stringVal), ekTrue);
             *ref = val;
             ekValueAddRefNote(Y, val, "ekValueCreateObject add member value");
         }
@@ -1056,7 +1056,7 @@ void ekValueObjectSetMember(struct ekContext *Y, struct ekValue *object, const c
 {
     ekValue **ref = NULL;
     ekAssert(object->type == YVT_OBJECT);
-    ref = ekObjectGetRef(Y, object->objectVal, name, yTrue);
+    ref = ekObjectGetRef(Y, object->objectVal, name, ekTrue);
     ekAssert(ref);
     *ref = value;
 }
@@ -1130,7 +1130,7 @@ void ekValueRemoveRef(struct ekContext *Y, ekValue *p)
     }
 }
 
-yS32 ekValueCmp(struct ekContext *Y, ekValue *a, ekValue *b)
+ekS32 ekValueCmp(struct ekContext *Y, ekValue *a, ekValue *b)
 {
     if(a == b)
     {
@@ -1139,14 +1139,14 @@ yS32 ekValueCmp(struct ekContext *Y, ekValue *a, ekValue *b)
 
     if(a && b)
     {
-        yS32 ret = 0;
+        ekS32 ret = 0;
         if(ekValueTypeSafeCall(a->type, Cmp)(Y, a, b, &ret))
         {
             return ret;
         }
     }
 
-    return (yS32)(a - b); // Fallback case: compare pointers for consistency
+    return (ekS32)(a - b); // Fallback case: compare pointers for consistency
 }
 
 void ekValueCloneData(struct ekContext *Y, ekValue *dst, ekValue *src)
@@ -1205,7 +1205,7 @@ ekValue *ekValueDiv(struct ekContext *Y, ekValue *a, ekValue *b)
 
 ekValue *ekValueToBool(struct ekContext *Y, ekValue *p)
 {
-    yBool boolVal = ekValueTypeSafeCall(p->type, ToBool)(Y, p);
+    ekBool boolVal = ekValueTypeSafeCall(p->type, ToBool)(Y, p);
     ekValue *value = ekValueCreateInt(Y, boolVal);
     ekValueRemoveRefNote(Y, p, "ekValueToBool");
     return value;
@@ -1213,7 +1213,7 @@ ekValue *ekValueToBool(struct ekContext *Y, ekValue *p)
 
 ekValue *ekValueToInt(struct ekContext *Y, ekValue *p)
 {
-    yS32 intVal = ekValueTypeSafeCall(p->type, ToInt)(Y, p);
+    ekS32 intVal = ekValueTypeSafeCall(p->type, ToInt)(Y, p);
     ekValue *ret = ekValueCreateInt(Y, intVal);
     ekValueRemoveRefNote(Y, p, "ekValueToInt");
     return ret;
@@ -1221,7 +1221,7 @@ ekValue *ekValueToInt(struct ekContext *Y, ekValue *p)
 
 ekValue *ekValueToFloat(struct ekContext *Y, ekValue *p)
 {
-    yF32 floatVal = ekValueTypeSafeCall(p->type, ToFloat)(Y, p);
+    ekF32 floatVal = ekValueTypeSafeCall(p->type, ToFloat)(Y, p);
     ekValue *ret = ekValueCreateFloat(Y, floatVal);
     ekValueRemoveRefNote(Y, p, "ekValueToFloat");
     return ret;
@@ -1237,7 +1237,7 @@ ekValue *ekValueToString(struct ekContext *Y, ekValue *p)
     return value;
 }
 
-ekValue *ekValueStringFormat(struct ekContext *Y, ekValue *format, yS32 argCount)
+ekValue *ekValueStringFormat(struct ekContext *Y, ekValue *format, ekS32 argCount)
 {
     char *curr = (char *)ekStringSafePtr(&format->stringVal);
     char *next;
@@ -1312,14 +1312,14 @@ ekValue *ekValueStringFormat(struct ekContext *Y, ekValue *format, yS32 argCount
     return ret;
 }
 
-ekValue *ekValueIndex(struct ekContext *Y, ekValue *p, ekValue *index, yBool lvalue)
+ekValue *ekValueIndex(struct ekContext *Y, ekValue *p, ekValue *index, ekBool lvalue)
 {
     return ekValueTypeSafeCall(p->type, Index)(Y, p, index, lvalue);
 }
 
 const char *ekValueTypeName(struct ekContext *Y, int type)
 {
-    if((type >= 0) && (type < ekArraySize(Y, &Y->types)))
+    if((type >= 0) && (type < ekArraekSize(Y, &Y->types)))
     {
         ekValueType *valueType = Y->types[type];
         return valueType->name;

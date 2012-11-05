@@ -153,14 +153,14 @@ void ekTrackRealloc(void *oldptr, void *newptr, int bytes)
 #define TRACK_REALLOC(OLDPTR, NEWPTR, BYTES)
 #endif
 
-void *ekDefaultAlloc(ySize bytes)
+void *ekDefaultAlloc(ekSize bytes)
 {
     void *ptr = calloc(1, bytes);
     TRACK_ALLOC(ptr, bytes)
     return ptr;
 }
 
-void *ekDefaultRealloc(void *ptr, ySize bytes)
+void *ekDefaultRealloc(void *ptr, ekSize bytes)
 {
     void *p = realloc(ptr, bytes);
     TRACK_REALLOC(ptr, p, bytes)

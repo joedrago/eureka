@@ -15,22 +15,22 @@
 typedef struct ekArray
 {
     char **values;
-    ySize size;
-    ySize capacity;
+    ekSize size;
+    ekSize capacity;
 } ekArray;
 
 typedef struct ek32Array
 {
-    yU32 *values;
-    ySize size;
-    ySize capacity;
+    ekU32 *values;
+    ekSize size;
+    ekSize capacity;
 } ek32Array;
 
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
 // workhorse function that does all of the allocation and copying
-static ekArray *ekArrayChangeCapacity(struct ekContext *Y, ySize newCapacity, char ***prevptr)
+static ekArray *ekArrayChangeCapacity(struct ekContext *Y, ekSize newCapacity, char ***prevptr)
 {
     ekArray *newArray;
     ekArray *prevArray = NULL;
@@ -65,7 +65,7 @@ static ekArray *ekArrayChangeCapacity(struct ekContext *Y, ySize newCapacity, ch
 }
 
 // finds / lazily creates a ekArray from a regular ptr**
-static ekArray *ekArrayGet(struct ekContext *Y, char ***daptr, yBool autoCreate)
+static ekArray *ekArrayGet(struct ekContext *Y, char ***daptr, ekBool autoCreate)
 {
     ekArray *da = NULL;
     if(daptr && *daptr)
@@ -85,7 +85,7 @@ static ekArray *ekArrayGet(struct ekContext *Y, char ***daptr, yBool autoCreate)
 }
 
 // this assumes you've already destroyed any soon-to-be orphaned values at the end
-static void ekArrayChangeSize(struct ekContext *Y, char ***daptr, ySize newSize)
+static void ekArrayChangeSize(struct ekContext *Y, char ***daptr, ekSize newSize)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 1);
     if(da->size == newSize)
@@ -242,17 +242,17 @@ void ekArrayUnshift(struct ekContext *Y, void *daptr, void *p)
     da->size++;
 }
 
-ySize ekArrayPush(struct ekContext *Y, void *daptr, void *entry)
+ekSize ekArrayPush(struct ekContext *Y, void *daptr, void *entry)
 {
     ekArray *da = ekArrayMakeRoom(Y, daptr, 1);
     da->values[da->size++] = entry;
     return da->size - 1;
 }
 
-ySize ekArrayPushUniqueString(struct ekContext *Y, void *daptr, char *s)
+ekSize ekArrayPushUniqueString(struct ekContext *Y, void *daptr, char *s)
 {
-    ekArray *da = ekArrayGet(Y, daptr, yTrue);
-    ySize i;
+    ekArray *da = ekArrayGet(Y, daptr, ekTrue);
+    ekSize i;
     for(i = 0; i < da->size; i++)
     {
         const char *v = (const char *)da->values[i];
@@ -288,7 +288,7 @@ void *ekArrayPop(struct ekContext *Y, void *daptr)
 // ------------------------------------------------------------------------------------------------
 // Random access manipulation
 
-void ekArrayInsert(struct ekContext *Y, void *daptr, ySize index, void *p)
+void ekArrayInsert(struct ekContext *Y, void *daptr, ekSize index, void *p)
 {
     ekArray *da = ekArrayMakeRoom(Y, daptr, 1);
     if((index < 0) || (!da->size) || (index >= da->size))
@@ -303,7 +303,7 @@ void ekArrayInsert(struct ekContext *Y, void *daptr, ySize index, void *p)
     }
 }
 
-void ekArrayErase(struct ekContext *Y, void *daptr, ySize index)
+void ekArrayErase(struct ekContext *Y, void *daptr, ekSize index)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 0);
     if(!da)
@@ -322,21 +322,21 @@ void ekArrayErase(struct ekContext *Y, void *daptr, ySize index)
 // ------------------------------------------------------------------------------------------------
 // Size manipulation
 
-void ekArraySetSize(struct ekContext *Y, void *daptr, ySize newSize, void *destroyFunc)
+void ekArraySetSize(struct ekContext *Y, void *daptr, ekSize newSize, void *destroyFunc)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 1);
     ekArrayClearRange(Y, da, newSize, da->size, destroyFunc);
     ekArrayChangeSize(Y, daptr, newSize);
 }
 
-void ekArraySetSizeP1(struct ekContext *Y, void *daptr, ySize newSize, void *destroyFunc, void *p1)
+void ekArraySetSizeP1(struct ekContext *Y, void *daptr, ekSize newSize, void *destroyFunc, void *p1)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 1);
     ekArrayClearRangeP1(Y, da, newSize, da->size, destroyFunc, p1);
     ekArrayChangeSize(Y, daptr, newSize);
 }
 
-ySize ekArraySize(struct ekContext *Y, void *daptr)
+ekSize ekArraekSize(struct ekContext *Y, void *daptr)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 0);
     if(da)
@@ -346,21 +346,21 @@ ySize ekArraySize(struct ekContext *Y, void *daptr)
     return 0;
 }
 
-void ekArraySetCapacity(struct ekContext *Y, void *daptr, ySize newCapacity, void *destroyFunc)
+void ekArraySetCapacity(struct ekContext *Y, void *daptr, ekSize newCapacity, void *destroyFunc)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 1);
     ekArrayClearRange(Y, da, newCapacity, da->size, destroyFunc);
     ekArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
-void ekArraySetCapacityP1(struct ekContext *Y, void *daptr, ySize newCapacity, void *destroyFunc, void *p1)
+void ekArraySetCapacityP1(struct ekContext *Y, void *daptr, ekSize newCapacity, void *destroyFunc, void *p1)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 1);
     ekArrayClearRangeP1(Y, da, newCapacity, da->size, destroyFunc, p1);
     ekArrayChangeCapacity(Y, newCapacity, daptr);
 }
 
-ySize ekArrayCapacity(struct ekContext *Y, void *daptr)
+ekSize ekArrayCapacity(struct ekContext *Y, void *daptr)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 0);
     if(da)
@@ -411,7 +411,7 @@ void ekArrayShrink(struct ekContext *Y, void *daptr, int n, ekDestroyCB cb)
 // ek32Array
 
 // workhorse function that does all of the allocation and copying
-static ek32Array *ek32ArrayChangeCapacity(struct ekContext *Y, ySize newCapacity, yU32 **prevptr)
+static ek32Array *ek32ArrayChangeCapacity(struct ekContext *Y, ekSize newCapacity, ekU32 **prevptr)
 {
     ek32Array *newArray;
     ek32Array *prevArray = NULL;
@@ -424,9 +424,9 @@ static ek32Array *ek32ArrayChangeCapacity(struct ekContext *Y, ySize newCapacity
         }
     }
 
-    newArray = (ek32Array *)ekAlloc(sizeof(ek32Array) + (sizeof(yU32) * newCapacity));
+    newArray = (ek32Array *)ekAlloc(sizeof(ek32Array) + (sizeof(ekU32) * newCapacity));
     newArray->capacity = newCapacity;
-    newArray->values = (yU32 *)(((char *)newArray) + sizeof(ek32Array));
+    newArray->values = (ekU32 *)(((char *)newArray) + sizeof(ek32Array));
     if(prevptr)
     {
         if(prevArray)
@@ -436,7 +436,7 @@ static ek32Array *ek32ArrayChangeCapacity(struct ekContext *Y, ySize newCapacity
             {
                 copyCount = newArray->capacity;
             }
-            memcpy(newArray->values, prevArray->values, sizeof(yU32) * copyCount);
+            memcpy(newArray->values, prevArray->values, sizeof(ekU32) * copyCount);
             newArray->size = copyCount;
             ekFree(prevArray);
         }
@@ -446,7 +446,7 @@ static ek32Array *ek32ArrayChangeCapacity(struct ekContext *Y, ySize newCapacity
 }
 
 // finds / lazily creates a ek32Array from a regular ptr**
-static ek32Array *ek32ArrayGet(struct ekContext *Y, yU32 **daptr, yBool autoCreate)
+static ek32Array *ek32ArrayGet(struct ekContext *Y, ekU32 **daptr, ekBool autoCreate)
 {
     ek32Array *da = NULL;
     if(daptr && *daptr)
@@ -466,7 +466,7 @@ static ek32Array *ek32ArrayGet(struct ekContext *Y, yU32 **daptr, yBool autoCrea
 }
 
 // calls ekArrayChangeCapacity in preparation for new data, if necessary
-static ek32Array *ek32ArrayMakeRoom(struct ekContext *Y, yU32 **daptr, int incomingCount)
+static ek32Array *ek32ArrayMakeRoom(struct ekContext *Y, ekU32 **daptr, int incomingCount)
 {
     ek32Array *da = ek32ArrayGet(Y, daptr, 1);
     int capacityNeeded = da->size + incomingCount;
@@ -482,10 +482,10 @@ static ek32Array *ek32ArrayMakeRoom(struct ekContext *Y, yU32 **daptr, int incom
     return da;
 }
 
-ySize ek32ArrayPushUnique(struct ekContext *Y, void *daptr, yU32 *v)
+ekSize ek32ArrayPushUnique(struct ekContext *Y, void *daptr, ekU32 *v)
 {
     int i;
-    ek32Array *da = ek32ArrayGet(Y, daptr, yTrue);
+    ek32Array *da = ek32ArrayGet(Y, daptr, ekTrue);
     for(i = 0; i < da->size; ++i)
     {
         if(da->values[i] == *v)
@@ -496,7 +496,7 @@ ySize ek32ArrayPushUnique(struct ekContext *Y, void *daptr, yU32 *v)
     return ek32ArrayPush(Y, daptr, v);
 }
 
-ySize ek32ArrayPush(struct ekContext *Y, void *daptr, yU32 *v)
+ekSize ek32ArrayPush(struct ekContext *Y, void *daptr, ekU32 *v)
 {
     ek32Array *da = ek32ArrayMakeRoom(Y, daptr, 1);
     da->values[da->size++] = *v;
@@ -505,7 +505,7 @@ ySize ek32ArrayPush(struct ekContext *Y, void *daptr, yU32 *v)
 
 void ek32ArrayClear(struct ekContext *Y, void *daptr)
 {
-    ek32Array *da = ek32ArrayGet(Y, (yU32 **)daptr, 0);
+    ek32Array *da = ek32ArrayGet(Y, (ekU32 **)daptr, 0);
     if(da)
     {
         da->size = 0;
@@ -514,17 +514,17 @@ void ek32ArrayClear(struct ekContext *Y, void *daptr)
 
 void ek32ArrayDestroy(struct ekContext *Y, void *daptr)
 {
-    ek32Array *da = ek32ArrayGet(Y, (yU32 **)daptr, 0);
+    ek32Array *da = ek32ArrayGet(Y, (ekU32 **)daptr, 0);
     if(da)
     {
         ekFree(da);
-        *((yU32 **)daptr) = NULL;
+        *((ekU32 **)daptr) = NULL;
     }
 }
 
-ySize ek32ArraySize(struct ekContext *Y, void *daptr)
+ekSize ek32ArraekSize(struct ekContext *Y, void *daptr)
 {
-    ek32Array *da = ek32ArrayGet(Y, (yU32 **)daptr, 0);
+    ek32Array *da = ek32ArrayGet(Y, (ekU32 **)daptr, 0);
     if(da)
     {
         return da->size;

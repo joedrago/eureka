@@ -13,6 +13,8 @@ var m = a > b;
 var n = a >= b;
 var o = "%f" % a;
 
+var z = -4.5;
+
 a += 5.3;
 a -= 5.3;
 a *= 5.3;
