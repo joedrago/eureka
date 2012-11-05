@@ -77,7 +77,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
 
     if(compiler->root)
     {
-        if(!ekArraekSize(Y, &compiler->errors))
+        if(!ekArraySize(Y, &compiler->errors))
         {
             if(compileOpts & YCO_OPTIMIZE)
             {
@@ -162,7 +162,7 @@ static int ekCompileOptimizeChild(struct ekContext *Y, ekCompiler *compiler, ekS
 static void ekCompileOptimizeArray(struct ekContext *Y, ekCompiler *compiler, ekSyntax **a)
 {
     int i;
-    for(i = 0; i < ekArraekSize(Y, &a); i++)
+    for(i = 0; i < ekArraySize(Y, &a); i++)
     {
         ekCompileOptimizeChild(Y, compiler, (ekSyntax *)a[i]);
     }
@@ -438,7 +438,7 @@ asmFunc(IdentifierList)
     int keepCount = 0;
     int i;
 
-    for(i = ekArraekSize(Y, &args) - 1; i >= 0; i--)
+    for(i = ekArraySize(Y, &args) - 1; i >= 0; i--)
     {
         ekSyntax *arg = (ekSyntax *)args[i];
         keepCount = asmDispatch[arg->type].assemble(Y, compiler, dst, arg, 1, flags | additionalFlags);
@@ -448,7 +448,7 @@ asmFunc(IdentifierList)
             ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
         }
     }
-    return PAD(ekArraekSize(Y, &args));
+    return PAD(ekArraySize(Y, &args));
 }
 
 asmFunc(Call)
@@ -770,8 +770,8 @@ asmFunc(For)
     ekCodeAppend(Y, loop, YOP_DUPE, 0, syntax->line);    // dupe counter
     ekCodeAppend(Y, loop, YOP_DUPE, 3, syntax->line);    // dupe object
     ekCodeAppend(Y, loop, YOP_NTH, 0, syntax->line);     // call nth
-    ekCodeAppend(Y, loop, YOP_KEEP, ekArraekSize(Y, &vars->v.a), syntax->line);
-    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, ekArraekSize(Y, &vars->v.a), ASM_LVALUE | ASM_VAR);
+    ekCodeAppend(Y, loop, YOP_KEEP, ekArraySize(Y, &vars->v.a), syntax->line);
+    asmDispatch[vars->type].assemble(Y, compiler, loop, vars, ekArraySize(Y, &vars->v.a), ASM_LVALUE | ASM_VAR);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(Y, compiler, loop, body, 0, ASM_NORMAL);
@@ -876,20 +876,20 @@ asmFunc(Scope)
 asmFunc(ExpressionList)
 {
     int i = 0;
-    int last = ekArraekSize(Y, &syntax->v.a);
+    int last = ekArraySize(Y, &syntax->v.a);
     int increment = 1;
     int keepCount = 0;
     int reverseOrder = (flags & ASM_SETVAR); // values must be SETVAR'd by popping off the stack in reverse
-    for(i = 0; i < ekArraekSize(Y, &syntax->v.a); i++)
+    for(i = 0; i < ekArraySize(Y, &syntax->v.a); i++)
     {
-        int index = (reverseOrder) ? (ekArraekSize(Y, &syntax->v.a) - 1) - i : i;
+        int index = (reverseOrder) ? (ekArraySize(Y, &syntax->v.a) - 1) - i : i;
         int keepIt = ((keep == YAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
         ekSyntax *child = syntax->v.a[index];
         keepCount += asmDispatch[child->type].assemble(Y, compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
         if(flags & ASM_SETVAR)
         {
             ekCodeGrow(Y, dst, 1);
-            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraekSize(Y, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
+            ekCodeAppend(Y, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(Y, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
         }
     }
     return PAD(keepCount);
@@ -906,7 +906,7 @@ asmFunc(StatementList)
 {
     int keepCount = 0;
     int i;
-    for(i = 0; i < ekArraekSize(Y, &syntax->v.a); i++)
+    for(i = 0; i < ekArraySize(Y, &syntax->v.a); i++)
     {
         ekSyntax *child = syntax->v.a[i];
         keepCount = asmDispatch[child->type].assemble(Y, compiler, dst, child, 0, ASM_NORMAL);

@@ -172,7 +172,7 @@ ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *Y, ekSyntax *expr)
 {
     ekSyntax *syntax;
 
-    if((expr->type == YST_EXPRESSIONLIST) && (ekArraekSize(Y, &expr->v.a) == 0))
+    if((expr->type == YST_EXPRESSIONLIST) && (ekArraySize(Y, &expr->v.a) == 0))
     {
         // An empty statement. Without PYTHON_SCOPING, this only happens
         // when there are multiple semicolons in a row. However, when

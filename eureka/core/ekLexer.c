@@ -114,7 +114,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
         l.token = l.cur;
     }
 
-    if(!ekArraekSize(Y, &compiler->errors))
+    if(!ekArraySize(Y, &compiler->errors))
     {
         token.line = l.line;
         CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);

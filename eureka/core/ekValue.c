@@ -55,7 +55,7 @@ void ekValueTypeDestroy(struct ekContext *Y, ekValueType *type)
 int ekValueTypeRegister(struct ekContext *Y, ekValueType *newType)
 {
     int i;
-    for(i=0; i<ekArraekSize(Y, &Y->types); i++)
+    for(i=0; i<ekArraySize(Y, &Y->types); i++)
     {
         ekValueType *t = Y->types[i];
         if(!strcmp(newType->name, t->name))
@@ -555,17 +555,17 @@ static void arrayFuncClone(struct ekContext *Y, struct ekValue *dst, struct ekVa
 
 static ekBool arrayFuncToBool(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal && ekArraekSize(Y, &p->arrayVal)) ? ekTrue : ekFalse;
+    return (p->arrayVal && ekArraySize(Y, &p->arrayVal)) ? ekTrue : ekFalse;
 }
 
 static ekS32 arrayFuncToInt(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal) ? ekArraekSize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? ekArraySize(Y, &p->arrayVal) : 0;
 }
 
 static ekF32 arrayFuncToFloat(struct ekContext *Y, struct ekValue *p)
 {
-    return (p->arrayVal) ? (ekF32)ekArraekSize(Y, &p->arrayVal) : 0;
+    return (p->arrayVal) ? (ekF32)ekArraySize(Y, &p->arrayVal) : 0;
 }
 
 static struct ekValue *arrayFuncIndex(struct ekContext *Y, struct ekValue *value, struct ekValue *index, ekBool lvalue)
@@ -574,7 +574,7 @@ static struct ekValue *arrayFuncIndex(struct ekContext *Y, struct ekValue *value
     ekValue **ref = NULL;
     ekValueAddRefNote(Y, index, "keep index around after int conversion");
     index = ekValueToInt(Y, index);
-    if(index->intVal >= 0 && index->intVal < ekArraekSize(Y, &value->arrayVal))
+    if(index->intVal >= 0 && index->intVal < ekArraySize(Y, &value->arrayVal))
     {
         ref = (ekValue **) & (value->arrayVal[index->intVal]);
         if(lvalue)
@@ -599,7 +599,7 @@ static void arrayFuncDump(struct ekContext *Y, ekDumpParams *params, struct ekVa
 {
     int i;
     ekStringConcat(Y, &params->output, "[ ");
-    for(i=0; i<ekArraekSize(Y, &p->arrayVal); i++)
+    for(i=0; i<ekArraySize(Y, &p->arrayVal); i++)
     {
         ekValue *child = (ekValue *)p->arrayVal[i];
         if(i > 0)
@@ -855,7 +855,7 @@ void ekValueAddClosureVars(struct ekContext *Y, ekValue *p)
 
     ekAssert(p->closureVars == NULL);
 
-    for(frameIndex = ekArraekSize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
+    for(frameIndex = ekArraySize(Y, &Y->frames) - 1; frameIndex >= 0; frameIndex--)
     {
         frame = Y->frames[frameIndex];
         if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
@@ -866,7 +866,7 @@ void ekValueAddClosureVars(struct ekContext *Y, ekValue *p)
 
     if(frameIndex >= 0)
     {
-        for(; frameIndex < ekArraekSize(Y, &Y->frames); frameIndex++)
+        for(; frameIndex < ekArraySize(Y, &Y->frames); frameIndex++)
         {
             frame = Y->frames[frameIndex];
             if(frame->locals->count)
@@ -1319,7 +1319,7 @@ ekValue *ekValueIndex(struct ekContext *Y, ekValue *p, ekValue *index, ekBool lv
 
 const char *ekValueTypeName(struct ekContext *Y, int type)
 {
-    if((type >= 0) && (type < ekArraekSize(Y, &Y->types)))
+    if((type >= 0) && (type < ekArraySize(Y, &Y->types)))
     {
         ekValueType *valueType = Y->types[type];
         return valueType->name;

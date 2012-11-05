@@ -21,7 +21,7 @@ static void ekSyntaxDotRecurseArray(struct ekContext *Y, ekSyntax **a, const cha
 {
     int i;
     const char *childLineOpts = myLineOpts;
-    for(i = 0; i < ekArraekSize(Y, &a); i++)
+    for(i = 0; i < ekArraySize(Y, &a); i++)
     {
         REC_CHILD(a[i]);
     }
@@ -98,7 +98,7 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
 
         case YST_EXPRESSIONLIST:
         {
-            if(ekArraekSize(Y, &syntax->v.a))
+            if(ekArraySize(Y, &syntax->v.a))
             {
                 myOpts = "shape=egg";
                 strcpy(label, "ExprList");
@@ -126,7 +126,7 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
         case YST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
-            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraekSize(Y, &syntax->r.p->v.a));
+            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraySize(Y, &syntax->r.p->v.a));
             childLineOpts = "style=dotted,label=args";
             REC_CHILD(syntax->r.p);
         }

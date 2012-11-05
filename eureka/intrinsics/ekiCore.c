@@ -44,7 +44,7 @@ ekU32 array_push(struct ekContext *Y, ekU32 argCount)
         return ekContextArgsFailure(Y, argCount, "push([array] a, ... values)");
     }
 
-    for(i=0; i<ekArraekSize(Y, &values); i++)
+    for(i=0; i<ekArraySize(Y, &values); i++)
     {
         ekValue *v = (ekValue *)values[i];
         ekValueArrayPush(Y, a, v);
@@ -64,7 +64,7 @@ ekU32 length(struct ekContext *Y, ekU32 argCount)
         return ekContextArgsFailure(Y, argCount, "length([array] a)");
     }
 
-    c = ekValueCreateInt(Y, ekArraekSize(Y, &a->arrayVal));
+    c = ekValueCreateInt(Y, ekArraySize(Y, &a->arrayVal));
     ekValueRemoveRefNote(Y, a, "length a done");
     ekArrayPush(Y, &Y->stack, c);
     return 1;

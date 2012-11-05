@@ -137,9 +137,9 @@ static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
         ekArraySetSize(Y, &yh->table, yh->mod << 1, NULL);
 
         // Time to shrink!
-        if((ekArraekSize(Y, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(Y, &yh->table))
+        if((ekArraySize(Y, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(Y, &yh->table))
         {
-            ekArraySetCapacity(Y, &yh->table, ekArraekSize(Y, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
+            ekArraySetCapacity(Y, &yh->table, ekArraySize(Y, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
         }
     }
 
@@ -189,7 +189,7 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
     if(yh)
     {
         ekS32 tableIndex;
-        for(tableIndex = 0; tableIndex < ekArraekSize(Y, &yh->table); ++tableIndex)
+        for(tableIndex = 0; tableIndex < ekArraySize(Y, &yh->table); ++tableIndex)
         {
             ekMapEntry *entry = yh->table[tableIndex];
             while(entry)
@@ -203,7 +203,7 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
                 ekMapDestroyEntry(Y, yh, freeme);
             }
         }
-        memset(yh->table, 0, ekArraekSize(Y, &yh->table) * sizeof(ekMapEntry *));
+        memset(yh->table, 0, ekArraySize(Y, &yh->table) * sizeof(ekMapEntry *));
     }
 }
 

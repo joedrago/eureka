@@ -336,7 +336,7 @@ void ekArraySetSizeP1(struct ekContext *Y, void *daptr, ekSize newSize, void *de
     ekArrayChangeSize(Y, daptr, newSize);
 }
 
-ekSize ekArraekSize(struct ekContext *Y, void *daptr)
+ekSize ekArraySize(struct ekContext *Y, void *daptr)
 {
     ekArray *da = ekArrayGet(Y, (char ** *)daptr, 0);
     if(da)
@@ -522,7 +522,7 @@ void ek32ArrayDestroy(struct ekContext *Y, void *daptr)
     }
 }
 
-ekSize ek32ArraekSize(struct ekContext *Y, void *daptr)
+ekSize ek32ArraySize(struct ekContext *Y, void *daptr)
 {
     ek32Array *da = ek32ArrayGet(Y, (ekU32 **)daptr, 0);
     if(da)
