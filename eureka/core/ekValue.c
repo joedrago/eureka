@@ -1096,6 +1096,7 @@ void ekValueDestroy(struct ekContext *Y, ekValue *p)
 {
     ekTraceValues(("ekValueFree %p\n", p));
     ekValueClear(Y, p);
+    memset(p, 0xaaaaaaaa, sizeof(ekValue));
     ekFree(p);
 #ifdef EUREKA_TRACE_REFS
     --sEurekaValueDebugCount;
@@ -1119,6 +1120,8 @@ void ekValueRemoveRef(struct ekContext *Y, ekValue *p)
     {
         return;
     }
+
+    ekAssert(p->refs && (p->refs != 0xaaaaaaaa) && "refcount has gone rogue!");
 
     --p->refs;
     if(p->refs == 0)
