@@ -113,7 +113,7 @@ foreach(dsrc ${DOCSRC})
 endforeach()
 
 add_custom_target(docs
-    DEPENDS ${DOCTXT}
+    ALL DEPENDS ${DOCTXT}
 )
 
 if(COVERAGE)

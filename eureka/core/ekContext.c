@@ -622,7 +622,9 @@ yBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat,
     {
         for(; argsTaken < argCount; argsTaken++)
         {
-            ekArrayPush(Y, leftovers, ekContextGetArg(Y, argsTaken, argCount));
+            ekValue *v = ekContextGetArg(Y, argsTaken, argCount);
+            ekArrayPush(Y, leftovers, v);
+            ekValueAddRefNote(Y, v, "ekContextGetArgs leftovers");
         }
     }
 
