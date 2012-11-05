@@ -456,10 +456,15 @@ asmFunc(Call)
     ekSyntax *func = syntax->v.p;
     ekSyntax *args = syntax->r.p;
     int argCount;
+    int retCount;
 
     argCount = asmDispatch[args->type].assemble(Y, compiler, dst, args, YAV_ALL_ARGS, ASM_NORMAL);
+    retCount = asmDispatch[func->type].assemble(Y, compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
 
-    asmDispatch[func->type].assemble(Y, compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
+    if(keep == YAV_ALL_ARGS)
+    {
+        keep = retCount;
+    }
 
     ekCodeGrow(Y, dst, 2);
     ekCodeAppend(Y, dst, YOP_CALL, argCount, syntax->line);

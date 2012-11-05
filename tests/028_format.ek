@@ -1,2 +1,18 @@
 var s = "%d" % 1;
 s = "%d" % 1;
+
+print(s, "\n");
+print("%s" % s, "\n");
+
+function returnsString()
+{
+    return "i am a string";
+}
+print("Here is your string: %s\n" % returnsString());
+print("Here is your string: %s %d %d %d\n" % (returnsString(), 3, 4, 5));
+
+function returnsTwoStrings()
+{
+    return ("string 1", "string 2");
+}
+print("Here are your strings: '%s' '%s'\n" % returnsTwoStrings());
