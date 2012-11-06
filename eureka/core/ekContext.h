@@ -21,11 +21,11 @@ struct ekMap;
 // VM Error Types
 enum
 {
-    YVE_NONE = 0,
-    YVE_RUNTIME,
-    YVE_COMPILE,
+    EVE_NONE = 0,
+    EVE_RUNTIME,
+    EVE_COMPILE,
 
-    YVE_COUNT
+    EVE_COUNT
 };
 
 typedef struct ekMemFuncs
@@ -71,10 +71,10 @@ void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCF
 // Eureka Eval Options
 enum
 {
-    YEO_DEFAULT  = 0,
+    EEO_DEFAULT  = 0,
 
-    YEO_DUMP     = (1 << 0),
-    YEO_OPTIMIZE = (1 << 1)
+    EEO_DUMP     = (1 << 0),
+    EEO_OPTIMIZE = (1 << 1)
 };
 void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts);
 void ekContextRecover(ekContext *E); // cleans out frames, clears error

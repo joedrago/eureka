@@ -92,10 +92,10 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, voi
     entry = (ekMapEntry *)ekAlloc(sizeof(*entry));
     switch(yh->keyType)
     {
-        case YMKT_STRING:
+        case EMKT_STRING:
             entry->keyStr = ekStrdup(E, (char *)key);
             break;
-        case YMKT_INTEGER:
+        case EMKT_INTEGER:
             entry->keyInt = *((int *)key);
             break;
     }
@@ -176,7 +176,7 @@ void ekMapDestroy(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroy
 
 static void ekMapDestroyEntry(struct ekContext *E, ekMap *yh, ekMapEntry *p)
 {
-    if(yh->keyType == YMKT_STRING)
+    if(yh->keyType == EMKT_STRING)
     {
         ekFree(p->keyStr);
     }
@@ -348,7 +348,7 @@ void ekMapIterateP1(struct ekContext *E, ekMap *yh, void *rawcb, void *arg1)
 // domain. The author hereby disclaims copyright to this source code.
 
 // Note - The x86 and x64 versions do _not_ produce the same results, as the
-// algorithms are optimized for their respective platforms. You can still
+// algorithms are optimized for their respective platforms. Eou can still
 // compile and run any of them on any platform, but your performance with the
 // non-native version will be less than optimal.
 

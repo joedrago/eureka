@@ -60,7 +60,7 @@ int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
         ekValueType *t = E->types[i];
         if(!strcmp(newType->name, t->name))
         {
-            return YVT_INVALID;
+            return EVT_INVALID;
         }
     }
 
@@ -84,7 +84,7 @@ int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
 }
 
 // ---------------------------------------------------------------------------
-// YVT_NULL Funcs
+// EVT_NULL Funcs
 
 static struct ekValue *nullFuncToString(struct ekContext *E, struct ekValue *p)
 {
@@ -110,11 +110,11 @@ static void nullFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = nullFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_NULL);
+    ekAssert(type->id == EVT_NULL);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_BLOCK Funcs
+// EVT_BLOCK Funcs
 
 static void blockFuncClear(struct ekContext *E, struct ekValue *p)
 {
@@ -165,11 +165,11 @@ static void blockFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = blockFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_BLOCK);
+    ekAssert(type->id == EVT_BLOCK);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_CFUNCTION Funcs
+// EVT_CFUNCTION Funcs
 
 static void cfunctionFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
 {
@@ -212,11 +212,11 @@ static void cfunctionFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = cfunctionFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_CFUNCTION);
+    ekAssert(type->id == EVT_CFUNCTION);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_INT Funcs
+// EVT_INT Funcs
 
 static void intFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
 {
@@ -253,19 +253,19 @@ static struct ekValue *intFuncArithmetic(struct ekContext *E, struct ekValue *a,
     b = ekValueToInt(E, b);
     switch(op)
     {
-        case YVAO_ADD:
+        case EVAO_ADD:
             c = ekValueCreateInt(E, a->intVal + b->intVal);
             break;
-        case YVAO_SUB:
+        case EVAO_SUB:
             c = ekValueCreateInt(E, a->intVal - b->intVal);
             break;
-        case YVAO_MUL:
+        case EVAO_MUL:
             c = ekValueCreateInt(E, a->intVal * b->intVal);
             break;
-        case YVAO_DIV:
+        case EVAO_DIV:
             if(!b->intVal)
             {
-                ekContextSetError(E, YVE_RUNTIME, "divide by zero!");
+                ekContextSetError(E, EVE_RUNTIME, "divide by zero!");
             }
             else
             {
@@ -279,7 +279,7 @@ static struct ekValue *intFuncArithmetic(struct ekContext *E, struct ekValue *a,
 
 static ekBool intFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
-    if(b->type == YVT_FLOAT)
+    if(b->type == EVT_FLOAT)
     {
         if((ekF32)a->intVal > b->floatVal)
         {
@@ -295,7 +295,7 @@ static ekBool intFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue 
         }
         return ekTrue;
     }
-    else if(b->type == YVT_INT)
+    else if(b->type == EVT_INT)
     {
         *cmpResult = a->intVal - b->intVal;
         return ekTrue;
@@ -324,11 +324,11 @@ static void intFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = intFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_INT);
+    ekAssert(type->id == EVT_INT);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_FLOAT Funcs
+// EVT_FLOAT Funcs
 
 static void floatFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
 {
@@ -364,19 +364,19 @@ static struct ekValue *floatFuncArithmetic(struct ekContext *E, struct ekValue *
     b = ekValueToFloat(E, b);
     switch(op)
     {
-        case YVAO_ADD:
+        case EVAO_ADD:
             a = ekValueCreateFloat(E, a->floatVal + b->floatVal);
             break;
-        case YVAO_SUB:
+        case EVAO_SUB:
             a = ekValueCreateFloat(E, a->floatVal - b->floatVal);
             break;
-        case YVAO_MUL:
+        case EVAO_MUL:
             a = ekValueCreateFloat(E, a->floatVal * b->floatVal);
             break;
-        case YVAO_DIV:
+        case EVAO_DIV:
             if(b->floatVal == 0.0f)
             {
-                ekContextSetError(E, YVE_RUNTIME, "divide by zero!");
+                ekContextSetError(E, EVE_RUNTIME, "divide by zero!");
             }
             else
             {
@@ -390,7 +390,7 @@ static struct ekValue *floatFuncArithmetic(struct ekContext *E, struct ekValue *
 
 static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
-    if(b->type == YVT_INT)
+    if(b->type == EVT_INT)
     {
         if(a->floatVal > (ekF32)b->intVal)
         {
@@ -406,7 +406,7 @@ static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValu
         }
         return ekTrue;
     }
-    else if(b->type == YVT_FLOAT)
+    else if(b->type == EVT_FLOAT)
     {
         if(a->floatVal > b->floatVal)
         {
@@ -446,11 +446,11 @@ static void floatFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = floatFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_FLOAT);
+    ekAssert(type->id == EVT_FLOAT);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_STRING Funcs
+// EVT_STRING Funcs
 
 static void stringFuncClear(struct ekContext *E, struct ekValue *p)
 {
@@ -488,7 +488,7 @@ struct ekValue *stringFuncToString(struct ekContext *E, struct ekValue *p)
 struct ekValue *stringFuncArithmetic(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op)
 {
     ekValue *ret = NULL;
-    if(op == YVAO_ADD)
+    if(op == EVAO_ADD)
     {
         ekValueAddRefNote(E, a, "stringFuncArithmetic keep a during string conversion");
         ekValueAddRefNote(E, b, "stringFuncArithmetic keep b during string conversion");
@@ -508,7 +508,7 @@ struct ekValue *stringFuncArithmetic(struct ekContext *E, struct ekValue *a, str
 
 static ekBool stringFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult)
 {
-    if(b->type == YVT_STRING)
+    if(b->type == EVT_STRING)
     {
         *cmpResult = ekStringCmpStr(E, &a->stringVal, &b->stringVal);
         return ekTrue;
@@ -537,11 +537,11 @@ static void stringFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = stringFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_STRING);
+    ekAssert(type->id == EVT_STRING);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_ARRAY Funcs
+// EVT_ARRAY Funcs
 
 static void arrayFuncClear(struct ekContext *E, struct ekValue *p)
 {
@@ -589,7 +589,7 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
     }
     else
     {
-        ekContextSetError(E, YVE_RUNTIME, "array index %d out of range", index->intVal);
+        ekContextSetError(E, EVE_RUNTIME, "array index %d out of range", index->intVal);
     }
     ekValueRemoveRefNote(E, index, "temp index (int) done");
     return ret;
@@ -625,11 +625,11 @@ static void arrayFuncRegister(struct ekContext *E)
     type->funcIndex      = arrayFuncIndex;
     type->funcDump       = arrayFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_ARRAY);
+    ekAssert(type->id == EVT_ARRAY);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_OBJECT Funcs
+// EVT_OBJECT Funcs
 
 static void objectFuncClear(struct ekContext *E, struct ekValue *p)
 {
@@ -721,11 +721,11 @@ static void objectFuncRegister(struct ekContext *E)
     type->funcIndex      = objectFuncIndex;
     type->funcDump       = objectFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_OBJECT);
+    ekAssert(type->id == EVT_OBJECT);
 }
 
 // ---------------------------------------------------------------------------
-// YVT_REF Funcs
+// EVT_REF Funcs
 
 static void refFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
 {
@@ -768,7 +768,7 @@ static void refFuncRegister(struct ekContext *E)
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = refFuncDump;
     ekValueTypeRegister(E, type);
-    ekAssert(type->id == YVT_REF);
+    ekAssert(type->id == EVT_REF);
 }
 
 // ---------------------------------------------------------------------------
@@ -788,13 +788,13 @@ void ekValueTypeRegisterAllBasicTypes(struct ekContext *E)
 
 // ---------------------------------------------------------------------------
 
-ekValue ekValueNull = {YVT_NULL};
+ekValue ekValueNull = {EVT_NULL};
 ekValue *ekValueNullPtr = &ekValueNull;
 
 ekValue *ekValueCreateInt(struct ekContext *E, int v)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_INT;
+    p->type = EVT_INT;
     p->intVal = v;
     ekTraceValues(("ekValueCreateInt %p [%d]\n", p, v));
     return p;
@@ -803,7 +803,7 @@ ekValue *ekValueCreateInt(struct ekContext *E, int v)
 ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_FLOAT;
+    p->type = EVT_FLOAT;
     p->floatVal = v;
     ekTraceValues(("ekValueCreateFloat %p [%f]\n", p, v));
     return p;
@@ -812,7 +812,7 @@ ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v)
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_STRING;
+    p->type = EVT_STRING;
     ekStringSetK(E, &p->stringVal, s);
     ekTraceValues(("ekValueCreateKString %p\n", p));
     return p;
@@ -821,7 +821,7 @@ ekValue *ekValueCreateKString(struct ekContext *E, const char *s)
 ekValue *ekValueCreateString(struct ekContext *E, const char *s)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_STRING;
+    p->type = EVT_STRING;
     ekStringSet(E, &p->stringVal, s);
     ekTraceValues(("ekValueCreateString %p\n", p));
     return p;
@@ -830,7 +830,7 @@ ekValue *ekValueCreateString(struct ekContext *E, const char *s)
 ekValue *ekValueDonateString(struct ekContext *E, char *s)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_STRING;
+    p->type = EVT_STRING;
     ekStringDonate(E, &p->stringVal, s);
     ekTraceValues(("ekValueDonateString %p\n", p));
     return p;
@@ -847,7 +847,7 @@ void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
     ekFrame *frame;
     int frameIndex;
 
-    if(p->type != YVT_BLOCK)
+    if(p->type != EVT_BLOCK)
     {
         // TODO: add impossibly catastrophic error here? (can't happen?)
         return;
@@ -858,7 +858,7 @@ void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
     for(frameIndex = ekArraySize(E, &E->frames) - 1; frameIndex >= 0; frameIndex--)
     {
         frame = E->frames[frameIndex];
-        if((frame->type & (YFT_CHUNK|YFT_FUNC)) == YFT_FUNC)  // we are inside of an actual function!
+        if((frame->type & (EFT_CHUNK|EFT_FUNC)) == EFT_FUNC)  // we are inside of an actual function!
         {
             break;
         }
@@ -873,7 +873,7 @@ void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
             {
                 if(!p->closureVars)
                 {
-                    p->closureVars = ekMapCreate(E, YMKT_STRING);
+                    p->closureVars = ekMapCreate(E, EMKT_STRING);
                 }
                 ekMapIterateP1(E, frame->locals, ekValueAddClosureVar, p->closureVars);
             }
@@ -884,7 +884,7 @@ void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
 ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_BLOCK;
+    p->type = EVT_BLOCK;
     p->closureVars = NULL;
     p->blockVal = block;
     ekTraceValues(("ekValueCreateFunction %p\n", p));
@@ -894,7 +894,7 @@ ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block)
 ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_CFUNCTION;
+    p->type = EVT_CFUNCTION;
     p->cFuncVal = func;
     ekTraceValues(("ekValueCreateCFunction %p\n", p));
     return p;
@@ -903,7 +903,7 @@ ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func)
 ekValue *ekValueCreateRef(struct ekContext *E, struct ekValue **ref)
 {
     ekValue *p = ekValueCreate(E);
-    p->type = YVT_REF;
+    p->type = EVT_REF;
     p->refVal = ref;
     ekTraceValues(("ekValueCreateRef %p\n", p));
     return p;
@@ -913,22 +913,22 @@ static ekBool ekValueCheckRef(struct ekContext *E, ekValue *ref, ekValue *p)
 {
     if(!p)
     {
-        ekContextSetError(E, YVE_RUNTIME, "ekValueSetRefVal: empty stack!");
+        ekContextSetError(E, EVE_RUNTIME, "ekValueSetRefVal: empty stack!");
         return ekFalse;
     }
     if(!ref)
     {
-        ekContextSetError(E, YVE_RUNTIME, "ekValueSetRefVal: empty stack!");
+        ekContextSetError(E, EVE_RUNTIME, "ekValueSetRefVal: empty stack!");
         return ekFalse;
     }
     if(!(*ref->refVal))
     {
-        ekContextSetError(E, YVE_RUNTIME, "ekValueSetRefVal: missing ref!");
+        ekContextSetError(E, EVE_RUNTIME, "ekValueSetRefVal: missing ref!");
         return ekFalse;
     }
-    if(ref->type != YVT_REF)
+    if(ref->type != EVT_REF)
     {
-        ekContextSetError(E, YVE_RUNTIME, "ekValueSetRefVal: value on top of stack, ref underneath");
+        ekContextSetError(E, EVE_RUNTIME, "ekValueSetRefVal: value on top of stack, ref underneath");
         return ekFalse;
     }
     return ekTrue;
@@ -953,18 +953,18 @@ ekBool ekValueTestInherits(struct ekContext *E, ekValue *child, ekValue *parent)
 {
     ekValue *p;
 
-    if(child->type != YVT_OBJECT)
+    if(child->type != EVT_OBJECT)
     {
         return ekFalse;
     }
 
-    if(parent->type != YVT_OBJECT)
+    if(parent->type != EVT_OBJECT)
     {
         return ekFalse;
     }
 
     p = child->objectVal->isa;
-    while(p && (p->type == YVT_OBJECT))
+    while(p && (p->type == EVT_OBJECT))
     {
         if(p->objectVal == parent->objectVal)
         {
@@ -983,13 +983,13 @@ ekValue *ekValueCreateArray(struct ekContext *E)
 {
     ekValue *p = ekValueCreate(E);
     p->arrayVal = NULL;
-    p->type = YVT_ARRAY;
+    p->type = EVT_ARRAY;
     return p;
 }
 
 void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v)
 {
-    ekAssert(p->type == YVT_ARRAY);
+    ekAssert(p->type == EVT_ARRAY);
 
     ekArrayPush(E, &p->arrayVal, v);
 }
@@ -1007,13 +1007,13 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCo
         if(argCount)
         {
             isa = ekContextGetArg(E, 0, argCount);
-            if(!isa || (isa->type == YVT_NULL))
+            if(!isa || (isa->type == EVT_NULL))
             {
                 isa = NULL;
             }
-            if(isa && (isa->type != YVT_OBJECT))
+            if(isa && (isa->type != EVT_OBJECT))
             {
-                ekContextSetError(E, YVE_RUNTIME, "objects can only inherit from objects");
+                ekContextSetError(E, EVE_RUNTIME, "objects can only inherit from objects");
                 isa = NULL;
             }
         }
@@ -1023,7 +1023,7 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCo
         }
     }
     p->objectVal = ekObjectCreate(E, isa);
-    p->type = YVT_OBJECT;
+    p->type = EVT_OBJECT;
 
     if(argCount)
     {
@@ -1055,7 +1055,7 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCo
 void ekValueObjectSetMember(struct ekContext *E, struct ekValue *object, const char *name, struct ekValue *value)
 {
     ekValue **ref = NULL;
-    ekAssert(object->type == YVT_OBJECT);
+    ekAssert(object->type == EVT_OBJECT);
     ref = ekObjectGetRef(E, object->objectVal, name, ekTrue);
     ekAssert(ref);
     *ref = value;
@@ -1068,7 +1068,7 @@ void ekValueClear(struct ekContext *E, ekValue *p)
     ekValueTypeSafeCall(p->type, Clear)(E, p);
 
     memset(p, 0, sizeof(*p));
-    p->type = YVT_NULL;
+    p->type = EVT_NULL;
 }
 
 #ifdef EUREKA_TRACE_REFS
@@ -1165,7 +1165,7 @@ ekValue *ekValueClone(struct ekContext *E, ekValue *p)
 
 ekValue *ekValueAdd(struct ekContext *E, ekValue *a, ekValue *b)
 {
-    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, YVAO_ADD);
+    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_ADD);
     if(!value)
     {
         ekTraceValues(("Don't know how to add types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
@@ -1175,7 +1175,7 @@ ekValue *ekValueAdd(struct ekContext *E, ekValue *a, ekValue *b)
 
 ekValue *ekValueSub(struct ekContext *E, ekValue *a, ekValue *b)
 {
-    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, YVAO_SUB);
+    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_SUB);
     if(!value)
     {
         ekTraceValues(("Don't know how to subtract types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
@@ -1185,7 +1185,7 @@ ekValue *ekValueSub(struct ekContext *E, ekValue *a, ekValue *b)
 
 ekValue *ekValueMul(struct ekContext *E, ekValue *a, ekValue *b)
 {
-    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, YVAO_MUL);
+    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_MUL);
     if(!value)
     {
         ekTraceValues(("Don't know how to multiply types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
@@ -1195,7 +1195,7 @@ ekValue *ekValueMul(struct ekContext *E, ekValue *a, ekValue *b)
 
 ekValue *ekValueDiv(struct ekContext *E, ekValue *a, ekValue *b)
 {
-    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, YVAO_DIV);
+    ekValue *value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_DIV);
     if(!value)
     {
         ekTraceValues(("Don't know how to divide types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));

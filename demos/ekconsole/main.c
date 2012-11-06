@@ -129,10 +129,10 @@ int main(int argc, char *argv[])
 
             if(code)
             {
-                int opts = YEO_DEFAULT;
+                int opts = EEO_DEFAULT;
                 if(dump)
                 {
-                    opts = YEO_DUMP;
+                    opts = EEO_DUMP;
                 }
                 ekContextEval(E, code, opts);
                 if(ekContextGetError(E))

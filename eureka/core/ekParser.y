@@ -7,7 +7,7 @@
 
 %name ekParse
 
-%token_prefix YTT_
+%token_prefix ETT_
 
 %token_type
     { ekToken }
@@ -127,13 +127,13 @@ chunk ::= statement_list(L).
     { ekSyntax* }
 
 %destructor statement_list
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 statement_list(L) ::= statement_list(OL) statement(S).
-    { L = ekSyntaxListAppend(C->Y, OL, S, 0); }
+    { L = ekSyntaxListAppend(C->E, OL, S, 0); }
 
 statement_list(L) ::= statement(S).
-    { L = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, S); }
+    { L = ekSyntaxCreateList(C->E, EST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
 // Statement Block
@@ -142,16 +142,16 @@ statement_list(L) ::= statement(S).
     { ekSyntax* }
 
 %destructor statement_block
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 statement_block(B) ::= STARTBLOCK ENDBLOCK.
-    { B = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
+    { B = ekSyntaxCreateList(C->E, EST_STATEMENTLIST, NULL); }
 
 statement_block(B) ::= STARTBLOCK statement_list(L) ENDBLOCK.
     { B = L; }
 
 statement_block(B) ::= statement(S).
-    { B = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, S); }
+    { B = ekSyntaxCreateList(C->E, EST_STATEMENTLIST, S); }
 
 // ---------------------------------------------------------------------------
 // Statement
@@ -160,70 +160,70 @@ statement_block(B) ::= statement(S).
     { ekSyntax* }
 
 %destructor statement
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 statement(S) ::= BREAK(B) ENDSTATEMENT.
-    { S = ekSyntaxCreateBreak(C->Y, B.line); }
+    { S = ekSyntaxCreateBreak(C->E, B.line); }
 
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
-    { S = ekSyntaxCreateReturn(C->Y, L); }
+    { S = ekSyntaxCreateReturn(C->E, L); }
 
 statement(S) ::= RETURN paren_expr_list(L) ENDSTATEMENT.
-    { S = ekSyntaxCreateReturn(C->Y, L); }
+    { S = ekSyntaxCreateReturn(C->E, L); }
 
 statement(S) ::= expr_list(L) ENDSTATEMENT.
-    { S = ekSyntaxCreateStatementExpr(C->Y, L); }
+    { S = ekSyntaxCreateStatementExpr(C->E, L); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
-    { S = ekSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY, yFalse); }
+    { S = ekSyntaxCreateIfElse(C->E, COND, IFBODY, ELSEBODY, ekFalse); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY).
-    { S = ekSyntaxCreateIfElse(C->Y, COND, IFBODY, NULL, yFalse); }
+    { S = ekSyntaxCreateIfElse(C->E, COND, IFBODY, NULL, ekFalse); }
 
 statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
-    { S = ekSyntaxCreateWhile(C->Y, COND, BODY); }
+    { S = ekSyntaxCreateWhile(C->E, COND, BODY); }
 
 statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
-    { S = ekSyntaxCreateFunctionDecl(C->Y, &I, ARGS, BODY, F.line); }
+    { S = ekSyntaxCreateFunctionDecl(C->E, &I, ARGS, BODY, F.line); }
 
 statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
-    { S = ekSyntaxCreateFor(C->Y, VARS, ITER, BODY); }
+    { S = ekSyntaxCreateFor(C->E, VARS, ITER, BODY); }
 
 statement(S) ::= lvalue(L) PLUSEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_ADD, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_ADD, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) DASHEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_SUB, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_SUB, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) STAREQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_MUL, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_MUL, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) SLASHEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_DIV, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_DIV, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_OREQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_BITWISE_OR, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_ANDEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_BITWISE_AND, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) BITWISE_XOREQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_BITWISE_XOR, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) SHIFTLEFTEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_SHIFTLEFT, L, R, ekTrue); }
 
 statement(S) ::= lvalue(L) SHIFTRIGHTEQUALS expression(R).
-    { S = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, L, R, yTrue); }
+    { S = ekSyntaxCreateBinary(C->E, EST_SHIFTRIGHT, L, R, ekTrue); }
 
 statement(S) ::= ENDSTATEMENT.
-    { S = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
+    { S = ekSyntaxCreateList(C->E, EST_STATEMENTLIST, NULL); }
 
 statement(S) ::= SCOPESTARTBLOCK ENDBLOCK.
-    { S = ekSyntaxCreateList(C->Y, YST_STATEMENTLIST, NULL); }
+    { S = ekSyntaxCreateList(C->E, EST_STATEMENTLIST, NULL); }
 
 statement(S) ::= SCOPESTARTBLOCK statement_list(L) ENDBLOCK.
-    { S = ekSyntaxCreateScope(C->Y, L); }
+    { S = ekSyntaxCreateScope(C->E, L); }
 
 statement ::= error ENDSTATEMENT.
 
@@ -234,13 +234,13 @@ statement ::= error ENDSTATEMENT.
     { ekSyntax* }
 
 %destructor paren_expr_list
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 paren_expr_list(PEL) ::= LEFTPAREN expr_list(L) RIGHTPAREN.
     { PEL = L; }
 
 paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
-    { PEL = ekSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, NULL); }
+    { PEL = ekSyntaxCreateList(C->E, EST_EXPRESSIONLIST, NULL); }
 
 // ---------------------------------------------------------------------------
 // Expression List
@@ -249,16 +249,16 @@ paren_expr_list(PEL) ::= LEFTPAREN RIGHTPAREN.
     { ekSyntax* }
 
 %destructor expr_list
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
-expr_list(EL) ::= expr_list(OL) COMMA expression(E).
-    { EL = ekSyntaxListAppend(C->Y, OL, E, 0); }
+expr_list(EL) ::= expr_list(OL) COMMA expression(EXPR).
+    { EL = ekSyntaxListAppend(C->E, OL, EXPR, 0); }
 
-expr_list(EL) ::= expr_list(OL) FATCOMMA expression(E).
-    { EL = ekSyntaxListAppend(C->Y, OL, E, YSLF_AUTOLITERAL); }
+expr_list(EL) ::= expr_list(OL) FATCOMMA expression(EXPR).
+    { EL = ekSyntaxListAppend(C->E, OL, EXPR, ESLF_AUTOLITERAL); }
 
-expr_list(EL) ::= expression(E).
-    { EL = ekSyntaxCreateList(C->Y, YST_EXPRESSIONLIST, E); }
+expr_list(EL) ::= expression(EXPR).
+    { EL = ekSyntaxCreateList(C->E, EST_EXPRESSIONLIST, EXPR); }
 
 // ---------------------------------------------------------------------------
 // Expression
@@ -267,106 +267,106 @@ expr_list(EL) ::= expression(E).
     { ekSyntax* }
 
 %destructor expression
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
-expression(EXP) ::= NOT expression(E).
-    { EXP = ekSyntaxCreateUnary(C->Y, YST_NOT, E); }
+expression(EXP) ::= NOT expression(EXPR).
+    { EXP = ekSyntaxCreateUnary(C->E, EST_NOT, EXPR); }
 
-expression(EXP) ::= BITWISE_NOT expression(E).
-    { EXP = ekSyntaxCreateUnary(C->Y, YST_BITWISE_NOT, E); }
+expression(EXP) ::= BITWISE_NOT expression(EXPR).
+    { EXP = ekSyntaxCreateUnary(C->E, EST_BITWISE_NOT, EXPR); }
 
 expression(EXP) ::= expression(L) PLUS expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_ADD, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_ADD, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) DASH expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_SUB, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_SUB, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) STAR expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_MUL, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_MUL, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) SLASH expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_DIV, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_DIV, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) AND expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_AND, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_AND, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) OR expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_OR, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_OR, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) CMP expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_CMP, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_CMP, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) EQUALS expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_EQUALS, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_EQUALS, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) NOTEQUALS expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_NOTEQUALS, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_NOTEQUALS, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) GREATERTHAN expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_GREATERTHAN, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_GREATERTHAN, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) GREATERTHANOREQUAL expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_GREATERTHANOREQUAL, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_GREATERTHANOREQUAL, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) LESSTHAN expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_LESSTHAN, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_LESSTHAN, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) LESSTHANOREQUAL expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_LESSTHANOREQUAL, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_LESSTHANOREQUAL, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) BITWISE_XOR expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_BITWISE_XOR, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_BITWISE_XOR, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) BITWISE_AND expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_BITWISE_AND, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_BITWISE_AND, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) BITWISE_OR expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_BITWISE_OR, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_BITWISE_OR, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) SHIFTLEFT expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_SHIFTLEFT, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_SHIFTLEFT, L, R, ekFalse); }
 
 expression(EXP) ::= expression(L) SHIFTRIGHT expression(R).
-    { EXP = ekSyntaxCreateBinary(C->Y, YST_SHIFTRIGHT, L, R, yFalse); }
+    { EXP = ekSyntaxCreateBinary(C->E, EST_SHIFTRIGHT, L, R, ekFalse); }
 
 expression(EXP) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
-    { EXP = ekSyntaxCreateStringFormat(C->Y, FORMAT, ARGS); }
+    { EXP = ekSyntaxCreateStringFormat(C->E, FORMAT, ARGS); }
 
 expression(EXP) ::= expression(FORMAT) MOD expression(ARGS).
-    { EXP = ekSyntaxCreateStringFormat(C->Y, FORMAT, ARGS); }
+    { EXP = ekSyntaxCreateStringFormat(C->E, FORMAT, ARGS); }
 
-expression(E) ::= lvalue(L) ASSIGN expression(R).
-    { E = ekSyntaxCreateAssignment(C->Y, L, R); }
+expression(EXPR) ::= lvalue(L) ASSIGN expression(R).
+    { EXPR = ekSyntaxCreateAssignment(C->E, L, R); }
 
-expression(E) ::= expression(L) INHERITS expression(R).
-    { E = ekSyntaxCreateInherits(C->Y, L, R); }
+expression(EXPR) ::= expression(L) INHERITS expression(R).
+    { EXPR = ekSyntaxCreateInherits(C->E, L, R); }
 
-expression(E) ::= lvalue(LV).
-    { E = LV; }
+expression(EXPR) ::= lvalue(LV).
+    { EXPR = LV; }
 
-expression(E) ::= INTEGER(I).
-    { E = ekSyntaxCreateKInt(C->Y, &I, 0); }
+expression(EXPR) ::= INTEGER(I).
+    { EXPR = ekSyntaxCreateKInt(C->E, &I, 0); }
 
-expression(E) ::= NEGATIVE INTEGER(I).
-    { E = ekSyntaxCreateKInt(C->Y, &I, CKO_NEGATIVE); }
+expression(EXPR) ::= NEGATIVE INTEGER(I).
+    { EXPR = ekSyntaxCreateKInt(C->E, &I, CKO_NEGATIVE); }
 
-expression(E) ::= FLOATNUM(F).
-    { E = ekSyntaxCreateKFloat(C->Y, &F, 0); }
+expression(EXPR) ::= FLOATNUM(F).
+    { EXPR = ekSyntaxCreateKFloat(C->E, &F, 0); }
 
-expression(E) ::= NEGATIVE FLOATNUM(F).
-    { E = ekSyntaxCreateKFloat(C->Y, &F, CKO_NEGATIVE); }
+expression(EXPR) ::= NEGATIVE FLOATNUM(F).
+    { EXPR = ekSyntaxCreateKFloat(C->E, &F, CKO_NEGATIVE); }
 
-expression(E) ::= LITERALSTRING(L).
-    { E = ekSyntaxCreateKString(C->Y, &L); }
+expression(EXPR) ::= LITERALSTRING(L).
+    { EXPR = ekSyntaxCreateKString(C->E, &L); }
 
-expression(E) ::= NULL(N).
-    { E = ekSyntaxCreateNull(C->Y, N.line); }
+expression(EXPR) ::= NULL(N).
+    { EXPR = ekSyntaxCreateNull(C->E, N.line); }
 
-expression(E) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
-    { E = ekSyntaxCreateFunctionDecl(C->Y, NULL, ARGS, BODY, F.line); }
+expression(EXPR) ::= FUNCTION(F) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
+    { EXPR = ekSyntaxCreateFunctionDecl(C->E, NULL, ARGS, BODY, F.line); }
 
-expression(E) ::= expression(COND) QUESTIONMARK expression(IFBODY) COLON expression(ELSEBODY).
-    { E = ekSyntaxCreateIfElse(C->Y, COND, IFBODY, ELSEBODY, yTrue); }
+expression(EXPR) ::= expression(COND) QUESTIONMARK expression(IFBODY) COLON expression(ELSEBODY).
+    { EXPR = ekSyntaxCreateIfElse(C->E, COND, IFBODY, ELSEBODY, ekTrue); }
 
 
 // ---------------------------------------------------------------------------
@@ -376,16 +376,16 @@ expression(E) ::= expression(COND) QUESTIONMARK expression(IFBODY) COLON express
     { ekSyntax* }
 
 %destructor lvalue
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 lvalue(L) ::= lvalue_indexable(I).
     { L = I; }
 
 lvalue(L) ::= VAR IDENTIFIER(I).
-    { L = ekSyntaxMarkVar(C->Y, ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &I))); }
+    { L = ekSyntaxMarkVar(C->E, ekSyntaxCreateList(C->E, EST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->E, &I))); }
 
 lvalue(L) ::= VAR GROUPLEFTPAREN ident_list(I) RIGHTPAREN.
-    { L = ekSyntaxMarkVar(C->Y, I); }
+    { L = ekSyntaxMarkVar(C->E, I); }
 
 lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { L = EL; }
@@ -397,25 +397,25 @@ lvalue(L) ::= GROUPLEFTPAREN expr_list(EL) RIGHTPAREN.
     { ekSyntax* }
 
 %destructor lvalue_indexable
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 lvalue_indexable(L) ::= THIS(T).
-    { L = ekSyntaxCreateThis(C->Y, T.line); }
+    { L = ekSyntaxCreateThis(C->E, T.line); }
 
 lvalue_indexable(L) ::= lvalue_indexable(FUNC) paren_expr_list(ARGS).
-    { L = ekSyntaxCreateCall(C->Y, FUNC, ARGS); }
+    { L = ekSyntaxCreateCall(C->E, FUNC, ARGS); }
 
 lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CLOSEBRACKET.
-    { L = ekSyntaxCreateIndex(C->Y, ARRAY, INDEX, yFalse); }
+    { L = ekSyntaxCreateIndex(C->E, ARRAY, INDEX, ekFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
-    { L = ekSyntaxCreateIndex(C->Y, OBJECT, ekSyntaxCreateKString(C->Y, &MEMBER), yFalse); }
+    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER), ekFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) COLONCOLON IDENTIFIER(MEMBER).
-    { L = ekSyntaxCreateIndex(C->Y, OBJECT, ekSyntaxCreateKString(C->Y, &MEMBER), yTrue); }
+    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER), ekTrue); }
 
 lvalue_indexable(L) ::= IDENTIFIER(I).
-    { L = ekSyntaxCreateIdentifier(C->Y, &I); }
+    { L = ekSyntaxCreateIdentifier(C->E, &I); }
 
 // ---------------------------------------------------------------------------
 // Identifier List
@@ -424,16 +424,16 @@ lvalue_indexable(L) ::= IDENTIFIER(I).
     { ekSyntax* }
 
 %destructor ident_list
-    { ekSyntaxDestroy(C->Y, $$); }
+    { ekSyntaxDestroy(C->E, $$); }
 
 ident_list(IL) ::= ident_list(OL) COMMA IDENTIFIER(I).
-    { IL = ekSyntaxListAppend(C->Y, OL, ekSyntaxCreateIdentifier(C->Y, &I), 0); }
+    { IL = ekSyntaxListAppend(C->E, OL, ekSyntaxCreateIdentifier(C->E, &I), 0); }
 
 ident_list(IL) ::= IDENTIFIER(I).
-    { IL = ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->Y, &I)); }
+    { IL = ekSyntaxCreateList(C->E, EST_IDENTIFIERLIST, ekSyntaxCreateIdentifier(C->E, &I)); }
 
 ident_list(IL) ::= .
-    { IL = ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL); }
+    { IL = ekSyntaxCreateList(C->E, EST_IDENTIFIERLIST, NULL); }
 
 // ---------------------------------------------------------------------------
 // Function Arguments
@@ -442,10 +442,10 @@ ident_list(IL) ::= .
     { ekSyntax* }
 
 func_args(ARGS) ::= ident_list(IL).
-    { ARGS = ekSyntaxCreateFunctionArgs(C->Y, IL, NULL); }
+    { ARGS = ekSyntaxCreateFunctionArgs(C->E, IL, NULL); }
 
 func_args(ARGS) ::= ident_list(IL) COMMA ELLIPSIS IDENTIFIER(VARARGS).
-    { ARGS = ekSyntaxCreateFunctionArgs(C->Y, IL, &VARARGS); }
+    { ARGS = ekSyntaxCreateFunctionArgs(C->E, IL, &VARARGS); }
 
 func_args(ARGS) ::= ELLIPSIS IDENTIFIER(VARARGS).
-    { ARGS = ekSyntaxCreateFunctionArgs(C->Y, ekSyntaxCreateList(C->Y, YST_IDENTIFIERLIST, NULL), &VARARGS); }
+    { ARGS = ekSyntaxCreateFunctionArgs(C->E, ekSyntaxCreateList(C->E, EST_IDENTIFIERLIST, NULL), &VARARGS); }

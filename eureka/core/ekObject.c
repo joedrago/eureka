@@ -20,7 +20,7 @@ ekObject *ekObjectCreate(struct ekContext *E, ekValue *isa)
     {
         ekValueAddRefNote(E, v->isa, "ekObject isa");
     }
-    v->hash = ekMapCreate(E, YMKT_STRING);
+    v->hash = ekMapCreate(E, EMKT_STRING);
     return v;
 }
 

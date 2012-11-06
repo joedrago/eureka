@@ -44,7 +44,7 @@ typedef struct ekLexer
 int getNextToken(ekLexer *l)
 {
 #include "ekLexer.re.inc"
-    return YTT_EOF;
+    return ETT_EOF;
 }
 
 ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
@@ -62,7 +62,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
     l.token  = l.cur;
     l.line   = 1;
 
-    while((id = getNextToken(&l)) != YTT_EOF)
+    while((id = getNextToken(&l)) != ETT_EOF)
     {
         if(l.error)
         {
@@ -76,30 +76,30 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
 
         switch(id)
         {
-            case YTT_HEREDOC:
+            case ETT_HEREDOC:
                 // Heredocs are just trimmed literal strings
-                id = YTT_LITERALSTRING;
+                id = ETT_LITERALSTRING;
                 ekAssert(token_len >= 6);
 
                 // remove triple quotes
                 token_len -= 6;
                 l.token += 3;
                 break;
-            case YTT_NEWLINE:
-                id = YTT_SPACE;
+            case ETT_NEWLINE:
+                id = ETT_SPACE;
                 break;
-            case YTT_SEMI:
-                id = YTT_ENDSTATEMENT;
+            case ETT_SEMI:
+                id = ETT_ENDSTATEMENT;
                 break;
-            case YTT_OPENBRACE:
-                id = YTT_STARTBLOCK;
+            case ETT_OPENBRACE:
+                id = ETT_STARTBLOCK;
                 break;
-            case YTT_CLOSEBRACE:
-                id = YTT_ENDBLOCK;
+            case ETT_CLOSEBRACE:
+                id = ETT_ENDBLOCK;
                 break;
         };
 
-        if((id != YTT_SPACE) && (id != YTT_COMMENT))
+        if((id != ETT_SPACE) && (id != ETT_COMMENT))
         {
             if(token_len > 0)
             {
@@ -117,7 +117,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
     if(!ekArraySize(E, &compiler->errors))
     {
         token.line = l.line;
-        CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
+        CALL_CB(parser, ETT_ENDSTATEMENT, token, compiler);
     }
     return ekTrue;
 }

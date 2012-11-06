@@ -103,7 +103,7 @@ static ekU32 eval(struct ekContext *E, ekU32 argCount)
         for(i = 0; i < argCount; i++)
         {
             ekValue *v = ekContextGetArg(E, i, argCount);
-            if(v->type == YVT_STRING)
+            if(v->type == EVT_STRING)
             {
                 ekContextEval(E, ekStringSafePtr(&v->stringVal), 0);
                 if(E->error)
@@ -141,13 +141,13 @@ static ekU32 standard_print(struct ekContext *E, ekU32 argCount)
             ekValue *v = ekContextGetArg(E, i, argCount);
             switch(v->type)
             {
-                case YVT_STRING:
+                case EVT_STRING:
                     printf("%s", ekStringSafePtr(&v->stringVal));
                     break;
-                case YVT_INT:
+                case EVT_INT:
                     printf("%d", v->intVal);
                     break;
-                case YVT_FLOAT:
+                case EVT_FLOAT:
                     printf("%f", v->floatVal);
                     break;
                 default:
@@ -202,7 +202,7 @@ static ekU32 import(struct ekContext *E, ekU32 argCount)
     if(argCount)
     {
         filenameValue = ekContextGetArg(E, 0, argCount);
-        if(filenameValue->type != YVT_STRING)
+        if(filenameValue->type != EVT_STRING)
         {
             filenameValue = NULL;
         }
@@ -294,11 +294,11 @@ ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
     if(doAssert)
     {
         const char *reason = "(unknown)";
-        if(s && s->type == YVT_STRING)
+        if(s && s->type == EVT_STRING)
         {
             reason = ekStringSafePtr(&s->stringVal);
         }
-        ekContextSetError(E, YVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
+        ekContextSetError(E, EVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
     }
     if(s)
     {

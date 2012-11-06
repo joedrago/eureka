@@ -79,7 +79,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
     {
         if(!ekArraySize(E, &compiler->errors))
         {
-            if(compileOpts & YCO_OPTIMIZE)
+            if(compileOpts & ECO_OPTIMIZE)
             {
                 ekCompileOptimize(E, compiler);
             }
@@ -87,7 +87,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
             ekAssemble(E, compiler);
             success = ekTrue;
         }
-        if(!(compileOpts & YCO_KEEP_SYNTAX_TREE))
+        if(!(compileOpts & ECO_KEEP_SYNTAX_TREE))
         {
             ekSyntaxDestroy(E, compiler->root);
             compiler->root = NULL;
@@ -95,7 +95,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
     }
     else
     {
-        ekContextSetError(E, YVE_COMPILE, "unknown badness - grammar is probably incomplete");
+        ekContextSetError(E, EVE_COMPILE, "unknown badness - grammar is probably incomplete");
     }
 
     ekParseFree(E, parser);
@@ -179,28 +179,28 @@ static int ekCompileOptimizeChild(struct ekContext *E, ekCompiler *compiler, ekS
 
     switch(syntax->type)
     {
-        case YST_ADD:
-        case YST_SUB:
-        case YST_MUL:
-        case YST_DIV:
+        case EST_ADD:
+        case EST_SUB:
+        case EST_MUL:
+        case EST_DIV:
         {
             // Integer arithmetic optimization
-            if((syntax->l.p->type == YST_KINT)
-               && (syntax->r.p->type == YST_KINT))
+            if((syntax->l.p->type == EST_KINT)
+               && (syntax->r.p->type == EST_KINT))
             {
                 int val;
                 switch(syntax->type)
                 {
-                    case YST_ADD:
+                    case EST_ADD:
                         val = syntax->l.p->v.i + syntax->r.p->v.i;
                         break;
-                    case YST_SUB:
+                    case EST_SUB:
                         val = syntax->l.p->v.i - syntax->r.p->v.i;
                         break;
-                    case YST_MUL:
+                    case EST_MUL:
                         val = syntax->l.p->v.i * syntax->r.p->v.i;
                         break;
-                    case YST_DIV:
+                    case EST_DIV:
                         if(!syntax->r.p->v.i) { return 0; }
                         val = syntax->l.p->v.i / syntax->r.p->v.i;
                         break;
@@ -209,7 +209,7 @@ static int ekCompileOptimizeChild(struct ekContext *E, ekCompiler *compiler, ekS
                 syntax->l.p = NULL;
                 ekSyntaxDestroy(E, syntax->r.p);
                 syntax->r.p = NULL;
-                syntax->type = YST_KINT;
+                syntax->type = EST_KINT;
                 syntax->v.i = val;
             }
         }
@@ -274,70 +274,70 @@ asmFunc(FunctionArgs);
 asmFunc(With);
 asmFunc(Scope);
 
-static ekAssembleInfo asmDispatch[YST_COUNT] =
+static ekAssembleInfo asmDispatch[EST_COUNT] =
 {
-    { ekAssembleNop },             // YST_NOP
+    { ekAssembleNop },             // EST_NOP
 
-    { ekAssembleKString },         // YST_KSTRING
-    { ekAssembleKInt },            // YST_KINT
-    { ekAssembleKFloat },          // YST_KFLOAT
-    { ekAssembleIdentifier },      // YST_IDENTIFIER
+    { ekAssembleKString },         // EST_KSTRING
+    { ekAssembleKInt },            // EST_KINT
+    { ekAssembleKFloat },          // EST_KFLOAT
+    { ekAssembleIdentifier },      // EST_IDENTIFIER
 
-    { ekAssembleIndex },           // YST_INDEX
+    { ekAssembleIndex },           // EST_INDEX
 
-    { ekAssembleStatementList },   // YST_STATEMENTLIST
-    { ekAssembleExpressionList },  // YST_EXPRESSIONLIST
-    { ekAssembleIdentifierList },  // YST_IDENTIFIERLIST
+    { ekAssembleStatementList },   // EST_STATEMENTLIST
+    { ekAssembleExpressionList },  // EST_EXPRESSIONLIST
+    { ekAssembleIdentifierList },  // EST_IDENTIFIERLIST
 
-    { ekAssembleCall },            // YST_CALL
-    { ekAssembleStringFormat },    // YST_STRINGFORMAT
+    { ekAssembleCall },            // EST_CALL
+    { ekAssembleStringFormat },    // EST_STRINGFORMAT
 
-    { ekAssembleNull },            // YST_NULL
-    { ekAssembleThis },            // YST_THIS
+    { ekAssembleNull },            // EST_NULL
+    { ekAssembleThis },            // EST_THIS
 
-    { ekAssembleUnary },           // YST_NOT
+    { ekAssembleUnary },           // EST_NOT
 
-    { ekAssembleUnary },           // YST_BITWISE_NOT
-    { ekAssembleBinary },          // YST_BITWISE_XOR
-    { ekAssembleBinary },          // YST_BITWISE_AND
-    { ekAssembleBinary },          // YST_BITWISE_OR
-    { ekAssembleBinary },          // YST_SHIFTLEFT
-    { ekAssembleBinary },          // YST_SHIFTRIGHT
+    { ekAssembleUnary },           // EST_BITWISE_NOT
+    { ekAssembleBinary },          // EST_BITWISE_XOR
+    { ekAssembleBinary },          // EST_BITWISE_AND
+    { ekAssembleBinary },          // EST_BITWISE_OR
+    { ekAssembleBinary },          // EST_SHIFTLEFT
+    { ekAssembleBinary },          // EST_SHIFTRIGHT
 
-    { ekAssembleBinary },          // YST_ADD
-    { ekAssembleBinary },          // YST_SUB
-    { ekAssembleBinary },          // YST_MUL
-    { ekAssembleBinary },          // YST_DIV
+    { ekAssembleBinary },          // EST_ADD
+    { ekAssembleBinary },          // EST_SUB
+    { ekAssembleBinary },          // EST_MUL
+    { ekAssembleBinary },          // EST_DIV
 
-    { ekAssembleShortCircuit },    // YST_AND
-    { ekAssembleShortCircuit },    // YST_OR
+    { ekAssembleShortCircuit },    // EST_AND
+    { ekAssembleShortCircuit },    // EST_OR
 
-    { ekAssembleBinary },          // YST_CMP
-    { ekAssembleBinary },          // YST_EQUALS
-    { ekAssembleBinary },          // YST_NOTEQUALS
-    { ekAssembleBinary },          // YST_GREATERTHAN
-    { ekAssembleBinary },          // YST_GREATERTHANOREQUAL
-    { ekAssembleBinary },          // YST_LESSTHAN
-    { ekAssembleBinary },          // YST_LESSTHANOREQUAL
+    { ekAssembleBinary },          // EST_CMP
+    { ekAssembleBinary },          // EST_EQUALS
+    { ekAssembleBinary },          // EST_NOTEQUALS
+    { ekAssembleBinary },          // EST_GREATERTHAN
+    { ekAssembleBinary },          // EST_GREATERTHANOREQUAL
+    { ekAssembleBinary },          // EST_LESSTHAN
+    { ekAssembleBinary },          // EST_LESSTHANOREQUAL
 
-    { ekAssembleStatementExpr },   // YST_STATEMENT_EXPR
-    { ekAssembleAssignment },      // YST_ASSIGNMENT
-    { ekAssembleInherits },        // YST_INHERITS
-    { ekAssembleBreak },           // YST_BREAK
-    { ekAssembleReturn },          // YST_RETURN
+    { ekAssembleStatementExpr },   // EST_STATEMENT_EXPR
+    { ekAssembleAssignment },      // EST_ASSIGNMENT
+    { ekAssembleInherits },        // EST_INHERITS
+    { ekAssembleBreak },           // EST_BREAK
+    { ekAssembleReturn },          // EST_RETURN
 
-    { ekAssembleIfElse },          // YST_IFELSE
-    { ekAssembleWhile },           // YST_WHILE
-    { ekAssembleFor },             // YST_FOR
-    { ekAssembleFunction },        // YST_FUNCTION
-    { ekAssembleFunctionArgs },    // YST_FUNCTION_ARGS
-    { ekAssembleScope },           // YST_SCOPE
+    { ekAssembleIfElse },          // EST_IFELSE
+    { ekAssembleWhile },           // EST_WHILE
+    { ekAssembleFor },             // EST_FOR
+    { ekAssembleFunction },        // EST_FUNCTION
+    { ekAssembleFunctionArgs },    // EST_FUNCTION_ARGS
+    { ekAssembleScope },           // EST_SCOPE
 };
 
 // This function ensures that what we're being asked to keep is what we offered
 int asmPad(struct ekContext *E, ekCode *code, int keep, int offer, int line)
 {
-    if(keep == YAV_ALL_ARGS)
+    if(keep == EAV_ALL_ARGS)
     {
         keep = offer;
     }
@@ -346,7 +346,7 @@ int asmPad(struct ekContext *E, ekCode *code, int keep, int offer, int line)
         if(offer > keep)
         {
             ekCodeGrow(E, code, 1);
-            ekCodeAppend(E, code, YOP_POP, (ekOperand)(offer - keep), line);
+            ekCodeAppend(E, code, EOP_POP, (ekOperand)(offer - keep), line);
         }
         else if(offer < keep)
         {
@@ -355,7 +355,7 @@ int asmPad(struct ekContext *E, ekCode *code, int keep, int offer, int line)
             ekCodeGrow(E, code, nulls);
             for(i = 0; i < nulls; i++)
             {
-                ekCodeAppend(E, code, YOP_PUSHNULL, 0, line);
+                ekCodeAppend(E, code, EOP_PUSHNULL, 0, line);
             }
         }
     }
@@ -373,37 +373,37 @@ asmFunc(Nop)
 asmFunc(KString)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, syntax->v.s)), syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, syntax->v.s)), syntax->line);
     return PAD(1);
 }
 
 asmFunc(KInt)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KI, ek32ArrayPushUnique(E, &compiler->chunk->kInts, &syntax->v.i), syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KI, ek32ArrayPushUnique(E, &compiler->chunk->kInts, &syntax->v.i), syntax->line);
     return PAD(1);
 }
 
 asmFunc(KFloat)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KF, ek32ArrayPushUnique(E, &compiler->chunk->kFloats, (ekU32 *)&syntax->v.f), syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KF, ek32ArrayPushUnique(E, &compiler->chunk->kFloats, (ekU32 *)&syntax->v.f), syntax->line);
     return PAD(1);
 }
 
 asmFunc(Identifier)
 {
-    ekOpcode opcode = YOP_VARREF_KS;
+    ekOpcode opcode = EOP_VARREF_KS;
     if(flags & ASM_VAR)
     {
-        opcode = YOP_VARREG_KS;
+        opcode = EOP_VARREG_KS;
     }
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, opcode, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, syntax->v.s)), syntax->line);
     if(!(flags & ASM_LVALUE))
     {
         ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, YOP_REFVAL, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_REFVAL, 0, syntax->line);
     }
     return PAD(1);
 }
@@ -419,15 +419,15 @@ asmFunc(Index)
     asmDispatch[b->type].assemble(E, compiler, dst, b, 1, ASM_NORMAL);
     if(flags & ASM_LVALUE)
     {
-        opFlags |= YOF_LVALUE;
+        opFlags |= EOF_LVALUE;
     }
     if(keep > 1)
     {
-        opFlags |= (pushThis) ? YOF_PUSHTHIS : YOF_PUSHOBJ;
+        opFlags |= (pushThis) ? EOF_PUSHTHIS : EOF_PUSHOBJ;
         offerCount++;
     }
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_INDEX, opFlags, syntax->line);
+    ekCodeAppend(E, dst, EOP_INDEX, opFlags, syntax->line);
     return PAD(offerCount);
 }
 
@@ -445,7 +445,7 @@ asmFunc(IdentifierList)
         if(flags & ASM_SETVAR)
         {
             ekCodeGrow(E, dst, 1);
-            ekCodeAppend(E, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
+            ekCodeAppend(E, dst, EOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
         }
     }
     return PAD(ekArraySize(E, &args));
@@ -458,31 +458,31 @@ asmFunc(Call)
     int argCount;
     int retCount;
 
-    argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, YAV_ALL_ARGS, ASM_NORMAL);
+    argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, EAV_ALL_ARGS, ASM_NORMAL);
     retCount = asmDispatch[func->type].assemble(E, compiler, dst, func, 2, ASM_NORMAL); // requesting 2 to receive 'this' (even if padded with null)
 
-    if(keep == YAV_ALL_ARGS)
+    if(keep == EAV_ALL_ARGS)
     {
         keep = retCount;
     }
 
     ekCodeGrow(E, dst, 2);
-    ekCodeAppend(E, dst, YOP_CALL, argCount, syntax->line);
-    ekCodeAppend(E, dst, YOP_KEEP, keep, syntax->line);
+    ekCodeAppend(E, dst, EOP_CALL, argCount, syntax->line);
+    ekCodeAppend(E, dst, EOP_KEEP, keep, syntax->line);
     return PAD(keep);
 }
 
 asmFunc(Null)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSHNULL, 0, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSHNULL, 0, syntax->line);
     return PAD(1);
 }
 
 asmFunc(This)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSHTHIS, 0, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSHTHIS, 0, syntax->line);
     return PAD(1);
 }
 
@@ -490,10 +490,10 @@ asmFunc(StringFormat)
 {
     ekSyntax *format = syntax->l.p;
     ekSyntax *args   = syntax->r.p;
-    int argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, YAV_ALL_ARGS, ASM_NORMAL);
+    int argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, EAV_ALL_ARGS, ASM_NORMAL);
     asmDispatch[format->type].assemble(E, compiler, dst, format, 1, ASM_NORMAL);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_FORMAT, argCount, syntax->line);
+    ekCodeAppend(E, dst, EOP_FORMAT, argCount, syntax->line);
     return PAD(1);
 }
 
@@ -504,11 +504,11 @@ asmFunc(Unary)
     ekCodeGrow(E, dst, 1);
     switch(syntax->type)
     {
-        case YST_NOT:
-            ekCodeAppend(E, dst, YOP_NOT, 0, syntax->line);
+        case EST_NOT:
+            ekCodeAppend(E, dst, EOP_NOT, 0, syntax->line);
             break;
-        case YST_BITWISE_NOT:
-            ekCodeAppend(E, dst, YOP_BITWISE_NOT, 0, syntax->line);
+        case EST_BITWISE_NOT:
+            ekCodeAppend(E, dst, EOP_BITWISE_NOT, 0, syntax->line);
             break;
     };
     return PAD(1);
@@ -519,7 +519,7 @@ asmFunc(Binary)
     ekSyntax *a = syntax->l.p;
     ekSyntax *b = syntax->r.p;
     ekBool compound = syntax->v.i;
-    int op = YOP_NOP;
+    int op = EOP_NOP;
     int aflags = ASM_NORMAL;
 
     if(compound)
@@ -531,63 +531,63 @@ asmFunc(Binary)
     if(compound)
     {
         ekCodeGrow(E, dst, 2);
-        ekCodeAppend(E, dst, YOP_DUPE, 0, syntax->line);
-        ekCodeAppend(E, dst, YOP_REFVAL, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_DUPE, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_REFVAL, 0, syntax->line);
     }
     asmDispatch[b->type].assemble(E, compiler, dst, b, 1, ASM_NORMAL);
 
     switch(syntax->type)
     {
             // Legal in either compound statements or expressions
-        case YST_ADD:
-            op = YOP_ADD;
+        case EST_ADD:
+            op = EOP_ADD;
             break;
-        case YST_SUB:
-            op = YOP_SUB;
+        case EST_SUB:
+            op = EOP_SUB;
             break;
-        case YST_MUL:
-            op = YOP_MUL;
+        case EST_MUL:
+            op = EOP_MUL;
             break;
-        case YST_DIV:
-            op = YOP_DIV;
+        case EST_DIV:
+            op = EOP_DIV;
             break;
-        case YST_BITWISE_XOR:
-            op = YOP_BITWISE_XOR;
+        case EST_BITWISE_XOR:
+            op = EOP_BITWISE_XOR;
             break;
-        case YST_BITWISE_AND:
-            op = YOP_BITWISE_AND;
+        case EST_BITWISE_AND:
+            op = EOP_BITWISE_AND;
             break;
-        case YST_BITWISE_OR:
-            op = YOP_BITWISE_OR;
+        case EST_BITWISE_OR:
+            op = EOP_BITWISE_OR;
             break;
-        case YST_SHIFTLEFT:
-            op = YOP_SHIFTLEFT;
+        case EST_SHIFTLEFT:
+            op = EOP_SHIFTLEFT;
             break;
-        case YST_SHIFTRIGHT:
-            op = YOP_SHIFTRIGHT;
+        case EST_SHIFTRIGHT:
+            op = EOP_SHIFTRIGHT;
             break;
 
             // Legal in expressions only
-        case YST_CMP:
-            op = YOP_CMP;
+        case EST_CMP:
+            op = EOP_CMP;
             break;
-        case YST_EQUALS:
-            op = YOP_EQUALS;
+        case EST_EQUALS:
+            op = EOP_EQUALS;
             break;
-        case YST_NOTEQUALS:
-            op = YOP_NOTEQUALS;
+        case EST_NOTEQUALS:
+            op = EOP_NOTEQUALS;
             break;
-        case YST_GREATERTHAN:
-            op = YOP_GREATERTHAN;
+        case EST_GREATERTHAN:
+            op = EOP_GREATERTHAN;
             break;
-        case YST_GREATERTHANOREQUAL:
-            op = YOP_GREATERTHANOREQUAL;
+        case EST_GREATERTHANOREQUAL:
+            op = EOP_GREATERTHANOREQUAL;
             break;
-        case YST_LESSTHAN:
-            op = YOP_LESSTHAN;
+        case EST_LESSTHAN:
+            op = EOP_LESSTHAN;
             break;
-        case YST_LESSTHANOREQUAL:
-            op = YOP_LESSTHANOREQUAL;
+        case EST_LESSTHANOREQUAL:
+            op = EOP_LESSTHANOREQUAL;
             break;
     };
 
@@ -597,8 +597,8 @@ asmFunc(Binary)
     if(compound)
     {
         ekCodeGrow(E, dst, 2);
-        ekCodeAppend(E, dst, YOP_MOVE, 1, syntax->line);
-        ekCodeAppend(E, dst, YOP_SETVAR, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_MOVE, 1, syntax->line);
+        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
         return PAD(0);
     }
     return PAD(1);
@@ -615,7 +615,7 @@ asmFunc(ShortCircuit)
 
     // test stack top's truth and uses the current value instead of the second expression's value
     ekCodeGrow(E, dst, 1);
-    skipIndex = ekCodeAppend(E, dst, (syntax->type == YST_AND) ? YOP_AND : YOP_OR, 0, syntax->line);
+    skipIndex = ekCodeAppend(E, dst, (syntax->type == EST_AND) ? EOP_AND : EOP_OR, 0, syntax->line);
 
     // code to add second expression on the stack
     asmDispatch[b->type].assemble(E, compiler, dst, b, 1, ASM_NORMAL);
@@ -629,16 +629,16 @@ asmFunc(ShortCircuit)
 asmFunc(Break)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_BREAK, 0, syntax->line);
+    ekCodeAppend(E, dst, EOP_BREAK, 0, syntax->line);
     return PAD(0);
 }
 
 asmFunc(Return)
 {
     ekSyntax *expr = syntax->v.p;
-    int retCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, YAV_ALL_ARGS, ASM_NORMAL);
+    int retCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, EAV_ALL_ARGS, ASM_NORMAL);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_RET, retCount, syntax->line);
+    ekCodeAppend(E, dst, EOP_RET, retCount, syntax->line);
     return PAD(0);
 }
 
@@ -650,14 +650,14 @@ asmFunc(Assignment)
     int leave = (keep > 0) ? 1 : 0;
     int lflags = ASM_LVALUE|ASM_SETVAR | ((leave) ? ASM_LEAVE_LAST : 0);
     ekCode *lvalueCode = ekCodeCreate();
-    int lvalueCount = asmDispatch[l->type].assemble(E, compiler, lvalueCode, l, YAV_ALL_ARGS, lflags);
+    int lvalueCount = asmDispatch[l->type].assemble(E, compiler, lvalueCode, l, EAV_ALL_ARGS, lflags);
     asmDispatch[r->type].assemble(E, compiler, dst, r, lvalueCount, ASM_NORMAL);
     ekCodeConcat(E, dst, lvalueCode);
     ekCodeDestroy(E, lvalueCode);
-    if((l->type != YST_IDENTIFIERLIST) && (l->type != YST_EXPRESSIONLIST))
+    if((l->type != EST_IDENTIFIERLIST) && (l->type != EST_EXPRESSIONLIST))
     {
         ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, YOP_SETVAR, leave, syntax->line);
+        ekCodeAppend(E, dst, EOP_SETVAR, leave, syntax->line);
     }
     return PAD(leave);
 }
@@ -670,7 +670,7 @@ asmFunc(Inherits)
     asmDispatch[r->type].assemble(E, compiler, dst, r, 1, ASM_NORMAL);
     asmDispatch[l->type].assemble(E, compiler, dst, l, 1, ASM_NORMAL);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_INHERITS, 0, syntax->line);
+    ekCodeAppend(E, dst, EOP_INHERITS, 0, syntax->line);
     return PAD(1);
 }
 
@@ -690,24 +690,24 @@ asmFunc(IfElse)
         ekCode *elseCode = ekCodeCreate();
         asmDispatch[elseBody->type].assemble(E, compiler, elseCode, elseBody, valuesLeftOnStack, ASM_NORMAL);
         ekCodeGrow(E, elseCode, 1);
-        ekCodeAppend(E, elseCode, YOP_LEAVE, 0, syntax->line);
+        ekCodeAppend(E, elseCode, EOP_LEAVE, 0, syntax->line);
         index = ekBlockConvertCode(E, elseCode, compiler->chunk, 0);
         ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);
+        ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);
     }
 
     asmDispatch[ifBody->type].assemble(E, compiler, ifCode, ifBody, valuesLeftOnStack, ASM_NORMAL);
     ekCodeGrow(E, ifCode, 1);
-    ekCodeAppend(E, ifCode, YOP_LEAVE, 0, syntax->line);
+    ekCodeAppend(E, ifCode, EOP_LEAVE, 0, syntax->line);
     index = ekBlockConvertCode(E, ifCode, compiler->chunk, 0);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);
 
     // Only keeps the value of the first expression on the stack for bool testing
     asmDispatch[cond->type].assemble(E, compiler, dst, cond, 1, ASM_NORMAL);
 
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_IF, (elseBody) ? 1 : 0, syntax->line);
+    ekCodeAppend(E, dst, EOP_IF, (elseBody) ? 1 : 0, syntax->line);
 
     return PAD(valuesLeftOnStack);
 }
@@ -720,23 +720,23 @@ asmFunc(While)
     int index;
 
     ekCodeGrow(E, loop, 1);
-    ekCodeAppend(E, loop, YOP_START, 0, syntax->line);
+    ekCodeAppend(E, loop, EOP_START, 0, syntax->line);
 
     asmDispatch[cond->type].assemble(E, compiler, loop, cond, 1, ASM_NORMAL);
     ekCodeGrow(E, loop, 1);
-    ekCodeAppend(E, loop, YOP_LEAVE, 1, syntax->line);
+    ekCodeAppend(E, loop, EOP_LEAVE, 1, syntax->line);
 
     asmDispatch[body->type].assemble(E, compiler, loop, body, 0, ASM_NORMAL);
 
     ekCodeGrow(E, loop, 1);
-    ekCodeAppend(E, loop, YOP_CONTINUE, 0, syntax->line);
+    ekCodeAppend(E, loop, EOP_CONTINUE, 0, syntax->line);
 
     index = ekBlockConvertCode(E, loop, compiler->chunk, 0);
 
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_ENTER, YFT_LOOP, syntax->line);
+    ekCodeAppend(E, dst, EOP_ENTER, EFT_LOOP, syntax->line);
 
     return PAD(0);
 }
@@ -753,11 +753,11 @@ asmFunc(For)
     asmDispatch[iter->type].assemble(E, compiler, dst, iter, 1, ASM_NORMAL);
 
     ekCodeGrow(E, loop, 5);
-    ekCodeAppend(E, loop, YOP_DUPE, 0, syntax->line);    // stash the object itself
-    ekCodeAppend(E, loop, YOP_COUNT, 0, syntax->line);   // using the dupe, call .count(, syntax->line) to push the count on top
-    ekCodeAppend(E, loop, YOP_KEEP, 1, syntax->line);    // keep only one value from the call to .count()
-    ekCodeAppend(E, loop, YOP_PUSHI, 0, syntax->line);   // init our counter to zero
-    ekCodeAppend(E, loop, YOP_CLEANUP, 3, syntax->line); // Mark the 3 'for loop' items as things to clean up
+    ekCodeAppend(E, loop, EOP_DUPE, 0, syntax->line);    // stash the object itself
+    ekCodeAppend(E, loop, EOP_COUNT, 0, syntax->line);   // using the dupe, call .count(, syntax->line) to push the count on top
+    ekCodeAppend(E, loop, EOP_KEEP, 1, syntax->line);    // keep only one value from the call to .count()
+    ekCodeAppend(E, loop, EOP_PUSHI, 0, syntax->line);   // init our counter to zero
+    ekCodeAppend(E, loop, EOP_CLEANUP, 3, syntax->line); // Mark the 3 'for loop' items as things to clean up
 
     // At this point, the stack should look like:
     // -- top --
@@ -766,16 +766,16 @@ asmFunc(For)
     // object
 
     ekCodeGrow(E, loop, 3);
-    ekCodeAppend(E, loop, YOP_START, 0, syntax->line);   // begin loop
-    ekCodeAppend(E, loop, YOP_SUB, 1, syntax->line);     // push (count-counter, syntax->line) onto stack
-    ekCodeAppend(E, loop, YOP_LEAVE, 1, syntax->line);   // leave if ((count-counter, syntax->line) == 0)
+    ekCodeAppend(E, loop, EOP_START, 0, syntax->line);   // begin loop
+    ekCodeAppend(E, loop, EOP_SUB, 1, syntax->line);     // push (count-counter, syntax->line) onto stack
+    ekCodeAppend(E, loop, EOP_LEAVE, 1, syntax->line);   // leave if ((count-counter, syntax->line) == 0)
 
     // Populate the loop vars from the call to get()
     ekCodeGrow(E, loop, 7);
-    ekCodeAppend(E, loop, YOP_DUPE, 0, syntax->line);    // dupe counter
-    ekCodeAppend(E, loop, YOP_DUPE, 3, syntax->line);    // dupe object
-    ekCodeAppend(E, loop, YOP_NTH, 0, syntax->line);     // call nth
-    ekCodeAppend(E, loop, YOP_KEEP, ekArraySize(E, &vars->v.a), syntax->line);
+    ekCodeAppend(E, loop, EOP_DUPE, 0, syntax->line);    // dupe counter
+    ekCodeAppend(E, loop, EOP_DUPE, 3, syntax->line);    // dupe object
+    ekCodeAppend(E, loop, EOP_NTH, 0, syntax->line);     // call nth
+    ekCodeAppend(E, loop, EOP_KEEP, ekArraySize(E, &vars->v.a), syntax->line);
     asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR);
 
     // Assemble the loop body itself
@@ -783,15 +783,15 @@ asmFunc(For)
 
     // Increment the counter and loop
     ekCodeGrow(E, loop, 3);
-    ekCodeAppend(E, loop, YOP_PUSHI, 1, syntax->line);
-    ekCodeAppend(E, loop, YOP_ADD, 0, syntax->line);
-    ekCodeAppend(E, loop, YOP_CONTINUE, 0, syntax->line);
+    ekCodeAppend(E, loop, EOP_PUSHI, 1, syntax->line);
+    ekCodeAppend(E, loop, EOP_ADD, 0, syntax->line);
+    ekCodeAppend(E, loop, EOP_CONTINUE, 0, syntax->line);
 
     index = ekBlockConvertCode(E, loop, compiler->chunk, 0);
 
     ekCodeGrow(E, dst, 2);
-    ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);
-    ekCodeAppend(E, dst, YOP_ENTER, YFT_LOOP, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);
+    ekCodeAppend(E, dst, EOP_ENTER, EFT_LOOP, syntax->line);
 
     return PAD(0);
 }
@@ -811,10 +811,10 @@ asmFunc(Function)
     int additionalOpsForNaming = 0;
     int valuesLeftOnStack = 1;
 
-    int argCount = asmDispatch[args->type].assemble(E, compiler, code, args, YAV_ALL_ARGS, ASM_VAR | ASM_LVALUE | ASM_SETVAR);
+    int argCount = asmDispatch[args->type].assemble(E, compiler, code, args, EAV_ALL_ARGS, ASM_VAR | ASM_LVALUE | ASM_SETVAR);
     asmDispatch[body->type].assemble(E, compiler, code, body, 0, ASM_NORMAL);
     ekCodeGrow(E, code, 1);
-    ekCodeAppend(E, code, YOP_RET, 0, syntax->line);
+    ekCodeAppend(E, code, EOP_RET, 0, syntax->line);
     index = ekBlockConvertCode(E, code, compiler->chunk, argCount);
 
     if(name)
@@ -823,12 +823,12 @@ asmFunc(Function)
         valuesLeftOnStack = 0;
     }
     ekCodeGrow(E, dst, 2 + additionalOpsForNaming);
-    ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);    // Push the new block on the stack
-    ekCodeAppend(E, dst, YOP_CLOSE, 0, syntax->line);          // Give the VM an opportunity to pepper it with closure data
+    ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);    // Push the new block on the stack
+    ekCodeAppend(E, dst, EOP_CLOSE, 0, syntax->line);          // Give the VM an opportunity to pepper it with closure data
     if(name)
     {
-        ekCodeAppend(E, dst, YOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, name)), syntax->line);
-        ekCodeAppend(E, dst, YOP_SETVAR, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, name)), syntax->line);
+        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
     };
     compiler->chunk->hasFuncs = ekTrue;
     return PAD(valuesLeftOnStack);
@@ -843,9 +843,9 @@ asmFunc(FunctionArgs)
     if(varargsName)
     {
         ekCodeGrow(E, dst, 3);
-        varargsOpIndex = ekCodeAppend(E, dst, YOP_VARARGS, 0, args->line);
-        ekCodeAppend(E, dst, YOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, varargsName)), syntax->line);
-        ekCodeAppend(E, dst, YOP_SETVAR, 0, syntax->line);
+        varargsOpIndex = ekCodeAppend(E, dst, EOP_VARARGS, 0, args->line);
+        ekCodeAppend(E, dst, EOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, varargsName)), syntax->line);
+        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
     }
 
     argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, keep, flags);
@@ -853,7 +853,7 @@ asmFunc(FunctionArgs)
     if(varargsName)
     {
         dst->ops[varargsOpIndex].operand = argCount;
-        return YAV_ALL_ARGS;
+        return EAV_ALL_ARGS;
     }
     return argCount;
 }
@@ -867,13 +867,13 @@ asmFunc(Scope)
     // create new block from "body"
     asmDispatch[body->type].assemble(E, compiler, code, body, 0, ASM_NORMAL);
     ekCodeGrow(E, code, 1);
-    ekCodeAppend(E, code, YOP_LEAVE, 0, syntax->line);
+    ekCodeAppend(E, code, EOP_LEAVE, 0, syntax->line);
     index = ekBlockConvertCode(E, code, compiler->chunk, 0);
 
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_PUSH_KB, index, syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KB, index, syntax->line);
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, YOP_ENTER, YFT_SCOPE, syntax->line);
+    ekCodeAppend(E, dst, EOP_ENTER, EFT_SCOPE, syntax->line);
 
     return PAD(0);
 }
@@ -888,13 +888,13 @@ asmFunc(ExpressionList)
     for(i = 0; i < ekArraySize(E, &syntax->v.a); i++)
     {
         int index = (reverseOrder) ? (ekArraySize(E, &syntax->v.a) - 1) - i : i;
-        int keepIt = ((keep == YAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
+        int keepIt = ((keep == EAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
         ekSyntax *child = syntax->v.a[index];
         keepCount += asmDispatch[child->type].assemble(E, compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
         if(flags & ASM_SETVAR)
         {
             ekCodeGrow(E, dst, 1);
-            ekCodeAppend(E, dst, YOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(E, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
+            ekCodeAppend(E, dst, EOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(E, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
         }
     }
     return PAD(keepCount);
@@ -921,14 +921,14 @@ asmFunc(StatementList)
 
 ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler)
 {
-    if(compiler->root && (compiler->root->type == YST_STATEMENTLIST))
+    if(compiler->root && (compiler->root->type == EST_STATEMENTLIST))
     {
         int blockIndex;
         compiler->chunk = ekChunkCreate();
         compiler->code   = ekCodeCreate();
         ekAssembleStatementList(E, compiler, compiler->code, compiler->root, 0, ASM_NORMAL);
         ekCodeGrow(E, compiler->code, 1);
-        ekCodeAppend(E, compiler->code, YOP_RET, 0, 0);
+        ekCodeAppend(E, compiler->code, EOP_RET, 0, 0);
         blockIndex = ekBlockConvertCode(E, compiler->code, compiler->chunk, 0);
         compiler->chunk->block = compiler->chunk->blocks[blockIndex];
     }

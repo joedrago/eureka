@@ -68,12 +68,12 @@ int loadChunk(const char *code, ekU32 evalFlags)
 void outputGraph(const char *code, ekU32 evalFlags)
 {
 #ifdef EUREKA_ENABLE_EXT_DOT
-    ekU32 compileFlags = YCO_KEEP_SYNTAX_TREE;
+    ekU32 compileFlags = ECO_KEEP_SYNTAX_TREE;
     ekContext *E = ekContextCreate(NULL);
     ekCompiler *compiler = ekCompilerCreate(E);
-    if(evalFlags & YEO_OPTIMIZE)
+    if(evalFlags & EEO_OPTIMIZE)
     {
-        compileFlags |= YCO_OPTIMIZE;
+        compileFlags |= ECO_OPTIMIZE;
     }
     ekCompile(compiler, code, compileFlags);
     if(ekArraySize(E, &compiler->errors))
@@ -132,8 +132,8 @@ char *loadFile(const char *filename)
 // Eureka Test Mode
 enum
 {
-    YTM_LOADCHUNK,
-    YTM_GRAPH
+    ETM_LOADCHUNK,
+    ETM_GRAPH
 };
 
 int main(int argc, char *argv[])
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        int mode = YTM_LOADCHUNK;
+        int mode = ETM_LOADCHUNK;
         int i;
         ekU32 evalFlags = 0;
         char *filename = NULL;
@@ -154,13 +154,13 @@ int main(int argc, char *argv[])
                 switch(argv[i][1])
                 {
                     case 'd':
-                        evalFlags |= YEO_DUMP;
+                        evalFlags |= EEO_DUMP;
                         break;
                     case 'o':
-                        evalFlags |= YEO_OPTIMIZE;
+                        evalFlags |= EEO_OPTIMIZE;
                         break;
                     case 'g':
-                        mode = YTM_GRAPH;
+                        mode = ETM_GRAPH;
                         break;
                 };
             }
@@ -174,10 +174,10 @@ int main(int argc, char *argv[])
             {
                 switch(mode)
                 {
-                    case YTM_LOADCHUNK:
+                    case ETM_LOADCHUNK:
                         ret = loadChunk(code, evalFlags);
                         break;
-                    case YTM_GRAPH:
+                    case ETM_GRAPH:
                         outputGraph(code, evalFlags);
                         break;
                 };

@@ -33,100 +33,100 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 /*!re2c
     "\"\"\""        { goto heredoc; }
     "//"            { goto comment; }
-    "..."           { return YTT_ELLIPSIS; }
-    "&&"            { return YTT_AND; }
-    "&="            { return YTT_BITWISE_ANDEQUALS; }
-    "&"             { return YTT_BITWISE_AND; }
-    "||"            { return YTT_OR; }
-    "|="            { return YTT_BITWISE_OREQUALS; }
-    "|"             { return YTT_BITWISE_OR; }
-    "<=>"           { return YTT_CMP; }
-    "cmp"           { return YTT_CMP; }
-    "=="            { return YTT_EQUALS; }
-    "="             { return YTT_ASSIGN; }
-    "!="            { return YTT_NOTEQUALS; }
-    "!"             { return YTT_NOT; }
-    "^="            { return YTT_BITWISE_XOREQUALS; }
-    "^"             { return YTT_BITWISE_XOR; }
-    "~"             { return YTT_BITWISE_NOT; }
-    ">="            { return YTT_GREATERTHANOREQUAL; }
-    ">"             { return YTT_GREATERTHAN; }
-    "<<="           { return YTT_SHIFTLEFTEQUALS; }
-    ">>="           { return YTT_SHIFTRIGHTEQUALS; }
-    "<<"            { return YTT_SHIFTLEFT; }
-    ">>"            { return YTT_SHIFTRIGHT; }
-    "<="            { return YTT_LESSTHANOREQUAL; }
-    "<"             { return YTT_LESSTHAN; }
-    "=>"            { return YTT_FATCOMMA; } /* The fat comma! (see Perl) */
-    ","             { return YTT_COMMA; }
-    ";"             { return YTT_SEMI; }
-    "+="            { return YTT_PLUSEQUALS; }
-    "+"             { return YTT_PLUS; }
-    "-="            { return YTT_DASHEQUALS; }
-    "-"             { return YTT_DASH; }
-    "*="            { return YTT_STAREQUALS; }
-    "*"             { return YTT_STAR; }
-    "/="            { return YTT_SLASHEQUALS; }
-    "/"             { return YTT_SLASH; }
-    "%"             { return YTT_MOD; }
-    "{"             { return YTT_OPENBRACE; }
-    "}"             { return YTT_CLOSEBRACE; }
-    "["             { return YTT_OPENBRACKET; }
-    "]"             { return YTT_CLOSEBRACKET; }
-    "."             { return YTT_PERIOD; }
-    "::"            { return YTT_COLONCOLON; }
-    ":"             { return YTT_COLON; }
-    "\?"            { return YTT_QUESTIONMARK; }
+    "..."           { return ETT_ELLIPSIS; }
+    "&&"            { return ETT_AND; }
+    "&="            { return ETT_BITWISE_ANDEQUALS; }
+    "&"             { return ETT_BITWISE_AND; }
+    "||"            { return ETT_OR; }
+    "|="            { return ETT_BITWISE_OREQUALS; }
+    "|"             { return ETT_BITWISE_OR; }
+    "<=>"           { return ETT_CMP; }
+    "cmp"           { return ETT_CMP; }
+    "=="            { return ETT_EQUALS; }
+    "="             { return ETT_ASSIGN; }
+    "!="            { return ETT_NOTEQUALS; }
+    "!"             { return ETT_NOT; }
+    "^="            { return ETT_BITWISE_XOREQUALS; }
+    "^"             { return ETT_BITWISE_XOR; }
+    "~"             { return ETT_BITWISE_NOT; }
+    ">="            { return ETT_GREATERTHANOREQUAL; }
+    ">"             { return ETT_GREATERTHAN; }
+    "<<="           { return ETT_SHIFTLEFTEQUALS; }
+    ">>="           { return ETT_SHIFTRIGHTEQUALS; }
+    "<<"            { return ETT_SHIFTLEFT; }
+    ">>"            { return ETT_SHIFTRIGHT; }
+    "<="            { return ETT_LESSTHANOREQUAL; }
+    "<"             { return ETT_LESSTHAN; }
+    "=>"            { return ETT_FATCOMMA; } /* The fat comma! (see Perl) */
+    ","             { return ETT_COMMA; }
+    ";"             { return ETT_SEMI; }
+    "+="            { return ETT_PLUSEQUALS; }
+    "+"             { return ETT_PLUS; }
+    "-="            { return ETT_DASHEQUALS; }
+    "-"             { return ETT_DASH; }
+    "*="            { return ETT_STAREQUALS; }
+    "*"             { return ETT_STAR; }
+    "/="            { return ETT_SLASHEQUALS; }
+    "/"             { return ETT_SLASH; }
+    "%"             { return ETT_MOD; }
+    "{"             { return ETT_OPENBRACE; }
+    "}"             { return ETT_CLOSEBRACE; }
+    "["             { return ETT_OPENBRACKET; }
+    "]"             { return ETT_CLOSEBRACKET; }
+    "."             { return ETT_PERIOD; }
+    "::"            { return ETT_COLONCOLON; }
+    ":"             { return ETT_COLON; }
+    "\?"            { return ETT_QUESTIONMARK; }
 
-    "break"         { return YTT_BREAK; }
-    "this"          { return YTT_THIS; }
-    "while"         { return YTT_WHILE; }
-    "var"           { return YTT_VAR; }
-    "null"          { return YTT_NULL; }
-    "function"      { return YTT_FUNCTION; }
-    "return"        { return YTT_RETURN; }
-    "if"            { return YTT_IF; }
-    "else"          { return YTT_ELSE; }
-    "and"           { return YTT_AND; }
-    "or"            { return YTT_OR; }
-    "not"           { return YTT_NOT; }
-    "for"           { return YTT_FOR; }
-    "in"            { return YTT_IN; }
-    "inherits"      { return YTT_INHERITS; }
+    "break"         { return ETT_BREAK; }
+    "this"          { return ETT_THIS; }
+    "while"         { return ETT_WHILE; }
+    "var"           { return ETT_VAR; }
+    "null"          { return ETT_NULL; }
+    "function"      { return ETT_FUNCTION; }
+    "return"        { return ETT_RETURN; }
+    "if"            { return ETT_IF; }
+    "else"          { return ETT_ELSE; }
+    "and"           { return ETT_AND; }
+    "or"            { return ETT_OR; }
+    "not"           { return ETT_NOT; }
+    "for"           { return ETT_FOR; }
+    "in"            { return ETT_IN; }
+    "inherits"      { return ETT_INHERITS; }
 
-    "("             { return YTT_LEFTPAREN; }
-    ")"             { return YTT_RIGHTPAREN; }
+    "("             { return ETT_LEFTPAREN; }
+    ")"             { return ETT_RIGHTPAREN; }
 
     ([a-zA-Z_$] | UniversalChar) ([a-zA-Z_0-9$] | UniversalChar)*
-        { return YTT_IDENTIFIER; }
+        { return ETT_IDENTIFIER; }
 
     (['] (EscapeSequence|any\[\n\r\\']|UniversalChar)+ ['])
-        { return YTT_LITERALSTRING; }
+        { return ETT_LITERALSTRING; }
 
     ((FractionalConstant ExponentPart?) | (Digit+ ExponentPart)) FloatingSuffix?
-        { return YTT_FLOATNUM; }
+        { return ETT_FLOATNUM; }
 
     Integer
-        { return YTT_INTEGER; }
+        { return ETT_INTEGER; }
 
     (["] (EscapeSequence|any\[\n\r\\"]|UniversalChar)* ["])
-        { return YTT_LITERALSTRING; }
+        { return ETT_LITERALSTRING; }
 
     [ \t\v\f]+
-        { return YTT_SPACE; }
+        { return ETT_SPACE; }
 
     Newline
     {
         l->line++;
-        return YTT_NEWLINE;
+        return ETT_NEWLINE;
     }
 
     "\000"
     {
-        return YTT_EOF;
+        return ETT_EOF;
     }
 
-    any        { return YTT_UNKNOWN; }
+    any        { return ETT_UNKNOWN; }
 */
 
 comment:
@@ -134,7 +134,7 @@ comment:
     Newline
     {
         l->line++;
-        return YTT_COMMENT;
+        return ETT_COMMENT;
     }
 
     any            { goto comment; }
@@ -150,7 +150,7 @@ heredoc:
 
     "\"\"\""
     {
-        return YTT_HEREDOC;
+        return ETT_HEREDOC;
     }
 
     any            { goto heredoc; }

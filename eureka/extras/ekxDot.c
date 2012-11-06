@@ -43,7 +43,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
     switch(syntax->type)
     {
 
-        case YST_KSTRING:
+        case EST_KSTRING:
         {
             char *c;
             myOpts = "shape=house,color=blueviolet";
@@ -64,21 +64,21 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_KINT:
+        case EST_KINT:
         {
             myOpts = "shape=house,color=blueviolet";
             sprintf(label, "%d", syntax->v.i);
         }
         break;
 
-        case YST_IDENTIFIER:
+        case EST_IDENTIFIER:
         {
             myOpts = "shape=house";
             sprintf(label, "V: \\\"%s\\\"", syntax->v.s);
         }
         break;
 
-        case YST_INDEX:
+        case EST_INDEX:
         {
             strcpy(label, "Index");
             childLineOpts = "style=dotted,label=array";
@@ -88,7 +88,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_STATEMENTLIST:
+        case EST_STATEMENTLIST:
         {
             myOpts = "shape=box";
             strcpy(label, "StatementList");
@@ -96,7 +96,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_EXPRESSIONLIST:
+        case EST_EXPRESSIONLIST:
         {
             if(ekArraySize(E, &syntax->v.a))
             {
@@ -112,7 +112,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_IDENTIFIERLIST:
+        case EST_IDENTIFIERLIST:
         {
             strcpy(label, "IdentList");
             if(syntax->v.i)
@@ -123,7 +123,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_CALL:
+        case EST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
             sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraySize(E, &syntax->r.p->v.a));
@@ -132,7 +132,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_STRINGFORMAT:
+        case EST_STRINGFORMAT:
         {
             strcpy(label, "% (format)");
             childLineOpts = "style=dotted,label=format";
@@ -142,35 +142,35 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_NULL:
+        case EST_NULL:
         {
             myOpts = "shape=house,color=blueviolet";
             strcpy(label, "null");
         }
         break;
 
-        case YST_THIS:
+        case EST_THIS:
         {
             myOpts = "shape=house,color=blueviolet";
             strcpy(label, "this");
         }
         break;
 
-        case YST_NOT:
+        case EST_NOT:
         {
             strcpy(label, "Not (logical)");
             REC_CHILD(syntax->v.p);
         }
         break;
 
-        case YST_BITWISE_NOT:
+        case EST_BITWISE_NOT:
         {
             strcpy(label, "Not (bitwise)");
             REC_CHILD(syntax->v.p);
         }
         break;
 
-        case YST_BITWISE_XOR:
+        case EST_BITWISE_XOR:
         {
             if(syntax->v.i)
             {
@@ -185,7 +185,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_BITWISE_AND:
+        case EST_BITWISE_AND:
         {
             if(syntax->v.i)
             {
@@ -200,7 +200,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_BITWISE_OR:
+        case EST_BITWISE_OR:
         {
             if(syntax->v.i)
             {
@@ -215,7 +215,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_SHIFTLEFT:
+        case EST_SHIFTLEFT:
         {
             if(syntax->v.i)
             {
@@ -230,7 +230,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_SHIFTRIGHT:
+        case EST_SHIFTRIGHT:
         {
             if(syntax->v.i)
             {
@@ -245,7 +245,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_AND:
+        case EST_AND:
         {
             strcpy(label, "And (logical)");
             REC_CHILD(syntax->l.p);
@@ -253,7 +253,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_OR:
+        case EST_OR:
         {
             strcpy(label, "Or (logical)");
             REC_CHILD(syntax->l.p);
@@ -261,7 +261,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_ADD:
+        case EST_ADD:
         {
             if(syntax->v.i)
             {
@@ -276,7 +276,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_SUB:
+        case EST_SUB:
         {
             if(syntax->v.i)
             {
@@ -291,7 +291,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_MUL:
+        case EST_MUL:
         {
             if(syntax->v.i)
             {
@@ -306,7 +306,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_DIV:
+        case EST_DIV:
         {
             if(syntax->v.i)
             {
@@ -321,14 +321,14 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_STATEMENT_EXPR:
+        case EST_STATEMENT_EXPR:
         {
             strcpy(label, "StatementExpr");
             REC_CHILD(syntax->v.p);
         }
         break;
 
-        case YST_ASSIGNMENT:
+        case EST_ASSIGNMENT:
         {
             strcpy(label, "=");
             REC_CHILD(syntax->l.p);
@@ -336,7 +336,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_CMP:
+        case EST_CMP:
         {
             strcpy(label, "cmp");
             REC_CHILD(syntax->l.p);
@@ -344,7 +344,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_EQUALS:
+        case EST_EQUALS:
         {
             strcpy(label, "==");
             REC_CHILD(syntax->l.p);
@@ -352,7 +352,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_NOTEQUALS:
+        case EST_NOTEQUALS:
         {
             strcpy(label, "!=");
             REC_CHILD(syntax->l.p);
@@ -360,7 +360,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_GREATERTHAN:
+        case EST_GREATERTHAN:
         {
             strcpy(label, ">");
             REC_CHILD(syntax->l.p);
@@ -368,7 +368,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_GREATERTHANOREQUAL:
+        case EST_GREATERTHANOREQUAL:
         {
             strcpy(label, ">=");
             REC_CHILD(syntax->l.p);
@@ -376,7 +376,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_LESSTHAN:
+        case EST_LESSTHAN:
         {
             strcpy(label, "<");
             REC_CHILD(syntax->l.p);
@@ -384,7 +384,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_LESSTHANOREQUAL:
+        case EST_LESSTHANOREQUAL:
         {
             strcpy(label, "<=");
             REC_CHILD(syntax->l.p);
@@ -392,7 +392,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_INHERITS:
+        case EST_INHERITS:
         {
             strcpy(label, "Inherits");
             REC_CHILD(syntax->l.p);
@@ -400,20 +400,20 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_BREAK:
+        case EST_BREAK:
         {
             strcpy(label, "Break");
         }
         break;
 
-        case YST_RETURN:
+        case EST_RETURN:
         {
             strcpy(label, "Return");
             REC_CHILD(syntax->v.p);
         }
         break;
 
-        case YST_IFELSE:
+        case EST_IFELSE:
         {
             strcpy(label, "IfElse");
             childLineOpts = "style=dotted,label=condition";
@@ -428,7 +428,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_WHILE:
+        case EST_WHILE:
         {
             strcpy(label, "while");
             childLineOpts = "style=dotted,label=cond";
@@ -438,7 +438,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_FOR:
+        case EST_FOR:
         {
             strcpy(label, "for");
             childLineOpts = "style=dotted,label=vars";
@@ -450,7 +450,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_FUNCTION:
+        case EST_FUNCTION:
         {
             sprintf(label, "Function: \\\"%s\\\"", syntax->v.s);
             childLineOpts = "style=dotted,label=args";
@@ -460,7 +460,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_FUNCTION_ARGS:
+        case EST_FUNCTION_ARGS:
         {
             sprintf(label, "Function Args");
             childLineOpts = "style=dotted,label=args";
@@ -468,7 +468,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
-        case YST_SCOPE:
+        case EST_SCOPE:
         {
             sprintf(label, "SCOPE");
             childLineOpts = "label=body";

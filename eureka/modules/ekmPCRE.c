@@ -81,7 +81,7 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     else
     {
         // Regex compilation errors are fatal for now. I think this is good.
-        ekContextSetError(E, YVE_RUNTIME, "regex_match() error: %s", regexError);
+        ekContextSetError(E, EVE_RUNTIME, "regex_match() error: %s", regexError);
     }
 
     ekArrayPush(E, &E->stack, results);

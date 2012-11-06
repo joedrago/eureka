@@ -15,7 +15,7 @@
 ekFrame *ekFrameCreate(struct ekContext *E, ekU32 type, struct ekValue *thisVal, struct ekBlock *block, ekU32 prevStackCount, ekU32 argCount, ekValue *closure)
 {
     ekFrame *frame = (ekFrame *)ekAlloc(sizeof(ekFrame));
-    frame->locals = ekMapCreate(E, YMKT_STRING);
+    frame->locals = ekMapCreate(E, EMKT_STRING);
     frame->type = type;
     frame->thisVal = thisVal;
     frame->block = block;
@@ -38,7 +38,7 @@ void ekFrameReset(struct ekContext *E, ekFrame *frame, ekBool jumpToStart)
     frame->ip = (frame->block) ? frame->block->ops : NULL;
     if(frame->ip && jumpToStart)
     {
-        while(frame->ip->opcode != YOP_START)
+        while(frame->ip->opcode != EOP_START)
         {
             frame->ip++;
         }

@@ -21,33 +21,33 @@ struct ekValue;
 
 typedef enum ekValueBasicType
 {
-    YVT_NULL,                          // Must stay zero, so that calloc/memset sets a ekValue to NULL
+    EVT_NULL,                          // Must stay zero, so that calloc/memset sets a ekValue to NULL
 
-    YVT_BLOCK,
-    YVT_CFUNCTION,
+    EVT_BLOCK,
+    EVT_CFUNCTION,
 
-    YVT_INT,
-    YVT_FLOAT,
-    YVT_STRING,
+    EVT_INT,
+    EVT_FLOAT,
+    EVT_STRING,
 
-    YVT_ARRAY,
-    YVT_OBJECT,
+    EVT_ARRAY,
+    EVT_OBJECT,
 
-    YVT_REF,                           // Value reference
+    EVT_REF,                           // Value reference
 
-    YVT_COUNT,
-    YVT_CUSTOM = YVT_COUNT,            // First custom value type
-    YVT_INVALID = -1
+    EVT_COUNT,
+    EVT_CUSTOM = EVT_COUNT,            // First custom value type
+    EVT_INVALID = -1
 } ekValueBasicType;
 
 typedef enum ekValueArithmeticOp
 {
-    YVAO_ADD = 0,
-    YVAO_SUB,
-    YVAO_MUL,
-    YVAO_DIV,
+    EVAO_ADD = 0,
+    EVAO_SUB,
+    EVAO_MUL,
+    EVAO_DIV,
 
-    YVAO_COUNT
+    EVAO_COUNT
 } ekValueArithmeticOp;
 
 typedef struct ekDumpParams
@@ -60,7 +60,7 @@ typedef struct ekDumpParams
 ekDumpParams *ekDumpParamsCreate(struct ekContext *E);
 void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params);
 
-#define YVT_MAXNAMELEN 15
+#define EVT_MAXNAMELEN 15
 
 struct ekValueType;
 typedef void (*ekValueTypeDestroyUserData)(struct ekContext *E, struct ekValueType *valueType);
@@ -82,7 +82,7 @@ typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, s
 typedef struct ekValueType
 {
     int id;
-    char name[YVT_MAXNAMELEN + 1];
+    char name[EVT_MAXNAMELEN + 1];
 
     void *userData;                                  // per-type global structure used to hold any static data a type needs
     ekValueTypeDestroyUserData funcDestroyUserData; // optional destructor for userdata
@@ -210,9 +210,9 @@ void ekValueRemoveRefArray(struct ekContext *E, struct ekValue *p);  // used for
 void ekValueDump(struct ekContext *E, ekDumpParams *params, ekValue *p);
 
 #define ekValueIsCallable(VAL)     \
-    (  (VAL->type == YVT_OBJECT)    \
-       || (VAL->type == YVT_BLOCK)     \
-       || (VAL->type == YVT_CFUNCTION))
+    (  (VAL->type == EVT_OBJECT)    \
+       || (VAL->type == EVT_BLOCK)     \
+       || (VAL->type == EVT_CFUNCTION))
 
 // ---------------------------------------------------------------------------
 // Globals

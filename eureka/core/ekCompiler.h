@@ -23,10 +23,10 @@ struct ekToken;
 // Eureka Compile Options
 enum
 {
-    YCO_DEFAULT = 0,
+    ECO_DEFAULT = 0,
 
-    YCO_OPTIMIZE         = (1 << 0),
-    YCO_KEEP_SYNTAX_TREE = (1 << 1)
+    ECO_OPTIMIZE         = (1 << 0),
+    ECO_KEEP_SYNTAX_TREE = (1 << 1)
 };
 
 typedef struct ekCompiler

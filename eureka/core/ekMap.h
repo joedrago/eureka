@@ -12,8 +12,8 @@
 
 typedef enum ekMapKeyType
 {
-    YMKT_STRING = 1,
-    YMKT_INTEGER
+    EMKT_STRING = 1,
+    EMKT_INTEGER
 } ekMapKeyType;
 
 typedef struct ekMapEntry
