@@ -115,6 +115,16 @@ int ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes own
 
 void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 
+void ekValueTypeRegisterNull(struct ekContext *E);
+void ekValueTypeRegisterBlock(struct ekContext *E);
+void ekValueTypeRegisterCFunction(struct ekContext *E);
+void ekValueTypeRegisterInt(struct ekContext *E);
+void ekValueTypeRegisterFloat(struct ekContext *E);
+void ekValueTypeRegisterString(struct ekContext *E);
+void ekValueTypeRegisterArray(struct ekContext *E);
+void ekValueTypeRegisterObject(struct ekContext *E);
+void ekValueTypeRegisterRef(struct ekContext *E);
+
 #define ekValueTypePtr(id) ((ekValueType*)E->types[id])
 
 // If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro

@@ -79,6 +79,15 @@ set(ek_src
     core/ekTypes.c
     core/ekValue.h
     core/ekValue.c
+    core/ekValueTypeArray.c
+    core/ekValueTypeBlock.c
+    core/ekValueTypeCFunction.c
+    core/ekValueTypeFloat.c
+    core/ekValueTypeInt.c
+    core/ekValueTypeNull.c
+    core/ekValueTypeObject.c
+    core/ekValueTypeRef.c
+    core/ekValueTypeString.c
 )
 
 set(ek_intrinsics
