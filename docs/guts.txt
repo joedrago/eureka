@@ -11,8 +11,8 @@ created, etc), please (tour.txt) take the tour or (faq.txt) read the FAQ.
 
 You've been warned... time to dig in!
 
-Common Programing Patterns
---------------------------
+Common Programming Patterns
+---------------------------
 
 Just to save a bit of time when discussing various structures over the course of
 this document, I will give some general hints now that will help you understand
