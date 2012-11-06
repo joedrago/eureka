@@ -62,17 +62,17 @@ void *ekDefaultAlloc(ekSize bytes);
 void *ekDefaultRealloc(void *ptr, ekSize bytes);
 void ekDefaultFree(void *ptr);
 
-#define ekAlloc Y->allocFunc
-#define ekRealloc Y->reallocFunc
-#define ekFree Y->freeFunc
+#define ekAlloc E->allocFunc
+#define ekRealloc E->reallocFunc
+#define ekFree E->freeFunc
 
-char *ekStrdup(struct ekContext *Y, const char *s);
-char *ekSubstrdup(struct ekContext *Y, const char *s, int start, int end);
+char *ekStrdup(struct ekContext *E, const char *s);
+char *ekSubstrdup(struct ekContext *E, const char *s, int start, int end);
 
-typedef void (*ekDestroyCB)(struct ekContext *Y, void *p);
-typedef void (*ekDestroyCB1)(struct ekContext *Y, void *arg1, void *p);
+typedef void (*ekDestroyCB)(struct ekContext *E, void *p);
+typedef void (*ekDestroyCB1)(struct ekContext *E, void *arg1, void *p);
 
-void ekDestroyCBFree(struct ekContext *Y, void *ptr); // calls Y->free() on each element
+void ekDestroyCBFree(struct ekContext *E, void *ptr); // calls E->free() on each element
 
 // ---------------------------------------------------------------------------
 // Debug/Tracing Functions

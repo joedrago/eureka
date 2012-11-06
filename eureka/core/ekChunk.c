@@ -10,20 +10,20 @@
 #include "ekContext.h"
 #include "ekBlock.h"
 
-void ekChunkDestroy(struct ekContext *Y, ekChunk *chunk)
+void ekChunkDestroy(struct ekContext *E, ekChunk *chunk)
 {
     // chunk->block is either NULL or pointing inside chunk->blocks
-    ekArrayDestroy(Y, &chunk->blocks, (ekDestroyCB)ekBlockDestroy);
+    ekArrayDestroy(E, &chunk->blocks, (ekDestroyCB)ekBlockDestroy);
 
-    ekArrayDestroy(Y, &chunk->kStrings, (ekDestroyCB)ekDestroyCBFree);
-    ek32ArrayDestroy(Y, &chunk->kInts);
-    ek32ArrayDestroy(Y, &chunk->kFloats);
+    ekArrayDestroy(E, &chunk->kStrings, (ekDestroyCB)ekDestroyCBFree);
+    ek32ArrayDestroy(E, &chunk->kInts);
+    ek32ArrayDestroy(E, &chunk->kFloats);
 
     ekFree(chunk);
 }
 
-ekOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block)
+ekOperand ekChunkAddBlock(struct ekContext *E, ekChunk *chunk, struct ekBlock *block)
 {
     block->chunk = chunk;
-    return ekArrayPush(Y, &chunk->blocks, block);
+    return ekArrayPush(E, &chunk->blocks, block);
 }

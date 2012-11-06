@@ -18,10 +18,10 @@ typedef struct ekCode
 } ekCode;
 
 #define ekCodeCreate() ((ekCode*)ekAlloc(sizeof(ekCode)))
-void ekCodeDestroy(struct ekContext *Y, ekCode *code);
+void ekCodeDestroy(struct ekContext *E, ekCode *code);
 
-void ekCodeGrow(struct ekContext *Y, ekCode *code, int count);
-ekS32 ekCodeAppend(struct ekContext *Y, ekCode *code, ekOpcode opcode, ekOperand operand, int line);
-void ekCodeConcat(struct ekContext *Y, ekCode *dst, ekCode *src);
+void ekCodeGrow(struct ekContext *E, ekCode *code, int count);
+ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand operand, int line);
+void ekCodeConcat(struct ekContext *E, ekCode *dst, ekCode *src);
 
 #endif

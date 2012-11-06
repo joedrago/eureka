@@ -103,27 +103,27 @@ void ekOpsDump(ekOp *ops, int count)
     }
 }
 
-void ekChunkDump(struct ekContext *Y, ekChunk *chunk)
+void ekChunkDump(struct ekContext *E, ekChunk *chunk)
 {
     int i;
 
-    for(i = 0; i < ekArraySize(Y, &chunk->kStrings); i++)
+    for(i = 0; i < ekArraySize(E, &chunk->kStrings); i++)
     {
         printf(".kstr %3d    \"%s\"\n", i, chunk->kStrings[i]);
     }
 
-    for(i = 0; i < ek32ArraySize(Y, &chunk->kInts); i++)
+    for(i = 0; i < ek32ArraySize(E, &chunk->kInts); i++)
     {
         printf(".kint %3d    %d\n", i, chunk->kInts[i]);
     }
 
-    for(i = 0; i < ek32ArraySize(Y, &chunk->kFloats); i++)
+    for(i = 0; i < ek32ArraySize(E, &chunk->kFloats); i++)
 
     {
         printf(".kfloat %3d    %f\n", i, chunk->kFloats[i]);
     }
 
-    for(i = 0; i < ekArraySize(Y, &chunk->blocks); i++)
+    for(i = 0; i < ekArraySize(E, &chunk->blocks); i++)
     {
         ekBlock *block = chunk->blocks[i];
         if(block != chunk->block)

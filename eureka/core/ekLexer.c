@@ -49,7 +49,7 @@ int getNextToken(ekLexer *l)
 
 ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
 {
-    struct ekContext *Y = compiler->Y;
+    struct ekContext *E = compiler->E;
     int id;
     int token_len;
     int tokenMax;
@@ -114,7 +114,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
         l.token = l.cur;
     }
 
-    if(!ekArraySize(Y, &compiler->errors))
+    if(!ekArraySize(E, &compiler->errors))
     {
         token.line = l.line;
         CALL_CB(parser, YTT_ENDSTATEMENT, token, compiler);
@@ -122,14 +122,14 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
     return ekTrue;
 }
 
-ekToken *ekTokenClone(struct ekContext *Y, ekToken *token)
+ekToken *ekTokenClone(struct ekContext *E, ekToken *token)
 {
     ekToken *ret = ekTokenCreate();
     *ret = *token;
     return ret;
 }
 
-char *ekTokenToString(struct ekContext *Y, ekToken *t)
+char *ekTokenToString(struct ekContext *E, ekToken *t)
 {
     const char *src = t->text;
     const char *end = src + t->len;
@@ -195,7 +195,7 @@ char *ekTokenToString(struct ekContext *Y, ekToken *t)
     return str;
 }
 
-int ekTokenToInt(struct ekContext *Y, ekToken *t)
+int ekTokenToInt(struct ekContext *E, ekToken *t)
 {
     char temp[32];
     int base = 10;
@@ -218,7 +218,7 @@ int ekTokenToInt(struct ekContext *Y, ekToken *t)
     return strtol(temp, NULL, base);
 }
 
-float ekTokenToFloat(struct ekContext *Y, ekToken *t)
+float ekTokenToFloat(struct ekContext *E, ekToken *t)
 {
     char temp[32];
     char *endptr;

@@ -69,7 +69,7 @@ static ekSize linearHashCompute(ekMap *yh, ekU32 hash)
 
 // This is used by ekMapNewEntry to chain a new entry into a bucket, and it is used
 // by the split and rewind functions to rebucket everything in a single bucket.
-static void ekMapBucketEntryChain(struct ekContext *Y, ekMap *yh, ekMapEntry *chain)
+static void ekMapBucketEntryChain(struct ekContext *E, ekMap *yh, ekMapEntry *chain)
 {
     while(chain)
     {
@@ -82,7 +82,7 @@ static void ekMapBucketEntryChain(struct ekContext *Y, ekMap *yh, ekMapEntry *ch
     }
 }
 
-static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, ekU32 hash, void *key)
+static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, void *key)
 {
     ekMapEntry *entry;
     ekMapEntry *chain;
@@ -93,7 +93,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, ekU32 hash, voi
     switch(yh->keyType)
     {
         case YMKT_STRING:
-            entry->keyStr = ekStrdup(Y, (char *)key);
+            entry->keyStr = ekStrdup(E, (char *)key);
             break;
         case YMKT_INTEGER:
             entry->keyInt = *((int *)key);
@@ -101,7 +101,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, ekU32 hash, voi
     }
     entry->hash = hash;
     entry->value64 = 0;
-    ekMapBucketEntryChain(Y, yh, entry);
+    ekMapBucketEntryChain(E, yh, entry);
 
     // Steal the chain at the split boundary...
     chain = yh->table[yh->split];
@@ -114,17 +114,17 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *Y, ekMap *yh, ekU32 hash, voi
         // It is time to grow our linear hash!
         yh->mod *= 2;
         yh->split = 0;
-        ekArraySetSize(Y, &yh->table, yh->mod << 1, NULL);
+        ekArraySetSize(E, &yh->table, yh->mod << 1, NULL);
     }
 
     // ... and reattach the stolen chain.
-    ekMapBucketEntryChain(Y, yh, chain);
+    ekMapBucketEntryChain(E, yh, chain);
 
     ++yh->count;
     return entry;
 }
 
-static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
+static void ekMapRewindSplit(struct ekContext *E, ekMap *yh)
 {
     ekMapEntry *chain;
     ekSize indexToRebucket;
@@ -134,12 +134,12 @@ static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
     {
         yh->mod >>= 1;
         yh->split = yh->mod - 1;
-        ekArraySetSize(Y, &yh->table, yh->mod << 1, NULL);
+        ekArraySetSize(E, &yh->table, yh->mod << 1, NULL);
 
         // Time to shrink!
-        if((ekArraySize(Y, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(Y, &yh->table))
+        if((ekArraySize(E, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(E, &yh->table))
         {
-            ekArraySetCapacity(Y, &yh->table, ekArraySize(Y, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
+            ekArraySetCapacity(E, &yh->table, ekArraySize(E, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
         }
     }
 
@@ -147,34 +147,34 @@ static void ekMapRewindSplit(struct ekContext *Y, ekMap *yh)
     chain = yh->table[indexToRebucket];
     yh->table[indexToRebucket] = NULL;
 
-    ekMapBucketEntryChain(Y, yh, chain);
+    ekMapBucketEntryChain(E, yh, chain);
 }
 
 // ------------------------------------------------------------------------------------------------
 // creation / destruction / cleanup
 
-ekMap *ekMapCreate(struct ekContext *Y, ekMapKeyType keyType)
+ekMap *ekMapCreate(struct ekContext *E, ekMapKeyType keyType)
 {
     ekMap *yh = (ekMap *)ekAlloc(sizeof(*yh));
     yh->keyType = keyType;
     yh->split = 0;
     yh->mod   = INITIAL_MODULUS;
     yh->count = 0;
-    ekArraySetSize(Y, &yh->table, yh->mod << 1, NULL);
+    ekArraySetSize(E, &yh->table, yh->mod << 1, NULL);
     return yh;
 }
 
-void ekMapDestroy(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapDestroy(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
 {
     if(yh)
     {
-        ekMapClear(Y, yh, destroyFunc);
-        ekArrayDestroy(Y, &yh->table, NULL);
+        ekMapClear(E, yh, destroyFunc);
+        ekArrayDestroy(E, &yh->table, NULL);
         ekFree(yh);
     }
 }
 
-static void ekMapDestroyEntry(struct ekContext *Y, ekMap *yh, ekMapEntry *p)
+static void ekMapDestroyEntry(struct ekContext *E, ekMap *yh, ekMapEntry *p)
 {
     if(yh->keyType == YMKT_STRING)
     {
@@ -183,13 +183,13 @@ static void ekMapDestroyEntry(struct ekContext *Y, ekMap *yh, ekMapEntry *p)
     ekFree(p);
 }
 
-void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapClear(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     if(yh)
     {
         ekS32 tableIndex;
-        for(tableIndex = 0; tableIndex < ekArraySize(Y, &yh->table); ++tableIndex)
+        for(tableIndex = 0; tableIndex < ekArraySize(E, &yh->table); ++tableIndex)
         {
             ekMapEntry *entry = yh->table[tableIndex];
             while(entry)
@@ -197,17 +197,17 @@ void ekMapClear(struct ekContext *Y, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
                 ekMapEntry *freeme = entry;
                 if(func && entry->valuePtr)
                 {
-                    func(Y, entry->valuePtr);
+                    func(E, entry->valuePtr);
                 }
                 entry = entry->next;
-                ekMapDestroyEntry(Y, yh, freeme);
+                ekMapDestroyEntry(E, yh, freeme);
             }
         }
-        memset(yh->table, 0, ekArraySize(Y, &yh->table) * sizeof(ekMapEntry *));
+        memset(yh->table, 0, ekArraySize(E, &yh->table) * sizeof(ekMapEntry *));
     }
 }
 
-static ekMapEntry *ekMapFindString(struct ekContext *Y, ekMap *yh, const char *key, int autoCreate)
+static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *key, int autoCreate)
 {
     ekU32 hash = (ekU32)HASHSTRING(key);
     ekS32 index = linearHashCompute(yh, hash);
@@ -223,12 +223,12 @@ static ekMapEntry *ekMapFindString(struct ekContext *Y, ekMap *yh, const char *k
     if(autoCreate)
     {
         // A new entry!
-        return ekMapNewEntry(Y, yh, hash, (void *)key);
+        return ekMapNewEntry(E, yh, hash, (void *)key);
     }
     return NULL;
 }
 
-static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, ekU32 key, int autoCreate)
+static ekMapEntry *ekMapFindInteger(struct ekContext *E, ekMap *yh, ekU32 key, int autoCreate)
 {
     ekU32 hash = (ekU32)HASHINT(key);
     ekS32 index = linearHashCompute(yh, hash);
@@ -244,17 +244,17 @@ static ekMapEntry *ekMapFindInteger(struct ekContext *Y, ekMap *yh, ekU32 key, i
     if(autoCreate)
     {
         // A new entry!
-        return ekMapNewEntry(Y, yh, hash, (void *)&key);
+        return ekMapNewEntry(E, yh, hash, (void *)&key);
     }
     return NULL;
 }
 
-ekMapEntry *ekMapGetS(struct ekContext *Y, ekMap *yh, const char *key, ekBool create)
+ekMapEntry *ekMapGetS(struct ekContext *E, ekMap *yh, const char *key, ekBool create)
 {
-    return ekMapFindString(Y, yh, key, create);
+    return ekMapFindString(E, yh, key, create);
 }
 
-void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapEraseS(struct ekContext *E, ekMap *yh, const char *key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     ekU32 hash = (ekU32)HASHSTRING(key);
@@ -275,22 +275,22 @@ void ekMapEraseS(struct ekContext *Y, ekMap *yh, const char *key, void * /*ekDes
             }
             if(func && entry->valuePtr)
             {
-                func(Y, entry->valuePtr);
+                func(E, entry->valuePtr);
             }
-            ekMapDestroyEntry(Y, yh, entry);
+            ekMapDestroyEntry(E, yh, entry);
             --yh->count;
-            ekMapRewindSplit(Y, yh);
+            ekMapRewindSplit(E, yh);
             return;
         }
     }
 }
 
-ekMapEntry *ekMapGetI(struct ekContext *Y, ekMap *yh, ekU32 key, ekBool create)
+ekMapEntry *ekMapGetI(struct ekContext *E, ekMap *yh, ekU32 key, ekBool create)
 {
-    return ekMapFindInteger(Y, yh, key, create);
+    return ekMapFindInteger(E, yh, key, create);
 }
 
-void ekMapEraseI(struct ekContext *Y, ekMap *yh, ekU32 key, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapEraseI(struct ekContext *E, ekMap *yh, ekU32 key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     ekU32 hash = (ekU32)HASHINT(key);
@@ -311,17 +311,17 @@ void ekMapEraseI(struct ekContext *Y, ekMap *yh, ekU32 key, void * /*ekDestroyCB
             }
             if(func && entry->valuePtr)
             {
-                func(Y, entry->valuePtr);
+                func(E, entry->valuePtr);
             }
-            ekMapDestroyEntry(Y, yh, entry);
+            ekMapDestroyEntry(E, yh, entry);
             --yh->count;
-            ekMapRewindSplit(Y, yh);
+            ekMapRewindSplit(E, yh);
             return;
         }
     }
 }
 
-void ekMapIterateP1(struct ekContext *Y, ekMap *yh, void *rawcb, void *arg1)
+void ekMapIterateP1(struct ekContext *E, ekMap *yh, void *rawcb, void *arg1)
 {
     ek2IterateCB1 cb = (ek2IterateCB1)rawcb;
     int i;
@@ -335,7 +335,7 @@ void ekMapIterateP1(struct ekContext *Y, ekMap *yh, void *rawcb, void *arg1)
         ekMapEntry *entry = yh->table[i];
         while(entry)
         {
-            cb(Y, arg1, entry);
+            cb(E, arg1, entry);
             entry = entry->next;
         }
     }

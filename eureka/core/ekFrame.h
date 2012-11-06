@@ -50,8 +50,8 @@ typedef struct ekFrame
     ekU32 cleanupCount;                 // Number of stack items to cleanup when this frame is popped
 } ekFrame;
 
-ekFrame *ekFrameCreate(struct ekContext *Y, ekU32 type, struct ekValue *thisVal, struct ekBlock *block, ekU32 prevStackCount, ekU32 argCount, struct ekValue *closure);
-void ekFrameReset(struct ekContext *Y, ekFrame *frame, ekBool jumpToStart);
-void ekFrameDestroy(struct ekContext *Y, ekFrame *frame);
+ekFrame *ekFrameCreate(struct ekContext *E, ekU32 type, struct ekValue *thisVal, struct ekBlock *block, ekU32 prevStackCount, ekU32 argCount, struct ekValue *closure);
+void ekFrameReset(struct ekContext *E, ekFrame *frame, ekBool jumpToStart);
+void ekFrameDestroy(struct ekContext *E, ekFrame *frame);
 
 #endif

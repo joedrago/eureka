@@ -41,8 +41,17 @@ declared as such:
 
     struct ekFrame **frames;
 
+ekArray*() functions take references to these functions (a triple pointer! The
+horror!), and internally maintain capacity with a bit of pointer arithmetic. As
+an example, this is legal code:
 
+    extern ekContext *E;                        // created elsewhere
+    ekFrame **frames = NULL;
+    ekFrame *newFrame = ekFrameCreate(E, ...);
+    ekArrayPush(E, &frames, newFrame);          // creates array storage
+    ekArrayDestroy(E, &frames, ekFrameDestroy); // frees everything + storage
 
+A similar mechanism exists for ekString, using a simple char pointer.
 
 The Eureka Context
 ------------------

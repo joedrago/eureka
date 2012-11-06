@@ -29,8 +29,8 @@ typedef struct ekChunk
 } ekChunk;
 
 #define ekChunkCreate() ((ekChunk*)ekAlloc(sizeof(ekChunk)))
-void ekChunkDestroy(struct ekContext *Y, ekChunk *chunk);
+void ekChunkDestroy(struct ekContext *E, ekChunk *chunk);
 
-ekOperand ekChunkAddBlock(struct ekContext *Y, ekChunk *chunk, struct ekBlock *block);
+ekOperand ekChunkAddBlock(struct ekContext *E, ekChunk *chunk, struct ekBlock *block);
 
 #endif

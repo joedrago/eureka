@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include "cJSON.h"
 
-static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
+static ekValue *jsonRecurse(struct ekContext *E, cJSON *json)
 {
     cJSON *child;
     ekValue *ret = ekValueNullPtr;
@@ -21,13 +21,13 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
     {
         case cJSON_False:
         {
-            ret = ekValueCreateInt(Y, 0);
+            ret = ekValueCreateInt(E, 0);
         }
         break;
 
         case cJSON_True:
         {
-            ret = ekValueCreateInt(Y, 1);
+            ret = ekValueCreateInt(E, 1);
         }
         break;
 
@@ -39,13 +39,13 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
 
         case cJSON_Number:
         {
-            ret = ekValueCreateFloat(Y, json->valuedouble);
+            ret = ekValueCreateFloat(E, json->valuedouble);
         }
         break;
 
         case cJSON_String:
         {
-            ret = ekValueCreateString(Y, json->valuestring);
+            ret = ekValueCreateString(E, json->valuestring);
         }
         break;
 
@@ -53,11 +53,11 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
         {
             int i;
             int size = cJSON_GetArraySize(json);
-            ret = ekValueCreateArray(Y);
+            ret = ekValueCreateArray(E);
             child = json->child;
             while(child)
             {
-                ekArrayPush(Y, &ret->arrayVal, jsonRecurse(Y, child));
+                ekArrayPush(E, &ret->arrayVal, jsonRecurse(E, child));
                 child = child->next;
             }
         }
@@ -65,11 +65,11 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
 
         case cJSON_Object:
         {
-            ret = ekValueCreateObject(Y, NULL, 0, ekFalse);
+            ret = ekValueCreateObject(E, NULL, 0, ekFalse);
             child = json->child;
             while(child)
             {
-                ekValueObjectSetMember(Y, ret, child->string, jsonRecurse(Y, child));
+                ekValueObjectSetMember(E, ret, child->string, jsonRecurse(E, child));
                 child = child->next;
             }
         }
@@ -79,32 +79,32 @@ static ekValue *jsonRecurse(struct ekContext *Y, cJSON *json)
     return ret;
 }
 
-static ekU32 json_parse(struct ekContext *Y, ekU32 argCount)
+static ekU32 json_parse(struct ekContext *E, ekU32 argCount)
 {
     ekValue *ret = ekValueNullPtr;
     cJSON *json;
     ekValue *jsonValue;
 
-    if(!ekContextGetArgs(Y, argCount, "s", &jsonValue))
+    if(!ekContextGetArgs(E, argCount, "s", &jsonValue))
     {
-        return ekContextArgsFailure(Y, argCount, "json_parse([string] json)");
+        return ekContextArgsFailure(E, argCount, "json_parse([string] json)");
     }
 
     json = cJSON_Parse(ekStringSafePtr(&jsonValue->stringVal));
     if(json)
     {
-        ret = jsonRecurse(Y, json);
+        ret = jsonRecurse(E, json);
         cJSON_Delete(json);
     }
 
-    ekArrayPush(Y, &Y->stack, ret);
+    ekArrayPush(E, &E->stack, ret);
     return 1;
 }
 
-void ekModuleRegisterJSON(struct ekContext *Y)
+void ekModuleRegisterJSON(struct ekContext *E)
 {
     cJSON_Hooks hooks = { ekAlloc, ekFree };
     cJSON_InitHooks(&hooks);
 
-    ekContextRegisterGlobalFunction(Y, "json_parse", json_parse);
+    ekContextRegisterGlobalFunction(E, "json_parse", json_parse);
 }

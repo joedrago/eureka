@@ -10,6 +10,6 @@
 
 #include "ekTypes.h"
 
-void ekIntrinsicsRegisterConversions(struct ekContext *Y);
+void ekIntrinsicsRegisterConversions(struct ekContext *E);
 
 #endif

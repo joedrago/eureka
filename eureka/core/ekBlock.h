@@ -26,8 +26,8 @@ typedef struct ekBlock
 } ekBlock;
 
 #define ekBlockCreate() ((ekBlock*)ekAlloc(sizeof(ekBlock)))
-void ekBlockDestroy(struct ekContext *Y, ekBlock *block);
+void ekBlockDestroy(struct ekContext *E, ekBlock *block);
 
-ekOperand ekBlockConvertCode(struct ekContext *Y, struct ekCode *code, struct ekChunk *owner, int argCount);
+ekOperand ekBlockConvertCode(struct ekContext *E, struct ekCode *code, struct ekChunk *owner, int argCount);
 
 #endif

@@ -17,47 +17,47 @@
 
 // ---------------------------------------------------------------------------
 
-static ekU32 convert_to_string(struct ekContext *Y, ekU32 argCount)
+static ekU32 convert_to_string(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v = NULL;
-    if(!ekContextGetArgs(Y, argCount, "?", &v))
+    if(!ekContextGetArgs(E, argCount, "?", &v))
     {
-        return ekContextArgsFailure(Y, argCount, "string(value)");
+        return ekContextArgsFailure(E, argCount, "string(value)");
     }
 
-    ekArrayPush(Y, &Y->stack, ekValueToString(Y, v));
+    ekArrayPush(E, &E->stack, ekValueToString(E, v));
     return 1;
 }
 
-static ekU32 convert_to_int(struct ekContext *Y, ekU32 argCount)
+static ekU32 convert_to_int(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v = NULL;
-    if(!ekContextGetArgs(Y, argCount, "?", &v))
+    if(!ekContextGetArgs(E, argCount, "?", &v))
     {
-        return ekContextArgsFailure(Y, argCount, "int(value)");
+        return ekContextArgsFailure(E, argCount, "int(value)");
     }
 
-    ekArrayPush(Y, &Y->stack, ekValueToInt(Y, v));
+    ekArrayPush(E, &E->stack, ekValueToInt(E, v));
     return 1;
 }
 
-static ekU32 convert_to_float(struct ekContext *Y, ekU32 argCount)
+static ekU32 convert_to_float(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v = NULL;
-    if(!ekContextGetArgs(Y, argCount, "?", &v))
+    if(!ekContextGetArgs(E, argCount, "?", &v))
     {
-        return ekContextArgsFailure(Y, argCount, "float(value)");
+        return ekContextArgsFailure(E, argCount, "float(value)");
     }
 
-    ekArrayPush(Y, &Y->stack, ekValueToFloat(Y, v));
+    ekArrayPush(E, &E->stack, ekValueToFloat(E, v));
     return 1;
 }
 
 // ---------------------------------------------------------------------------
 
-void ekIntrinsicsRegisterConversions(struct ekContext *Y)
+void ekIntrinsicsRegisterConversions(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(Y, "string", convert_to_string);
-    ekContextRegisterGlobalFunction(Y, "int", convert_to_int);
-    ekContextRegisterGlobalFunction(Y, "float", convert_to_float);
+    ekContextRegisterGlobalFunction(E, "string", convert_to_string);
+    ekContextRegisterGlobalFunction(E, "int", convert_to_int);
+    ekContextRegisterGlobalFunction(E, "float", convert_to_float);
 }

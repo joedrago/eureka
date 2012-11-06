@@ -31,14 +31,14 @@ enum
 
 typedef struct ekCompiler
 {
-    struct ekContext *Y;
+    struct ekContext *E;
     struct ekSyntax *root;
     struct ekChunk *chunk;
     struct ekCode *code;
     char **errors;
 } ekCompiler;
 
-ekCompiler *ekCompilerCreate(struct ekContext *Y);
+ekCompiler *ekCompilerCreate(struct ekContext *E);
 void ekCompilerDestroy(ekCompiler *compiler);
 
 // Main entry point for the compiler

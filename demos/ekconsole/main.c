@@ -66,16 +66,16 @@ char *loadFile(const char *filename)
 
 // ---------------------------------------------------------------------------
 
-static char *getprompt(ekContext *Y)
+static char *getprompt(ekContext *E)
 {
     static char prompt[1024];
-    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", (int)ekArraySize(Y, &Y->chunks), Y->globals->count);
+    sprintf(prompt, "\n[chunks: %d] [globals: %d] $ ", (int)ekArraySize(E, &E->chunks), E->globals->count);
     return prompt;
 }
 
 // ---------------------------------------------------------------------------
 
-static void printVariable(struct ekContext *Y, void *ignored, ekMapEntry *entry)
+static void printVariable(struct ekContext *E, void *ignored, ekMapEntry *entry)
 {
     printf("* '%s'\n", entry->keyStr);
 }
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     //_CrtSetBreakAlloc(212);
 #endif
     {
-        ekContext *Y = ekContextCreate(NULL);
+        ekContext *E = ekContextCreate(NULL);
         int dump = 0;
         int running = 1;
         char *line;
@@ -107,12 +107,12 @@ int main(int argc, char *argv[])
             }
         }
 
-        while(running && (line = readline(getprompt(Y))))
+        while(running && (line = readline(getprompt(E))))
         {
             char *code = NULL;
             if(!strcmp(line, "$globals"))
             {
-                ekMapIterateP1(Y, Y->globals, printVariable, NULL);
+                ekMapIterateP1(E, E->globals, printVariable, NULL);
             }
             else if(!strncmp(line, "$load ", 6))
             {
@@ -134,18 +134,18 @@ int main(int argc, char *argv[])
                 {
                     opts = YEO_DUMP;
                 }
-                ekContextEval(Y, code, opts);
-                if(ekContextGetError(Y))
+                ekContextEval(E, code, opts);
+                if(ekContextGetError(E))
                 {
-                    printf("Errors:\n%s\n", ekContextGetError(Y));
-                    ekContextRecover(Y);
+                    printf("Errors:\n%s\n", ekContextGetError(E));
+                    ekContextRecover(E);
                 }
                 free(code);
             }
 
             free(line);
         }
-        ekContextDestroy(Y);
+        ekContextDestroy(E);
     }
 
 #ifdef PLATFORM_WIN32

@@ -12,32 +12,32 @@
 #include "ekValue.h"
 #include "ekContext.h"
 
-ekObject *ekObjectCreate(struct ekContext *Y, ekValue *isa)
+ekObject *ekObjectCreate(struct ekContext *E, ekValue *isa)
 {
     ekObject *v = (ekObject *)ekAlloc(sizeof(ekObject));
     v->isa = isa;
     if(v->isa)
     {
-        ekValueAddRefNote(Y, v->isa, "ekObject isa");
+        ekValueAddRefNote(E, v->isa, "ekObject isa");
     }
-    v->hash = ekMapCreate(Y, YMKT_STRING);
+    v->hash = ekMapCreate(E, YMKT_STRING);
     return v;
 }
 
-void ekObjectDestroy(struct ekContext *Y, ekObject *v)
+void ekObjectDestroy(struct ekContext *E, ekObject *v)
 {
     if(v->isa)
     {
-        ekValueRemoveRefNote(Y, v->isa, "ekObject isa done");
+        ekValueRemoveRefNote(E, v->isa, "ekObject isa done");
     }
-    ekMapDestroy(Y, v->hash, ekValueRemoveRefHashed);
+    ekMapDestroy(E, v->hash, ekValueRemoveRefHashed);
     ekFree(v);
 }
 
-struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const char *key, ekBool create)
+struct ekValue **ekObjectGetRef(struct ekContext *E, ekObject *object, const char *key, ekBool create)
 {
     struct ekValue **ref = NULL;
-    ekMapEntry *hashEntry = ekMapGetS(Y, object->hash, key, create);
+    ekMapEntry *hashEntry = ekMapGetS(E, object->hash, key, create);
     if(hashEntry)
     {
         ref = (struct ekValue **)&hashEntry->valuePtr;
@@ -54,7 +54,7 @@ struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const cha
     {
         if(object->isa)
         {
-            return ekObjectGetRef(Y, object->isa->objectVal, key, create);
+            return ekObjectGetRef(E, object->isa->objectVal, key, create);
         }
         ref = &ekValueNullPtr;
     }

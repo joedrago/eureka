@@ -24,9 +24,9 @@ typedef struct ekObject
     struct ekMap *hash;
 } ekObject;
 
-ekObject *ekObjectCreate(struct ekContext *Y, struct ekValue *isa);
-void ekObjectDestroy(struct ekContext *Y, ekObject *v);
+ekObject *ekObjectCreate(struct ekContext *E, struct ekValue *isa);
+void ekObjectDestroy(struct ekContext *E, ekObject *v);
 
-struct ekValue **ekObjectGetRef(struct ekContext *Y, ekObject *object, const char *key, ekBool create);
+struct ekValue **ekObjectGetRef(struct ekContext *E, ekObject *object, const char *key, ekBool create);
 
 #endif

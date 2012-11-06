@@ -32,14 +32,14 @@ int loadChunk(const char *code, ekU32 evalFlags)
 #endif
     {
         char *error = NULL;
-        ekContext *Y = ekContextCreate(NULL);
-        ekContextEval(Y, code, evalFlags);
-        if(ekContextGetError(Y))
+        ekContext *E = ekContextCreate(NULL);
+        ekContextEval(E, code, evalFlags);
+        if(ekContextGetError(E))
         {
-            error = strdup(ekContextGetError(Y));
+            error = strdup(ekContextGetError(E));
             ret |= FAIL_EVAL;
         }
-        ekContextDestroy(Y);
+        ekContextDestroy(E);
         if(error)
         {
             printf("VM Bailed out: %s\n", error);
@@ -69,17 +69,17 @@ void outputGraph(const char *code, ekU32 evalFlags)
 {
 #ifdef EUREKA_ENABLE_EXT_DOT
     ekU32 compileFlags = YCO_KEEP_SYNTAX_TREE;
-    ekContext *Y = ekContextCreate(NULL);
-    ekCompiler *compiler = ekCompilerCreate(Y);
+    ekContext *E = ekContextCreate(NULL);
+    ekCompiler *compiler = ekCompilerCreate(E);
     if(evalFlags & YEO_OPTIMIZE)
     {
         compileFlags |= YCO_OPTIMIZE;
     }
     ekCompile(compiler, code, compileFlags);
-    if(ekArraySize(Y, &compiler->errors))
+    if(ekArraySize(E, &compiler->errors))
     {
         int i;
-        for(i = 0; i < ekArraySize(Y, &compiler->errors); i++)
+        for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
         {
             char *error = (char *)compiler->errors[i];
             fprintf(stderr, "Error: %s\n", error);
@@ -87,14 +87,14 @@ void outputGraph(const char *code, ekU32 evalFlags)
     }
     if(compiler->root)
     {
-        ekSyntaxDot(Y, compiler->root);
+        ekSyntaxDot(E, compiler->root);
     }
     else
     {
         printf("ERROR: Failed to build syntax tree\n");
     }
     ekCompilerDestroy(compiler);
-    ekContextDestroy(Y);
+    ekContextDestroy(E);
 #else
     printf("Dot support is disabled! (EUREKA_ENABLE_EXT_DOT)\n");
 #endif

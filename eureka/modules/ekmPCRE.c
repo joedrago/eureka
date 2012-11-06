@@ -33,7 +33,7 @@ static int ekRegexOptionsToPCREFlags(const char *options)
     return pcreFlags;
 }
 
-static ekU32 regex_match(struct ekContext *Y, ekU32 argCount)
+static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
 {
     ekValue *pattern = NULL;
     ekValue *subject = NULL;
@@ -47,9 +47,9 @@ static ekU32 regex_match(struct ekContext *Y, ekU32 argCount)
     int regexErrorOffset;
     int regexVectors[EUREKA_MAX_REGEX_VECTORS];
 
-    if(!ekContextGetArgs(Y, argCount, "ss|s", &pattern, &subject, &options))
+    if(!ekContextGetArgs(E, argCount, "ss|s", &pattern, &subject, &options))
     {
-        return ekContextArgsFailure(Y, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
+        return ekContextArgsFailure(E, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
     }
 
     if(options)
@@ -65,15 +65,15 @@ static ekU32 regex_match(struct ekContext *Y, ekU32 argCount)
         if(err > 0)
         {
             int i;
-            matches = ekValueCreateArray(Y);
-            //results = ekValueObjectCreate(Y, NULL, 0);
-            //ekValueObjectSetMember(Y, results, "matches", matches);
+            matches = ekValueCreateArray(E);
+            //results = ekValueObjectCreate(E, NULL, 0);
+            //ekValueObjectSetMember(E, results, "matches", matches);
             results = matches;
             for(i=0; i<err; i++)
             {
                 int index = i*2;
-                ekValue *match = ekValueDonateString(Y, ekSubstrdup(Y, ekStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
-                ekArrayPush(Y, &matches->arrayVal, match);
+                ekValue *match = ekValueDonateString(E, ekSubstrdup(E, ekStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
+                ekArrayPush(E, &matches->arrayVal, match);
             }
         }
         pcre_free(regex);
@@ -81,14 +81,14 @@ static ekU32 regex_match(struct ekContext *Y, ekU32 argCount)
     else
     {
         // Regex compilation errors are fatal for now. I think this is good.
-        ekContextSetError(Y, YVE_RUNTIME, "regex_match() error: %s", regexError);
+        ekContextSetError(E, YVE_RUNTIME, "regex_match() error: %s", regexError);
     }
 
-    ekArrayPush(Y, &Y->stack, results);
+    ekArrayPush(E, &E->stack, results);
     return 1;
 }
 
-void ekModuleRegisterPCRE(struct ekContext *Y)
+void ekModuleRegisterPCRE(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(Y, "regex_match", regex_match);
+    ekContextRegisterGlobalFunction(E, "regex_match", regex_match);
 }

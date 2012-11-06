@@ -80,7 +80,7 @@
         case 'V':
         case 'W':
         case 'X':
-        case 'Y':
+        case 'E':
         case 'Z':
         case '_':
         case 'a':
@@ -4215,7 +4215,7 @@ yy124:
         case 'V':
         case 'W':
         case 'X':
-        case 'Y':
+        case 'E':
         case 'Z':
         case '_':
         case 'a':
@@ -4816,7 +4816,7 @@ yy146:
         case 'V':
         case 'W':
         case 'X':
-        case 'Y':
+        case 'E':
         case 'Z':
         case '_':
         case 'a':

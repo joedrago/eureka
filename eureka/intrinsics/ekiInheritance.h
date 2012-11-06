@@ -10,6 +10,6 @@
 
 #include "ekTypes.h"
 
-void ekIntrinsicsRegisterInheritance(struct ekContext *Y);
+void ekIntrinsicsRegisterInheritance(struct ekContext *E);
 
 #endif

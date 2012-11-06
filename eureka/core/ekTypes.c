@@ -174,12 +174,12 @@ void ekDefaultFree(void *ptr)
     free(ptr);
 }
 
-void ekDestroyCBFree(struct ekContext *Y, void *ptr)
+void ekDestroyCBFree(struct ekContext *E, void *ptr)
 {
     ekFree(ptr);
 }
 
-char *ekStrdup(struct ekContext *Y, const char *s)
+char *ekStrdup(struct ekContext *E, const char *s)
 {
     int len = strlen(s);
     char *copy = ekAlloc(len+1);
@@ -187,7 +187,7 @@ char *ekStrdup(struct ekContext *Y, const char *s)
     return copy;
 }
 
-char *ekSubstrdup(struct ekContext *Y, const char *s, int start, int end)
+char *ekSubstrdup(struct ekContext *E, const char *s, int start, int end)
 {
     int len = end - start;
     char *copy = ekAlloc(len+1);

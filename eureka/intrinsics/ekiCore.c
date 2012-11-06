@@ -15,130 +15,130 @@
 
 #include <stdio.h>
 
-static ekU32 make_array(struct ekContext *Y, ekU32 argCount)
+static ekU32 make_array(struct ekContext *E, ekU32 argCount)
 {
     ekValue *a;
-    a = ekValueCreateArray(Y);
+    a = ekValueCreateArray(E);
     if(argCount)
     {
         int i;
         for(i = 0; i < argCount; i++)
         {
-            ekValue *v = ekContextGetArg(Y, i, argCount);
-            ekValueArrayPush(Y, a, v);
-            ekValueAddRefNote(Y, v, "make_array push");
+            ekValue *v = ekContextGetArg(E, i, argCount);
+            ekValueArrayPush(E, a, v);
+            ekValueAddRefNote(E, v, "make_array push");
         }
-        ekContextPopValues(Y, argCount);
+        ekContextPopValues(E, argCount);
     }
-    ekArrayPush(Y, &Y->stack, a);
+    ekArrayPush(E, &E->stack, a);
     return 1;
 }
 
-ekU32 array_push(struct ekContext *Y, ekU32 argCount)
+ekU32 array_push(struct ekContext *E, ekU32 argCount)
 {
     int i;
     ekValue *a;
     ekValue **values = NULL;
-    if(!ekContextGetArgs(Y, argCount, "a.", &a, &values))
+    if(!ekContextGetArgs(E, argCount, "a.", &a, &values))
     {
-        return ekContextArgsFailure(Y, argCount, "push([array] a, ... values)");
+        return ekContextArgsFailure(E, argCount, "push([array] a, ... values)");
     }
 
-    for(i=0; i<ekArraySize(Y, &values); i++)
+    for(i=0; i<ekArraySize(E, &values); i++)
     {
         ekValue *v = (ekValue *)values[i];
-        ekValueArrayPush(Y, a, v);
+        ekValueArrayPush(E, a, v);
     }
 
-    ekValueRemoveRefNote(Y, a, "array_push a done");
-    ekArrayDestroy(Y, &values, NULL);
+    ekValueRemoveRefNote(E, a, "array_push a done");
+    ekArrayDestroy(E, &values, NULL);
     return 0;
 }
 
-ekU32 length(struct ekContext *Y, ekU32 argCount)
+ekU32 length(struct ekContext *E, ekU32 argCount)
 {
     ekValue *a;
     ekValue *c = ekValueNullPtr;
-    if(!ekContextGetArgs(Y, argCount, "a", &a))
+    if(!ekContextGetArgs(E, argCount, "a", &a))
     {
-        return ekContextArgsFailure(Y, argCount, "length([array] a)");
+        return ekContextArgsFailure(E, argCount, "length([array] a)");
     }
 
-    c = ekValueCreateInt(Y, ekArraySize(Y, &a->arrayVal));
-    ekValueRemoveRefNote(Y, a, "length a done");
-    ekArrayPush(Y, &Y->stack, c);
+    c = ekValueCreateInt(E, ekArraySize(E, &a->arrayVal));
+    ekValueRemoveRefNote(E, a, "length a done");
+    ekArrayPush(E, &E->stack, c);
     return 1;
 }
 
-static void ekAppendKey(struct ekContext *Y, ekValue *arrayVal, ekMapEntry *entry)
+static void ekAppendKey(struct ekContext *E, ekValue *arrayVal, ekMapEntry *entry)
 {
-    ekValue *keyVal = ekValueCreateString(Y, entry->keyStr);
-    ekValueArrayPush(Y, arrayVal, keyVal);
+    ekValue *keyVal = ekValueCreateString(E, entry->keyStr);
+    ekValueArrayPush(E, arrayVal, keyVal);
 }
 
-static ekU32 keys(struct ekContext *Y, ekU32 argCount)
+static ekU32 keys(struct ekContext *E, ekU32 argCount)
 {
     ekValue *object;
-    ekValue *arrayVal = ekValueCreateArray(Y);
+    ekValue *arrayVal = ekValueCreateArray(E);
 
-    if(!ekContextGetArgs(Y, argCount, "o", &object))
+    if(!ekContextGetArgs(E, argCount, "o", &object))
     {
-        return ekContextArgsFailure(Y, argCount, "keys([map/object] o)");
+        return ekContextArgsFailure(E, argCount, "keys([map/object] o)");
     }
 
-    ekMapIterateP1(Y, object->objectVal->hash, ekAppendKey, arrayVal);
+    ekMapIterateP1(E, object->objectVal->hash, ekAppendKey, arrayVal);
 
-    ekValueRemoveRefNote(Y, object, "keys object done");
-    ekArrayPush(Y, &Y->stack, arrayVal);
+    ekValueRemoveRefNote(E, object, "keys object done");
+    ekArrayPush(E, &E->stack, arrayVal);
     return 1;
 }
 
-static ekU32 eval(struct ekContext *Y, ekU32 argCount)
+static ekU32 eval(struct ekContext *E, ekU32 argCount)
 {
     ekValue *ret = NULL;
     if(argCount)
     {
         int i;
-        ekValue *v = ekContextGetArg(Y, 0, argCount);
+        ekValue *v = ekContextGetArg(E, 0, argCount);
         for(i = 0; i < argCount; i++)
         {
-            ekValue *v = ekContextGetArg(Y, i, argCount);
+            ekValue *v = ekContextGetArg(E, i, argCount);
             if(v->type == YVT_STRING)
             {
-                ekContextEval(Y, ekStringSafePtr(&v->stringVal), 0);
-                if(Y->error)
+                ekContextEval(E, ekStringSafePtr(&v->stringVal), 0);
+                if(E->error)
                 {
                     // steal the error from the VM so we can recover and THEN give it back as a ekValue
-                    char *error = Y->error;
-                    Y->error = NULL;
+                    char *error = E->error;
+                    E->error = NULL;
 
-                    ekContextRecover(Y);
-                    ret = ekValueCreateString(Y, error);
+                    ekContextRecover(E);
+                    ret = ekValueCreateString(E, error);
                     ekFree(error);
                 }
             }
         }
-        ekContextPopValues(Y, argCount);
+        ekContextPopValues(E, argCount);
     }
     if(!ret)
     {
-        ret = ekValueCreateInt(Y, 0);
+        ret = ekValueCreateInt(E, 0);
     }
-    ekArrayPush(Y, &Y->stack, ret);
+    ekArrayPush(E, &E->stack, ret);
     return 1;
 }
 
 // ---------------------------------------------------------------------------
 // global print() funcs -- someday to be moved into an optional lib
 
-static ekU32 standard_print(struct ekContext *Y, ekU32 argCount)
+static ekU32 standard_print(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
     {
         int i;
         for(i = 0; i < argCount; i++)
         {
-            ekValue *v = ekContextGetArg(Y, i, argCount);
+            ekValue *v = ekContextGetArg(E, i, argCount);
             switch(v->type)
             {
                 case YVT_STRING:
@@ -151,13 +151,13 @@ static ekU32 standard_print(struct ekContext *Y, ekU32 argCount)
                     printf("%f", v->floatVal);
                     break;
                 default:
-                    v = ekValueToString(Y, v);
+                    v = ekValueToString(E, v);
                     printf("%s", ekStringSafePtr(&v->stringVal));
-                    ekValueRemoveRefNote(Y, v, "done with temp string (default)");
+                    ekValueRemoveRefNote(E, v, "done with temp string (default)");
                     break;
             };
         }
-        ekContextPopValues(Y, argCount);
+        ekContextPopValues(E, argCount);
     }
     else
     {
@@ -169,7 +169,7 @@ static ekU32 standard_print(struct ekContext *Y, ekU32 argCount)
 // ---------------------------------------------------------------------------
 // import()
 
-static char *loadFile(struct ekContext *Y, const char *filename)
+static char *loadFile(struct ekContext *E, const char *filename)
 {
     FILE *f = fopen(filename, "rb");
     if(f)
@@ -192,7 +192,7 @@ static char *loadFile(struct ekContext *Y, const char *filename)
     return NULL;
 }
 
-static ekU32 import(struct ekContext *Y, ekU32 argCount)
+static ekU32 import(struct ekContext *E, ekU32 argCount)
 {
     ekU32 ret;
     char *code;
@@ -201,7 +201,7 @@ static ekU32 import(struct ekContext *Y, ekU32 argCount)
 
     if(argCount)
     {
-        filenameValue = ekContextGetArg(Y, 0, argCount);
+        filenameValue = ekContextGetArg(E, 0, argCount);
         if(filenameValue->type != YVT_STRING)
         {
             filenameValue = NULL;
@@ -210,42 +210,42 @@ static ekU32 import(struct ekContext *Y, ekU32 argCount)
 
     if(filenameValue)
     {
-        code = loadFile(Y, ekStringSafePtr(&filenameValue->stringVal));
+        code = loadFile(E, ekStringSafePtr(&filenameValue->stringVal));
     }
 
-    ekContextPopValues(Y, argCount);
+    ekContextPopValues(E, argCount);
 
     if(!filenameValue)
     {
-        ekValue *reason = ekValueCreateString(Y, "import() takes a single string argument");
-        ekArrayPush(Y, &Y->stack, reason);
+        ekValue *reason = ekValueCreateString(E, "import() takes a single string argument");
+        ekArrayPush(E, &E->stack, reason);
         return 1;
     }
 
     if(!code)
     {
-        ekValue *reason = ekValueCreateString(Y, "can't read file");
-        ekArrayPush(Y, &Y->stack, reason);
+        ekValue *reason = ekValueCreateString(E, "can't read file");
+        ekArrayPush(E, &E->stack, reason);
         return 1;
     }
 
-    codeValue = ekValueCreateKString(Y, code);
-    ekArrayPush(Y, &Y->stack, codeValue);
-    ret = eval(Y, 1);
+    codeValue = ekValueCreateKString(E, code);
+    ekArrayPush(E, &E->stack, codeValue);
+    ret = eval(E, 1);
     ekFree(code);
     return ret;
 }
 
 // ---------------------------------------------------------------------------
 
-ekU32 type(struct ekContext *Y, ekU32 argCount)
+ekU32 type(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
     {
-        ekValue *a = ekContextGetArg(Y, 0, argCount);
-        ekValue *ret = ekValueCreateKString(Y, (char *)ekValueTypeName(Y, a->type));
-        ekContextPopValues(Y, argCount);
-        ekArrayPush(Y, &Y->stack, ret);
+        ekValue *a = ekContextGetArg(E, 0, argCount);
+        ekValue *ret = ekValueCreateKString(E, (char *)ekValueTypeName(E, a->type));
+        ekContextPopValues(E, argCount);
+        ekArrayPush(E, &E->stack, ret);
         return 1;
     }
     return 0;
@@ -253,20 +253,20 @@ ekU32 type(struct ekContext *Y, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-ekU32 dump(struct ekContext *Y, ekU32 argCount)
+ekU32 dump(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
     {
-        ekValue *a = ekContextGetArg(Y, 0, argCount);
-        ekDumpParams *params = ekDumpParamsCreate(Y);
-        ekValue *ret = ekValueCreateKString(Y, "");
+        ekValue *a = ekContextGetArg(E, 0, argCount);
+        ekDumpParams *params = ekDumpParamsCreate(E);
+        ekValue *ret = ekValueCreateKString(E, "");
 
-        ekValueDump(Y, params, a);
-        ekStringDonateStr(Y, &ret->stringVal, &params->output);
+        ekValueDump(E, params, a);
+        ekStringDonateStr(E, &ret->stringVal, &params->output);
 
-        ekDumpParamsDestroy(Y, params);
-        ekContextPopValues(Y, argCount);
-        ekArrayPush(Y, &Y->stack, ret);
+        ekDumpParamsDestroy(E, params);
+        ekContextPopValues(E, argCount);
+        ekArrayPush(E, &E->stack, ret);
         return 1;
     }
     return 0;
@@ -274,21 +274,21 @@ ekU32 dump(struct ekContext *Y, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-ekU32 ek_assert(struct ekContext *Y, ekU32 argCount)
+ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
 {
     ekBool doAssert = ekTrue;
     ekValue *v = NULL;
     ekValue *s = NULL;
-    if(!ekContextGetArgs(Y, argCount, "|?s", &v, &s))
+    if(!ekContextGetArgs(E, argCount, "|?s", &v, &s))
     {
-        return ekContextArgsFailure(Y, argCount, "assert(expr, [string] explanation)");
+        return ekContextArgsFailure(E, argCount, "assert(expr, [string] explanation)");
     }
 
     if(v)
     {
-        v = ekValueToInt(Y, v);
+        v = ekValueToInt(E, v);
         doAssert = (!v->intVal) ? ekTrue : ekFalse;
-        ekValueRemoveRefNote(Y, v, "doAssert temp");
+        ekValueRemoveRefNote(E, v, "doAssert temp");
     }
 
     if(doAssert)
@@ -298,30 +298,30 @@ ekU32 ek_assert(struct ekContext *Y, ekU32 argCount)
         {
             reason = ekStringSafePtr(&s->stringVal);
         }
-        ekContextSetError(Y, YVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
+        ekContextSetError(E, YVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
     }
     if(s)
     {
-        ekValueRemoveRefNote(Y, s, "temporary reason string");
+        ekValueRemoveRefNote(E, s, "temporary reason string");
     }
     return 0;
 }
 
 // ---------------------------------------------------------------------------
 
-void ekIntrinsicsRegisterCore(struct ekContext *Y)
+void ekIntrinsicsRegisterCore(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(Y, "array", make_array);
-    ekContextRegisterGlobalFunction(Y, "length", length);
-    ekContextRegisterGlobalFunction(Y, "push", array_push);
+    ekContextRegisterGlobalFunction(E, "array", make_array);
+    ekContextRegisterGlobalFunction(E, "length", length);
+    ekContextRegisterGlobalFunction(E, "push", array_push);
 
-    ekContextRegisterGlobalFunction(Y, "keys", keys);
-    ekContextRegisterGlobalFunction(Y, "eval", eval);
-    ekContextRegisterGlobalFunction(Y, "type", type);
-    ekContextRegisterGlobalFunction(Y, "dump", dump);
-    ekContextRegisterGlobalFunction(Y, "assert", ek_assert);
+    ekContextRegisterGlobalFunction(E, "keys", keys);
+    ekContextRegisterGlobalFunction(E, "eval", eval);
+    ekContextRegisterGlobalFunction(E, "type", type);
+    ekContextRegisterGlobalFunction(E, "dump", dump);
+    ekContextRegisterGlobalFunction(E, "assert", ek_assert);
 
     // TODO: Move these out of here
-    ekContextRegisterGlobalFunction(Y, "print", standard_print);
-    ekContextRegisterGlobalFunction(Y, "import", import);
+    ekContextRegisterGlobalFunction(E, "print", standard_print);
+    ekContextRegisterGlobalFunction(E, "import", import);
 }

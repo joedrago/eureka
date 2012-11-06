@@ -10,6 +10,6 @@
 
 #include "ekTypes.h"
 
-void ekModuleRegisterPCRE(struct ekContext *Y);
+void ekModuleRegisterPCRE(struct ekContext *E);
 
 #endif

@@ -15,12 +15,12 @@
 #include "ekmPCRE.h"
 #endif
 
-void ekModuleRegisterAll(struct ekContext *Y)
+void ekModuleRegisterAll(struct ekContext *E)
 {
 #ifdef EUREKA_ENABLE_MOD_JSON
-    ekModuleRegisterJSON(Y);
+    ekModuleRegisterJSON(E);
 #endif
 #ifdef EUREKA_ENABLE_MOD_PCRE
-    ekModuleRegisterPCRE(Y);
+    ekModuleRegisterPCRE(E);
 #endif
 }

@@ -63,10 +63,10 @@ typedef struct ekContext
 } ekContext;
 
 ekContext *ekContextCreate(ekMemFuncs *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
-void ekContextDestroy(ekContext *Y);
+void ekContextDestroy(ekContext *E);
 
-void ekContextRegisterGlobal(struct ekContext *Y, const char *name, ekValue *value);
-void ekContextRegisterGlobalFunction(struct ekContext *Y, const char *name, ekCFunction func); // shortcut
+void ekContextRegisterGlobal(struct ekContext *E, const char *name, ekValue *value);
+void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCFunction func); // shortcut
 
 // Eureka Eval Options
 enum
@@ -76,28 +76,28 @@ enum
     YEO_DUMP     = (1 << 0),
     YEO_OPTIMIZE = (1 << 1)
 };
-void ekContextEval(struct ekContext *Y, const char *text, ekU32 evalOpts);
-void ekContextRecover(ekContext *Y); // cleans out frames, clears error
+void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts);
+void ekContextRecover(ekContext *E); // cleans out frames, clears error
 
-void ekContextSetError(struct ekContext *Y, ekU32 errorType, const char *errorFormat, ...);
-void ekContextClearError(ekContext *Y);
-const char *ekContextGetError(ekContext *Y);
+void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...);
+void ekContextClearError(ekContext *E);
+const char *ekContextGetError(ekContext *E);
 
-void ekContextGC(struct ekContext *Y);
+void ekContextGC(struct ekContext *E);
 
-struct ekFrame *ekContextPushFrame(struct ekContext *Y, struct ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
-struct ekFrame *ekContextPopFrames(struct ekContext *Y, ekU32 frameTypeToFind, ekBool keepIt);
+struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
+struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt);
 
-void ekContextLoop(struct ekContext *Y, ekBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
+void ekContextLoop(struct ekContext *E, ekBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
 
-void ekContextPopValues(struct ekContext *Y, ekU32 count);
-ekValue *ekContextGetValue(struct ekContext *Y, ekU32 howDeep);  // 0 is "top of stack"
-ekValue *ekContextThis(ekContext *Y);  // returns 'this' in current context
+void ekContextPopValues(struct ekContext *E, ekU32 count);
+ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep);  // 0 is "top of stack"
+ekValue *ekContextThis(ekContext *E);  // returns 'this' in current context
 
-ekBool ekContextGetArgs(struct ekContext *Y, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
-int ekContextArgsFailure(struct ekContext *Y, int argCount, const char *errorFormat, ...); // Will always pop all arguments!
+ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
+int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...); // Will always pop all arguments!
 
-ekBool ekContextCallFuncByName(struct ekContext *Y, ekValue *thisVal, const char *name, int argCount); // returns whether or not it found it
+ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount); // returns whether or not it found it
 
 #define ekContextGetTop(VM) ekContextGetValue(VM, 0)
 #define ekContextGetArg(VM, INDEX, ARGCOUNT) ekContextGetValue(VM, (ARGCOUNT-1) - INDEX)

@@ -28,11 +28,11 @@ typedef struct ekToken
 #define ekTokenCreate() ((ekToken*)ekAlloc(sizeof(ekToken)))
 #define ekTokenDestroy ekFree
 
-ekToken *ekTokenClone(struct ekContext *Y, ekToken *token);
+ekToken *ekTokenClone(struct ekContext *E, ekToken *token);
 
-char *ekTokenToString(struct ekContext *Y, ekToken *t); // ekAlloc's a string copy
-int ekTokenToInt(struct ekContext *Y, ekToken *t);
-float ekTokenToFloat(struct ekContext *Y, ekToken *t);
+char *ekTokenToString(struct ekContext *E, ekToken *t); // ekAlloc's a string copy
+int ekTokenToInt(struct ekContext *E, ekToken *t);
+float ekTokenToFloat(struct ekContext *E, ekToken *t);
 
 typedef void (*tokenCB)(void *parser, int id, ekToken token, struct ekCompiler *compiler);
 ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler);

@@ -12,22 +12,22 @@
 #include <stdio.h>
 #include <string.h>
 
-#define REC_CHILD(CHILD) ekSyntaxDotRecurse(Y, CHILD, childLineOpts, syntax);
-#define REC_ARRAY(ARRAY) ekSyntaxDotRecurseArray(Y, ARRAY, childLineOpts, syntax);
+#define REC_CHILD(CHILD) ekSyntaxDotRecurse(E, CHILD, childLineOpts, syntax);
+#define REC_ARRAY(ARRAY) ekSyntaxDotRecurseArray(E, ARRAY, childLineOpts, syntax);
 
-static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char *myLineOpts, ekSyntax *parent);
+static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char *myLineOpts, ekSyntax *parent);
 
-static void ekSyntaxDotRecurseArray(struct ekContext *Y, ekSyntax **a, const char *myLineOpts, ekSyntax *syntax)
+static void ekSyntaxDotRecurseArray(struct ekContext *E, ekSyntax **a, const char *myLineOpts, ekSyntax *syntax)
 {
     int i;
     const char *childLineOpts = myLineOpts;
-    for(i = 0; i < ekArraySize(Y, &a); i++)
+    for(i = 0; i < ekArraySize(E, &a); i++)
     {
         REC_CHILD(a[i]);
     }
 }
 
-static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char *myLineOpts, ekSyntax *parent)
+static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char *myLineOpts, ekSyntax *parent)
 {
     char label[512];
     const char *myOpts = "shape=ellipse";
@@ -98,7 +98,7 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
 
         case YST_EXPRESSIONLIST:
         {
-            if(ekArraySize(Y, &syntax->v.a))
+            if(ekArraySize(E, &syntax->v.a))
             {
                 myOpts = "shape=egg";
                 strcpy(label, "ExprList");
@@ -126,7 +126,7 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
         case YST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
-            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraySize(Y, &syntax->r.p->v.a));
+            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraySize(E, &syntax->r.p->v.a));
             childLineOpts = "style=dotted,label=args";
             REC_CHILD(syntax->r.p);
         }
@@ -484,10 +484,10 @@ static void ekSyntaxDotRecurse(struct ekContext *Y, ekSyntax *syntax, const char
     printf("s%p [label=\"%s\",%s]\n", syntax, label, myOpts);
 }
 
-void ekSyntaxDot(struct ekContext *Y, struct ekSyntax *syntax)
+void ekSyntaxDot(struct ekContext *E, struct ekSyntax *syntax)
 {
     printf("digraph AST {\n");
-    ekSyntaxDotRecurse(Y, syntax, NULL, NULL);
+    ekSyntaxDotRecurse(E, syntax, NULL, NULL);
     printf("}\n");
 }
 

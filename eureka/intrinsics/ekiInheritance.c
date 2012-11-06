@@ -17,66 +17,66 @@
 
 // ---------------------------------------------------------------------------
 
-static ekU32 object(struct ekContext *Y, ekU32 argCount)
+static ekU32 object(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v;
-    v = ekValueCreateObject(Y, NULL, argCount, ekFalse);
-    ekArrayPush(Y, &Y->stack, v);
+    v = ekValueCreateObject(E, NULL, argCount, ekFalse);
+    ekArrayPush(E, &E->stack, v);
     return 1;
 }
 
-static ekU32 inherit(struct ekContext *Y, ekU32 argCount)
+static ekU32 inherit(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v;
-    v = ekValueCreateObject(Y, NULL, argCount, ekTrue);
-    ekArrayPush(Y, &Y->stack, v);
+    v = ekValueCreateObject(E, NULL, argCount, ekTrue);
+    ekArrayPush(E, &E->stack, v);
     return 1;
 }
 
-static ekU32 prototype(struct ekContext *Y, ekU32 argCount)
+static ekU32 prototype(struct ekContext *E, ekU32 argCount)
 {
     ekValue *object = NULL;
     ekValue *newPrototype = NULL;
-    if(!ekContextGetArgs(Y, argCount, "o|o", &object, &newPrototype))
+    if(!ekContextGetArgs(E, argCount, "o|o", &object, &newPrototype))
     {
-        return ekContextArgsFailure(Y, argCount, "prototype(object [, newPrototypetype])");
+        return ekContextArgsFailure(E, argCount, "prototype(object [, newPrototypetype])");
     }
 
     if(object && newPrototype)
     {
         if(object->objectVal->isa)
         {
-            ekValueRemoveRefNote(Y, object->objectVal->isa, "prototype removing old isa");
+            ekValueRemoveRefNote(E, object->objectVal->isa, "prototype removing old isa");
         }
         object->objectVal->isa = newPrototype;
-        ekValueAddRefNote(Y, object->objectVal->isa, "prototype new isa");
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype new isa");
     }
 
     if(object && object->objectVal->isa)
     {
-        ekValueAddRefNote(Y, object->objectVal->isa, "prototype return isa");
-        ekArrayPush(Y, &Y->stack, object->objectVal->isa);
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype return isa");
+        ekArrayPush(E, &E->stack, object->objectVal->isa);
     }
     else
     {
-        ekArrayPush(Y, &Y->stack, &ekValueNull);
+        ekArrayPush(E, &E->stack, &ekValueNull);
     }
-    ekValueRemoveRefNote(Y, object, "prototype object done");
+    ekValueRemoveRefNote(E, object, "prototype object done");
     if(newPrototype)
     {
-        ekValueRemoveRefNote(Y, newPrototype, "prototype newPrototype done");
+        ekValueRemoveRefNote(E, newPrototype, "prototype newPrototype done");
     }
     return 1;
 }
 
 // ---------------------------------------------------------------------------
 
-void ekIntrinsicsRegisterInheritance(struct ekContext *Y)
+void ekIntrinsicsRegisterInheritance(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(Y, "object", object);
-    ekContextRegisterGlobalFunction(Y, "map", object); // alias
+    ekContextRegisterGlobalFunction(E, "object", object);
+    ekContextRegisterGlobalFunction(E, "map", object); // alias
 
-    ekContextRegisterGlobalFunction(Y, "inherit", inherit);
-    ekContextRegisterGlobalFunction(Y, "prototype", prototype);
+    ekContextRegisterGlobalFunction(E, "inherit", inherit);
+    ekContextRegisterGlobalFunction(E, "prototype", prototype);
 }
 
