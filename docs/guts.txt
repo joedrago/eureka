@@ -1,3 +1,6 @@
+TODO: replace enums beginning with Y with something else (including
+lexer/parser)
+
 Overview
 --------
 
@@ -62,8 +65,133 @@ memory routines, types (built-in and custom), compiler information (syntax tree,
 etc), interpreter state (global variables, stack frames, values, pools), and
 errors (both compile and runtime). An ekContext completely owns all state,
 making tracking and cleanup fairly easy. Every C routine involving Eureka has an
-ekContext as its first argument.
+ekContext as its first argument, using the variable name "E".
 
+All embedding usage of Eureka starts with creating a context, adding any global
+functions, variables, or custom types. Then arbitrary code can be compiled and
+executed on the fly with ekContextEval(), or objects can be manipulated directly
+by digging into the guts of your ekContext.
+
+Compilation Flow
+----------------
+
+It is time for an example. Let's start with hello world:
+
+    print("Hello, world!\n");
+
+Passing this text into a call to ekContextEval() will start by spawning another
+top-level structure named ekCompiler. ekCompiler is responsible for all phases
+of compilation: lexing, parsing, and assembling.  A successful compilation
+creates two substructures inside of ekCompiler. The lexing and parsing phases
+create a tree of ekSyntax (The AST, or "Abstract Syntax Tree"), and the
+assembling phase creates an ekChunk, which is the compiled code. 
+
+A failed compilation simply populates an array of strings (errors), and may or
+may not produce either of the other two structures.
+
+The AST is only useful after compilation for generating pretty graphs or
+otherwise inspecting mistakes during the parsing phase, but the generated chunk
+can be given to the parent context (thus granting ownership of it), which then
+allows the code to be executed and any variables/functions created inside to
+continue to exist within the context. The associated ekCompiler structure is
+destroyed before ekContextEval() finishes.
+
+Lexing and Parsing
+------------------
+
+Let's rewind a bit and talk about creating the syntax tree, using two
+intertwined pieces: the lexer (ekLexer and the function ekLex) and the parser
+(the generated function ekParse). The goal of a lexer is to break the raw Eureka
+source code into tokens, which are then passed to the parser function. Eureka's
+lexer is mostly implemented using a tool named re2c, which can generate a
+complex lexer from a series of regular expressions that define all of the
+tokens. The re2c source to the lexer is located in the file ekLexer.re, which is
+generated during the build into the (impossible to read) file ekLexer.re.c.
+
+Looking over the re2c source, you will see lines such as:
+
+    "{"             { return YTT_OPENBRACE; }
+    "}"             { return YTT_CLOSEBRACE; }
+    "["             { return YTT_OPENBRACKET; }
+    "]"             { return YTT_CLOSEBRACKET; }
+    "."             { return YTT_PERIOD; }
+    "::"            { return YTT_COLONCOLON; }
+    ":"             { return YTT_COLON; }
+    "\?"            { return YTT_QUESTIONMARK; }
+    "break"         { return YTT_BREAK; }
+    "this"          { return YTT_THIS; }
+    "while"         { return YTT_WHILE; }
+    "var"           { return YTT_VAR; }
+
+The left side of the file is just a list of simple regular expressions, and the
+right side is the C code that should be executed upon matching that regex as the
+next token in the stream. Every time a new token is matched, the ID associated
+with that token is handed to the parser, along with the actual matched text.
+This creates a "token stream", which is then consumed by the parser as it slowly
+builds the syntax tree.
+
+The parser source is located in ekParser.y, and is in lemon format. lemon is is
+known as a "parser generator" or a "compiler compiler", which means its input is
+a set of rules/directives providing a complete "grammar" (Eureka's grammar), and
+its output is a state machine that creates and attaches pieces of syntax
+together into a tree (the syntax tree).
+
+    TODO: lemon source example here
+
+The generated parser from Lemon is a typical "shift-reduce" parser. Every token
+the parser receives is shifted (added) onto a stack of tokens, and then the
+parser checks the stack to see if it can "reduce" any adjacent tokens into a
+piece of syntax, which replaces those tokens on the stack. If the token stream
+is valid, the final token should reduce all remaining items with a single
+top-level syntax node, which will be the root of the syntax tree.
+
+This combination of token stream and shifting/reduction is the heart of the
+language's look and feel. Keywords can be added/aliased/removed by just
+manipulating the lexer, and sweeping changes in grammar rules or syntactic sugar
+can be made by tweaking a directive in the parser source.
+
+The hello world example provided earlier would produce this token stream:
+
+    TT_IDENTIFIER - print
+    YTT_LEFTPAREN - (
+    YTT_LITERALSTRING - "Hello, world!\n"
+    YTT_RIGHTPAREN - )
+    YTT_ENDSTATEMENT - ;
+    YTT_ENDSTATEMENT - 
+
+The identifier would be shifted onto the stack, and then immediately be reduced
+into an identifier syntax node. The left paren would be shifted, which would
+clue in the parser to reduce the previous identifier into an lvalue_indexable,
+as it is the only possible valid combination for that order of tokens. The
+literal string is then shifted and reduced to an expression, and the following
+shifted right paren would cause leftparen + expression + rightparen to be
+further reduced into a paren_expr_list. The shifted endstatements following
+would cause the lvalue_indexable + paren_expr_list to be reduced to a single
+lvalue_indexable (which is now internally recognized as a function call), and
+then further reduced into a simple lvalue, which would then be reduced into an
+expression, then an expr_list, then a statement, then a statement_list and
+finally a chunk.
+
+Did you follow that? It might sound crazy, but this full chain of reductions can
+be traced backwards from the following rules:
+
+    todo add rules here
+    statement(S) ::= expr_list(L) ENDSTATEMENT.
+        { S = ekSyntaxCreateStatementExpr(C->Y, L); }
+
+The goal of a shift-reduce parser is to get to the
+
+The syntax tree root is the only output of this phase, and the only input for
+the next phase: assembling.
+
+Assembling
+----------
+
+If a valid syntax tree is created, it must then be assembled into something that
+the interpreter can execute. The entry point into the assembling phase is
+ekAssemble, located in the compiler source. ekAssemble takes an ekCompiler as
+its input, and slowly builds an ekChunk structure as it recursively walks the
+syntax tree.
 
 
     * memory functions
