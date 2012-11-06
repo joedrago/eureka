@@ -55,21 +55,6 @@ ekU32 array_push(struct ekContext *E, ekU32 argCount)
     return 0;
 }
 
-ekU32 length(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *a;
-    ekValue *c = ekValueNullPtr;
-    if(!ekContextGetArgs(E, argCount, "a", &a))
-    {
-        return ekContextArgsFailure(E, argCount, "length([array] a)");
-    }
-
-    c = ekValueCreateInt(E, ekArraySize(E, &a->arrayVal));
-    ekValueRemoveRefNote(E, a, "length a done");
-    ekArrayPush(E, &E->stack, c);
-    return 1;
-}
-
 static void ekAppendKey(struct ekContext *E, ekValue *arrayVal, ekMapEntry *entry)
 {
     ekValue *keyVal = ekValueCreateString(E, entry->keyStr);
@@ -312,7 +297,6 @@ ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
 void ekIntrinsicsRegisterCore(struct ekContext *E)
 {
     ekContextRegisterGlobalFunction(E, "array", make_array);
-    ekContextRegisterGlobalFunction(E, "length", length);
     ekContextRegisterGlobalFunction(E, "push", array_push);
 
     ekContextRegisterGlobalFunction(E, "keys", keys);

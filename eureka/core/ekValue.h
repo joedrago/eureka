@@ -17,6 +17,12 @@ struct ekMap;
 struct ekObject;
 struct ekValue;
 
+
+// ---------------------------------------------------------------------------
+
+// Should return how many values it is returning on the stack
+typedef ekU32(ekCFunction)(struct ekContext *E, ekU32 argCount);
+
 // ---------------------------------------------------------------------------
 
 typedef enum ekValueBasicType
@@ -84,8 +90,10 @@ typedef struct ekValueType
     int id;
     char name[EVT_MAXNAMELEN + 1];
 
+    struct ekMap *intrinsics;                        // map of funcName -> ekCFunction, used as an Index fallback for things like .length()
+
     void *userData;                                  // per-type global structure used to hold any static data a type needs
-    ekValueTypeDestroyUserData funcDestroyUserData; // optional destructor for userdata
+    ekValueTypeDestroyUserData funcDestroyUserData;  // optional destructor for userdata
 
     ekValueTypeFuncClear funcClear;
     ekValueTypeFuncClone funcClone;
@@ -101,6 +109,8 @@ typedef struct ekValueType
 
 ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name);
 void ekValueTypeDestroy(struct ekContext *E, ekValueType *type);
+void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func);
+struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue);
 int ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
 
 void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
@@ -111,11 +121,6 @@ void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 #define ekValueTypeSafeCall(id, funcName) \
     (((ekValueType*)E->types[id])->func ## funcName == ekValueTypeFuncNotUsed) ? 0 \
     : ((ekValueType*)E->types[id])->func ## funcName
-
-// ---------------------------------------------------------------------------
-
-// Should return how many values it is returning on the stack
-typedef ekU32(ekCFunction)(struct ekContext *E, ekU32 argCount);
 
 // ---------------------------------------------------------------------------
 

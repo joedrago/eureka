@@ -49,7 +49,41 @@ void ekValueTypeDestroy(struct ekContext *E, ekValueType *type)
     {
         type->funcDestroyUserData(E, type);
     }
+    if(type->intrinsics)
+    {
+        ekMapDestroy(E, type->intrinsics, NULL);
+    }
     ekFree(type);
+}
+
+void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func)
+{
+    if(!type->intrinsics)
+    {
+        type->intrinsics = ekMapCreate(E, EMKT_STRING);
+    }
+    ekMapGetS2P(E, type->intrinsics, name) = func;
+}
+
+struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue)
+{
+    ekMap *map = E->types[type]->intrinsics;
+    if(map && index && (index->type == EVT_STRING))
+    {
+        ekMapEntry *mapEntry = ekMapGetS(E, map, ekStringSafePtr(&index->stringVal), ekFalse);
+        if(mapEntry && mapEntry->valuePtr)
+        {
+            if(lvalue)
+            {
+                ekContextSetError(E, EVE_RUNTIME, "cannot use intrinsic %s function as an lvalue", ekValueTypeName(E, type));
+            }
+            else
+            {
+                return ekValueCreateCFunction(E, mapEntry->valuePtr);
+            }
+        }
+    }
+    return NULL;
 }
 
 int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
@@ -523,6 +557,22 @@ static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekV
     ekStringConcatLen(E, &params->output, "\"", 1);
 }
 
+static ekU32 stringIntrinsicLength(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *s = ekContextThis(E);
+    ekValue *c = ekValueNullPtr;
+    ekAssert(s && s->type == EVT_STRING);
+    if(argCount)
+    {
+        return ekContextArgsFailure(E, argCount, "string.length() takes no arguments");
+    }
+
+    c = ekValueCreateInt(E, s->stringVal.len);
+    ekValueRemoveRefNote(E, s, "length this done");
+    ekArrayPush(E, &E->stack, c);
+    return 1;
+}
+
 static void stringFuncRegister(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "string");
@@ -536,6 +586,7 @@ static void stringFuncRegister(struct ekContext *E)
     type->funcCmp        = stringFuncCmp;
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = stringFuncDump;
+    ekValueTypeAddIntrinsic(E, type, "length", stringIntrinsicLength);
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_STRING);
 }
@@ -572,6 +623,16 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
 {
     ekValue *ret = NULL;
     ekValue **ref = NULL;
+
+    if(ret = ekValueTypeGetIntrinsic(E, value->type, index, lvalue)) // Intrinsic functions have priority over regular indexing
+    {
+        return ret;
+    }
+    if(ekContextGetError(E)) // An error might be set as a side effect of GetIntrinsic
+    {
+        return 0;
+    }
+
     ekValueAddRefNote(E, index, "keep index around after int conversion");
     index = ekValueToInt(E, index);
     if(index->intVal >= 0 && index->intVal < ekArraySize(E, &value->arrayVal))
@@ -611,6 +672,22 @@ static void arrayFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVa
     ekStringConcat(E, &params->output, " ]");
 }
 
+static ekU32 arrayIntrinsicLength(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = ekContextThis(E);
+    ekValue *c = ekValueNullPtr;
+    ekAssert(a && a->type == EVT_ARRAY);
+    if(argCount)
+    {
+        return ekContextArgsFailure(E, argCount, "array.length() takes zero arguments");
+    }
+
+    c = ekValueCreateInt(E, ekArraySize(E, &a->arrayVal));
+    ekValueRemoveRefNote(E, a, "length this done");
+    ekArrayPush(E, &E->stack, c);
+    return 1;
+}
+
 static void arrayFuncRegister(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "array");
@@ -624,6 +701,7 @@ static void arrayFuncRegister(struct ekContext *E)
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = arrayFuncIndex;
     type->funcDump       = arrayFuncDump;
+    ekValueTypeAddIntrinsic(E, type, "length", arrayIntrinsicLength);
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_ARRAY);
 }
@@ -1314,7 +1392,12 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
 
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue)
 {
-    return ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
+    ekValue *v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
+    if(!v)
+    {
+        v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
+    }
+    return v;
 }
 
 const char *ekValueTypeName(struct ekContext *E, int type)
