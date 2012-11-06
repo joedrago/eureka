@@ -50,8 +50,13 @@ The horror!), and internally maintain capacity with a bit of pointer arithmetic.
 As an example, this is legal code:
 
     :c
+    extern ekContext *E;                        // created elsewhere
     ekFrame **frames = NULL;
-    ekFrame *newFrame = ekFrameCreate();
+    ekFrame *newFrame = ekFrameCreate(E, ...);
+    ekArrayPush(E, &frames, newFrame);          // creates array storage
+    ekArrayDestroy(E, &frames, ekFrameDestroy); // frees everything + storage
+
+A similar mechanism exists for {{ekString}}, using a simple char pointer.
 
 The Eureka Context
 ------------------
