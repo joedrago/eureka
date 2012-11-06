@@ -579,13 +579,13 @@ void ekdOutputHTML(ekdNode *root, char **output)
 
 static ekdMarkup wordpressMarkup[] =
 {
-    { "**", "<b>",              "</b>", NULL        },
-    { "__", "<i>",              "</i>", NULL        },
-    { "I<", "<img src=\"%s\">", NULL,   ekdLinkFunc },
-    { "^<", "<a href=\"%s\">",  NULL,   ekdLinkFunc },
-    { "^^", "</a>",             NULL,   NULL        },
-    { "{{", "<pre>",            NULL,   NULL        },
-    { "}}", "</pre>",           NULL,   NULL        },
+    { "**", "<b>",                                  "</b>", NULL        },
+    { "__", "<i>",                                  "</i>", NULL        },
+    { "I<", "<img src=\"/wp-content/uploads/%s\">", NULL,   ekdLinkFunc },
+    { "^<", "<a href=\"/%s\">",                     NULL,   ekdLinkFunc },
+    { "^^", "</a>",                                 NULL,   NULL        },
+    { "{{", "<code inline=\"true\">",               NULL,   NULL        },
+    { "}}", "</code>",                              NULL,   NULL        },
     { NULL }
 };
 
@@ -627,7 +627,7 @@ void ekdOutputWordpress(ekdNode *root, char **output)
             }
             break;
             case TYPE_CODE:
-                dsConcatf(output, "[cc lang=\"%s\"]\n%s\n[/cc]\n", n->style ? n->style : "--", n->text);
+                dsConcatf(output, "[cc lang=\"%s\"]\n%s\n[/cc]\n", n->style ? n->style : "text", n->text);
                 break;
             case TYPE_TITLE1:
                 dsConcatf(output, "<strong>%s</strong>\n", n->text);
@@ -647,7 +647,7 @@ static ekdMarkup textMarkup[] =
     { "**", "*",         "*",    NULL        },
     { "__", "",          "",     NULL        },
     { "I<", "Image: %s", NULL,   ekdLinkFunc },
-    { "^<", "(%s) ",     NULL,   ekdLinkFunc },
+    { "^<", "(%s.txt) ", NULL,   ekdLinkFunc },
     { "^^", "",          NULL,   NULL        },
     { "{{", "",          NULL,   NULL        },
     { "}}", "",          NULL,   NULL        },

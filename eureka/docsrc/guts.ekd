@@ -1,5 +1,4 @@
-TODO: replace enums beginning with Y with something else (including
-lexer/parser)
+__NOTE:__ **THIS DOCUMENT IS A WORK IN PROGRESS!**
 
 Overview
 --------
@@ -119,18 +118,18 @@ the file {{ekLexer.re}}, which is generated during the build into the
 
 Looking over the re2c source, you will see lines such as:
 
-    "{"             { return YTT_OPENBRACE; }
-    "}"             { return YTT_CLOSEBRACE; }
-    "["             { return YTT_OPENBRACKET; }
-    "]"             { return YTT_CLOSEBRACKET; }
-    "."             { return YTT_PERIOD; }
-    "::"            { return YTT_COLONCOLON; }
-    ":"             { return YTT_COLON; }
-    "\?"            { return YTT_QUESTIONMARK; }
-    "break"         { return YTT_BREAK; }
-    "this"          { return YTT_THIS; }
-    "while"         { return YTT_WHILE; }
-    "var"           { return YTT_VAR; }
+    "{"             { return ETT_OPENBRACE; }
+    "}"             { return ETT_CLOSEBRACE; }
+    "["             { return ETT_OPENBRACKET; }
+    "]"             { return ETT_CLOSEBRACKET; }
+    "."             { return ETT_PERIOD; }
+    "::"            { return ETT_COLONCOLON; }
+    ":"             { return ETT_COLON; }
+    "\?"            { return ETT_QUESTIONMARK; }
+    "break"         { return ETT_BREAK; }
+    "this"          { return ETT_THIS; }
+    "while"         { return ETT_WHILE; }
+    "var"           { return ETT_VAR; }
 
 The left side of the file is just a list of simple regular expressions, and the
 right side is the C code that should be executed upon matching that regex as the
@@ -145,13 +144,11 @@ means its input is a set of rules/directives providing a complete "grammar"
 (Eureka's grammar), and its output is a state machine that creates and attaches
 pieces of syntax together into a tree (the syntax tree).
 
-    TODO: lemon source example here
-
 The generated parser from Lemon is a typical "shift-reduce" parser. Every token
 the parser receives is shifted (added) onto a stack of tokens, and then the
-parser checks the stack to see if it can "reduce" any adjacent tokens into a
-piece of syntax, which replaces those tokens on the stack. If the token stream
-is valid, the final token should reduce all remaining items with a single
+parser checks the stack to see if it can "reduce" any adjacent tokens/syntax
+into a larger piece of syntax, which replaces them on the stack. If the token
+stream is valid, the final token should reduce all remaining items with a single
 top-level syntax node, which will be the root of the syntax tree.
 
 This combination of token stream and shifting/reduction is the heart of the
@@ -159,14 +156,22 @@ language's look and feel. Keywords can be added/aliased/removed by just
 manipulating the lexer, and sweeping changes in grammar rules or syntactic sugar
 can be made by tweaking a directive in the parser source.
 
+__Quick vocab__: The "tokens" here are what the parser refers to as
+__terminals__, and the pieces of syntax that we're creating are referred to as
+__nonterminals__.  They basically are talking about the "branches" of the tree
+vs the "leaves", with the leaves being where the tree branch ends (terminates).
+Since everything starts with a token and works towards the root, the innards of
+a syntax tree are always syntax nodes (branches, nonterminals) and the tips are
+always tokens (leaves, terminals).
+
 The hello world example provided earlier would produce this token stream:
 
-    TT_IDENTIFIER - print
-    YTT_LEFTPAREN - (
-    YTT_LITERALSTRING - "Hello, world!\n"
-    YTT_RIGHTPAREN - )
-    YTT_ENDSTATEMENT - ;
-    YTT_ENDSTATEMENT - 
+    TT_IDENTIFIER      print
+    ETT_LEFTPAREN      (
+    ETT_LITERALSTRING  "Hello, world!\n"
+    ETT_RIGHTPAREN     )
+    ETT_ENDSTATEMENT   ;
+    ETT_ENDSTATEMENT   
 
 The identifier would be shifted onto the stack, and then immediately be reduced
 into an identifier syntax node. The left paren would be shifted, which would
@@ -183,13 +188,38 @@ into an {{expression}}, then an {{expr_list}}, then a {{statement}}, then a
 {{statement_list}} and finally a {{chunk}}.
 
 Did you follow that? It might sound crazy, but this full chain of reductions can
-be traced backwards from the following rules:
+be traced backwards from the following rules (in order of appearance, comments
+on the right):
 
-    todo add rules here
-    statement(S) ::= expr_list(L) ENDSTATEMENT.
-        { S = ekSyntaxCreateStatementExpr(C->Y, L); }
+    lvalue_indexable ::= IDENTIFIER.                        "print"
+    
+    expression       ::= LITERALSTRING.                     "Hello, world!\n"
+    expr_list        ::= expression.                        "Hello, world!\n"
+    paren_expr_list  ::= LEFTPAREN expr_list RIGHTPAREN.   ("Hello, world!\n")
+    
+    lvalue_indexable ::= lvalue_indexable paren_expr_list.  [call print]
+    lvalue           ::= lvalue_indexable.                  ...
+    expression       ::= lvalue.                            ...
+    expr_list        ::= expression.                        ...
+    statement        ::= expr_list ENDSTATEMENT.            [call print] ;
+    statement_block  ::= statement.                         ...
+    chunk            ::= statement_list.                    ...
 
-The goal of a shift-reduce parser is to get to the
+You can interpret the {{::=}} symbol as "a (rightside) can be reduced to a
+(leftside)." Since the goal of a shift-reduce parser is to get to reduce all the
+way down to the first listed nonterminal in the grammar ({{chunk}}, in our
+case), the generated parser has every possible valid token order combination
+predetermined. When it sees that first ENDSTATEMENT, the only possible token
+stream that would still reduce down to a chunk would be if we followed the
+reduction path above. The LITERALSTRING terminal gets bundled up inside a
+parenthesized expression list, which mixes with the identifier to make a
+function call, which becomes the only statement in the chunk; a single statement
+in the statement_list array at the root of the syntax tree. This is visible in
+the graph of the syntax tree:
+
+I<hello>
+
+^hello hello.png
 
 The syntax tree root is the only output of this phase, and the only input for
 the next phase: assembling.
@@ -203,12 +233,8 @@ the interpreter can execute. The entry point into the assembling phase is
 {{ekCompiler}} as its input, and slowly builds an {{ekChunk}} structure as it
 recursively walks the syntax tree.
 
-
-** memory functions
-
-    Eureka script --> ekContextEval()
-    --> ekLexer --> ekToken stream
-    --> ekParser --> ekSyntax tree
-    --> ekAssemble*() --> ekBlock array, int/float/string tables
-    --> ekChunk
-
+TODO:
+* Finish Assembling
+* Intepreting
+* ekValue
+* ekValueType

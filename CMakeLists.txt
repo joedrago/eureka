@@ -110,6 +110,14 @@ foreach(dsrc ${DOCSRC})
         DEPENDS ekdoc
     )
     LIST(APPEND DOCTXT ${ddst})
+    set(ddst "${CMAKE_BINARY_DIR}/wordpress/${basename}.wordpress")
+    add_custom_command(OUTPUT ${ddst}
+        COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/wordpress
+        COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc wordpress "${dsrc}" > "${ddst}"
+        DEPENDS ${dsrc}
+        DEPENDS ekdoc
+    )
+    LIST(APPEND DOCTXT ${ddst})
 endforeach()
 
 add_custom_target(docs
