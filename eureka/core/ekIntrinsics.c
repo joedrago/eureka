@@ -15,25 +15,6 @@
 
 #include <stdio.h>
 
-static ekU32 make_array(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *a;
-    a = ekValueCreateArray(E);
-    if(argCount)
-    {
-        int i;
-        for(i = 0; i < argCount; i++)
-        {
-            ekValue *v = ekContextGetArg(E, i, argCount);
-            ekValueArrayPush(E, a, v);
-            ekValueAddRefNote(E, v, "make_array push");
-        }
-        ekContextPopValues(E, argCount);
-    }
-    ekArrayPush(E, &E->stack, a);
-    return 1;
-}
-
 static void ekAppendKey(struct ekContext *E, ekValue *arrayVal, ekMapEntry *entry)
 {
     ekValue *keyVal = ekValueCreateString(E, entry->keyStr);
@@ -273,14 +254,6 @@ ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-static ekU32 object(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v;
-    v = ekValueCreateObject(E, NULL, argCount, ekFalse);
-    ekArrayPush(E, &E->stack, v);
-    return 1;
-}
-
 static ekU32 inherit(struct ekContext *E, ekU32 argCount)
 {
     ekValue *v;
@@ -367,16 +340,11 @@ static ekU32 convert_to_float(struct ekContext *E, ekU32 argCount)
 
 void ekIntrinsicsRegister(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(E, "array", make_array);
-
     ekContextRegisterGlobalFunction(E, "keys", keys);
     ekContextRegisterGlobalFunction(E, "eval", eval);
     ekContextRegisterGlobalFunction(E, "type", type);
     ekContextRegisterGlobalFunction(E, "dump", dump);
     ekContextRegisterGlobalFunction(E, "assert", ek_assert);
-
-    ekContextRegisterGlobalFunction(E, "object", object);
-    ekContextRegisterGlobalFunction(E, "map", object); // alias
 
     ekContextRegisterGlobalFunction(E, "inherit", inherit);
     ekContextRegisterGlobalFunction(E, "prototype", prototype);

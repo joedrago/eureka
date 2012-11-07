@@ -127,7 +127,7 @@ ekSyntax *ekSyntaxCreateList(struct ekContext *E, ekU32 type, ekSyntax *firstExp
 ekSyntax *ekSyntaxListAppend(struct ekContext *E, ekSyntax *list, ekSyntax *expr, ekU32 flags);
 ekSyntax *ekSyntaxCreateCall(struct ekContext *E, ekSyntax *func, ekSyntax *args);
 ekSyntax *ekSyntaxCreateStringFormat(struct ekContext *E, ekSyntax *format, ekSyntax *args);
-ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr);
+ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr, int line);
 ekSyntax *ekSyntaxCreateBinary(struct ekContext *E, ekU32 type, ekSyntax *l, ekSyntax *r, ekBool compound);
 ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *E, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateAssignment(struct ekContext *E, ekSyntax *l, ekSyntax *r);

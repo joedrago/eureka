@@ -152,9 +152,9 @@ ekSyntax *ekSyntaxCreateStringFormat(struct ekContext *E, ekSyntax *format, ekSy
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr)
+ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr, int line)
 {
-    ekSyntax *syntax = ekSyntaxCreate(E, type, expr->line);
+    ekSyntax *syntax = ekSyntaxCreate(E, type, line);
     syntax->v.p = expr;
     return syntax;
 }

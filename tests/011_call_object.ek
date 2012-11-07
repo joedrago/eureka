@@ -1,2 +1,2 @@
-var a = object();
+var a = {};
 var b = a();

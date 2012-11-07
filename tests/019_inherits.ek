@@ -1,3 +1,3 @@
-var a = object();
-var b = object();
+var a = {};
+var b = {};
 if(a inherits b) {}

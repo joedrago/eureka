@@ -1,7 +1,7 @@
-var a = object(
+var a = {
     init => function()
     {
         this.wat = 5;
     }
-);
+};
 var b = a();

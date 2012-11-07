@@ -1,4 +1,4 @@
-var a = object(
+var a = {
     init => function() {}
-);
+};
 var b = a();

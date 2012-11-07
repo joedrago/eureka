@@ -1,4 +1,4 @@
-var a = object();
+var a = {};
 a.func = function() {};
 var b = a();
 b.func();

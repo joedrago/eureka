@@ -272,10 +272,10 @@ expr_list(EL) ::= expression(EXPR).
     { ekSyntaxDestroy(C->E, $$); }
 
 expression(EXP) ::= NOT expression(EXPR).
-    { EXP = ekSyntaxCreateUnary(C->E, EST_NOT, EXPR); }
+    { EXP = ekSyntaxCreateUnary(C->E, EST_NOT, EXPR, EXPR->line); }
 
 expression(EXP) ::= BITWISE_NOT expression(EXPR).
-    { EXP = ekSyntaxCreateUnary(C->E, EST_BITWISE_NOT, EXPR); }
+    { EXP = ekSyntaxCreateUnary(C->E, EST_BITWISE_NOT, EXPR, EXPR->line); }
 
 expression(EXP) ::= expression(L) PLUS expression(R).
     { EXP = ekSyntaxCreateBinary(C->E, EST_ADD, L, R, ekFalse); }
@@ -337,11 +337,17 @@ expression(EXP) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
 expression(EXP) ::= expression(FORMAT) MOD expression(ARGS).
     { EXP = ekSyntaxCreateStringFormat(C->E, FORMAT, ARGS); }
 
+expression(EXPR) ::= ARRAYOPENBRACKET(AOB) CLOSEBRACKET.
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_ARRAY, NULL, AOB.line); }
+
 expression(EXPR) ::= ARRAYOPENBRACKET expr_list(EL) CLOSEBRACKET.
-    { EXPR = ekSyntaxCreateUnary(C->E, EST_ARRAY, EL); }
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_ARRAY, EL, EL->line); }
+
+expression(EXPR) ::= MAPSTARTBLOCK(MSB) ENDBLOCK.
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_MAP, NULL, MSB.line); }
 
 expression(EXPR) ::= MAPSTARTBLOCK expr_list(EL) ENDBLOCK.
-    { EXPR = ekSyntaxCreateUnary(C->E, EST_MAP, EL); }
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_MAP, EL, EL->line); }
 
 expression(EXPR) ::= lvalue(L) ASSIGN expression(R).
     { EXPR = ekSyntaxCreateAssignment(C->E, L, R); }

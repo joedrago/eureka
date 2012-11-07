@@ -504,7 +504,11 @@ asmFunc(Unary)
 {
     ekSyntax *expr = syntax->v.p;
     int keepCount = ((syntax->type == EST_ARRAY) || (syntax->type == EST_MAP)) ? EAV_ALL_ARGS : 1;
-    int rvalueCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, keepCount, ASM_NORMAL);
+    int rvalueCount = 0;
+    if(expr)
+    {
+        rvalueCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, keepCount, ASM_NORMAL);
+    }
     ekCodeGrow(E, dst, 1);
     switch(syntax->type)
     {
