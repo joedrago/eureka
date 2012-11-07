@@ -660,10 +660,10 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
 
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue)
 {
-    ekValue *v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
-    if(!v)
+    ekValue *v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
+    if(!v && (!ekContextGetError(E)))
     {
-        v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
+        v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
     }
     return v;
 }

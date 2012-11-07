@@ -289,6 +289,9 @@ static ekAssembleInfo asmDispatch[EST_COUNT] =
     { ekAssembleExpressionList },  // EST_EXPRESSIONLIST
     { ekAssembleIdentifierList },  // EST_IDENTIFIERLIST
 
+    { ekAssembleUnary },           // EST_ARRAY
+    { ekAssembleUnary },           // EST_MAP
+
     { ekAssembleCall },            // EST_CALL
     { ekAssembleStringFormat },    // EST_STRINGFORMAT
 
@@ -331,7 +334,7 @@ static ekAssembleInfo asmDispatch[EST_COUNT] =
     { ekAssembleFor },             // EST_FOR
     { ekAssembleFunction },        // EST_FUNCTION
     { ekAssembleFunctionArgs },    // EST_FUNCTION_ARGS
-    { ekAssembleScope },           // EST_SCOPE
+    { ekAssembleScope }            // EST_SCOPE
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -500,7 +503,8 @@ asmFunc(StringFormat)
 asmFunc(Unary)
 {
     ekSyntax *expr = syntax->v.p;
-    asmDispatch[expr->type].assemble(E, compiler, dst, expr, 1, ASM_NORMAL);
+    int keepCount = ((syntax->type == EST_ARRAY) || (syntax->type == EST_MAP)) ? EAV_ALL_ARGS : 1;
+    int rvalueCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, keepCount, ASM_NORMAL);
     ekCodeGrow(E, dst, 1);
     switch(syntax->type)
     {
@@ -509,6 +513,12 @@ asmFunc(Unary)
             break;
         case EST_BITWISE_NOT:
             ekCodeAppend(E, dst, EOP_BITWISE_NOT, 0, syntax->line);
+            break;
+        case EST_ARRAY:
+            ekCodeAppend(E, dst, EOP_ARRAY, rvalueCount, syntax->line);
+            break;
+        case EST_MAP:
+            ekCodeAppend(E, dst, EOP_MAP, rvalueCount, syntax->line);
             break;
     };
     return PAD(1);
@@ -776,7 +786,7 @@ asmFunc(For)
     ekCodeAppend(E, loop, EOP_DUPE, 3, syntax->line);    // dupe object
     ekCodeAppend(E, loop, EOP_NTH, 0, syntax->line);     // call nth
     ekCodeAppend(E, loop, EOP_KEEP, ekArraySize(E, &vars->v.a), syntax->line);
-    asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR);
+    asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR | ASM_SETVAR);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(E, compiler, loop, body, 0, ASM_NORMAL);

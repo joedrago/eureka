@@ -5,7 +5,7 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "ekiCore.h"
+#include "ekIntrinsics.h"
 
 #include "ekTypes.h"
 #include "ekMap.h"
@@ -32,27 +32,6 @@ static ekU32 make_array(struct ekContext *E, ekU32 argCount)
     }
     ekArrayPush(E, &E->stack, a);
     return 1;
-}
-
-ekU32 array_push(struct ekContext *E, ekU32 argCount)
-{
-    int i;
-    ekValue *a;
-    ekValue **values = NULL;
-    if(!ekContextGetArgs(E, argCount, "a.", &a, &values))
-    {
-        return ekContextArgsFailure(E, argCount, "push([array] a, ... values)");
-    }
-
-    for(i=0; i<ekArraySize(E, &values); i++)
-    {
-        ekValue *v = (ekValue *)values[i];
-        ekValueArrayPush(E, a, v);
-    }
-
-    ekValueRemoveRefNote(E, a, "array_push a done");
-    ekArrayDestroy(E, &values, NULL);
-    return 0;
 }
 
 static void ekAppendKey(struct ekContext *E, ekValue *arrayVal, ekMapEntry *entry)
@@ -294,16 +273,117 @@ ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-void ekIntrinsicsRegisterCore(struct ekContext *E)
+static ekU32 object(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v;
+    v = ekValueCreateObject(E, NULL, argCount, ekFalse);
+    ekArrayPush(E, &E->stack, v);
+    return 1;
+}
+
+static ekU32 inherit(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v;
+    v = ekValueCreateObject(E, NULL, argCount, ekTrue);
+    ekArrayPush(E, &E->stack, v);
+    return 1;
+}
+
+static ekU32 prototype(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *object = NULL;
+    ekValue *newPrototype = NULL;
+    if(!ekContextGetArgs(E, argCount, "o|o", &object, &newPrototype))
+    {
+        return ekContextArgsFailure(E, argCount, "prototype(object [, newPrototypetype])");
+    }
+
+    if(object && newPrototype)
+    {
+        if(object->objectVal->isa)
+        {
+            ekValueRemoveRefNote(E, object->objectVal->isa, "prototype removing old isa");
+        }
+        object->objectVal->isa = newPrototype;
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype new isa");
+    }
+
+    if(object && object->objectVal->isa)
+    {
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype return isa");
+        ekArrayPush(E, &E->stack, object->objectVal->isa);
+    }
+    else
+    {
+        ekArrayPush(E, &E->stack, &ekValueNull);
+    }
+    ekValueRemoveRefNote(E, object, "prototype object done");
+    if(newPrototype)
+    {
+        ekValueRemoveRefNote(E, newPrototype, "prototype newPrototype done");
+    }
+    return 1;
+}
+
+// ---------------------------------------------------------------------------
+
+static ekU32 convert_to_string(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "string(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToString(E, v));
+    return 1;
+}
+
+static ekU32 convert_to_int(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "int(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToInt(E, v));
+    return 1;
+}
+
+static ekU32 convert_to_float(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "float(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToFloat(E, v));
+    return 1;
+}
+
+// ---------------------------------------------------------------------------
+
+void ekIntrinsicsRegister(struct ekContext *E)
 {
     ekContextRegisterGlobalFunction(E, "array", make_array);
-    ekContextRegisterGlobalFunction(E, "push", array_push);
 
     ekContextRegisterGlobalFunction(E, "keys", keys);
     ekContextRegisterGlobalFunction(E, "eval", eval);
     ekContextRegisterGlobalFunction(E, "type", type);
     ekContextRegisterGlobalFunction(E, "dump", dump);
     ekContextRegisterGlobalFunction(E, "assert", ek_assert);
+
+    ekContextRegisterGlobalFunction(E, "object", object);
+    ekContextRegisterGlobalFunction(E, "map", object); // alias
+
+    ekContextRegisterGlobalFunction(E, "inherit", inherit);
+    ekContextRegisterGlobalFunction(E, "prototype", prototype);
+
+    ekContextRegisterGlobalFunction(E, "string", convert_to_string);
+    ekContextRegisterGlobalFunction(E, "int", convert_to_int);
+    ekContextRegisterGlobalFunction(E, "float", convert_to_float);
 
     // TODO: Move these out of here
     ekContextRegisterGlobalFunction(E, "print", standard_print);

@@ -36,6 +36,27 @@ static ekU32 arrayIntrinsicLength(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
+{
+    int i;
+    ekValue *a = ekContextThis(E);
+    ekValue **values = NULL;
+    if(!ekContextGetArgs(E, argCount, ".", &values))
+    {
+        return ekContextArgsFailure(E, argCount, "array.push(value [, ... value])");
+    }
+
+    for(i=0; i<ekArraySize(E, &values); i++)
+    {
+        ekValue *v = (ekValue *)values[i];
+        ekValueArrayPush(E, a, v);
+    }
+
+    ekValueRemoveRefNote(E, a, "array_push a done");
+    ekArrayDestroy(E, &values, NULL);
+    return 0;
+}
+
 // ---------------------------------------------------------------------------
 // EVT_ARRAY Funcs
 
@@ -134,4 +155,5 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     ekAssert(type->id == EVT_ARRAY);
 
     ekValueTypeAddIntrinsic(E, type, "length", arrayIntrinsicLength);
+    ekValueTypeAddIntrinsic(E, type, "push", arrayIntrinsicPush);
 }

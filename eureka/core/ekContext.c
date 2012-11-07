@@ -17,9 +17,7 @@
 #include "ekValue.h"
 
 #include "ekmAll.h"
-#include "ekiCore.h"
-#include "ekiConversions.h"
-#include "ekiInheritance.h"
+#include "ekIntrinsics.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -158,9 +156,7 @@ ekContext *ekContextCreate(ekMemFuncs *memFuncs)
     E->globals = ekMapCreate(E, EMKT_STRING);
 
     ekValueTypeRegisterAllBasicTypes(E);
-    ekIntrinsicsRegisterCore(E);
-    ekIntrinsicsRegisterConversions(E);
-    ekIntrinsicsRegisterInheritance(E);
+    ekIntrinsicsRegister(E);
     ekModuleRegisterAll(E);
     return E;
 }
@@ -1417,6 +1413,31 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                     break;
                 };
                 ekArrayPush(E, &E->stack, val);
+            }
+            break;
+
+            case EOP_ARRAY:
+            {
+                ekValue *a = ekValueCreateArray(E);
+                int i;
+                for(i = 0; i < operand; i++)
+                {
+                    ekValue *v = ekContextGetArg(E, i, operand);
+                    ekArrayPush(E, &a->arrayVal, v);
+                }
+                for(i = 0; i < operand; i++)
+                {
+                    // No need to removeref here, as they're owned by the new array
+                    ekArrayPop(E, &E->stack);
+                }
+                ekArrayPush(E, &E->stack, a);
+            }
+            break;
+
+            case EOP_MAP:
+            {
+                ekValue *map = ekValueCreateObject(E, NULL, operand, ekFalse);
+                ekArrayPush(E, &E->stack, map);
             }
             break;
 

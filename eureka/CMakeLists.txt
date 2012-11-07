@@ -63,6 +63,8 @@ set(ek_src
     core/ekObject.c
     core/ekFrame.h
     core/ekFrame.c
+    core/ekIntrinsics.h
+    core/ekIntrinsics.c
     core/ekLexer.c
     core/ekLexer.h
     core/ekLexer.re
@@ -88,15 +90,6 @@ set(ek_src
     core/ekValueTypeObject.c
     core/ekValueTypeRef.c
     core/ekValueTypeString.c
-)
-
-set(ek_intrinsics
-    intrinsics/ekiCore.h
-    intrinsics/ekiCore.c
-    intrinsics/ekiConversions.h
-    intrinsics/ekiConversions.c
-    intrinsics/ekiInheritance.h
-    intrinsics/ekiInheritance.c
 )
 
 set(ek_modules
@@ -137,14 +130,13 @@ if(EUREKA_ENABLE_EXT_DOT)
     )
 endif()
 
-include_directories(core intrinsics modules extras)
+include_directories(core modules extras)
 
 add_lemon_files(ek_src core/ekParser.y)
 add_re2c_files(ek_src core/ekLexer.re)
 
 add_library(eureka
     ${ek_src}
-    ${ek_intrinsics}
     ${ek_modules}
     ${ek_extras}
 )

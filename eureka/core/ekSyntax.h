@@ -33,6 +33,9 @@ enum
     EST_EXPRESSIONLIST,                // v.a: array of syntax
     EST_IDENTIFIERLIST,                // v.a: array of syntax
 
+    EST_ARRAY,                         // v.p: contents of a new array
+    EST_MAP,                           // v.p: contents of a new map
+
     EST_CALL,                          // s: funcname,  r: array of arg exprs
     EST_STRINGFORMAT,                  // l: format expr, r: array of arg exprs
 

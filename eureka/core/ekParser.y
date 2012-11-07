@@ -39,7 +39,9 @@
 
 %fallback GROUPLEFTPAREN LEFTPAREN.
 %fallback SCOPESTARTBLOCK STARTBLOCK.
+%fallback MAPSTARTBLOCK SCOPESTARTBLOCK.
 %fallback NEGATIVE DASH.
+%fallback ARRAYOPENBRACKET OPENBRACKET.
 
 // Operators, ordered from lowest precedence to highest
 
@@ -334,6 +336,12 @@ expression(EXP) ::= expression(FORMAT) MOD paren_expr_list(ARGS).
 
 expression(EXP) ::= expression(FORMAT) MOD expression(ARGS).
     { EXP = ekSyntaxCreateStringFormat(C->E, FORMAT, ARGS); }
+
+expression(EXPR) ::= ARRAYOPENBRACKET expr_list(EL) CLOSEBRACKET.
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_ARRAY, EL); }
+
+expression(EXPR) ::= MAPSTARTBLOCK expr_list(EL) ENDBLOCK.
+    { EXPR = ekSyntaxCreateUnary(C->E, EST_MAP, EL); }
 
 expression(EXPR) ::= lvalue(L) ASSIGN expression(R).
     { EXPR = ekSyntaxCreateAssignment(C->E, L, R); }

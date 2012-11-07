@@ -123,6 +123,20 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
+        case EST_ARRAY:
+        {
+            strcpy(label, "Array");
+            REC_CHILD(syntax->v.p);
+        }
+        break;
+
+        case EST_MAP:
+        {
+            strcpy(label, "Map");
+            REC_CHILD(syntax->v.p);
+        }
+        break;
+
         case EST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";

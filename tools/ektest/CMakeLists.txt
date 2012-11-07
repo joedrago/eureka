@@ -9,7 +9,6 @@ project(ektest C)
 
 include_directories (
     ${eureka_SOURCE_DIR}/core
-    ${eureka_SOURCE_DIR}/intrinsics
     ${eureka_SOURCE_DIR}/modules
     ${eureka_SOURCE_DIR}/extras
 )

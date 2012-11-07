@@ -1,0 +1,12 @@
+var a = [1,2,3];
+var b = { a => 1, b => 2 };
+
+for(i in a)
+{
+    print("Array entry: %s\n" % i);
+}
+
+for(i in keys(b))
+{
+    print("key: %s, val: %s\n" % (i, b[i]));
+}
