@@ -91,8 +91,8 @@ void ekOpsDump(ekOp *ops, int count)
                 HURR(EOP_ARRAY, "array")
                 HURR(EOP_MAP, "map")
 
-                HURR(EOP_NTH, "nth")
-                HURR(EOP_COUNT, "count")
+                HURR(EOP_ITER, "iter")
+
 #undef HURR
 
             default:

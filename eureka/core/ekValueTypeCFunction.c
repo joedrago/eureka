@@ -20,6 +20,14 @@
 // ---------------------------------------------------------------------------
 // EVT_CFUNCTION Funcs
 
+static void cfunctionFuncClear(struct ekContext *E, struct ekValue *p)
+{
+    if(p->closureVars)
+    {
+        ekMapDestroy(E, p->closureVars, ekValueRemoveRef);
+    }
+}
+
 static void cfunctionFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
 {
     dst->cFuncVal = src->cFuncVal;
@@ -50,12 +58,13 @@ static void cfunctionFuncDump(struct ekContext *E, ekDumpParams *params, struct 
 void ekValueTypeRegisterCFunction(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "cfunction");
-    type->funcClear      = ekValueTypeFuncNotUsed;
+    type->funcClear      = cfunctionFuncClear;
     type->funcClone      = cfunctionFuncClone;
     type->funcToBool     = cfunctionFuncToBool;
     type->funcToInt      = cfunctionFuncToInt;
     type->funcToFloat    = cfunctionFuncToFloat;
     type->funcToString   = ekValueTypeFuncNotUsed;
+    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = ekValueTypeFuncNotUsed;

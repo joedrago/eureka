@@ -41,6 +41,7 @@ void ekValueTypeRegisterNull(struct ekContext *E)
     type->funcToInt      = ekValueTypeFuncNotUsed;
     type->funcToFloat    = ekValueTypeFuncNotUsed;
     type->funcToString   = nullFuncToString;
+    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = ekValueTypeFuncNotUsed;

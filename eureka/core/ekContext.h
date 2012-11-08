@@ -67,6 +67,7 @@ void ekContextDestroy(ekContext *E);
 
 void ekContextRegisterGlobal(struct ekContext *E, const char *name, ekValue *value);
 void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCFunction func); // shortcut
+struct ekValue * ekContextFindGlobal(struct ekContext *E, const char *name);
 
 // Eureka Eval Options
 enum
@@ -98,6 +99,7 @@ ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat
 int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...); // Will always pop all arguments!
 
 ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount); // returns whether or not it found it
+ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure);
 
 #define ekContextGetTop(VM) ekContextGetValue(VM, 0)
 #define ekContextGetArg(VM, INDEX, ARGCOUNT) ekContextGetValue(VM, (ARGCOUNT-1) - INDEX)

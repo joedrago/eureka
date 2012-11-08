@@ -85,6 +85,16 @@ static ekF32 arrayFuncToFloat(struct ekContext *E, struct ekValue *p)
     return (p->arrayVal) ? (ekF32)ekArraySize(E, &p->arrayVal) : 0;
 }
 
+static ekCFunction *arrayFuncIter(struct ekContext *E, struct ekValue *p)
+{
+    ekValue *v = ekContextFindGlobal(E, "iter");
+    if(v)
+    {
+        return v->cFuncVal;
+    }
+    return NULL;
+}
+
 static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value, struct ekValue *index, ekBool lvalue)
 {
     ekValue *ret = NULL;
@@ -147,6 +157,7 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     type->funcToInt      = arrayFuncToInt;
     type->funcToFloat    = arrayFuncToFloat;
     type->funcToString   = ekValueTypeFuncNotUsed;
+    type->funcIter       = arrayFuncIter;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = arrayFuncIndex;

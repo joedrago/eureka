@@ -39,6 +39,16 @@ void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCF
     ekValueRemoveRefNote(E, p, "granted ownership to globals table");
 }
 
+ekValue * ekContextFindGlobal(struct ekContext *E, const char *name)
+{
+    ekMapEntry *e = ekMapGetS(E, E->globals, name, ekFalse);
+    if(!e)
+    {
+        return 0;
+    }
+    return e->valuePtr;
+}
+
 static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
 {
     // A simple test ... if there aren't any functions in this chunk and all ktable lookups
@@ -299,7 +309,6 @@ ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, e
     return frame;
 }
 
-static ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal);
 static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, int argCount);
 
 static ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
@@ -322,7 +331,8 @@ static ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *th
     }
     if(callable->type == EVT_CFUNCTION)
     {
-        if(!ekContextCallCFunction(E, *callable->cFuncVal, argCount, thisVal))
+        ekValue *closure = (callable->closureVars) ? callable : NULL;
+        if(!ekContextCallCFunction(E, *callable->cFuncVal, argCount, thisVal, closure))
         {
             return ekFalse; // LCOV_EXCL_LINE - TODO: ektest embedding. A cfunction needs to ruin the stack frame array for this to return false.
         }
@@ -431,10 +441,10 @@ static void ekContextPushRef(struct ekContext *E, ekValue **valueRef)
 }
 
 // TODO: merge this function with PushFrame and _RET
-static ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal)
+ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure)
 {
     int retCount;
-    ekFrame *frame = ekFrameCreate(E, EFT_FUNC, thisVal, NULL, ekArraySize(E, &E->stack), argCount, NULL);
+    ekFrame *frame = ekFrameCreate(E, EFT_FUNC, thisVal, NULL, ekArraySize(E, &E->stack), argCount, closure);
     ekArrayPush(E, &E->frames, frame);
 
     retCount = func(E, argCount);
@@ -1308,12 +1318,18 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_LEAVE:
             {
                 ekBool performLeave = ekTrue;
-                if(operand)
+                if(operand == 1 /* TODO: make this an enum */)
                 {
                     ekValue *cond = ekArrayPop(E, &E->stack);
                     cond = ekValueToBool(E, cond);
-                    performLeave   = !cond->intVal; // don't leave if expr is true!
+                    performLeave = !cond->intVal; // don't leave if expr is true!
                     ekValueRemoveRefNote(E, cond, "LEAVE cond done");
+                }
+                else if (operand == 2)
+                {
+                    ekValue *cond = ekArrayPop(E, &E->stack);
+                    performLeave = (cond->type == EVT_NULL);
+                    ekValueRemoveRefNote(E, cond, "LEAVE cond null check done");
                 }
 
                 if(performLeave)
@@ -1441,87 +1457,14 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             }
             break;
 
-            case EOP_NTH:
+            case EOP_ITER:
             {
-                ekValue *val = ekArrayPop(E, &E->stack);
-
-                if(val->type == EVT_ARRAY)
+                ekValue *p = ekArrayTop(E, &E->stack);
+                ekCFunction *iter = ekValueIter(E, p);
+                if(iter)
                 {
-                    ekValue *nth = ekArrayPop(E, &E->stack);
-                    if(nth->intVal >= 0 && nth->intVal < ekArraySize(E, &val->arrayVal))
-                    {
-                        ekValue *indexedValue = val->arrayVal[nth->intVal];
-                        ekValueAddRefNote(E, indexedValue, "NTH indexed value");
-                        ekArrayPush(E, &E->stack, indexedValue);
-                        E->lastRet = 1;
-                    }
-                    else
-                    {
-                        ekContextSetError(E, EVE_RUNTIME, "EOP_NTH: index out of range");
-                        continueLooping = ekFalse;
-                    }
-                    ekValueRemoveRefNote(E, nth, "NTH nth done");
+                    continueLooping = ekContextCallCFunction(E, iter, 1, ekValueNullPtr, NULL);
                 }
-                else if(val->type == EVT_OBJECT)
-                {
-                    ekFrame *oldFrame = frame;
-                    ekValue *getFunc = ekFindFunc(E, val, "get");
-                    if(getFunc)
-                    {
-                        continueLooping = ekContextCall(E, &frame, val, getFunc, 1 /* the index */);
-                        if(frame != oldFrame)
-                        {
-                            newFrame = ekTrue;
-                        }
-                    }
-                    else
-                    {
-                        ekContextSetError(E, EVE_RUNTIME, "EVT_NTH: iterable does not have a get() function");
-                        continueLooping = ekFalse;
-                    }
-                }
-                else
-                {
-                    ekContextSetError(E, EVE_RUNTIME, "EOP_NTH: Invalid value type %d", val->type);
-                    continueLooping = ekFalse;
-                }
-                ekValueRemoveRefNote(E, val, "NTH val done");
-            }
-            break;
-
-            case EOP_COUNT:
-            {
-                ekValue *val = ekArrayPop(E, &E->stack);
-                if(val->type == EVT_ARRAY)
-                {
-                    ekValue *count = ekValueCreateInt(E, ekArraySize(E, &val->arrayVal));
-                    ekArrayPush(E, &E->stack, count);
-                    E->lastRet = 1;
-                }
-                else if(val->type == EVT_OBJECT)
-                {
-                    ekFrame *oldFrame = frame;
-                    ekValue *countFunc = ekFindFunc(E, val, "count");
-                    if(countFunc)
-                    {
-                        continueLooping = ekContextCall(E, &frame, val, countFunc, 0);
-                        if(frame != oldFrame)
-                        {
-                            newFrame = ekTrue;
-                        }
-                    }
-                    else
-                    {
-                        ekContextSetError(E, EVE_RUNTIME, "EVT_COUNT: iterable does not have a count() function");
-                        continueLooping = ekFalse;
-                    }
-                }
-                else
-                {
-                    ekContextSetError(E, EVE_RUNTIME, "EVT_COUNT: Invalid value type %d", val->type);
-                    continueLooping = ekFalse;
-                }
-                ekValueRemoveRefNote(E, val, "COUNT val done");
             }
             break;
 

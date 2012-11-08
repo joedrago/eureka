@@ -1,0 +1,24 @@
+for(v,i in [1,2,3,4])
+{
+    print("sup %s (%d)\n" % (v,i));
+}
+
+for(v,i in iter(["this", "is", "totally", "awesome"]))
+{
+    print("sup %s (%d)\n" % (v,i));
+}
+
+for(k,v in pairs({ a => 1, b => 2 }))
+{
+    print("key: %s value: %s\n" % (k,v));
+}
+
+for(k,v in { a => 1, b => 2 })
+{
+    print("key: %s value: %s\n" % (k,v));
+}
+
+for(k in { a => 1, b => 2 })
+{
+    print("key: %s\n" % k);
+}

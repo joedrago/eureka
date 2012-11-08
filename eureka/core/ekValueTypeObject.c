@@ -49,7 +49,18 @@ static struct ekValue *objectFuncToString(struct ekContext *E, struct ekValue *p
 {
     char temp[32];
     sprintf(temp, "[object:%p]", p->objectVal);
+    ekValueRemoveRefNote(E, p, "objectFuncToString doesnt need object anymore");
     return ekValueCreateString(E, temp);
+}
+
+static ekCFunction *objectFuncIter(struct ekContext *E, struct ekValue *p)
+{
+    ekValue *v = ekContextFindGlobal(E, "pairs");
+    if(v)
+    {
+        return v->cFuncVal;
+    }
+    return NULL;
 }
 
 static struct ekValue *objectFuncIndex(struct ekContext *E, struct ekValue *value, struct ekValue *index, ekBool lvalue)
@@ -105,6 +116,7 @@ void ekValueTypeRegisterObject(struct ekContext *E)
     type->funcToInt      = objectFuncToInt;
     type->funcToFloat    = objectFuncToFloat;
     type->funcToString   = objectFuncToString;
+    type->funcIter       = objectFuncIter;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = objectFuncIndex;

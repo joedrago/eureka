@@ -8,6 +8,7 @@
 #include "ekIntrinsics.h"
 
 #include "ekTypes.h"
+#include "ekFrame.h"
 #include "ekMap.h"
 #include "ekObject.h"
 #include "ekValue.h"
@@ -338,8 +339,110 @@ static ekU32 convert_to_float(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+static ekU32 pairs_iterator(struct ekContext *E, ekU32 argCount)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekValue *m;
+    ekValue *keys;
+    ekValue *index;
+    ekValue *v;
+    ekAssert(frame->closure && frame->closure->closureVars);
+    m = ekMapGetS2P(E, frame->closure->closureVars, "map");
+    keys = ekMapGetS2P(E, frame->closure->closureVars, "keys");
+    index = ekMapGetS2P(E, frame->closure->closureVars, "index");
+    ekAssert((m->type == EVT_OBJECT) && (keys->type == EVT_ARRAY) && (index->type == EVT_INT));
+    ekAssert(argCount == 0);
+    ekContextPopValues(E, argCount);
+
+    if(index->intVal < ekArraySize(E, &keys->arrayVal))
+    {
+        ekValue *key = keys->arrayVal[index->intVal++];
+        ekValueAddRefNote(E, key, "pairs_iterator using key");
+        ekArrayPush(E, &E->stack, key);
+        v = ekValueIndex(E, m, key, ekFalse); // should addref the value
+        if(!v)
+        {
+            v = ekValueNullPtr;
+        }
+        ekArrayPush(E, &E->stack, v);
+        return 2;
+    }
+
+    ekArrayPush(E, &E->stack, ekValueNullPtr);
+    return 1;
+}
+
+static ekU32 pairs_create(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *m = NULL;
+    ekValue *closure;
+    ekValue *keys;
+    if(!ekContextGetArgs(E, argCount, "m", &m))
+    {
+        return ekContextArgsFailure(E, argCount, "pairs(map)");
+    }
+    closure = ekValueCreateCFunction(E, pairs_iterator);
+    closure->closureVars = ekMapCreate(E, EMKT_STRING);
+    keys = ekValueCreateArray(E);
+    ekMapIterateP1(E, m->objectVal->hash, ekAppendKey, keys);
+    ekMapGetS2P(E, closure->closureVars, "map") = m;
+    ekMapGetS2P(E, closure->closureVars, "keys") = keys;
+    ekMapGetS2P(E, closure->closureVars, "index") = ekValueCreateInt(E, 0);
+    ekArrayPush(E, &E->stack, closure);
+    return 1;
+}
+
+
+// ---------------------------------------------------------------------------
+
+static ekU32 iter_iterator(struct ekContext *E, ekU32 argCount)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekValue *array;
+    ekValue *index;
+    ekAssert(frame->closure && frame->closure->closureVars);
+    array = ekMapGetS2P(E, frame->closure->closureVars, "array");
+    index = ekMapGetS2P(E, frame->closure->closureVars, "index");
+    ekAssert((array->type == EVT_ARRAY) && (index->type == EVT_INT));
+    ekAssert(argCount == 0);
+    ekContextPopValues(E, argCount);
+
+    if(index->intVal < ekArraySize(E, &array->arrayVal))
+    {
+        ekValue *v = array->arrayVal[index->intVal];
+        ekValueAddRefNote(E, v, "array_iterator using value");
+        ekArrayPush(E, &E->stack, v);
+        ekArrayPush(E, &E->stack, ekValueCreateInt(E, index->intVal++));
+        return 2;
+    }
+
+    ekArrayPush(E, &E->stack, ekValueNullPtr);
+    return 1;
+}
+
+static ekU32 iter_create(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *closure;
+    if(!ekContextGetArgs(E, argCount, "a", &a))
+    {
+        return ekContextArgsFailure(E, argCount, "iter(array)");
+    }
+    closure = ekValueCreateCFunction(E, iter_iterator);
+    closure->closureVars = ekMapCreate(E, EMKT_STRING);
+    ekMapGetS2P(E, closure->closureVars, "array") = a;
+    ekMapGetS2P(E, closure->closureVars, "index") = ekValueCreateInt(E, 0);
+    ekArrayPush(E, &E->stack, closure);
+    return 1;
+}
+
+// ---------------------------------------------------------------------------
+
 void ekIntrinsicsRegister(struct ekContext *E)
 {
+    ekContextRegisterGlobalFunction(E, "iter", iter_create);
+    ekContextRegisterGlobalFunction(E, "pairs", pairs_create);
+
     ekContextRegisterGlobalFunction(E, "keys", keys);
     ekContextRegisterGlobalFunction(E, "eval", eval);
     ekContextRegisterGlobalFunction(E, "type", type);

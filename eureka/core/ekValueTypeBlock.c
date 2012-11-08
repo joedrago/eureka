@@ -64,6 +64,7 @@ void ekValueTypeRegisterBlock(struct ekContext *E)
     type->funcToInt      = blockFuncToInt;
     type->funcToFloat    = blockFuncToFloat;
     type->funcToString   = ekValueTypeFuncNotUsed;
+    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = ekValueTypeFuncNotUsed;

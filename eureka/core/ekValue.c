@@ -107,6 +107,7 @@ int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
     ekAssert(newType->funcToInt);
     ekAssert(newType->funcToFloat);
     ekAssert(newType->funcToString);
+    ekAssert(newType->funcIter);
     ekAssert(newType->funcArithmetic);
     ekAssert(newType->funcCmp);
     ekAssert(newType->funcIndex);
@@ -583,6 +584,11 @@ ekValue *ekValueToString(struct ekContext *E, ekValue *p)
     return value;
 }
 
+ekCFunction *ekValueIter(struct ekContext *E, ekValue *p)
+{
+    return ekValueTypeSafeCall(p->type, Iter)(E, p);
+}
+
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount)
 {
     char *curr = (char *)ekStringSafePtr(&format->stringVal);
@@ -660,10 +666,10 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
 
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue)
 {
-    ekValue *v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
-    if(!v && (!ekContextGetError(E)))
+    ekValue *v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
+    if(!v)
     {
-        v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
+        v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
     }
     return v;
 }

@@ -131,6 +131,7 @@ void ekValueTypeRegisterFloat(struct ekContext *E)
     type->funcToInt      = floatFuncToInt;
     type->funcToFloat    = floatFuncToFloat;
     type->funcToString   = floatFuncToString;
+    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = floatFuncArithmetic;
     type->funcCmp        = floatFuncCmp;
     type->funcIndex      = ekValueTypeFuncNotUsed;

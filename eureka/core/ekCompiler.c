@@ -761,44 +761,31 @@ asmFunc(For)
     ekSyntax *iter = syntax->l.p;
     ekSyntax *body = syntax->r.p;
     ekCode   *loop = ekCodeCreate();
+    int loopVarCount = ekArraySize(E, &vars->v.a);
     int index;
 
-    // Get the iterable onto the stack
+    // Get the iterator onto the stack
     asmDispatch[iter->type].assemble(E, compiler, dst, iter, 1, ASM_NORMAL);
+    ekCodeGrow(E, dst, 1);
+    ekCodeAppend(E, dst, EOP_ITER, index, syntax->line); // Give the type a chance to turn itself into an iterator
 
-    ekCodeGrow(E, loop, 5);
-    ekCodeAppend(E, loop, EOP_DUPE, 0, syntax->line);    // stash the object itself
-    ekCodeAppend(E, loop, EOP_COUNT, 0, syntax->line);   // using the dupe, call .count(, syntax->line) to push the count on top
-    ekCodeAppend(E, loop, EOP_KEEP, 1, syntax->line);    // keep only one value from the call to .count()
-    ekCodeAppend(E, loop, EOP_PUSHI, 0, syntax->line);   // init our counter to zero
-    ekCodeAppend(E, loop, EOP_CLEANUP, 3, syntax->line); // Mark the 3 'for loop' items as things to clean up
+    ekCodeGrow(E, loop, 8);
+    ekCodeAppend(E, loop, EOP_CLEANUP, 1 + loopVarCount, syntax->line); // Mark the iterator and args as something to clean up
+    ekCodeAppend(E, loop, EOP_START, 0, syntax->line);                  // begin loop
+    ekCodeAppend(E, loop, EOP_DUPE, 0, syntax->line);                   // dupe the iterator
+    ekCodeAppend(E, loop, EOP_PUSHNULL, 0, syntax->line);               // 'this' (null in an interator)
+    ekCodeAppend(E, loop, EOP_CALL, 0, syntax->line);                   // Call iterator
+    ekCodeAppend(E, loop, EOP_KEEP, loopVarCount, syntax->line);        // keep enough values to populate loop vars
+    ekCodeAppend(E, loop, EOP_DUPE, loopVarCount - 1, syntax->line);    // dupe first parameter
+    ekCodeAppend(E, loop, EOP_LEAVE, 2, syntax->line);                  // leave if top of stack is null
 
-    // At this point, the stack should look like:
-    // -- top --
-    // counter = 0
-    // count = N
-    // object
-
-    ekCodeGrow(E, loop, 3);
-    ekCodeAppend(E, loop, EOP_START, 0, syntax->line);   // begin loop
-    ekCodeAppend(E, loop, EOP_SUB, 1, syntax->line);     // push (count-counter, syntax->line) onto stack
-    ekCodeAppend(E, loop, EOP_LEAVE, 1, syntax->line);   // leave if ((count-counter, syntax->line) == 0)
-
-    // Populate the loop vars from the call to get()
-    ekCodeGrow(E, loop, 7);
-    ekCodeAppend(E, loop, EOP_DUPE, 0, syntax->line);    // dupe counter
-    ekCodeAppend(E, loop, EOP_DUPE, 3, syntax->line);    // dupe object
-    ekCodeAppend(E, loop, EOP_NTH, 0, syntax->line);     // call nth
-    ekCodeAppend(E, loop, EOP_KEEP, ekArraySize(E, &vars->v.a), syntax->line);
+    // Populate loop vars
     asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR | ASM_SETVAR);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(E, compiler, loop, body, 0, ASM_NORMAL);
 
-    // Increment the counter and loop
-    ekCodeGrow(E, loop, 3);
-    ekCodeAppend(E, loop, EOP_PUSHI, 1, syntax->line);
-    ekCodeAppend(E, loop, EOP_ADD, 0, syntax->line);
+    ekCodeGrow(E, loop, 1);
     ekCodeAppend(E, loop, EOP_CONTINUE, 0, syntax->line);
 
     index = ekBlockConvertCode(E, loop, compiler->chunk, 0);

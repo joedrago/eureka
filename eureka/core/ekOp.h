@@ -52,7 +52,7 @@ enum
 
     EOP_IF,                            // pop value, then X+1 blocks. run 0 if true, 1 if false and present
     EOP_ENTER,                         // pops block, pushes frame and enters new scope (a non-function CALL). X == EFT_*
-    EOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first
+    EOP_LEAVE,                         // pop frame (non-function). if X=1, pop value and test first. if X=2, pop value and check for null (specifically) first.
     EOP_CONTINUE,                      // resets LOOP frame.
     EOP_BREAK,                         // Pops LOOP frame.
 
@@ -90,8 +90,7 @@ enum
     EOP_ARRAY,                         // creates an array using the top X entries on the stack, pushes the new array
     EOP_MAP,                           // creates a map using the top X entries on the stack, pushes the new map
 
-    EOP_NTH,                           // pops [object, index] and attempts to push the Nth value either via a call to object.get(n) or array[n]
-    EOP_COUNT                          // pops value, returns either array length and sets lastRet=1, or performs call to 'count' on obj
+    EOP_ITER                           // replaces top of the stack with an iterator for that object
 };
 
 // ---------------------------------------------------------------------------

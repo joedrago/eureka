@@ -56,6 +56,7 @@ void ekValueTypeRegisterRef(struct ekContext *E)
     type->funcToInt      = refFuncToInt;
     type->funcToFloat    = refFuncToFloat;
     type->funcToString   = ekValueTypeFuncNotUsed;
+    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcIndex      = ekValueTypeFuncNotUsed;

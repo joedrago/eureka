@@ -77,8 +77,9 @@ typedef ekBool(*ekValueTypeFuncToBool)(struct ekContext *E, struct ekValue *p);
 typedef ekS32(*ekValueTypeFuncToInt)(struct ekContext *E, struct ekValue *p);
 typedef ekF32(*ekValueTypeFuncToFloat)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *E, struct ekValue *p);
+typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
-typedef ekBool(*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult);
+typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult);
 typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *E, struct ekValue *p, struct ekValue *index, ekBool lvalue);
 typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
 
@@ -101,6 +102,7 @@ typedef struct ekValueType
     ekValueTypeFuncToInt funcToInt;
     ekValueTypeFuncToFloat funcToFloat;
     ekValueTypeFuncToString funcToString;
+    ekValueTypeFuncIter funcIter;
     ekValueTypeFuncArithmetic funcArithmetic;
     ekValueTypeFuncCmp funcCmp;
     ekValueTypeFuncIndex funcIndex;
@@ -145,11 +147,14 @@ typedef struct ekValue
         struct
         {
             struct ekMap *closureVars;   // Populated at runtime when a reference to a new function() is created
-            struct ekBlock *blockVal;    // Hurr, Shield Slam
+            union
+            {
+                struct ekBlock *blockVal;    // Hurr, Shield Slam
+                ekCFunction *cFuncVal;
+            };
         };
         ekString stringVal;
         struct ekValue **refVal;
-        ekCFunction *cFuncVal;
         struct ekValue **arrayVal;
         struct ekObject *objectVal;
     };
@@ -203,6 +208,7 @@ ekValue *ekValueToBool(struct ekContext *E, ekValue *p);
 ekValue *ekValueToInt(struct ekContext *E, ekValue *p);
 ekValue *ekValueToFloat(struct ekContext *E, ekValue *p);
 ekValue *ekValueToString(struct ekContext *E, ekValue *p);
+ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount);
 
