@@ -53,14 +53,85 @@ static struct ekValue *objectFuncToString(struct ekContext *E, struct ekValue *p
     return ekValueCreateString(E, temp);
 }
 
+static ekU32 objectIterator(struct ekContext *E, ekU32 argCount)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekValue *m;
+    ekValue *keys;
+    ekValue *index;
+    ekValue *v;
+    ekAssert(frame->closure && frame->closure->closureVars);
+    m = ekMapGetS2P(E, frame->closure->closureVars, "map");
+    keys = ekMapGetS2P(E, frame->closure->closureVars, "keys");
+    index = ekMapGetS2P(E, frame->closure->closureVars, "index");
+    ekAssert((m->type == EVT_OBJECT) && (keys->type == EVT_ARRAY) && (index->type == EVT_INT));
+    ekAssert(argCount == 0);
+    ekContextPopValues(E, argCount);
+
+    if(index->intVal < ekArraySize(E, &keys->arrayVal))
+    {
+        ekValue *key = keys->arrayVal[index->intVal++];
+        ekValueAddRefNote(E, key, "pairs_iterator using key");
+        ekArrayPush(E, &E->stack, key);
+        v = ekValueIndex(E, m, key, ekFalse); // should addref the value
+        if(!v)
+        {
+            v = ekValueNullPtr;
+        }
+        ekArrayPush(E, &E->stack, v);
+        return 2;
+    }
+
+    ekArrayPush(E, &E->stack, ekValueNullPtr);
+    return 1;
+}
+
+static void ekAppendKey(struct ekContext *E, ekValue *arrayVal, ekMapEntry *entry)
+{
+    ekValue *keyVal = ekValueCreateString(E, entry->keyStr);
+    ekValueArrayPush(E, arrayVal, keyVal);
+}
+
+static ekU32 keys(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *object;
+    ekValue *arrayVal = ekValueCreateArray(E);
+
+    if(!ekContextGetArgs(E, argCount, "o", &object))
+    {
+        return ekContextArgsFailure(E, argCount, "keys([map/object] o)");
+    }
+
+    ekMapIterateP1(E, object->objectVal->hash, ekAppendKey, arrayVal);
+
+    ekValueRemoveRefNote(E, object, "keys object done");
+    ekArrayPush(E, &E->stack, arrayVal);
+    return 1;
+}
+
+static ekU32 objectCreateIterator(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *m = NULL;
+    ekValue *closure;
+    ekValue *keys;
+    if(!ekContextGetArgs(E, argCount, "m", &m))
+    {
+        return ekContextArgsFailure(E, argCount, "pairs(map)");
+    }
+    closure = ekValueCreateCFunction(E, objectIterator);
+    closure->closureVars = ekMapCreate(E, EMKT_STRING);
+    keys = ekValueCreateArray(E);
+    ekMapIterateP1(E, m->objectVal->hash, ekAppendKey, keys);
+    ekMapGetS2P(E, closure->closureVars, "map") = m;
+    ekMapGetS2P(E, closure->closureVars, "keys") = keys;
+    ekMapGetS2P(E, closure->closureVars, "index") = ekValueCreateInt(E, 0);
+    ekArrayPush(E, &E->stack, closure);
+    return 1;
+}
+
 static ekCFunction *objectFuncIter(struct ekContext *E, struct ekValue *p)
 {
-    ekValue *v = ekContextFindGlobal(E, "pairs");
-    if(v)
-    {
-        return v->cFuncVal;
-    }
-    return NULL;
+    return objectCreateIterator;
 }
 
 static struct ekValue *objectFuncIndex(struct ekContext *E, struct ekValue *value, struct ekValue *index, ekBool lvalue)
@@ -123,4 +194,6 @@ void ekValueTypeRegisterObject(struct ekContext *E)
     type->funcDump       = objectFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_OBJECT);
+
+    ekContextAddIntrinsic(E, "keys", keys);
 }

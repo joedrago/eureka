@@ -90,5 +90,5 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
 
 void ekModuleRegisterPCRE(struct ekContext *E)
 {
-    ekContextRegisterGlobalFunction(E, "regex_match", regex_match);
+    ekContextAddIntrinsic(E, "regex_match", regex_match);
 }

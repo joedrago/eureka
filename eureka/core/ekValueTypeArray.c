@@ -85,14 +85,50 @@ static ekF32 arrayFuncToFloat(struct ekContext *E, struct ekValue *p)
     return (p->arrayVal) ? (ekF32)ekArraySize(E, &p->arrayVal) : 0;
 }
 
+static ekU32 arrayIterator(struct ekContext *E, ekU32 argCount)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekValue *array;
+    ekValue *index;
+    ekAssert(frame->closure && frame->closure->closureVars);
+    array = ekMapGetS2P(E, frame->closure->closureVars, "array");
+    index = ekMapGetS2P(E, frame->closure->closureVars, "index");
+    ekAssert((array->type == EVT_ARRAY) && (index->type == EVT_INT));
+    ekAssert(argCount == 0);
+    ekContextPopValues(E, argCount);
+
+    if(index->intVal < ekArraySize(E, &array->arrayVal))
+    {
+        ekValue *v = array->arrayVal[index->intVal];
+        ekValueAddRefNote(E, v, "array_iterator using value");
+        ekArrayPush(E, &E->stack, v);
+        ekArrayPush(E, &E->stack, ekValueCreateInt(E, index->intVal++));
+        return 2;
+    }
+
+    ekArrayPush(E, &E->stack, ekValueNullPtr);
+    return 1;
+}
+
+static ekU32 arrayCreateIterator(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *closure;
+    if(!ekContextGetArgs(E, argCount, "a", &a))
+    {
+        return ekContextArgsFailure(E, argCount, "iter(array)");
+    }
+    closure = ekValueCreateCFunction(E, arrayIterator);
+    closure->closureVars = ekMapCreate(E, EMKT_STRING);
+    ekMapGetS2P(E, closure->closureVars, "array") = a;
+    ekMapGetS2P(E, closure->closureVars, "index") = ekValueCreateInt(E, 0);
+    ekArrayPush(E, &E->stack, closure);
+    return 1;
+}
+
 static ekCFunction *arrayFuncIter(struct ekContext *E, struct ekValue *p)
 {
-    ekValue *v = ekContextFindGlobal(E, "iter");
-    if(v)
-    {
-        return v->cFuncVal;
-    }
-    return NULL;
+    return arrayCreateIterator;
 }
 
 static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value, struct ekValue *index, ekBool lvalue)

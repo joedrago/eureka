@@ -106,5 +106,5 @@ void ekModuleRegisterJSON(struct ekContext *E)
     cJSON_Hooks hooks = { ekAlloc, ekFree };
     cJSON_InitHooks(&hooks);
 
-    ekContextRegisterGlobalFunction(E, "json_parse", json_parse);
+    ekContextAddIntrinsic(E, "json_parse", json_parse);
 }

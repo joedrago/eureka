@@ -26,27 +26,9 @@
 
 #define MAX_ERROR_LENGTH 1023
 
-void ekContextRegisterGlobal(struct ekContext *E, const char *name, ekValue *value)
+void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func)
 {
-    ekMapGetS2P(E, E->globals, name) = value;
-    ekValueAddRefNote(E, value, "ekContextRegisterGlobal");
-}
-
-void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCFunction func)
-{
-    ekValue *p = ekValueCreateCFunction(E, func);
-    ekContextRegisterGlobal(E, name, p);
-    ekValueRemoveRefNote(E, p, "granted ownership to globals table");
-}
-
-ekValue * ekContextFindGlobal(struct ekContext *E, const char *name)
-{
-    ekMapEntry *e = ekMapGetS(E, E->globals, name, ekFalse);
-    if(!e)
-    {
-        return 0;
-    }
-    return e->valuePtr;
+    ekMapGetS2P(E, E->intrinsics, name) = func;
 }
 
 static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
@@ -163,6 +145,7 @@ ekContext *ekContextCreate(ekMemFuncs *memFuncs)
         }
     }
     // LCOV_EXCL_STOP
+    E->intrinsics = ekMapCreate(E, EMKT_STRING);
     E->globals = ekMapCreate(E, EMKT_STRING);
 
     ekValueTypeRegisterAllBasicTypes(E);
@@ -221,6 +204,7 @@ const char *ekContextGetError(ekContext *E)
 
 void ekContextDestroy(ekContext *E)
 {
+    ekMapDestroy(E, E->intrinsics, NULL);
     ekMapDestroy(E, E->globals, ekValueRemoveRefHashed);
     ekArrayDestroy(E, &E->frames, (ekDestroyCB)ekFrameDestroy);
     ekArrayDestroy(E, &E->stack, (ekDestroyCB)ekValueRemoveRefHashed);
@@ -240,6 +224,22 @@ static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool l
     ekFrame *frame;
     ekValue **valueRef = NULL;
     ekMapEntry *hashEntry;
+
+    // Intrinsics have the highest priority, and can only be rvalues
+    hashEntry = ekMapGetS(E, E->intrinsics, name, ekFalse);
+    if(hashEntry)
+    {
+        if(lvalue)
+        {
+            ekContextSetError(E, EVE_RUNTIME, "Cannot use intrinsic function '%s' as an lvalue", name);
+            return NULL;
+        }
+        else
+        {
+            ekAssert(hashEntry->valuePtr);
+            return ekValueCreateCFunction(E, hashEntry->valuePtr);
+        }
+    }
 
     for(i = ekArraySize(E, &E->frames) - 1; i >= 0; i--)
     {
@@ -901,7 +901,10 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                 }
                 else
                 {
-                    ekContextSetError(E, EVE_RUNTIME, "No variable named '%s'", frame->block->chunk->kStrings[operand]);
+                    if(!E->error) // Could be set due to bad intrinsic usage in Resolve
+                    {
+                        ekContextSetError(E, EVE_RUNTIME, "No variable named '%s'", frame->block->chunk->kStrings[operand]);
+                    }
                 }
             }
             break;

@@ -45,6 +45,8 @@ typedef struct ekContext
     // type information
     ekValueType **types;
 
+    struct ekMap *intrinsics;         // map of funcName -> ekCFunction
+
     // things that can own values
     struct ekMap *globals;            // Global variables
     struct ekFrame **frames;          // Current stack frames
@@ -65,9 +67,7 @@ typedef struct ekContext
 ekContext *ekContextCreate(ekMemFuncs *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
 void ekContextDestroy(ekContext *E);
 
-void ekContextRegisterGlobal(struct ekContext *E, const char *name, ekValue *value);
-void ekContextRegisterGlobalFunction(struct ekContext *E, const char *name, ekCFunction func); // shortcut
-struct ekValue * ekContextFindGlobal(struct ekContext *E, const char *name);
+void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
 
 // Eureka Eval Options
 enum
