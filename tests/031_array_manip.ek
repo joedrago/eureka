@@ -1,5 +1,5 @@
 var a = [1, 2, 3];
-a.push(4);
-a.push(5, 6, 7);
-var b = a.length();
+push(a, 4);
+push(a, 5, 6, 7);
+var b = length(a);
 print("Length: ", b);

@@ -122,6 +122,7 @@ ekValue *ekValueMul(struct ekContext *E, ekValue *a, ekValue *b);
 ekValue *ekValueDiv(struct ekContext *E, ekValue *a, ekValue *b);
 
 ekS32 ekValueCmp(struct ekContext *E, ekValue *a, ekValue *b);
+ekS32 ekValueLength(struct ekContext *E, ekValue *p);
 
 // These assume that you are using the pattern: v = ekValueTo*(E, v)
 // and auto-unref the passed-in value for you.
@@ -129,8 +130,8 @@ ekValue *ekValueToBool(struct ekContext *E, ekValue *p);
 ekValue *ekValueToInt(struct ekContext *E, ekValue *p);
 ekValue *ekValueToFloat(struct ekContext *E, ekValue *p);
 ekValue *ekValueToString(struct ekContext *E, ekValue *p);
-ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 
+ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount);
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue);
 const char *ekValueTypeName(struct ekContext *E, ekS32 type); // used in error reporting

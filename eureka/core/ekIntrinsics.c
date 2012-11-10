@@ -105,6 +105,21 @@ ekU32 ekiType(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+ekU32 ekiLength(struct ekContext *E, ekU32 argCount)
+{
+    if(argCount)
+    {
+        ekValue *a = ekContextGetArg(E, 0, argCount);
+        ekValue *ret = ekValueCreateInt(E, ekValueLength(E, a));
+        ekContextPopValues(E, argCount);
+        ekArrayPush(E, &E->stack, ret);
+        return 1;
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
 ekU32 ekiDump(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
@@ -246,6 +261,7 @@ void ekIntrinsicsRegister(struct ekContext *E)
 
     // Value related
     ekContextAddIntrinsic(E, "type", ekiType);
+    ekContextAddIntrinsic(E, "length", ekiLength);
     ekContextAddIntrinsic(E, "dump", ekiDump);
     ekContextAddIntrinsic(E, "iterator", ekiIterator);
 

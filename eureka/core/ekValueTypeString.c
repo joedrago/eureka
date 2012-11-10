@@ -18,21 +18,7 @@
 // ---------------------------------------------------------------------------
 // EVT_STRING Intrinsics
 
-static ekU32 stringIntrinsicLength(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *s = ekContextThis(E);
-    ekValue *c = ekValueNullPtr;
-    ekAssert(s && s->type == EVT_STRING);
-    if(argCount)
-    {
-        return ekContextArgsFailure(E, argCount, "string.length() takes no arguments");
-    }
-
-    c = ekValueCreateInt(E, s->stringVal.len);
-    ekValueRemoveRefNote(E, s, "length this done");
-    ekArrayPush(E, &E->stack, c);
-    return 1;
-}
+// TODO: add substr, split, [others]
 
 // ---------------------------------------------------------------------------
 // EVT_STRING Funcs
@@ -101,6 +87,11 @@ static ekBool stringFuncCmp(struct ekContext *E, struct ekValue *a, struct ekVal
     return ekFalse;
 }
 
+ekS32 stringFuncLength(struct ekContext *E, struct ekValue *p)
+{
+    return p->stringVal.len;
+}
+
 static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
 {
     ekStringConcatLen(E, &params->output, "\"", 1);
@@ -132,11 +123,11 @@ void ekValueTypeRegisterString(struct ekContext *E)
     type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = stringFuncArithmetic;
     type->funcCmp        = stringFuncCmp;
+    type->funcLength     = stringFuncLength;
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = stringFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_STRING);
 
-    ekValueTypeAddIntrinsic(E, type, "length", stringIntrinsicLength);
     ekContextAddIntrinsic(E, "string", ekiString);
 }

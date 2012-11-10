@@ -90,6 +90,7 @@ ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
     ekAssert(newType->funcIter);
     ekAssert(newType->funcArithmetic);
     ekAssert(newType->funcCmp);
+    ekAssert(newType->funcLength);
     ekAssert(newType->funcIndex);
     ekAssert(newType->funcDump);
     ekAssert(newType->funcDump != ekValueTypeFuncNotUsed); // required!

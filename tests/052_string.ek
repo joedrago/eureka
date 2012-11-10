@@ -1,1 +1,1 @@
-print("Length: %d\n" % string("hello there").length());
+print("Length: %d\n" % length("hello there"));

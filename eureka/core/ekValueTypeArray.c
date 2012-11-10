@@ -17,32 +17,16 @@
 #include <stdio.h>
 
 // ---------------------------------------------------------------------------
-// EVT_ARRAY Intrinsics
-
-static ekU32 arrayIntrinsicLength(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *a = ekContextThis(E);
-    ekValue *c = ekValueNullPtr;
-    ekAssert(a && a->type == EVT_ARRAY);
-    if(argCount)
-    {
-        return ekContextArgsFailure(E, argCount, "array.length() takes zero arguments");
-    }
-
-    c = ekValueCreateInt(E, ekArraySize(E, &a->arrayVal));
-    ekValueRemoveRefNote(E, a, "length this done");
-    ekArrayPush(E, &E->stack, c);
-    return 1;
-}
+// EVT_ARRAY Global Intrinsics
 
 ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
 {
     ekS32 i;
-    ekValue *a = ekContextThis(E);
+    ekValue *a = NULL;
     ekValue **values = NULL;
-    if(!ekContextGetArgs(E, argCount, ".", &values))
+    if(!ekContextGetArgs(E, argCount, "a.", &a, &values))
     {
-        return ekContextArgsFailure(E, argCount, "array.push(value [, ... value])");
+        return ekContextArgsFailure(E, argCount, "push([array] a [, ... value])");
     }
 
     for(i=0; i<ekArraySize(E, &values); i++)
@@ -167,6 +151,11 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
     return ret;
 }
 
+ekS32 arrayFuncLength(struct ekContext *E, struct ekValue *p)
+{
+    return ekArraySize(E, &p->arrayVal);
+}
+
 static void arrayFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
 {
     ekS32 i;
@@ -195,11 +184,11 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     type->funcIter       = arrayFuncIter;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
+    type->funcLength     = arrayFuncLength;
     type->funcIndex      = arrayFuncIndex;
     type->funcDump       = arrayFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_ARRAY);
 
-    ekValueTypeAddIntrinsic(E, type, "length", arrayIntrinsicLength);
-    ekValueTypeAddIntrinsic(E, type, "push", arrayIntrinsicPush);
+    ekContextAddIntrinsic(E, "push", arrayIntrinsicPush);
 }

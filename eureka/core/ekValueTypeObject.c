@@ -236,6 +236,7 @@ void ekValueTypeRegisterObject(struct ekContext *E)
     type->funcIter       = objectFuncIter;
     type->funcArithmetic = ekValueTypeFuncNotUsed;
     type->funcCmp        = ekValueTypeFuncNotUsed;
+    type->funcLength     = ekValueTypeFuncNotUsed;
     type->funcIndex      = objectFuncIndex;
     type->funcDump       = objectFuncDump;
     ekValueTypeRegister(E, type);

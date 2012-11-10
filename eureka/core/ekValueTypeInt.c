@@ -133,6 +133,7 @@ void ekValueTypeRegisterInt(struct ekContext *E)
     type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = intFuncArithmetic;
     type->funcCmp        = intFuncCmp;
+    type->funcLength     = ekValueTypeFuncNotUsed;
     type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = intFuncDump;
     ekValueTypeRegister(E, type);

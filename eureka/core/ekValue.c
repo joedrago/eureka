@@ -422,6 +422,11 @@ ekS32 ekValueCmp(struct ekContext *E, ekValue *a, ekValue *b)
     return (ekS32)(a - b); // Fallback case: compare pointers for consistency
 }
 
+ekS32 ekValueLength(struct ekContext *E, ekValue *p)
+{
+    return ekValueTypeSafeCall(p->type, Length)(E, p);
+}
+
 void ekValueCloneData(struct ekContext *E, ekValue *dst, ekValue *src)
 {
     dst->type = src->type;
