@@ -51,7 +51,7 @@ typedef struct ekContext
     struct ekValue **stack;           // Value stack
     struct ekChunk **chunks;          // the VM owns all chunks, making cheap vars
 
-    // GC data
+    // pools
     ekValue **freeValues;             // Free value pool
 
     // state
@@ -84,8 +84,6 @@ void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFo
 void ekContextClearError(ekContext *E);
 const char *ekContextGetError(ekContext *E);
 
-void ekContextGC(struct ekContext *E);
-
 struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
 struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt);
 
@@ -94,6 +92,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop); // stopAtPop means to
 void ekContextPopValues(struct ekContext *E, ekU32 count);
 ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep);  // 0 is "top of stack"
 ekValue *ekContextThis(ekContext *E);  // returns 'this' in current context
+ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount); // Perform EOP_ITER
 
 ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
 int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...); // Will always pop all arguments!

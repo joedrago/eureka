@@ -396,18 +396,17 @@ asmFunc(KFloat)
 
 asmFunc(Identifier)
 {
-    ekOpcode opcode = EOP_VARREF_KS;
+    ekOpcode opcode = EOP_VARVAL_KS;
     if(flags & ASM_VAR)
     {
         opcode = EOP_VARREG_KS;
     }
+    else if(flags & ASM_LVALUE)
+    {
+        opcode = EOP_VARREF_KS;
+    }
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, opcode, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, syntax->v.s)), syntax->line);
-    if(!(flags & ASM_LVALUE))
-    {
-        ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, EOP_REFVAL, 0, syntax->line);
-    }
     return PAD(1);
 }
 

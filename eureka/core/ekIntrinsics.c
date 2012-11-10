@@ -436,12 +436,19 @@ static ekU32 iter_create(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+static ekU32 iterator(struct ekContext *E, ekU32 argCount)
+{
+    return ekContextIterOp(E, argCount);
+}
+
 // ---------------------------------------------------------------------------
 
 void ekIntrinsicsRegister(struct ekContext *E)
 {
     ekContextRegisterGlobalFunction(E, "iter", iter_create);
     ekContextRegisterGlobalFunction(E, "pairs", pairs_create);
+
+    ekContextRegisterGlobalFunction(E, "iterator", iterator);
 
     ekContextRegisterGlobalFunction(E, "keys", keys);
     ekContextRegisterGlobalFunction(E, "eval", eval);

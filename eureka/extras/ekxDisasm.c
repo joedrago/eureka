@@ -83,6 +83,7 @@ void ekOpsDump(ekOp *ops, int count)
 
                 HURR(EOP_VARREG_KS, "varreg_ks")
                 HURR(EOP_VARREF_KS, "varref_ks")
+                HURR(EOP_VARVAL_KS, "varval_ks")
                 HURR(EOP_REFVAL, "refval")
                 HURR(EOP_SETVAR, "setvar")
                 HURR(EOP_INHERITS, "inherits")

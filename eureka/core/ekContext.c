@@ -234,11 +234,11 @@ void ekContextDestroy(ekContext *E)
     ekFree(E);
 }
 
-static ekValue **ekContextResolve(struct ekContext *E, const char *name)
+static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool lvalue)
 {
     int i;
     ekFrame *frame;
-    ekValue **valueRef;
+    ekValue **valueRef = NULL;
     ekMapEntry *hashEntry;
 
     for(i = ekArraySize(E, &E->frames) - 1; i >= 0; i--)
@@ -247,13 +247,21 @@ static ekValue **ekContextResolve(struct ekContext *E, const char *name)
 
         // Check the locals
         hashEntry = ekMapGetS(E, frame->locals, name, ekFalse);
-        if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
+        if(hashEntry)
+        {
+            valueRef = (ekValue **)&hashEntry->valuePtr;
+            break;
+        }
 
         // Check closure vars
         if(frame->closure && frame->closure->closureVars)
         {
             hashEntry = ekMapGetS(E, frame->closure->closureVars, name, ekFalse);
-            if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
+            if(hashEntry)
+            {
+                valueRef = (ekValue **)&hashEntry->valuePtr;
+                break;
+            }
         }
 
         if(frame->type & EFT_FUNC)
@@ -262,10 +270,28 @@ static ekValue **ekContextResolve(struct ekContext *E, const char *name)
         }
     }
 
-    // check globals
-    hashEntry = ekMapGetS(E, E->globals, name, ekFalse);
-    if(hashEntry) { return (ekValue **)&hashEntry->valuePtr; }
+    if(!valueRef)
+    {
+        // check globals
+        hashEntry = ekMapGetS(E, E->globals, name, ekFalse);
+        if(hashEntry)
+        {
+            valueRef = (ekValue **)&hashEntry->valuePtr;
+        }
+    }
 
+    if(valueRef)
+    {
+        if(lvalue)
+        {
+            return ekValueCreateRef(E, valueRef);
+        }
+        else
+        {
+            ekValueAddRefNote(E, *valueRef, "ekContextResolve");
+            return *valueRef;
+        }
+    }
     return NULL;
 }
 
@@ -374,12 +400,12 @@ static ekValue *ekFindFunc(struct ekContext *E, ekValue *object, const char *nam
 ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount)
 {
     ekFrame *frame = NULL;
-    ekValue **valueRef = ekContextResolve(E, name);
-    if(!valueRef || !(*valueRef))
+    ekValue *func = ekContextResolve(E, name, ekFalse);
+    if(!func)
     {
         return ekFalse;
     }
-    if(ekContextCall(E, &frame, thisVal, *valueRef, argCount))
+    if(ekContextCall(E, &frame, thisVal, func, argCount))
     {
         ekContextLoop(E, ekTrue);
         return ekTrue;
@@ -407,7 +433,7 @@ static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekV
 }
 
 // TODO: this needs to protect against variable masking/shadowing
-static ekValue **ekContextRegister(struct ekContext *E, const char *name, ekValue *value)
+static ekValue *ekContextRegister(struct ekContext *E, const char *name, ekValue *value)
 {
     ekMapEntry *hashEntry;
     ekValue **valueRef;
@@ -431,13 +457,7 @@ static ekValue **ekContextRegister(struct ekContext *E, const char *name, ekValu
     }
     hashEntry->valuePtr = value;
     valueRef = (ekValue **)&hashEntry->valuePtr;
-    return valueRef;
-}
-
-static void ekContextPushRef(struct ekContext *E, ekValue **valueRef)
-{
-    ekValue *value = ekValueCreateRef(E, valueRef);
-    ekArrayPush(E, &E->stack, value);
+    return ekValueCreateRef(E, valueRef);
 }
 
 // TODO: merge this function with PushFrame and _RET
@@ -671,6 +691,19 @@ int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFor
     return 0;
 }
 
+ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *p = ekArrayTop(E, &E->stack);
+    ekCFunction *iter = ekValueIter(E, p);
+    if(iter)
+    {
+        return iter(E, argCount);
+    }
+    
+    // Left the argument on the stack, so return 1
+    return 1;
+}
+
 #ifdef EUREKA_TRACE_EXECUTION
 static const char *ekValueDebugString(struct ekContext *E, ekValue *v)
 {
@@ -853,21 +886,22 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_VARREG_KS:
             {
-                ekValue **valueRef = ekContextRegister(E, frame->block->chunk->kStrings[operand], ekValueNullPtr);
-                ekContextPushRef(E, valueRef);
+                ekValue *value = ekContextRegister(E, frame->block->chunk->kStrings[operand], ekValueNullPtr);
+                ekArrayPush(E, &E->stack, value);
             }
             break;
 
             case EOP_VARREF_KS:
+            case EOP_VARVAL_KS:
             {
-                ekValue **valueRef = ekContextResolve(E, frame->block->chunk->kStrings[operand]);
-                if(valueRef)
+                ekValue *value = ekContextResolve(E, frame->block->chunk->kStrings[operand], (opcode == EOP_VARREF_KS));
+                if(value)
                 {
-                    ekContextPushRef(E, valueRef);
+                    ekArrayPush(E, &E->stack, value);
                 }
                 else
                 {
-                    ekContextSetError(E, EVE_RUNTIME, "EOP_GETVAR_KS: no variable named '%s'", frame->block->chunk->kStrings[operand]);
+                    ekContextSetError(E, EVE_RUNTIME, "No variable named '%s'", frame->block->chunk->kStrings[operand]);
                 }
             }
             break;
@@ -1459,12 +1493,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_ITER:
             {
-                ekValue *p = ekArrayTop(E, &E->stack);
-                ekCFunction *iter = ekValueIter(E, p);
-                if(iter)
-                {
-                    continueLooping = ekContextCallCFunction(E, iter, 1, ekValueNullPtr, NULL);
-                }
+                continueLooping = ekContextCallCFunction(E, ekContextIterOp, 1, ekValueNullPtr, NULL);
             }
             break;
 
