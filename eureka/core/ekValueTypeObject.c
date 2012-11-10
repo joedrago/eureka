@@ -9,7 +9,6 @@
 
 #include "ekContext.h"
 #include "ekFrame.h"
-#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
 #include "ekValueType.h"
