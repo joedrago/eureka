@@ -26,14 +26,14 @@ void ekOpsDump(ekOp *ops, ekS32 count)
 #define HURR(OP, NAME) case OP: printf("%12s", NAME); break;
                 HURR(EOP_NOP, "nop")
 
-                HURR(EOP_PUSHNULL, "pushnull")
-                HURR(EOP_PUSHTHIS, "pushthis")
-                HURR(EOP_PUSHI, "pushi")
-                HURR(EOP_PUSH_KB, "push_kb")
+                HURR(EOP_PUSHNULL, "pn")
+                HURR(EOP_PUSHTHIS, "pt")
+                HURR(EOP_PUSHI, "pi")
+                HURR(EOP_PUSH_KB, "pkb")
 
-                HURR(EOP_PUSH_KI, "push_ki")
-                HURR(EOP_PUSH_KF, "push_kf")
-                HURR(EOP_PUSH_KS, "push_ks")
+                HURR(EOP_PUSH_KI, "pki")
+                HURR(EOP_PUSH_KF, "pkf")
+                HURR(EOP_PUSH_KS, "pks")
 
                 HURR(EOP_INDEX, "index")
 
@@ -81,11 +81,11 @@ void ekOpsDump(ekOp *ops, ekS32 count)
 
                 HURR(EOP_FORMAT, "format")
 
-                HURR(EOP_VARREG_KS, "varreg_ks")
-                HURR(EOP_VARREF_KS, "varref_ks")
-                HURR(EOP_VARVAL_KS, "varval_ks")
+                HURR(EOP_VREG, "vreg")
+                HURR(EOP_VREF, "vref")
+                HURR(EOP_VVAL, "vval")
                 HURR(EOP_REFVAL, "refval")
-                HURR(EOP_SETVAR, "setvar")
+                HURR(EOP_VSET, "vset")
                 HURR(EOP_INHERITS, "inherits")
                 HURR(EOP_VARARGS, "varargs")
 

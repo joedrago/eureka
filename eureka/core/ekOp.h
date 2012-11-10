@@ -80,11 +80,11 @@ enum
 
     EOP_FORMAT,                        // string format (%)
 
-    EOP_VARREG_KS,                     // register local variable named ks[X], push ref on value stack
-    EOP_VARREF_KS,                     // find variable named ks[X], push ref on value stack
-    EOP_VARVAL_KS,                     // find variable named ks[X], push value on value stack
+    EOP_VREG,                     // register local variable named ks[X], push ref on value stack
+    EOP_VREF,                     // find variable named ks[X], push ref on value stack
+    EOP_VVAL,                     // find variable named ks[X], push value on value stack
     EOP_REFVAL,                        // replace ref at top of stack with its value
-    EOP_SETVAR,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
+    EOP_VSET,                        // pops [ref,v], sets *ref = v. if X, don't actually pop v
     EOP_INHERITS,                      // pops [l,r], pushes bool indicating if l inherits from r
     EOP_VARARGS,                       // pops all but X arguments pushed for this frame, adds them to an array, and pushes the array on the stack
 

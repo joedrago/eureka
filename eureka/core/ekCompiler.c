@@ -231,7 +231,7 @@ enum
     ASM_NORMAL     = 0,
     ASM_LVALUE     = (1 << 0),
     ASM_VAR        = (1 << 1),
-    ASM_SETVAR     = (1 << 2),
+    ASM_VSET     = (1 << 2),
     ASM_LEAVE_LAST = (1 << 3)
 };
 
@@ -396,14 +396,14 @@ asmFunc(KFloat)
 
 asmFunc(Identifier)
 {
-    ekOpcode opcode = EOP_VARVAL_KS;
+    ekOpcode opcode = EOP_VVAL;
     if(flags & ASM_VAR)
     {
-        opcode = EOP_VARREG_KS;
+        opcode = EOP_VREG;
     }
     else if(flags & ASM_LVALUE)
     {
-        opcode = EOP_VARREF_KS;
+        opcode = EOP_VREF;
     }
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, opcode, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, syntax->v.s)), syntax->line);
@@ -444,10 +444,10 @@ asmFunc(IdentifierList)
     {
         ekSyntax *arg = (ekSyntax *)args[i];
         keepCount = asmDispatch[arg->type].assemble(E, compiler, dst, arg, 1, flags | additionalFlags);
-        if(flags & ASM_SETVAR)
+        if(flags & ASM_VSET)
         {
             ekCodeGrow(E, dst, 1);
-            ekCodeAppend(E, dst, EOP_SETVAR, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
+            ekCodeAppend(E, dst, EOP_VSET, ((flags & ASM_LEAVE_LAST) && !i) ? 1 : 0, syntax->line);
         }
     }
     return PAD(ekArraySize(E, &args));
@@ -611,7 +611,7 @@ asmFunc(Binary)
     {
         ekCodeGrow(E, dst, 2);
         ekCodeAppend(E, dst, EOP_MOVE, 1, syntax->line);
-        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_VSET, 0, syntax->line);
         return PAD(0);
     }
     return PAD(1);
@@ -661,7 +661,7 @@ asmFunc(Assignment)
     ekSyntax *l = syntax->l.p;
     ekSyntax *r = syntax->r.p;
     ekS32 leave = (keep > 0) ? 1 : 0;
-    ekS32 lflags = ASM_LVALUE|ASM_SETVAR | ((leave) ? ASM_LEAVE_LAST : 0);
+    ekS32 lflags = ASM_LVALUE|ASM_VSET | ((leave) ? ASM_LEAVE_LAST : 0);
     ekCode *lvalueCode = ekCodeCreate();
     ekS32 lvalueCount = asmDispatch[l->type].assemble(E, compiler, lvalueCode, l, EAV_ALL_ARGS, lflags);
     asmDispatch[r->type].assemble(E, compiler, dst, r, lvalueCount, ASM_NORMAL);
@@ -670,7 +670,7 @@ asmFunc(Assignment)
     if((l->type != EST_IDENTIFIERLIST) && (l->type != EST_EXPRESSIONLIST))
     {
         ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, EOP_SETVAR, leave, syntax->line);
+        ekCodeAppend(E, dst, EOP_VSET, leave, syntax->line);
     }
     return PAD(leave);
 }
@@ -779,7 +779,7 @@ asmFunc(For)
     ekCodeAppend(E, loop, EOP_LEAVE, 2, syntax->line);                  // leave if top of stack is null
 
     // Populate loop vars
-    asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR | ASM_SETVAR);
+    asmDispatch[vars->type].assemble(E, compiler, loop, vars, ekArraySize(E, &vars->v.a), ASM_LVALUE | ASM_VAR | ASM_VSET);
 
     // Assemble the loop body itself
     asmDispatch[body->type].assemble(E, compiler, loop, body, 0, ASM_NORMAL);
@@ -806,12 +806,12 @@ asmFunc(Function)
 
     // If a name is used ("func name()" vs "func()"), the
     // generated code will consume the block left on the stack
-    // with a setvar, effectively compiling "func name()" into
+    // with a vset, effectively compiling "func name()" into
     // "var name = func()".
     ekS32 additionalOpsForNaming = 0;
     ekS32 valuesLeftOnStack = 1;
 
-    ekS32 argCount = asmDispatch[args->type].assemble(E, compiler, code, args, EAV_ALL_ARGS, ASM_VAR | ASM_LVALUE | ASM_SETVAR);
+    ekS32 argCount = asmDispatch[args->type].assemble(E, compiler, code, args, EAV_ALL_ARGS, ASM_VAR | ASM_LVALUE | ASM_VSET);
     asmDispatch[body->type].assemble(E, compiler, code, body, 0, ASM_NORMAL);
     ekCodeGrow(E, code, 1);
     ekCodeAppend(E, code, EOP_RET, 0, syntax->line);
@@ -827,8 +827,8 @@ asmFunc(Function)
     ekCodeAppend(E, dst, EOP_CLOSE, 0, syntax->line);          // Give the VM an opportunity to pepper it with closure data
     if(name)
     {
-        ekCodeAppend(E, dst, EOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, name)), syntax->line);
-        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_VREG, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, name)), syntax->line);
+        ekCodeAppend(E, dst, EOP_VSET, 0, syntax->line);
     };
     compiler->chunk->hasFuncs = ekTrue;
     return PAD(valuesLeftOnStack);
@@ -844,8 +844,8 @@ asmFunc(FunctionArgs)
     {
         ekCodeGrow(E, dst, 3);
         varargsOpIndex = ekCodeAppend(E, dst, EOP_VARARGS, 0, args->line);
-        ekCodeAppend(E, dst, EOP_VARREG_KS, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, varargsName)), syntax->line);
-        ekCodeAppend(E, dst, EOP_SETVAR, 0, syntax->line);
+        ekCodeAppend(E, dst, EOP_VREG, ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, varargsName)), syntax->line);
+        ekCodeAppend(E, dst, EOP_VSET, 0, syntax->line);
     }
 
     argCount = asmDispatch[args->type].assemble(E, compiler, dst, args, keep, flags);
@@ -884,17 +884,17 @@ asmFunc(ExpressionList)
     ekS32 last = ekArraySize(E, &syntax->v.a);
     ekS32 increment = 1;
     ekS32 keepCount = 0;
-    ekS32 reverseOrder = (flags & ASM_SETVAR); // values must be SETVAR'd by popping off the stack in reverse
+    ekS32 reverseOrder = (flags & ASM_VSET); // values must be VSET'd by popping off the stack in reverse
     for(i = 0; i < ekArraySize(E, &syntax->v.a); i++)
     {
         ekS32 index = (reverseOrder) ? (ekArraySize(E, &syntax->v.a) - 1) - i : i;
         ekS32 keepIt = ((keep == EAV_ALL_ARGS) || (i < keep)) ? 1 : 0; // keep one from each expr, dump the rest
         ekSyntax *child = syntax->v.a[index];
-        keepCount += asmDispatch[child->type].assemble(E, compiler, dst, child, keepIt, flags & ~ASM_SETVAR);
-        if(flags & ASM_SETVAR)
+        keepCount += asmDispatch[child->type].assemble(E, compiler, dst, child, keepIt, flags & ~ASM_VSET);
+        if(flags & ASM_VSET)
         {
             ekCodeGrow(E, dst, 1);
-            ekCodeAppend(E, dst, EOP_SETVAR, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(E, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
+            ekCodeAppend(E, dst, EOP_VSET, ((flags & ASM_LEAVE_LAST) && (i != ekArraySize(E, &syntax->v.a)-1)) ? 1 : 0, syntax->line);
         }
     }
     return PAD(keepCount);

@@ -914,17 +914,17 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             }
             break;
 
-            case EOP_VARREG_KS:
+            case EOP_VREG:
             {
                 ekValue *value = ekContextRegister(E, frame->block->chunk->kStrings[operand], ekValueNullPtr);
                 ekArrayPush(E, &E->stack, value);
             }
             break;
 
-            case EOP_VARREF_KS:
-            case EOP_VARVAL_KS:
+            case EOP_VREF:
+            case EOP_VVAL:
             {
-                ekValue *value = ekContextResolve(E, frame->block->chunk->kStrings[operand], (opcode == EOP_VARREF_KS));
+                ekValue *value = ekContextResolve(E, frame->block->chunk->kStrings[operand], (opcode == EOP_VREF));
                 if(value)
                 {
                     ekArrayPush(E, &E->stack, value);
@@ -1087,7 +1087,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             }
             break;
 
-            case EOP_SETVAR:
+            case EOP_VSET:
             {
                 ekValue *ref = ekArrayPop(E, &E->stack);
                 ekValue *val = ekArrayTop(E, &E->stack);
@@ -1096,10 +1096,10 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                     ekArrayPop(E, &E->stack);
                 }
                 continueLooping = ekValueSetRefVal(E, ref, val);
-                ekValueRemoveRefNote(E, ref, "SETVAR temporary reference");
+                ekValueRemoveRefNote(E, ref, "VSET temporary reference");
                 if(!operand)
                 {
-                    ekValueRemoveRefNote(E, val, "SETVAR value not needed anymore");
+                    ekValueRemoveRefNote(E, val, "VSET value not needed anymore");
                 }
             }
             break;
