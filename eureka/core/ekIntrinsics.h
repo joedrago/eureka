@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAINTRINSICS_CORE_H
-#define EUREKAINTRINSICS_CORE_H
+#ifndef EKINTRINSICS_H
+#define EKINTRINSICS_H
 
 #include "ekTypes.h"
 

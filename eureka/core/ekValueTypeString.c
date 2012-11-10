@@ -7,11 +7,12 @@
 
 #include "ekValue.h"
 
+#include "ekContext.h"
 #include "ekFrame.h"
+#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
-#include "ekLexer.h"
-#include "ekContext.h"
+#include "ekValueType.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -110,6 +111,18 @@ static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekV
     ekStringConcatLen(E, &params->output, "\"", 1);
 }
 
+static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "string(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToString(E, v));
+    return 1;
+}
+
 void ekValueTypeRegisterString(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "string");
@@ -128,4 +141,5 @@ void ekValueTypeRegisterString(struct ekContext *E)
     ekAssert(type->id == EVT_STRING);
 
     ekValueTypeAddIntrinsic(E, type, "length", stringIntrinsicLength);
+    ekContextAddIntrinsic(E, "string", ekiString);
 }

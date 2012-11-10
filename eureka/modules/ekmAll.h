@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAMALL_H
-#define EUREKAMALL_H
+#ifndef EKMALL_H
+#define EKMALL_H
 
 #include "ekTypes.h"
 

@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAARRAY_H
-#define EUREKAARRAY_H
+#ifndef EKARRAY_H
+#define EKARRAY_H
 
 #include "ekTypes.h"
 

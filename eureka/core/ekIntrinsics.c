@@ -16,7 +16,9 @@
 
 #include <stdio.h>
 
-static ekU32 eval(struct ekContext *E, ekU32 argCount)
+// ---------------------------------------------------------------------------
+
+static ekU32 ekiEval(struct ekContext *E, ekU32 argCount)
 {
     ekValue *ret = NULL;
     if(argCount)
@@ -52,9 +54,86 @@ static ekU32 eval(struct ekContext *E, ekU32 argCount)
 }
 
 // ---------------------------------------------------------------------------
-// global print() funcs -- someday to be moved into an optional lib
 
-static ekU32 standard_print(struct ekContext *E, ekU32 argCount)
+ekU32 ekiAssert(struct ekContext *E, ekU32 argCount)
+{
+    ekBool doAssert = ekTrue;
+    ekValue *v = NULL;
+    ekValue *s = NULL;
+    if(!ekContextGetArgs(E, argCount, "|?s", &v, &s))
+    {
+        return ekContextArgsFailure(E, argCount, "assert(expr, [string] explanation)");
+    }
+
+    if(v)
+    {
+        v = ekValueToInt(E, v);
+        doAssert = (!v->intVal) ? ekTrue : ekFalse;
+        ekValueRemoveRefNote(E, v, "doAssert temp");
+    }
+
+    if(doAssert)
+    {
+        const char *reason = "(unknown)";
+        if(s && s->type == EVT_STRING)
+        {
+            reason = ekStringSafePtr(&s->stringVal);
+        }
+        ekContextSetError(E, EVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
+    }
+    if(s)
+    {
+        ekValueRemoveRefNote(E, s, "temporary reason string");
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
+ekU32 ekiType(struct ekContext *E, ekU32 argCount)
+{
+    if(argCount)
+    {
+        ekValue *a = ekContextGetArg(E, 0, argCount);
+        ekValue *ret = ekValueCreateKString(E, (char *)ekValueTypeName(E, a->type));
+        ekContextPopValues(E, argCount);
+        ekArrayPush(E, &E->stack, ret);
+        return 1;
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
+ekU32 ekiDump(struct ekContext *E, ekU32 argCount)
+{
+    if(argCount)
+    {
+        ekValue *a = ekContextGetArg(E, 0, argCount);
+        ekDumpParams *params = ekDumpParamsCreate(E);
+        ekValue *ret = ekValueCreateKString(E, "");
+
+        ekValueDump(E, params, a);
+        ekStringDonateStr(E, &ret->stringVal, &params->output);
+
+        ekDumpParamsDestroy(E, params);
+        ekContextPopValues(E, argCount);
+        ekArrayPush(E, &E->stack, ret);
+        return 1;
+    }
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+
+static ekU32 ekiIterator(struct ekContext *E, ekU32 argCount)
+{
+    return ekContextIterOp(E, argCount);
+}
+
+// ---------------------------------------------------------------------------
+
+static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
     {
@@ -90,7 +169,6 @@ static ekU32 standard_print(struct ekContext *E, ekU32 argCount)
 }
 
 // ---------------------------------------------------------------------------
-// import()
 
 static char *loadFile(struct ekContext *E, const char *filename)
 {
@@ -115,7 +193,7 @@ static char *loadFile(struct ekContext *E, const char *filename)
     return NULL;
 }
 
-static ekU32 import(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiImport(struct ekContext *E, ekU32 argCount)
 {
     ekU32 ret;
     char *code;
@@ -154,195 +232,24 @@ static ekU32 import(struct ekContext *E, ekU32 argCount)
 
     codeValue = ekValueCreateKString(E, code);
     ekArrayPush(E, &E->stack, codeValue);
-    ret = eval(E, 1);
+    ret = ekiEval(E, 1);
     ekFree(code);
     return ret;
 }
 
-// ---------------------------------------------------------------------------
-
-ekU32 type(struct ekContext *E, ekU32 argCount)
-{
-    if(argCount)
-    {
-        ekValue *a = ekContextGetArg(E, 0, argCount);
-        ekValue *ret = ekValueCreateKString(E, (char *)ekValueTypeName(E, a->type));
-        ekContextPopValues(E, argCount);
-        ekArrayPush(E, &E->stack, ret);
-        return 1;
-    }
-    return 0;
-}
-
-// ---------------------------------------------------------------------------
-
-ekU32 dump(struct ekContext *E, ekU32 argCount)
-{
-    if(argCount)
-    {
-        ekValue *a = ekContextGetArg(E, 0, argCount);
-        ekDumpParams *params = ekDumpParamsCreate(E);
-        ekValue *ret = ekValueCreateKString(E, "");
-
-        ekValueDump(E, params, a);
-        ekStringDonateStr(E, &ret->stringVal, &params->output);
-
-        ekDumpParamsDestroy(E, params);
-        ekContextPopValues(E, argCount);
-        ekArrayPush(E, &E->stack, ret);
-        return 1;
-    }
-    return 0;
-}
-
-// ---------------------------------------------------------------------------
-
-ekU32 ek_assert(struct ekContext *E, ekU32 argCount)
-{
-    ekBool doAssert = ekTrue;
-    ekValue *v = NULL;
-    ekValue *s = NULL;
-    if(!ekContextGetArgs(E, argCount, "|?s", &v, &s))
-    {
-        return ekContextArgsFailure(E, argCount, "assert(expr, [string] explanation)");
-    }
-
-    if(v)
-    {
-        v = ekValueToInt(E, v);
-        doAssert = (!v->intVal) ? ekTrue : ekFalse;
-        ekValueRemoveRefNote(E, v, "doAssert temp");
-    }
-
-    if(doAssert)
-    {
-        const char *reason = "(unknown)";
-        if(s && s->type == EVT_STRING)
-        {
-            reason = ekStringSafePtr(&s->stringVal);
-        }
-        ekContextSetError(E, EVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
-    }
-    if(s)
-    {
-        ekValueRemoveRefNote(E, s, "temporary reason string");
-    }
-    return 0;
-}
-
-// ---------------------------------------------------------------------------
-
-static ekU32 inherit(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v;
-    v = ekValueCreateObject(E, NULL, argCount, ekTrue);
-    ekArrayPush(E, &E->stack, v);
-    return 1;
-}
-
-static ekU32 prototype(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *object = NULL;
-    ekValue *newPrototype = NULL;
-    if(!ekContextGetArgs(E, argCount, "o|o", &object, &newPrototype))
-    {
-        return ekContextArgsFailure(E, argCount, "prototype(object [, newPrototypetype])");
-    }
-
-    if(object && newPrototype)
-    {
-        if(object->objectVal->isa)
-        {
-            ekValueRemoveRefNote(E, object->objectVal->isa, "prototype removing old isa");
-        }
-        object->objectVal->isa = newPrototype;
-        ekValueAddRefNote(E, object->objectVal->isa, "prototype new isa");
-    }
-
-    if(object && object->objectVal->isa)
-    {
-        ekValueAddRefNote(E, object->objectVal->isa, "prototype return isa");
-        ekArrayPush(E, &E->stack, object->objectVal->isa);
-    }
-    else
-    {
-        ekArrayPush(E, &E->stack, &ekValueNull);
-    }
-    ekValueRemoveRefNote(E, object, "prototype object done");
-    if(newPrototype)
-    {
-        ekValueRemoveRefNote(E, newPrototype, "prototype newPrototype done");
-    }
-    return 1;
-}
-
-// ---------------------------------------------------------------------------
-
-static ekU32 convert_to_string(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
-        return ekContextArgsFailure(E, argCount, "string(value)");
-    }
-
-    ekArrayPush(E, &E->stack, ekValueToString(E, v));
-    return 1;
-}
-
-static ekU32 convert_to_int(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
-        return ekContextArgsFailure(E, argCount, "int(value)");
-    }
-
-    ekArrayPush(E, &E->stack, ekValueToInt(E, v));
-    return 1;
-}
-
-static ekU32 convert_to_float(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
-        return ekContextArgsFailure(E, argCount, "float(value)");
-    }
-
-    ekArrayPush(E, &E->stack, ekValueToFloat(E, v));
-    return 1;
-}
-
-// ---------------------------------------------------------------------------
-
-
-// ---------------------------------------------------------------------------
-
-static ekU32 iterator(struct ekContext *E, ekU32 argCount)
-{
-    return ekContextIterOp(E, argCount);
-}
-
-// ---------------------------------------------------------------------------
 
 void ekIntrinsicsRegister(struct ekContext *E)
 {
-    ekContextAddIntrinsic(E, "iterator", iterator);
+    // Generic calls
+    ekContextAddIntrinsic(E, "eval", ekiEval);
+    ekContextAddIntrinsic(E, "assert", ekiAssert);
 
-    ekContextAddIntrinsic(E, "eval", eval);
-    ekContextAddIntrinsic(E, "type", type);
-    ekContextAddIntrinsic(E, "dump", dump);
-    ekContextAddIntrinsic(E, "assert", ek_assert);
-
-    ekContextAddIntrinsic(E, "inherit", inherit);
-    ekContextAddIntrinsic(E, "prototype", prototype);
-
-    ekContextAddIntrinsic(E, "string", convert_to_string);
-    ekContextAddIntrinsic(E, "int", convert_to_int);
-    ekContextAddIntrinsic(E, "float", convert_to_float);
+    // Value related
+    ekContextAddIntrinsic(E, "type", ekiType);
+    ekContextAddIntrinsic(E, "dump", ekiDump);
+    ekContextAddIntrinsic(E, "iterator", ekiIterator);
 
     // TODO: Move these out of here
-    ekContextAddIntrinsic(E, "print", standard_print);
-    ekContextAddIntrinsic(E, "import", import);
+    ekContextAddIntrinsic(E, "print", ekiPrint);
+    ekContextAddIntrinsic(E, "import", ekiImport);
 }

@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKACHUNK_H
-#define EUREKACHUNK_H
+#ifndef EKCHUNK_H
+#define EKCHUNK_H
 
 #include "ekArray.h"
 

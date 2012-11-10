@@ -7,11 +7,12 @@
 
 #include "ekValue.h"
 
+#include "ekContext.h"
 #include "ekFrame.h"
+#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
-#include "ekLexer.h"
-#include "ekContext.h"
+#include "ekValueType.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -122,6 +123,18 @@ static void floatFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVa
     ekStringConcat(E, &params->output, temp);
 }
 
+static ekU32 ekiFloat(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "float(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToFloat(E, v));
+    return 1;
+}
+
 void ekValueTypeRegisterFloat(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "float");
@@ -138,4 +151,6 @@ void ekValueTypeRegisterFloat(struct ekContext *E)
     type->funcDump       = floatFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_FLOAT);
+
+    ekContextAddIntrinsic(E, "float", ekiFloat);
 }

@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAMJSON_H
-#define EUREKAMJSON_H
+#ifndef EKMJSON_H
+#define EKMJSON_H
 
 #include "ekTypes.h"
 

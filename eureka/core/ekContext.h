@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKACONTEXT_H
-#define EUREKACONTEXT_H
+#ifndef EKCONTEXT_H
+#define EKCONTEXT_H
 
 #include "ekArray.h"
 #include "ekValue.h"                  // for ekCFunction
@@ -15,6 +15,7 @@
 // Forwards
 
 struct ekMap;
+struct ekValueType;
 
 // ---------------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ typedef struct ekContext
     ekFreeFunc freeFunc;
 
     // type information
-    ekValueType **types;
+    struct ekValueType **types;
 
     struct ekMap *intrinsics;         // map of funcName -> ekCFunction
 

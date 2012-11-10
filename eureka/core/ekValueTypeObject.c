@@ -7,11 +7,12 @@
 
 #include "ekValue.h"
 
+#include "ekContext.h"
 #include "ekFrame.h"
+#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
-#include "ekLexer.h"
-#include "ekContext.h"
+#include "ekValueType.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -178,6 +179,52 @@ static void objectFuncDump(struct ekContext *E, ekDumpParams *params, struct ekV
     ekStringConcat(E, &params->output, " }");
 }
 
+// ---------------------------------------------------------------------------
+
+static ekU32 inherit(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v;
+    v = ekValueCreateObject(E, NULL, argCount, ekTrue);
+    ekArrayPush(E, &E->stack, v);
+    return 1;
+}
+
+static ekU32 prototype(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *object = NULL;
+    ekValue *newPrototype = NULL;
+    if(!ekContextGetArgs(E, argCount, "o|o", &object, &newPrototype))
+    {
+        return ekContextArgsFailure(E, argCount, "prototype(object [, newPrototypetype])");
+    }
+
+    if(object && newPrototype)
+    {
+        if(object->objectVal->isa)
+        {
+            ekValueRemoveRefNote(E, object->objectVal->isa, "prototype removing old isa");
+        }
+        object->objectVal->isa = newPrototype;
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype new isa");
+    }
+
+    if(object && object->objectVal->isa)
+    {
+        ekValueAddRefNote(E, object->objectVal->isa, "prototype return isa");
+        ekArrayPush(E, &E->stack, object->objectVal->isa);
+    }
+    else
+    {
+        ekArrayPush(E, &E->stack, &ekValueNull);
+    }
+    ekValueRemoveRefNote(E, object, "prototype object done");
+    if(newPrototype)
+    {
+        ekValueRemoveRefNote(E, newPrototype, "prototype newPrototype done");
+    }
+    return 1;
+}
+
 void ekValueTypeRegisterObject(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "object");
@@ -196,4 +243,6 @@ void ekValueTypeRegisterObject(struct ekContext *E)
     ekAssert(type->id == EVT_OBJECT);
 
     ekContextAddIntrinsic(E, "keys", keys);
+    ekContextAddIntrinsic(E, "inherit", inherit);
+    ekContextAddIntrinsic(E, "prototype", prototype);
 }

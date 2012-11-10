@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKACODE_H
-#define EUREKACODE_H
+#ifndef EKCODE_H
+#define EKCODE_H
 
 #include "ekTypes.h"
 

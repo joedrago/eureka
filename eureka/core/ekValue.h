@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAVALUE_H
-#define EUREKAVALUE_H
+#ifndef EKVALUE_H
+#define EKVALUE_H
 
 #include "ekString.h"
 
@@ -16,7 +16,6 @@
 struct ekMap;
 struct ekObject;
 struct ekValue;
-
 
 // ---------------------------------------------------------------------------
 
@@ -55,84 +54,6 @@ typedef enum ekValueArithmeticOp
 
     EVAO_COUNT
 } ekValueArithmeticOp;
-
-typedef struct ekDumpParams
-{
-    ekString output;  // The final output value. Dump functions should use concatenate functions on this string, not set
-    ekString tempStr; // to be used as a temporary string by the dump function, and should be considered to be changed if recursively calling dump()
-    int tempInt;       // to be used as a temporary int by the dump function, and should be considered to be changed if recursively calling dump()
-} ekDumpParams;
-
-ekDumpParams *ekDumpParamsCreate(struct ekContext *E);
-void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params);
-
-#define EVT_MAXNAMELEN 15
-
-struct ekValueType;
-typedef void (*ekValueTypeDestroyUserData)(struct ekContext *E, struct ekValueType *valueType);
-
-typedef void (*ekValueTypeFuncClear)(struct ekContext *E, struct ekValue *p);
-typedef void (*ekValueTypeFuncClone)(struct ekContext *E, struct ekValue *dst, struct ekValue *src);
-typedef ekBool(*ekValueTypeFuncToBool)(struct ekContext *E, struct ekValue *p);
-typedef ekS32(*ekValueTypeFuncToInt)(struct ekContext *E, struct ekValue *p);
-typedef ekF32(*ekValueTypeFuncToFloat)(struct ekContext *E, struct ekValue *p);
-typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *E, struct ekValue *p);
-typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext *E, struct ekValue *p);
-typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
-typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult);
-typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *E, struct ekValue *p, struct ekValue *index, ekBool lvalue);
-typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
-
-// This is used to enforce the setting of every function ptr in a ekValueType*; an explicit alternative to NULL
-#define ekValueTypeFuncNotUsed ((void*)-1)
-
-typedef struct ekValueType
-{
-    int id;
-    char name[EVT_MAXNAMELEN + 1];
-
-    struct ekMap *intrinsics;                        // map of funcName -> ekCFunction, used as an Index fallback for things like .length()
-
-    void *userData;                                  // per-type global structure used to hold any static data a type needs
-    ekValueTypeDestroyUserData funcDestroyUserData;  // optional destructor for userdata
-
-    ekValueTypeFuncClear funcClear;
-    ekValueTypeFuncClone funcClone;
-    ekValueTypeFuncToBool funcToBool;
-    ekValueTypeFuncToInt funcToInt;
-    ekValueTypeFuncToFloat funcToFloat;
-    ekValueTypeFuncToString funcToString;
-    ekValueTypeFuncIter funcIter;
-    ekValueTypeFuncArithmetic funcArithmetic;
-    ekValueTypeFuncCmp funcCmp;
-    ekValueTypeFuncIndex funcIndex;
-    ekValueTypeFuncDump funcDump;
-} ekValueType;
-
-ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name);
-void ekValueTypeDestroy(struct ekContext *E, ekValueType *type);
-void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func);
-struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue);
-int ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
-
-void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
-
-void ekValueTypeRegisterNull(struct ekContext *E);
-void ekValueTypeRegisterBlock(struct ekContext *E);
-void ekValueTypeRegisterCFunction(struct ekContext *E);
-void ekValueTypeRegisterInt(struct ekContext *E);
-void ekValueTypeRegisterFloat(struct ekContext *E);
-void ekValueTypeRegisterString(struct ekContext *E);
-void ekValueTypeRegisterArray(struct ekContext *E);
-void ekValueTypeRegisterObject(struct ekContext *E);
-void ekValueTypeRegisterRef(struct ekContext *E);
-
-#define ekValueTypePtr(id) ((ekValueType*)E->types[id])
-
-// If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro
-#define ekValueTypeSafeCall(id, funcName) \
-    (((ekValueType*)E->types[id])->func ## funcName == ekValueTypeFuncNotUsed) ? 0 \
-    : ((ekValueType*)E->types[id])->func ## funcName
 
 // ---------------------------------------------------------------------------
 
@@ -211,10 +132,18 @@ ekValue *ekValueToString(struct ekContext *E, ekValue *p);
 ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount);
-
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue);
-
 const char *ekValueTypeName(struct ekContext *E, int type); // used in error reporting
+
+typedef struct ekDumpParams
+{
+    ekString output;  // The final output value. Dump functions should use concatenate functions on this string, not set
+    ekString tempStr; // to be used as a temporary string by the dump function, and should be considered to be changed if recursively calling dump()
+    int tempInt;       // to be used as a temporary int by the dump function, and should be considered to be changed if recursively calling dump()
+} ekDumpParams;
+
+ekDumpParams *ekDumpParamsCreate(struct ekContext *E);
+void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params);
 
 #ifdef EUREKA_TRACE_REFS
 void ekValueTraceRefs(struct ekContext *E, struct ekValue *p, int delta, const char *note);
@@ -230,6 +159,7 @@ void ekValueRemoveRefArray(struct ekContext *E, struct ekValue *p);  // used for
 
 void ekValueDump(struct ekContext *E, ekDumpParams *params, ekValue *p);
 
+// TODO: make this a bool on ekValueType?
 #define ekValueIsCallable(VAL)     \
     (  (VAL->type == EVT_OBJECT)    \
        || (VAL->type == EVT_BLOCK)     \

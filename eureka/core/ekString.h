@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKASTRING_H
-#define EUREKASTRING_H
+#ifndef EKSTRING_H
+#define EKSTRING_H
 
 #include "ekTypes.h"
 

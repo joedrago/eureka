@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAXDOT_H
-#define EUREKAXDOT_H
+#ifndef EKXDOT_H
+#define EKXDOT_H
 
 // ---------------------------------------------------------------------------
 // Forwards

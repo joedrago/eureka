@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAPARSER_H
-#define EUREKAPARSER_H
+#ifndef EKCOMPILER_H
+#define EKCOMPILER_H
 
 #include "ekTypes.h"
 

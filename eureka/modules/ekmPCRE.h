@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAMPCRE_H
-#define EUREKAMPCRE_H
+#ifndef EKMPCRE_H
+#define EKMPCRE_H
 
 #include "ekTypes.h"
 

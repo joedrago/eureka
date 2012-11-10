@@ -81,6 +81,8 @@ set(ek_src
     core/ekTypes.c
     core/ekValue.h
     core/ekValue.c
+    core/ekValueType.h
+    core/ekValueType.c
     core/ekValueTypeArray.c
     core/ekValueTypeBlock.c
     core/ekValueTypeCFunction.c

@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAFRAME_H
-#define EUREKAFRAME_H
+#ifndef EKFRAME_H
+#define EKFRAME_H
 
 #include "ekTypes.h"
 

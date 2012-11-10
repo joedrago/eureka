@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAMAP_H
-#define EUREKAMAP_H
+#ifndef EKMAP_H
+#define EKMAP_H
 
 #include "ekTypes.h"
 

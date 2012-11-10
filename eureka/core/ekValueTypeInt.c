@@ -7,11 +7,12 @@
 
 #include "ekValue.h"
 
+#include "ekContext.h"
 #include "ekFrame.h"
+#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
-#include "ekLexer.h"
-#include "ekContext.h"
+#include "ekValueType.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -112,6 +113,18 @@ static void intFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValu
     ekStringConcat(E, &params->output, temp);
 }
 
+static ekU32 ekiInt(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "int(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToInt(E, v));
+    return 1;
+}
+
 void ekValueTypeRegisterInt(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "int");
@@ -128,4 +141,6 @@ void ekValueTypeRegisterInt(struct ekContext *E)
     type->funcDump       = intFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_INT);
+
+    ekContextAddIntrinsic(E, "int", ekiInt);
 }

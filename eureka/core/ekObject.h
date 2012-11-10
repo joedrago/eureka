@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKAOBJECT_H
-#define EUREKAOBJECT_H
+#ifndef EKOBJECT_H
+#define EKOBJECT_H
 
 #include "ekContext.h"
 

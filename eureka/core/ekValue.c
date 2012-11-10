@@ -7,11 +7,12 @@
 
 #include "ekValue.h"
 
+#include "ekContext.h"
 #include "ekFrame.h"
+#include "ekLexer.h"
 #include "ekMap.h"
 #include "ekObject.h"
-#include "ekLexer.h"
-#include "ekContext.h"
+#include "ekValueType.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,107 +34,6 @@ void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params)
     ekStringClear(E, &params->tempStr);
     ekFree(params);
 }
-
-// ---------------------------------------------------------------------------
-
-ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name)
-{
-    ekValueType *type = ekAlloc(sizeof(ekValueType));
-    strcpy(type->name, name);
-    return type;
-}
-
-void ekValueTypeDestroy(struct ekContext *E, ekValueType *type)
-{
-    if(type->funcDestroyUserData)
-    {
-        type->funcDestroyUserData(E, type);
-    }
-    if(type->intrinsics)
-    {
-        ekMapDestroy(E, type->intrinsics, NULL);
-    }
-    ekFree(type);
-}
-
-void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func)
-{
-    if(!type->intrinsics)
-    {
-        type->intrinsics = ekMapCreate(E, EMKT_STRING);
-    }
-    ekMapGetS2P(E, type->intrinsics, name) = func;
-}
-
-struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue)
-{
-    ekMap *map = E->types[type]->intrinsics;
-    if(map && index && (index->type == EVT_STRING))
-    {
-        ekMapEntry *mapEntry = ekMapGetS(E, map, ekStringSafePtr(&index->stringVal), ekFalse);
-        if(mapEntry && mapEntry->valuePtr)
-        {
-            if(lvalue)
-            {
-                ekContextSetError(E, EVE_RUNTIME, "cannot use intrinsic %s function as an lvalue", ekValueTypeName(E, type));
-            }
-            else
-            {
-                return ekValueCreateCFunction(E, mapEntry->valuePtr);
-            }
-        }
-    }
-    return NULL;
-}
-
-int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
-{
-    int i;
-    for(i=0; i<ekArraySize(E, &E->types); i++)
-    {
-        ekValueType *t = E->types[i];
-        if(!strcmp(newType->name, t->name))
-        {
-            return EVT_INVALID;
-        }
-    }
-
-    // If you are hitting one of these asserts, then your custom type isn't handling a required function.
-    // If you're a C++ person, pretend the compiler is telling you that you forgot to implement a pure virtual.
-    // If you don't want to do anything for a particular function, explicitly set it to ekValueTypeFuncNotUsed.
-    ekAssert(newType->funcClear);
-    ekAssert(newType->funcClone);
-    ekAssert(newType->funcToBool);
-    ekAssert(newType->funcToInt);
-    ekAssert(newType->funcToFloat);
-    ekAssert(newType->funcToString);
-    ekAssert(newType->funcIter);
-    ekAssert(newType->funcArithmetic);
-    ekAssert(newType->funcCmp);
-    ekAssert(newType->funcIndex);
-    ekAssert(newType->funcDump);
-    ekAssert(newType->funcDump != ekValueTypeFuncNotUsed); // required!
-
-    newType->id = ekArrayPush(E, &E->types, newType);
-    return newType->id;
-}
-
-// ---------------------------------------------------------------------------
-
-void ekValueTypeRegisterAllBasicTypes(struct ekContext *E)
-{
-    ekValueTypeRegisterNull(E);
-    ekValueTypeRegisterBlock(E);
-    ekValueTypeRegisterCFunction(E);
-    ekValueTypeRegisterInt(E);
-    ekValueTypeRegisterFloat(E);
-    ekValueTypeRegisterString(E);
-    ekValueTypeRegisterArray(E);
-    ekValueTypeRegisterObject(E);
-    ekValueTypeRegisterRef(E);
-}
-
-// ---------------------------------------------------------------------------
 
 ekValue ekValueNull = {EVT_NULL};
 ekValue *ekValueNullPtr = &ekValueNull;
@@ -181,51 +81,6 @@ ekValue *ekValueDonateString(struct ekContext *E, char *s)
     ekStringDonate(E, &p->stringVal, s);
     ekTraceValues(("ekValueDonateString %p\n", p));
     return p;
-}
-
-static void ekValueAddClosureVar(ekContext *E, ekMap *closureVars, ekMapEntry *entry)
-{
-    ekValueAddRefNote(E, entry->valuePtr, "+ref closure variable");
-    ekMapGetS2P(E, closureVars, entry->keyStr) = entry->valuePtr;
-}
-
-void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
-{
-    ekFrame *frame;
-    int frameIndex;
-
-    if(p->type != EVT_BLOCK)
-    {
-        // TODO: add impossibly catastrophic error here? (can't happen?)
-        return;
-    }
-
-    ekAssert(p->closureVars == NULL);
-
-    for(frameIndex = ekArraySize(E, &E->frames) - 1; frameIndex >= 0; frameIndex--)
-    {
-        frame = E->frames[frameIndex];
-        if((frame->type & (EFT_CHUNK|EFT_FUNC)) == EFT_FUNC)  // we are inside of an actual function!
-        {
-            break;
-        }
-    }
-
-    if(frameIndex >= 0)
-    {
-        for(; frameIndex < ekArraySize(E, &E->frames); frameIndex++)
-        {
-            frame = E->frames[frameIndex];
-            if(frame->locals->count)
-            {
-                if(!p->closureVars)
-                {
-                    p->closureVars = ekMapCreate(E, EMKT_STRING);
-                }
-                ekMapIterateP1(E, frame->locals, ekValueAddClosureVar, p->closureVars);
-            }
-        }
-    }
 }
 
 ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block)
@@ -295,6 +150,52 @@ ekBool ekValueSetRefVal(struct ekContext *E, ekValue *ref, ekValue *p)
     ekTraceValues(("ekValueSetRefVal %p = %p\n", ref, p));
     return ekTrue;
 }
+
+static void ekValueAddClosureVar(ekContext *E, ekMap *closureVars, ekMapEntry *entry)
+{
+    ekValueAddRefNote(E, entry->valuePtr, "+ref closure variable");
+    ekMapGetS2P(E, closureVars, entry->keyStr) = entry->valuePtr;
+}
+
+void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
+{
+    ekFrame *frame;
+    int frameIndex;
+
+    if(p->type != EVT_BLOCK)
+    {
+        // TODO: add impossibly catastrophic error here? (can't happen?)
+        return;
+    }
+
+    ekAssert(p->closureVars == NULL);
+
+    for(frameIndex = ekArraySize(E, &E->frames) - 1; frameIndex >= 0; frameIndex--)
+    {
+        frame = E->frames[frameIndex];
+        if((frame->type & (EFT_CHUNK|EFT_FUNC)) == EFT_FUNC)  // we are inside of an actual function!
+        {
+            break;
+        }
+    }
+
+    if(frameIndex >= 0)
+    {
+        for(; frameIndex < ekArraySize(E, &E->frames); frameIndex++)
+        {
+            frame = E->frames[frameIndex];
+            if(frame->locals->count)
+            {
+                if(!p->closureVars)
+                {
+                    p->closureVars = ekMapCreate(E, EMKT_STRING);
+                }
+                ekMapIterateP1(E, frame->locals, ekValueAddClosureVar, p->closureVars);
+            }
+        }
+    }
+}
+
 
 ekBool ekValueTestInherits(struct ekContext *E, ekValue *child, ekValue *parent)
 {

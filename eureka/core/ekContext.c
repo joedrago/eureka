@@ -15,6 +15,7 @@
 #include "ekFrame.h"
 #include "ekOp.h"
 #include "ekValue.h"
+#include "ekValueType.h"
 
 #include "ekmAll.h"
 #include "ekIntrinsics.h"

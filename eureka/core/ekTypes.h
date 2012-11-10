@@ -5,8 +5,8 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EUREKATYPES_H
-#define EUREKATYPES_H
+#ifndef EKTYPES_H
+#define EKTYPES_H
 
 #include <stdlib.h> // for size_t
 
