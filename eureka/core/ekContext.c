@@ -25,12 +25,64 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+// ------------------------------------------------------------------------------------------------
+// Constants
+
 #define MAX_ERROR_LENGTH 1023
 
-void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func)
+// ------------------------------------------------------------------------------------------------
+// Creation / Destruction
+
+ekContext *ekContextCreate(ekMemFuncs *memFuncs)
 {
-    ekMapGetS2P(E, E->intrinsics, name) = func;
+    ekContext *E = ekDefaultAlloc(sizeof(ekContext));
+    E->allocFunc = ekDefaultAlloc;
+    E->reallocFunc = ekDefaultRealloc;
+    E->freeFunc = ekDefaultFree;
+    // LCOV_EXCL_START - I don't care about testing other allocators.
+    if(memFuncs)
+    {
+        if(memFuncs->allocFunc)
+        {
+            E->allocFunc = memFuncs->allocFunc;
+        }
+        if(memFuncs->reallocFunc)
+        {
+            E->reallocFunc = memFuncs->reallocFunc;
+        }
+        if(memFuncs->freeFunc)
+        {
+            E->freeFunc = memFuncs->freeFunc;
+        }
+    }
+    // LCOV_EXCL_STOP
+    E->intrinsics = ekMapCreate(E, EMKT_STRING);
+    E->globals = ekMapCreate(E, EMKT_STRING);
+
+    ekValueTypeRegisterAllBasicTypes(E);
+    ekIntrinsicsRegister(E);
+    ekModuleRegisterAll(E);
+    return E;
 }
+
+void ekContextDestroy(ekContext *E)
+{
+    ekMapDestroy(E, E->intrinsics, NULL);
+    ekMapDestroy(E, E->globals, ekValueRemoveRefHashed);
+    ekArrayDestroy(E, &E->frames, (ekDestroyCB)ekFrameDestroy);
+    ekArrayDestroy(E, &E->stack, (ekDestroyCB)ekValueRemoveRefHashed);
+    ekArrayDestroy(E, &E->chunks, (ekDestroyCB)ekChunkDestroy);
+
+    ekArrayDestroy(E, &E->freeValues, (ekDestroyCB)ekValueDestroy);
+
+    ekArrayDestroy(E, &E->types, (ekDestroyCB)ekValueTypeDestroy);
+    ekContextClearError(E);
+
+    ekFree(E);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Evaluation / Recovery
 
 static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
 {
@@ -123,38 +175,6 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts)
     }
 }
 
-ekContext *ekContextCreate(ekMemFuncs *memFuncs)
-{
-    ekContext *E = ekDefaultAlloc(sizeof(ekContext));
-    E->allocFunc = ekDefaultAlloc;
-    E->reallocFunc = ekDefaultRealloc;
-    E->freeFunc = ekDefaultFree;
-    // LCOV_EXCL_START - I don't care about testing other allocators.
-    if(memFuncs)
-    {
-        if(memFuncs->allocFunc)
-        {
-            E->allocFunc = memFuncs->allocFunc;
-        }
-        if(memFuncs->reallocFunc)
-        {
-            E->reallocFunc = memFuncs->reallocFunc;
-        }
-        if(memFuncs->freeFunc)
-        {
-            E->freeFunc = memFuncs->freeFunc;
-        }
-    }
-    // LCOV_EXCL_STOP
-    E->intrinsics = ekMapCreate(E, EMKT_STRING);
-    E->globals = ekMapCreate(E, EMKT_STRING);
-
-    ekValueTypeRegisterAllBasicTypes(E);
-    ekIntrinsicsRegister(E);
-    ekModuleRegisterAll(E);
-    return E;
-}
-
 // LCOV_EXCL_START - TODO: ektest embedding
 void ekContextRecover(ekContext *E)
 {
@@ -173,6 +193,9 @@ void ekContextRecover(ekContext *E)
     ekContextClearError(E);
 }
 // LCOV_EXCL_STOP
+
+// ------------------------------------------------------------------------------------------------
+// Error Handling
 
 void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...)
 {
@@ -203,20 +226,64 @@ const char *ekContextGetError(ekContext *E)
     return E->error;
 }
 
-void ekContextDestroy(ekContext *E)
+// ------------------------------------------------------------------------------------------------
+// Internal Helper Functions
+
+static ekValue *ekFindFunc(struct ekContext *E, ekValue *object, const char *name)
 {
-    ekMapDestroy(E, E->intrinsics, NULL);
-    ekMapDestroy(E, E->globals, ekValueRemoveRefHashed);
-    ekArrayDestroy(E, &E->frames, (ekDestroyCB)ekFrameDestroy);
-    ekArrayDestroy(E, &E->stack, (ekDestroyCB)ekValueRemoveRefHashed);
-    ekArrayDestroy(E, &E->chunks, (ekDestroyCB)ekChunkDestroy);
+    ekValue *v = *(ekObjectGetRef(E, object->objectVal, name, ekFalse));
+    if(v == &ekValueNull)
+    {
+        if(object->objectVal->isa)
+        {
+            return ekFindFunc(E, object->objectVal->isa, name);
+        }
+        return NULL;
+    }
+    else
+    {
+        if(!ekValueIsCallable(v))
+        {
+            return NULL;
+        }
+    }
+    return v;
+}
 
-    ekArrayDestroy(E, &E->freeValues, (ekDestroyCB)ekValueDestroy);
+// ------------------------------------------------------------------------------------------------
+// Variable / Value Stack Manipulation
 
-    ekArrayDestroy(E, &E->types, (ekDestroyCB)ekValueTypeDestroy);
-    ekContextClearError(E);
+void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func)
+{
+    ekMapGetS2P(E, E->intrinsics, name) = func;
+}
 
-    ekFree(E);
+// TODO: this needs to protect against variable masking/shadowing
+static ekValue *ekContextRegister(struct ekContext *E, const char *name, ekValue *value)
+{
+    ekMapEntry *hashEntry;
+    ekValue **valueRef;
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    if(!frame)
+    {
+        return NULL;
+    }
+
+    ekValueAddRefNote(E, value, "ekContextRegister");
+
+    if(frame->block == frame->block->chunk->block)
+    {
+        // If we're in the chunk's "main" function, all variable
+        // registration goes into the globals
+        hashEntry = ekMapGetS(E, E->globals, name, ekTrue);
+    }
+    else
+    {
+        hashEntry = ekMapGetS(E, frame->locals, name, ekTrue);
+    }
+    hashEntry->valuePtr = value;
+    valueRef = (ekValue **)&hashEntry->valuePtr;
+    return ekValueCreateRef(E, valueRef);
 }
 
 static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool lvalue)
@@ -296,125 +363,6 @@ static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool l
     return NULL;
 }
 
-ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure)
-{
-    ekFrame *frame;
-    int i;
-
-    if(thisVal == NULL)
-    {
-        thisVal = ekValueNullPtr;
-    }
-
-    if(block->argCount != EAV_ALL_ARGS)
-    {
-        // accomodate the function's arglist by padding/removing stack entries
-        if(argCount > block->argCount)
-        {
-            // Too many arguments passed to this function. Pop some!
-            int i;
-            for(i = 0; i < (argCount - block->argCount); i++)
-            {
-                ekValue *v = ekArrayPop(E, &E->stack);
-                ekValueRemoveRefNote(E, v, "removing unused args");
-            }
-        }
-        else if(block->argCount > argCount)
-        {
-            // Too few arguments -- pad with nulls
-            int i;
-            for(i = 0; i < (block->argCount - argCount); i++)
-            {
-                ekArrayPush(E, &E->stack, &ekValueNull); // No need to refcount here
-            }
-        }
-    }
-
-    frame = ekFrameCreate(E, frameType, thisVal, block, ekArraySize(E, &E->stack), argCount, closure);
-    ekArrayPush(E, &E->frames, frame);
-
-    return frame;
-}
-
-static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, int argCount);
-
-static ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
-{
-    // LCOV_EXCL_START - TODO: ektest embedding
-    if(!callable)
-    {
-        ekContextSetError(E, EVE_RUNTIME, "EOP_CALL: empty stack!");
-        return ekFalse;
-    }
-    if(callable->type == EVT_REF)
-    {
-        callable = *callable->refVal;
-    }
-    // LCOV_EXCL_STOP
-    if(!ekValueIsCallable(callable))
-    {
-        ekContextSetError(E, EVE_RUNTIME, "EOP_CALL: variable not callable");
-        return ekFalse;
-    }
-    if(callable->type == EVT_CFUNCTION)
-    {
-        ekValue *closure = (callable->closureVars) ? callable : NULL;
-        if(!ekContextCallCFunction(E, *callable->cFuncVal, argCount, thisVal, closure))
-        {
-            return ekFalse; // LCOV_EXCL_LINE - TODO: ektest embedding. A cfunction needs to ruin the stack frame array for this to return false.
-        }
-    }
-    else if(callable->type == EVT_OBJECT)
-    {
-        return ekContextCreateObject(E, framePtr, callable, argCount);
-    }
-    else
-    {
-        ekValue *closure = (callable->closureVars) ? callable : NULL;
-        *framePtr = ekContextPushFrame(E, callable->blockVal, argCount, EFT_FUNC, thisVal, closure);
-    }
-    return ekTrue;
-}
-
-static ekValue *ekFindFunc(struct ekContext *E, ekValue *object, const char *name)
-{
-    ekValue *v = *(ekObjectGetRef(E, object->objectVal, name, ekFalse));
-    if(v == &ekValueNull)
-    {
-        if(object->objectVal->isa)
-        {
-            return ekFindFunc(E, object->objectVal->isa, name);
-        }
-        return NULL;
-    }
-    else
-    {
-        if(!ekValueIsCallable(v))
-        {
-            return NULL;
-        }
-    }
-    return v;
-}
-
-// LCOV_EXCL_START - TODO: ektest embedding
-ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount)
-{
-    ekFrame *frame = NULL;
-    ekValue *func = ekContextResolve(E, name, ekFalse);
-    if(!func)
-    {
-        return ekFalse;
-    }
-    if(ekContextCall(E, &frame, thisVal, func, argCount))
-    {
-        ekContextLoop(E, ekTrue);
-        return ekTrue;
-    }
-    return ekFalse;
-}
-// LCOV_EXCL_STOP
-
 static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, int argCount)
 {
     ekBool ret = ekTrue;
@@ -431,56 +379,6 @@ static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekV
     ekArrayPush(E, &E->stack, newObject);
     E->lastRet = 1; // leaving the new object on the stack (object creation via this function is a CALL)
     return ret;
-}
-
-// TODO: this needs to protect against variable masking/shadowing
-static ekValue *ekContextRegister(struct ekContext *E, const char *name, ekValue *value)
-{
-    ekMapEntry *hashEntry;
-    ekValue **valueRef;
-    ekFrame *frame = ekArrayTop(E, &E->frames);
-    if(!frame)
-    {
-        return NULL;
-    }
-
-    ekValueAddRefNote(E, value, "ekContextRegister");
-
-    if(frame->block == frame->block->chunk->block)
-    {
-        // If we're in the chunk's "main" function, all variable
-        // registration goes into the globals
-        hashEntry = ekMapGetS(E, E->globals, name, ekTrue);
-    }
-    else
-    {
-        hashEntry = ekMapGetS(E, frame->locals, name, ekTrue);
-    }
-    hashEntry->valuePtr = value;
-    valueRef = (ekValue **)&hashEntry->valuePtr;
-    return ekValueCreateRef(E, valueRef);
-}
-
-// TODO: merge this function with PushFrame and _RET
-ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure)
-{
-    int retCount;
-    ekFrame *frame = ekFrameCreate(E, EFT_FUNC, thisVal, NULL, ekArraySize(E, &E->stack), argCount, closure);
-    ekArrayPush(E, &E->frames, frame);
-
-    retCount = func(E, argCount);
-
-    ekArrayPop(E, &E->frames); // Removes 'frame' from top of stack
-    ekFrameDestroy(E, frame);
-    frame = ekArrayTop(E, &E->frames);
-    if(!frame)
-    {
-        return ekFalse;
-    }
-
-    // Stash lastRet for any EOP_KEEPs in the pipeline
-    E->lastRet = retCount;
-    return ekTrue;
 }
 
 void ekContextPopValues(struct ekContext *E, ekU32 count)
@@ -501,49 +399,6 @@ ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep)
     }
 
     return E->stack[(ekArraySize(E, &E->stack) - 1) - howDeep];
-}
-
-// LCOV_EXCL_START - I don't care about testing this yet.
-static ekContextFrameCleanup(struct ekContext *E, ekFrame *frame)
-{
-    if(frame->cleanupCount)
-    {
-        int i;
-        for(i=0; i < frame->cleanupCount; i++)
-        {
-            int index = ((ekArraySize(E, &E->stack) - 1) - E->lastRet) - i;
-            ekValueRemoveRefNote(E, E->stack[index], "ekContextFrameCleanup");
-            E->stack[index] = NULL;
-        }
-        ekArraySquash(E, &E->stack);
-    }
-}
-// LCOV_EXCL_STOP
-
-struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt)
-{
-    ekFrame *frame = ekArrayTop(E, &E->frames);
-
-    if(frameTypeToFind != EFT_ANY)
-    {
-        while(frame && !(frame->type & frameTypeToFind))
-        {
-            ekContextFrameCleanup(E, frame);
-            ekFrameDestroy(E, frame);
-            ekArrayPop(E, &E->frames);
-            frame = ekArrayTop(E, &E->frames);
-        };
-    }
-
-    if(frame && !keepIt)
-    {
-        ekContextFrameCleanup(E, frame);
-        ekFrameDestroy(E, frame);
-        ekArrayPop(E, &E->frames);
-        frame = ekArrayTop(E, &E->frames);
-    }
-
-    return frame;
 }
 
 static ekS32 ekContextPopInts(struct ekContext *E, int count, int *output)
@@ -705,6 +560,173 @@ ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+// ------------------------------------------------------------------------------------------------
+// Frame Stack Manipulation
+
+ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure)
+{
+    ekFrame *frame;
+    int i;
+
+    if(thisVal == NULL)
+    {
+        thisVal = ekValueNullPtr;
+    }
+
+    if(block->argCount != EAV_ALL_ARGS)
+    {
+        // accomodate the function's arglist by padding/removing stack entries
+        if(argCount > block->argCount)
+        {
+            // Too many arguments passed to this function. Pop some!
+            int i;
+            for(i = 0; i < (argCount - block->argCount); i++)
+            {
+                ekValue *v = ekArrayPop(E, &E->stack);
+                ekValueRemoveRefNote(E, v, "removing unused args");
+            }
+        }
+        else if(block->argCount > argCount)
+        {
+            // Too few arguments -- pad with nulls
+            int i;
+            for(i = 0; i < (block->argCount - argCount); i++)
+            {
+                ekArrayPush(E, &E->stack, &ekValueNull); // No need to refcount here
+            }
+        }
+    }
+
+    frame = ekFrameCreate(E, frameType, thisVal, block, ekArraySize(E, &E->stack), argCount, closure);
+    ekArrayPush(E, &E->frames, frame);
+
+    return frame;
+}
+
+ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
+{
+    // LCOV_EXCL_START - TODO: ektest embedding
+    if(!callable)
+    {
+        ekContextSetError(E, EVE_RUNTIME, "EOP_CALL: empty stack!");
+        return ekFalse;
+    }
+    if(callable->type == EVT_REF)
+    {
+        callable = *callable->refVal;
+    }
+    // LCOV_EXCL_STOP
+    if(!ekValueIsCallable(callable))
+    {
+        ekContextSetError(E, EVE_RUNTIME, "EOP_CALL: variable not callable");
+        return ekFalse;
+    }
+    if(callable->type == EVT_CFUNCTION)
+    {
+        ekValue *closure = (callable->closureVars) ? callable : NULL;
+        if(!ekContextCallCFunction(E, *callable->cFuncVal, argCount, thisVal, closure))
+        {
+            return ekFalse; // LCOV_EXCL_LINE - TODO: ektest embedding. A cfunction needs to ruin the stack frame array for this to return false.
+        }
+    }
+    else if(callable->type == EVT_OBJECT)
+    {
+        return ekContextCreateObject(E, framePtr, callable, argCount);
+    }
+    else
+    {
+        ekValue *closure = (callable->closureVars) ? callable : NULL;
+        *framePtr = ekContextPushFrame(E, callable->blockVal, argCount, EFT_FUNC, thisVal, closure);
+    }
+    return ekTrue;
+}
+
+// LCOV_EXCL_START - TODO: ektest embedding
+ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount)
+{
+    ekFrame *frame = NULL;
+    ekValue *func = ekContextResolve(E, name, ekFalse);
+    if(!func)
+    {
+        return ekFalse;
+    }
+    if(ekContextCall(E, &frame, thisVal, func, argCount))
+    {
+        ekContextLoop(E, ekTrue);
+        return ekTrue;
+    }
+    return ekFalse;
+}
+// LCOV_EXCL_STOP
+
+// TODO: merge this function with PushFrame and _RET
+ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure)
+{
+    int retCount;
+    ekFrame *frame = ekFrameCreate(E, EFT_FUNC, thisVal, NULL, ekArraySize(E, &E->stack), argCount, closure);
+    ekArrayPush(E, &E->frames, frame);
+
+    retCount = func(E, argCount);
+
+    ekArrayPop(E, &E->frames); // Removes 'frame' from top of stack
+    ekFrameDestroy(E, frame);
+    frame = ekArrayTop(E, &E->frames);
+    if(!frame)
+    {
+        return ekFalse;
+    }
+
+    // Stash lastRet for any EOP_KEEPs in the pipeline
+    E->lastRet = retCount;
+    return ekTrue;
+}
+
+// LCOV_EXCL_START - I don't care about testing this yet.
+static ekContextFrameCleanup(struct ekContext *E, ekFrame *frame)
+{
+    if(frame->cleanupCount)
+    {
+        int i;
+        for(i=0; i < frame->cleanupCount; i++)
+        {
+            int index = ((ekArraySize(E, &E->stack) - 1) - E->lastRet) - i;
+            ekValueRemoveRefNote(E, E->stack[index], "ekContextFrameCleanup");
+            E->stack[index] = NULL;
+        }
+        ekArraySquash(E, &E->stack);
+    }
+}
+// LCOV_EXCL_STOP
+
+struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+
+    if(frameTypeToFind != EFT_ANY)
+    {
+        while(frame && !(frame->type & frameTypeToFind))
+        {
+            ekContextFrameCleanup(E, frame);
+            ekFrameDestroy(E, frame);
+            ekArrayPop(E, &E->frames);
+            frame = ekArrayTop(E, &E->frames);
+        };
+    }
+
+    if(frame && !keepIt)
+    {
+        ekContextFrameCleanup(E, frame);
+        ekFrameDestroy(E, frame);
+        ekArrayPop(E, &E->frames);
+        frame = ekArrayTop(E, &E->frames);
+    }
+
+    return frame;
+}
+
+// ------------------------------------------------------------------------------------------------
+// Debug Tracing
+
 #ifdef EUREKA_TRACE_EXECUTION
 static const char *ekValueDebugString(struct ekContext *E, ekValue *v)
 {
@@ -756,6 +778,9 @@ static void ekContextLogState(ekContext *E)
     ekTraceExecution(("-- Stack Bot --\n"));
 }
 #endif
+
+// ------------------------------------------------------------------------------------------------
+// VM / Opcode Interpreter
 
 void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 {

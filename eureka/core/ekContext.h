@@ -14,6 +14,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct ekFrame;
 struct ekMap;
 struct ekValueType;
 
@@ -79,6 +80,7 @@ enum
     EEO_OPTIMIZE = (1 << 1)
 };
 void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts);
+ekBool ekContextCall(struct ekContext *E, struct ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount);
 void ekContextRecover(ekContext *E); // cleans out frames, clears error
 
 void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...);
@@ -96,7 +98,7 @@ ekValue *ekContextThis(ekContext *E);  // returns 'this' in current context
 ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount); // Perform EOP_ITER
 
 ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat, ...);     // Will pop all arguments on success!
-int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...); // Will always pop all arguments!
+int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...);  // Will always pop all arguments!
 
 ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount); // returns whether or not it found it
 ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure);
