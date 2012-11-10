@@ -11,6 +11,8 @@
 #include "ekArray.h"
 #include "ekValue.h"                  // for ekCFunction
 
+#define EMFV_UNLIMITED (-1)
+
 // ---------------------------------------------------------------------------
 // Forwards
 
@@ -30,12 +32,22 @@ enum
     EVE_COUNT
 };
 
-typedef struct ekMemFuncs
+// Eureka Eval Options
+enum
+{
+    EEO_DEFAULT  = 0,
+
+    EEO_DUMP     = (1 << 0),
+    EEO_OPTIMIZE = (1 << 1)
+};
+
+typedef struct ekMemoryInfo
 {
     ekAllocFunc allocFunc;
     ekRellocFunc reallocFunc;
     ekFreeFunc freeFunc;
-} ekMemFuncs;
+    ekS32 maxFreeValues;
+} ekMemoryInfo;
 
 typedef struct ekContext
 {
@@ -57,6 +69,7 @@ typedef struct ekContext
 
     // pools
     ekValue **freeValues;             // Free value pool
+    ekS32 maxFreeValues;              // Set to zero to not use freeValues pool; EMFV_UNLIMITED for unlimited
 
     // state
     ekS32 lastRet;
@@ -66,39 +79,30 @@ typedef struct ekContext
     char *error;
 } ekContext;
 
-ekContext *ekContextCreate(ekMemFuncs *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
+ekContext *ekContextCreate(ekMemoryInfo *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
 void ekContextDestroy(ekContext *E);
 
-void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
-
-// Eureka Eval Options
-enum
-{
-    EEO_DEFAULT  = 0,
-
-    EEO_DUMP     = (1 << 0),
-    EEO_OPTIMIZE = (1 << 1)
-};
 void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts);
-ekBool ekContextCall(struct ekContext *E, struct ekFrame **framePtr, ekValue *thisVal, ekValue *callable, ekS32 argCount);
 void ekContextRecover(ekContext *E); // cleans out frames, clears error
 
 void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...);
 void ekContextClearError(ekContext *E);
 const char *ekContextGetError(ekContext *E);
 
-struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, ekS32 argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
-struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt);
-
-void ekContextLoop(struct ekContext *E, ekBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
+void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
 
 void ekContextPopValues(struct ekContext *E, ekU32 count);
 ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep);  // 0 is "top of stack"
 ekValue *ekContextThis(ekContext *E);  // returns 'this' in current context
+ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argFormat, ...);      // Will pop all arguments on success!
+ekS32 ekContextArgsFailure(struct ekContext *E, ekS32 argCount, const char *errorFormat, ...); // Will always pop all arguments!
 ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount); // Perform EOP_ITER
 
-ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argFormat, ...);     // Will pop all arguments on success!
-ekS32 ekContextArgsFailure(struct ekContext *E, ekS32 argCount, const char *errorFormat, ...);  // Will always pop all arguments!
+struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, ekS32 argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
+ekBool ekContextCall(struct ekContext *E, struct ekFrame **framePtr, ekValue *thisVal, ekValue *callable, ekS32 argCount);
+struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt);
+
+void ekContextLoop(struct ekContext *E, ekBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
 
 ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, ekS32 argCount); // returns whether or not it found it
 ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure);

@@ -59,6 +59,7 @@ int loadChunk(const char *code, ekU32 evalFlags)
         printf("Leftover ekValues: %d\n", ekValueDebugCount());
         ret |= FAIL_REFS;
     }
+    printf("ekValue high watermark: %d\n", ekValueDebugHighWatermark());
 #endif
     return ret;
 }

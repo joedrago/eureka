@@ -22,21 +22,114 @@ static char *NULL_STRING_FORM = "(null)";
 
 // ---------------------------------------------------------------------------
 
-ekDumpParams *ekDumpParamsCreate(struct ekContext *E)
-{
-    ekDumpParams *params = (ekDumpParams *)ekAlloc(sizeof(ekDumpParams));
-    return params;
-}
-
-void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params)
-{
-    ekStringClear(E, &params->output);
-    ekStringClear(E, &params->tempStr);
-    ekFree(params);
-}
-
 ekValue ekValueNull = {EVT_NULL};
 ekValue *ekValueNullPtr = &ekValueNull;
+
+// ---------------------------------------------------------------------------
+
+#ifdef EUREKA_TRACE_REFS
+static ekS32 sEurekaValueDebugCount = 0;
+ekS32 ekValueDebugCount()
+{
+    return sEurekaValueDebugCount;
+}
+static ekS32 sEurekaValueHighWatermark = 0;
+ekS32 ekValueDebugHighWatermark()
+{
+    return sEurekaValueHighWatermark;
+}
+#endif
+
+// ---------------------------------------------------------------------------
+
+ekValue *ekValueCreate(ekContext *E)
+{
+    ekValue *value;
+    if(ekArraySize(E, &E->freeValues) > 0)
+    {
+        value = ekArrayPop(E, &E->freeValues);
+        memset(value, 0, sizeof(ekValue));
+        ekValueTraceRefs(E, value, 1, "ekValueCreate (reuse)");
+        ekTraceValues(("ekValueCreate (reuse) %p\n", value));
+    }
+    else
+    {
+        value = ekAlloc(sizeof(ekValue));
+        ekValueTraceRefs(E, value, 1, "ekValueCreate (new)");
+        ekTraceValues(("ekValueCreate (new) %p\n", value));
+#ifdef EUREKA_TRACE_REFS
+        ++sEurekaValueDebugCount;
+        if(sEurekaValueHighWatermark < sEurekaValueDebugCount)
+        {
+            sEurekaValueHighWatermark = sEurekaValueDebugCount;
+        }
+#endif
+    }
+    value->refs = 1;
+    return value;
+}
+
+void ekValueDestroy(struct ekContext *E, ekValue *p)
+{
+    if(p == ekValueNullPtr)
+    {
+        return;
+    }
+
+    ekValueClear(E, p);
+    ekTraceValues(("ekValueDestroy %p\n", p));
+    ekFree(p);
+#ifdef EUREKA_TRACE_REFS
+    --sEurekaValueDebugCount;
+#endif
+}
+
+void ekValueClear(struct ekContext *E, ekValue *p)
+{
+    ekValueTypeSafeCall(p->type, Clear)(E, p);
+
+    memset(p, 0, sizeof(*p));
+    p->type = EVT_NULL;
+}
+
+void ekValueAddRef(struct ekContext *E, ekValue *p)
+{
+    if(p == ekValueNullPtr)
+    {
+        return;
+    }
+
+    ekAssert(p->refs);
+    ++p->refs;
+}
+
+void ekValueRemoveRef(struct ekContext *E, ekValue *p)
+{
+    if(p == ekValueNullPtr)
+    {
+        return;
+    }
+
+    ekAssert(p->refs && (p->refs != 0xaaaaaaaa) && "refcount has gone rogue!");
+
+    --p->refs;
+    if(p->refs == 0)
+    {
+        if((E->maxFreeValues == EMFV_UNLIMITED) || (ekArraySize(E, &E->freeValues) < E->maxFreeValues))
+        {
+            ekTraceValues(("ekValueRemoveRef (pool) %p\n", p));
+            ekValueClear(E, p);
+            ekArrayPush(E, &E->freeValues, p);
+        }
+        else
+        {
+            ekTraceValues(("ekValueRemoveRef (free) %p\n", p));
+            ekValueDestroy(E, p);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 
 ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v)
 {
@@ -310,74 +403,6 @@ void ekValueObjectSetMember(struct ekContext *E, struct ekValue *object, const c
 }
 
 // ---------------------------------------------------------------------------
-
-void ekValueClear(struct ekContext *E, ekValue *p)
-{
-    ekValueTypeSafeCall(p->type, Clear)(E, p);
-
-    memset(p, 0, sizeof(*p));
-    p->type = EVT_NULL;
-}
-
-#ifdef EUREKA_TRACE_REFS
-static ekS32 sEurekaValueDebugCount = 0;
-
-ekS32 ekValueDebugCount()
-{
-    return sEurekaValueDebugCount;
-}
-#endif
-
-ekValue *ekValueCreate(ekContext *E)
-{
-    ekValue *value = ekAlloc(sizeof(ekValue));
-    ekValueTraceRefs(E, value, 1, "ekValueCreate");
-    value->refs = 1;
-    ekTraceValues(("ekValueCreate %p\n", value));
-#ifdef EUREKA_TRACE_REFS
-    ++sEurekaValueDebugCount;
-#endif
-    return value;
-}
-
-void ekValueDestroy(struct ekContext *E, ekValue *p)
-{
-    ekTraceValues(("ekValueFree %p\n", p));
-    ekValueClear(E, p);
-    memset(p, 0xaaaaaaaa, sizeof(ekValue));
-    ekFree(p);
-#ifdef EUREKA_TRACE_REFS
-    --sEurekaValueDebugCount;
-#endif
-}
-
-void ekValueAddRef(struct ekContext *E, ekValue *p)
-{
-    if(p == ekValueNullPtr)
-    {
-        return;
-    }
-
-    ekAssert(p->refs);
-    ++p->refs;
-}
-
-void ekValueRemoveRef(struct ekContext *E, ekValue *p)
-{
-    if(p == ekValueNullPtr)
-    {
-        return;
-    }
-
-    ekAssert(p->refs && (p->refs != 0xaaaaaaaa) && "refcount has gone rogue!");
-
-    --p->refs;
-    if(p->refs == 0)
-    {
-        ekValueDestroy(E, p);
-    }
-}
-
 ekS32 ekValueCmp(struct ekContext *E, ekValue *a, ekValue *b)
 {
     if(a == b)
@@ -583,6 +608,19 @@ const char *ekValueTypeName(struct ekContext *E, ekS32 type)
         return valueType->name;
     }
     return "unknown";
+}
+
+ekDumpParams *ekDumpParamsCreate(struct ekContext *E)
+{
+    ekDumpParams *params = (ekDumpParams *)ekAlloc(sizeof(ekDumpParams));
+    return params;
+}
+
+void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params)
+{
+    ekStringClear(E, &params->output);
+    ekStringClear(E, &params->tempStr);
+    ekFree(params);
 }
 
 void ekValueDump(struct ekContext *E, ekDumpParams *params, ekValue *p)

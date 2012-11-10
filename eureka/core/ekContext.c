@@ -33,27 +33,32 @@
 // ------------------------------------------------------------------------------------------------
 // Creation / Destruction
 
-ekContext *ekContextCreate(ekMemFuncs *memFuncs)
+ekContext *ekContextCreate(ekMemoryInfo *memInfo)
 {
     ekContext *E = ekDefaultAlloc(sizeof(ekContext));
+
+    // Set defaults
     E->allocFunc = ekDefaultAlloc;
     E->reallocFunc = ekDefaultRealloc;
     E->freeFunc = ekDefaultFree;
+    E->maxFreeValues = EMFV_UNLIMITED;
+
     // LCOV_EXCL_START - I don't care about testing other allocators.
-    if(memFuncs)
+    if(memInfo)
     {
-        if(memFuncs->allocFunc)
+        if(memInfo->allocFunc)
         {
-            E->allocFunc = memFuncs->allocFunc;
+            E->allocFunc = memInfo->allocFunc;
         }
-        if(memFuncs->reallocFunc)
+        if(memInfo->reallocFunc)
         {
-            E->reallocFunc = memFuncs->reallocFunc;
+            E->reallocFunc = memInfo->reallocFunc;
         }
-        if(memFuncs->freeFunc)
+        if(memInfo->freeFunc)
         {
-            E->freeFunc = memFuncs->freeFunc;
+            E->freeFunc = memInfo->freeFunc;
         }
+        E->maxFreeValues = memInfo->maxFreeValues;
     }
     // LCOV_EXCL_STOP
     E->intrinsics = ekMapCreate(E, EMKT_STRING);
@@ -67,14 +72,13 @@ ekContext *ekContextCreate(ekMemFuncs *memFuncs)
 
 void ekContextDestroy(ekContext *E)
 {
-    ekMapDestroy(E, E->intrinsics, NULL);
     ekMapDestroy(E, E->globals, ekValueRemoveRefHashed);
-    ekArrayDestroy(E, &E->frames, (ekDestroyCB)ekFrameDestroy);
-    ekArrayDestroy(E, &E->stack, (ekDestroyCB)ekValueRemoveRefHashed);
-    ekArrayDestroy(E, &E->chunks, (ekDestroyCB)ekChunkDestroy);
+    ekArrayDestroy(E, &E->stack, ekValueRemoveRefHashed);
+    ekArrayDestroy(E, &E->freeValues, ekValueDestroy);
+    ekArrayDestroy(E, &E->frames, ekFrameDestroy);
+    ekArrayDestroy(E, &E->chunks, ekChunkDestroy);
 
-    ekArrayDestroy(E, &E->freeValues, (ekDestroyCB)ekValueDestroy);
-
+    ekMapDestroy(E, E->intrinsics, NULL);
     ekArrayDestroy(E, &E->types, (ekDestroyCB)ekValueTypeDestroy);
     ekContextClearError(E);
 
