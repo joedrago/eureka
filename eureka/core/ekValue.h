@@ -24,7 +24,7 @@ typedef ekU32(ekCFunction)(struct ekContext *E, ekU32 argCount);
 
 // ---------------------------------------------------------------------------
 
-typedef enum ekValueBasicType
+enum
 {
     EVT_NULL,                          // Must stay zero, so that calloc/memset sets a ekValue to NULL
 
@@ -43,7 +43,7 @@ typedef enum ekValueBasicType
     EVT_COUNT,
     EVT_CUSTOM = EVT_COUNT,            // First custom value type
     EVT_INVALID = -1
-} ekValueBasicType;
+};
 
 typedef enum ekValueArithmeticOp
 {
