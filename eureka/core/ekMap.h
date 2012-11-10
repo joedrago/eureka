@@ -38,8 +38,8 @@ typedef struct ekMap
     ekMapEntry **table; // Hash table daArray
     ekSize split;         // Linear Hashing 'split'
     ekSize mod;           // pre-split modulus (use mod*2 for overflow)
-    int keyType;
-    int count;           // count tracking for convenience
+    ekS32 keyType;
+    ekS32 count;           // count tracking for convenience
 } ekMap;
 
 typedef void (*ek2IterateCB1)(struct ekContext *E, void *arg1, ekMapEntry *entry);

@@ -92,7 +92,7 @@ void ekValueClear(struct ekContext *E, ekValue *p);
 void ekValueCloneData(struct ekContext *E, ekValue *dst, ekValue *src);
 ekValue *ekValueClone(struct ekContext *E, ekValue *p);
 
-ekValue *ekValueCreateInt(struct ekContext *E, int v);
+ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v);
 ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v);
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s);
 ekValue *ekValueCreateString(struct ekContext *E, const char *s);
@@ -101,7 +101,7 @@ ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block);
 ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func);
 ekValue *ekValueCreateRef(struct ekContext *E, struct ekValue **ref);
 ekValue *ekValueCreateArray(struct ekContext *E);
-ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCount, ekBool firstArgIsa);
+ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa);
 
 // Special calls for arrays
 void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v);
@@ -133,20 +133,20 @@ ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount);
 ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lvalue);
-const char *ekValueTypeName(struct ekContext *E, int type); // used in error reporting
+const char *ekValueTypeName(struct ekContext *E, ekS32 type); // used in error reporting
 
 typedef struct ekDumpParams
 {
     ekString output;  // The final output value. Dump functions should use concatenate functions on this string, not set
     ekString tempStr; // to be used as a temporary string by the dump function, and should be considered to be changed if recursively calling dump()
-    int tempInt;       // to be used as a temporary int by the dump function, and should be considered to be changed if recursively calling dump()
+    ekS32 tempInt;       // to be used as a temporary ekS32 by the dump function, and should be considered to be changed if recursively calling dump()
 } ekDumpParams;
 
 ekDumpParams *ekDumpParamsCreate(struct ekContext *E);
 void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params);
 
 #ifdef EUREKA_TRACE_REFS
-void ekValueTraceRefs(struct ekContext *E, struct ekValue *p, int delta, const char *note);
+void ekValueTraceRefs(struct ekContext *E, struct ekValue *p, ekS32 delta, const char *note);
 void ekValueRemoveRefHashed(struct ekContext *E, struct ekValue *p); // used for tracing cleanup of hashes of values
 void ekValueRemoveRefArray(struct ekContext *E, struct ekValue *p);  // used for tracing cleanup of arrays of values
 #else

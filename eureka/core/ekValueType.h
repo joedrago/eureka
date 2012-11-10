@@ -23,7 +23,7 @@ typedef ekF32(*ekValueTypeFuncToFloat)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *E, struct ekValue *p);
 typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
-typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult);
+typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult);
 typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *E, struct ekValue *p, struct ekValue *index, ekBool lvalue);
 typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
 
@@ -32,7 +32,7 @@ typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, s
 
 typedef struct ekValueType
 {
-    int id;
+    ekS32 id;
     char name[EVT_MAXNAMELEN + 1];
 
     struct ekMap *intrinsics;                        // map of funcName -> ekCFunction, used as an Index fallback for things like .length()
@@ -57,7 +57,7 @@ ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name);
 void ekValueTypeDestroy(struct ekContext *E, ekValueType *type);
 void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func);
 struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue);
-int ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
+ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
 
 void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 

@@ -51,8 +51,8 @@ static ekValue *jsonRecurse(struct ekContext *E, cJSON *json)
 
         case cJSON_Array:
         {
-            int i;
-            int size = cJSON_GetArraySize(json);
+            ekS32 i;
+            ekS32 size = cJSON_GetArraySize(json);
             ret = ekValueCreateArray(E);
             child = json->child;
             while(child)

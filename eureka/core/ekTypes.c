@@ -22,20 +22,20 @@
 typedef struct ekMemoryTracker
 {
     void *ptr;
-    int bytes;
+    ekS32 bytes;
 } ekMemoryTracker;
 static ekMemoryTracker sMemoryTrackers[MAX_TRACKERS] = {0};
 
 typedef struct ekMemoryStats
 {
-    int allocs;
-    int frees;
-    int allocSize;
-    int freeSize;
+    ekS32 allocs;
+    ekS32 frees;
+    ekS32 allocSize;
+    ekS32 freeSize;
 
     // never reset
-    int totalAllocSize;
-    int totalFreeSize;
+    ekS32 totalAllocSize;
+    ekS32 totalFreeSize;
 } ekMemoryStats;
 static ekMemoryStats sMemoryStats = {0};
 
@@ -64,14 +64,14 @@ void ekMemoryStatsPrint(const char *prefix)
                ));
 }
 
-int ekMemoryStatsLeftovers()
+ekS32 ekMemoryStatsLeftovers()
 {
     return sMemoryStats.allocs - sMemoryStats.frees;
 }
 
 void ekMemoryStatsDumpLeaks()
 {
-    int i;
+    ekS32 i;
     for(i=0; i<MAX_TRACKERS; i++)
     {
         if(sMemoryTrackers[i].ptr != 0)
@@ -85,9 +85,9 @@ void ekMemoryStatsDumpLeaks()
     }
 }
 
-void ekTrackAlloc(void *ptr, int bytes)
+void ekTrackAlloc(void *ptr, ekS32 bytes)
 {
-    int i;
+    ekS32 i;
     for(i=0; i<MAX_TRACKERS; i++)
     {
         if(sMemoryTrackers[i].ptr == 0)
@@ -107,9 +107,9 @@ void ekTrackAlloc(void *ptr, int bytes)
     ekAssert(0 && "out of trackers");
 }
 
-void ekTrackFree(void *ptr, int stomp)
+void ekTrackFree(void *ptr, ekS32 stomp)
 {
-    int i;
+    ekS32 i;
     for(i=0; i<MAX_TRACKERS; i++)
     {
         if(sMemoryTrackers[i].ptr == ptr)
@@ -138,7 +138,7 @@ void ekTrackFree(void *ptr, int stomp)
     ekAssert(0 && "unknown ptr in free");
 }
 
-void ekTrackRealloc(void *oldptr, void *newptr, int bytes)
+void ekTrackRealloc(void *oldptr, void *newptr, ekS32 bytes)
 {
     if(oldptr) { ekTrackFree(oldptr, 0); }
     ekTrackAlloc(newptr, bytes);
@@ -181,15 +181,15 @@ void ekDestroyCBFree(struct ekContext *E, void *ptr)
 
 char *ekStrdup(struct ekContext *E, const char *s)
 {
-    int len = strlen(s);
+    ekS32 len = strlen(s);
     char *copy = ekAlloc(len+1);
     strcpy(copy, s);
     return copy;
 }
 
-char *ekSubstrdup(struct ekContext *E, const char *s, int start, int end)
+char *ekSubstrdup(struct ekContext *E, const char *s, ekS32 start, ekS32 end)
 {
-    int len = end - start;
+    ekS32 len = end - start;
     char *copy = ekAlloc(len+1);
     memcpy(copy, &s[start], len);
     copy[len] = 0;

@@ -43,7 +43,7 @@ void ekArraySetCapacityP1(struct ekContext *E, void *daptr, ekSize newCapacity, 
 void ekArraySetCapacityP2(struct ekContext *E, void *daptr, ekSize newCapacity, void * /*dynDestroyFuncP2*/ destroyFunc, void *p1, void *p2);
 ekSize ekArrayCapacity(struct ekContext *E, void *daptr);
 void ekArraySquash(struct ekContext *E, void *daptr);
-void ekArrayShrink(struct ekContext *E, void *daptr, int n, ekDestroyCB cb); // Causes array to be at-most n in count (does not affect capacity)
+void ekArrayShrink(struct ekContext *E, void *daptr, ekS32 n, ekDestroyCB cb); // Causes array to be at-most n in count (does not affect capacity)
 
 // 32bit-values-only array
 ekSize ek32ArraySize(struct ekContext *E, void *daptr);

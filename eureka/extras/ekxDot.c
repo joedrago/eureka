@@ -19,7 +19,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
 
 static void ekSyntaxDotRecurseArray(struct ekContext *E, ekSyntax **a, const char *myLineOpts, ekSyntax *syntax)
 {
-    int i;
+    ekS32 i;
     const char *childLineOpts = myLineOpts;
     for(i = 0; i < ekArraySize(E, &a); i++)
     {
@@ -140,7 +140,7 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         case EST_CALL:
         {
             myOpts = "shape=invtrapezium,color=blue";
-            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (int)ekArraySize(E, &syntax->r.p->v.a));
+            sprintf(label, "Call: %s(%d)", (syntax->v.s) ? syntax->v.s : "CFUNC", (ekS32)ekArraySize(E, &syntax->r.p->v.a));
             childLineOpts = "style=dotted,label=args";
             REC_CHILD(syntax->r.p);
         }

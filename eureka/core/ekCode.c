@@ -25,7 +25,7 @@ void ekCodeDestroy(struct ekContext *E, ekCode *code)
     ekFree(code);
 }
 
-void ekCodeGrow(struct ekContext *E, ekCode *code, int count)
+void ekCodeGrow(struct ekContext *E, ekCode *code, ekS32 count)
 {
     if(code->count + count <= code->size)
     {
@@ -43,7 +43,7 @@ void ekCodeGrow(struct ekContext *E, ekCode *code, int count)
     code->size += count;
 }
 
-ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand operand, int line)
+ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand operand, ekS32 line)
 {
     ekOp *op = &code->ops[code->count];
     op->opcode  = opcode;

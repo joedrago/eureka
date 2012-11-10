@@ -37,11 +37,11 @@ typedef struct ekLexer
     const char *cur;
     const char *token;
     const char *end;
-    int line;
+    ekS32 line;
     ekBool error;
 } ekLexer;
 
-int getNextToken(ekLexer *l)
+ekS32 getNextToken(ekLexer *l)
 {
 #include "ekLexer.re.inc"
     return ETT_EOF;
@@ -50,9 +50,9 @@ int getNextToken(ekLexer *l)
 ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
 {
     struct ekContext *E = compiler->E;
-    int id;
-    int token_len;
-    int tokenMax;
+    ekS32 id;
+    ekS32 token_len;
+    ekS32 tokenMax;
     ekToken token;
     ekLexer l = {0};
 
@@ -69,7 +69,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
             break;
         }
 
-        token_len = (int)(l.cur - l.token);
+        token_len = (ekS32)(l.cur - l.token);
 
         // Normal C style lexers treat semi-colons as end statements
         // and braces as block delimiters. Newlines are just whitespace.
@@ -195,12 +195,12 @@ char *ekTokenToString(struct ekContext *E, ekToken *t)
     return str;
 }
 
-int ekTokenToInt(struct ekContext *E, ekToken *t)
+ekS32 ekTokenToInt(struct ekContext *E, ekToken *t)
 {
     char temp[32];
-    int base = 10;
+    ekS32 base = 10;
 
-    int len = t->len;
+    ekS32 len = t->len;
     if(len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;
@@ -224,7 +224,7 @@ float ekTokenToFloat(struct ekContext *E, ekToken *t)
     char *endptr;
     double d;
 
-    int len = t->len;
+    ekS32 len = t->len;
     if(len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;

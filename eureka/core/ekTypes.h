@@ -67,7 +67,7 @@ void ekDefaultFree(void *ptr);
 #define ekFree E->freeFunc
 
 char *ekStrdup(struct ekContext *E, const char *s);
-char *ekSubstrdup(struct ekContext *E, const char *s, int start, int end);
+char *ekSubstrdup(struct ekContext *E, const char *s, ekS32 start, ekS32 end);
 
 typedef void (*ekDestroyCB)(struct ekContext *E, void *p);
 typedef void (*ekDestroyCB1)(struct ekContext *E, void *arg1, void *p);
@@ -83,7 +83,7 @@ void ekDestroyCBFree(struct ekContext *E, void *ptr); // calls E->free() on each
 
 #ifdef EUREKA_TRACE_MEMORY
 void ekMemoryStatsReset();
-int ekMemoryStatsLeftovers();
+ekS32 ekMemoryStatsLeftovers();
 void ekMemoryStatsPrint(const char *prefix);
 void ekMemoryStatsDumpLeaks();
 #define ekTraceMem(ARGS) printf ARGS
@@ -98,7 +98,7 @@ void ekMemoryStatsDumpLeaks();
 #endif
 
 #ifdef EUREKA_TRACE_REFS
-int ekValueDebugCount();
+ekS32 ekValueDebugCount();
 #define ekTraceRefs(ARGS) printf ARGS
 #else
 #define ekTraceRefs(ARGS)

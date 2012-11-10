@@ -37,7 +37,7 @@ static ekU32 arrayIntrinsicLength(struct ekContext *E, ekU32 argCount)
 
 ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
 {
-    int i;
+    ekS32 i;
     ekValue *a = ekContextThis(E);
     ekValue **values = NULL;
     if(!ekContextGetArgs(E, argCount, ".", &values))
@@ -144,7 +144,7 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
         return 0;
     }
 
-    ekValueAddRefNote(E, index, "keep index around after int conversion");
+    ekValueAddRefNote(E, index, "keep index around after ekS32 conversion");
     index = ekValueToInt(E, index);
     if(index->intVal >= 0 && index->intVal < ekArraySize(E, &value->arrayVal))
     {
@@ -163,13 +163,13 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
     {
         ekContextSetError(E, EVE_RUNTIME, "array index %d out of range", index->intVal);
     }
-    ekValueRemoveRefNote(E, index, "temp index (int) done");
+    ekValueRemoveRefNote(E, index, "temp index (ekS32) done");
     return ret;
 }
 
 static void arrayFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
 {
-    int i;
+    ekS32 i;
     ekStringConcat(E, &params->output, "[ ");
     for(i=0; i<ekArraySize(E, &p->arrayVal); i++)
     {

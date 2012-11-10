@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-ekSyntax *ekSyntaxCreate(struct ekContext *E, ekU32 type, int line)
+ekSyntax *ekSyntaxCreate(struct ekContext *E, ekU32 type, ekS32 line)
 {
     ekSyntax *syntax = (ekSyntax *)ekAlloc(sizeof(ekSyntax));
     syntax->type = type;
@@ -91,13 +91,13 @@ ekSyntax *ekSyntaxCreateIndex(struct ekContext *E, ekSyntax *array, ekSyntax *in
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateNull(struct ekContext *E, int line)
+ekSyntax *ekSyntaxCreateNull(struct ekContext *E, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_NULL, line);
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateThis(struct ekContext *E, int line)
+ekSyntax *ekSyntaxCreateThis(struct ekContext *E, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_THIS, line);
     return syntax;
@@ -118,7 +118,7 @@ ekSyntax *ekSyntaxListAppend(struct ekContext *E, ekSyntax *list, ekSyntax *expr
 {
     if(expr != NULL)
     {
-        int index;
+        ekS32 index;
         if(!list->line)
         {
             list->line = expr->line;
@@ -152,7 +152,7 @@ ekSyntax *ekSyntaxCreateStringFormat(struct ekContext *E, ekSyntax *format, ekSy
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr, int line)
+ekSyntax *ekSyntaxCreateUnary(struct ekContext *E, ekU32 type, ekSyntax *expr, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, type, line);
     syntax->v.p = expr;
@@ -209,7 +209,7 @@ ekSyntax *ekSyntaxMarkVar(struct ekContext *E, ekSyntax *identList)
     return identList;
 }
 
-ekSyntax *ekSyntaxCreateBreak(struct ekContext *E, int line)
+ekSyntax *ekSyntaxCreateBreak(struct ekContext *E, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_BREAK, line);
     return syntax;
@@ -249,7 +249,7 @@ ekSyntax *ekSyntaxCreateFor(struct ekContext *E, ekSyntax *vars, ekSyntax *iter,
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *E, struct ekToken *name, ekSyntax *args, ekSyntax *body, int line)
+ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *E, struct ekToken *name, ekSyntax *args, ekSyntax *body, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_FUNCTION, line);
     syntax->v.s = (name) ? ekTokenToString(E, name) : NULL;
@@ -261,7 +261,7 @@ ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *E, struct ekToken *name, 
 
 ekSyntax *ekSyntaxCreateFunctionArgs(struct ekContext *E, ekSyntax *args, struct ekToken *varargs)
 {
-    int line = (args) ? args->line : (varargs) ? varargs->line : 0;
+    ekS32 line = (args) ? args->line : (varargs) ? varargs->line : 0;
     ekSyntax *syntax = ekSyntaxCreate(E, EST_FUNCTION_ARGS, line);
     syntax->l.p = args;
     syntax->v.s = (varargs) ? ekTokenToString(E, varargs) : NULL;

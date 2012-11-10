@@ -16,9 +16,9 @@
 
 #define EUREKA_MAX_REGEX_VECTORS (30)
 
-static int ekRegexOptionsToPCREFlags(const char *options)
+static ekS32 ekRegexOptionsToPCREFlags(const char *options)
 {
-    int pcreFlags = 0;
+    ekS32 pcreFlags = 0;
     const char *c = options;
     for(; *c; c++)
     {
@@ -42,10 +42,10 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     ekValue *matches = NULL;
 
     pcre *regex;
-    int regexFlags = 0;
+    ekS32 regexFlags = 0;
     const char *regexError;
-    int regexErrorOffset;
-    int regexVectors[EUREKA_MAX_REGEX_VECTORS];
+    ekS32 regexErrorOffset;
+    ekS32 regexVectors[EUREKA_MAX_REGEX_VECTORS];
 
     if(!ekContextGetArgs(E, argCount, "ss|s", &pattern, &subject, &options))
     {
@@ -60,18 +60,18 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     regex = pcre_compile(ekStringSafePtr(&pattern->stringVal), regexFlags, &regexError, &regexErrorOffset, NULL);
     if(regex)
     {
-        int len = strlen(ekStringSafePtr(&subject->stringVal));
-        int err = pcre_exec(regex, 0, ekStringSafePtr(&subject->stringVal), len, 0, 0, regexVectors, EUREKA_MAX_REGEX_VECTORS);
+        ekS32 len = strlen(ekStringSafePtr(&subject->stringVal));
+        ekS32 err = pcre_exec(regex, 0, ekStringSafePtr(&subject->stringVal), len, 0, 0, regexVectors, EUREKA_MAX_REGEX_VECTORS);
         if(err > 0)
         {
-            int i;
+            ekS32 i;
             matches = ekValueCreateArray(E);
             //results = ekValueObjectCreate(E, NULL, 0);
             //ekValueObjectSetMember(E, results, "matches", matches);
             results = matches;
             for(i=0; i<err; i++)
             {
-                int index = i*2;
+                ekS32 index = i*2;
                 ekValue *match = ekValueDonateString(E, ekSubstrdup(E, ekStringSafePtr(&subject->stringVal), regexVectors[index], regexVectors[index+1]));
                 ekArrayPush(E, &matches->arrayVal, match);
             }

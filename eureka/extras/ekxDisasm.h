@@ -8,6 +8,8 @@
 #ifndef EKXDISASM_H
 #define EKXDISASM_H
 
+#include "ekTypes.h"
+
 // ---------------------------------------------------------------------------
 // Forwards
 
@@ -17,7 +19,7 @@ struct ekOp;
 
 // ---------------------------------------------------------------------------
 
-void ekOpsDump(struct ekOp *ops, int count);
+void ekOpsDump(struct ekOp *ops, ekS32 count);
 
 void ekChunkDump(struct ekContext *E, struct ekChunk *chunk);
 

@@ -66,9 +66,9 @@ struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct 
     return NULL;
 }
 
-int ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
+ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
 {
-    int i;
+    ekS32 i;
     for(i=0; i<ekArraySize(E, &E->types); i++)
     {
         ekValueType *t = E->types[i];

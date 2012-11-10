@@ -27,10 +27,10 @@ enum
 
     EOP_PUSHNULL,                      // push null value on top of stack
     EOP_PUSHTHIS,                      // push 'this' value on top of stack
-    EOP_PUSHI,                         // push int X on the top of the stack (used for loop inits and increments)
+    EOP_PUSHI,                         // push ekS32 X on the top of the stack (used for loop inits and increments)
 
     EOP_PUSH_KB,                       // push constant block kb[X] on top of stack
-    EOP_PUSH_KI,                       // push constant int ki[X] on top of stack
+    EOP_PUSH_KI,                       // push constant ekS32 ki[X] on top of stack
     EOP_PUSH_KF,                       // push constant float kf[X] on top of stack
     EOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
@@ -61,7 +61,7 @@ enum
     EOP_MUL,                           // pops [a,b], pushes a*b
     EOP_DIV,                           // pops [a,b], pushes a/b
 
-    EOP_CMP,                           // pops [a,b], pushes a<=>b (int)
+    EOP_CMP,                           // pops [a,b], pushes a<=>b (ekS32)
     EOP_EQUALS,                        // pops [a,b], pushes a==b (bool)
     EOP_NOTEQUALS,                     // pops [a,b], pushes a!=b (bool)
     EOP_GREATERTHAN,                   // pops [a,b], pushes a>b  (bool)
@@ -71,7 +71,7 @@ enum
 
     EOP_NOT,                           // pops [a], pushes ![a] (bool value)
 
-    EOP_BITWISE_NOT,                   // pops [a], pushes ~[a] (int value)
+    EOP_BITWISE_NOT,                   // pops [a], pushes ~[a] (ekS32 value)
     EOP_BITWISE_XOR,                   // pops [a,b], pushes a^b
     EOP_BITWISE_AND,                   // pops [a,b], pushes a&b
     EOP_BITWISE_OR,                    // pops [a,b], pushes a|b
@@ -101,7 +101,7 @@ typedef struct ekOp
     ekOpcode  opcode;
     ekOperand operand;
 #ifdef EUREKA_DEBUG_SYMBOLS
-    int line;
+    ekS32 line;
 #endif
 } ekOp;
 

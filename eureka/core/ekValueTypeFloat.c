@@ -75,7 +75,7 @@ static struct ekValue *floatFuncArithmetic(struct ekContext *E, struct ekValue *
     return a;
 }
 
-static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, int *cmpResult)
+static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult)
 {
     if(b->type == EVT_INT)
     {

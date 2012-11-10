@@ -35,7 +35,7 @@ static ekU32 murmur3int(ekS32 i);
 
 #ifdef USE_DJB2
 static ekU32 djb2string(const unsigned char *str);
-static unsigned int djb2int(ekS32 i);
+static unsigned ekS32 djb2int(ekS32 i);
 #define HASHSTRING djb2string
 #define HASHINT djb2int
 #endif
@@ -86,7 +86,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, voi
 {
     ekMapEntry *entry;
     ekMapEntry *chain;
-    int found = 0;
+    ekS32 found = 0;
 
     // Create the new entry and bucket it
     entry = (ekMapEntry *)ekAlloc(sizeof(*entry));
@@ -96,7 +96,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, voi
             entry->keyStr = ekStrdup(E, (char *)key);
             break;
         case EMKT_INTEGER:
-            entry->keyInt = *((int *)key);
+            entry->keyInt = *((ekS32 *)key);
             break;
     }
     entry->hash = hash;
@@ -207,7 +207,7 @@ void ekMapClear(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
     }
 }
 
-static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *key, int autoCreate)
+static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *key, ekS32 autoCreate)
 {
     ekU32 hash = (ekU32)HASHSTRING(key);
     ekS32 index = linearHashCompute(yh, hash);
@@ -228,7 +228,7 @@ static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *k
     return NULL;
 }
 
-static ekMapEntry *ekMapFindInteger(struct ekContext *E, ekMap *yh, ekU32 key, int autoCreate)
+static ekMapEntry *ekMapFindInteger(struct ekContext *E, ekMap *yh, ekU32 key, ekS32 autoCreate)
 {
     ekU32 hash = (ekU32)HASHINT(key);
     ekS32 index = linearHashCompute(yh, hash);
@@ -324,8 +324,8 @@ void ekMapEraseI(struct ekContext *E, ekMap *yh, ekU32 key, void * /*ekDestroyCB
 void ekMapIterateP1(struct ekContext *E, ekMap *yh, void *rawcb, void *arg1)
 {
     ek2IterateCB1 cb = (ek2IterateCB1)rawcb;
-    int i;
-    int endIndex = yh->split + yh->mod;
+    ekS32 i;
+    ekS32 endIndex = yh->split + yh->mod;
     if(!cb)
     {
         return;
@@ -373,9 +373,9 @@ typedef unsigned __int64 uint64_t;
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32(const void *key, int len, uint32_t seed, void *out);
-void MurmurHash3_x86_128(const void *key, int len, uint32_t seed, void *out);
-void MurmurHash3_x64_128(const void *key, int len, uint32_t seed, void *out);
+void MurmurHash3_x86_32(const void *key, ekS32 len, uint32_t seed, void *out);
+void MurmurHash3_x86_128(const void *key, ekS32 len, uint32_t seed, void *out);
+void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void *out);
 
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
@@ -420,12 +420,12 @@ inline uint64_t rotl64(uint64_t x, int8_t r)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-FORCE_INLINE uint32_t getblock32(const uint32_t *p, int i)
+FORCE_INLINE uint32_t getblock32(const uint32_t *p, ekS32 i)
 {
     return p[i];
 }
 
-FORCE_INLINE uint64_t getblock64(const uint64_t *p, int i)
+FORCE_INLINE uint64_t getblock64(const uint64_t *p, ekS32 i)
 {
     return p[i];
 }
@@ -459,21 +459,21 @@ FORCE_INLINE uint64_t fmix64(uint64_t k)
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32(const void *key, int len,
+void MurmurHash3_x86_32(const void *key, ekS32 len,
                         uint32_t seed, void *out)
 {
     const uint8_t *tail;
     uint32_t k1;
 
     const uint8_t *data = (const uint8_t *)key;
-    const int nblocks = len / 4;
+    const ekS32 nblocks = len / 4;
 
     uint32_t h1 = seed;
 
     const uint32_t c1 = 0xcc9e2d51;
     const uint32_t c2 = 0x1b873593;
 
-    int i;
+    ekS32 i;
 
     //----------
     // body
@@ -520,13 +520,13 @@ void MurmurHash3_x86_32(const void *key, int len,
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_128(const void *key, int len,
+void MurmurHash3_x86_128(const void *key, ekS32 len,
                          uint32_t seed, void *out)
 {
-    int i;
+    ekS32 i;
     const uint8_t *tail;
     const uint8_t *data = (const uint8_t *)key;
-    const int nblocks = len / 16;
+    const ekS32 nblocks = len / 16;
 
     uint32_t h1 = seed;
     uint32_t h2 = seed;
@@ -627,12 +627,12 @@ void MurmurHash3_x86_128(const void *key, int len,
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x64_128(const void *key, int len,
+void MurmurHash3_x64_128(const void *key, ekS32 len,
                          uint32_t seed, void *out)
 {
-    int i;
+    ekS32 i;
     const uint8_t *data = (const uint8_t *)key;
-    const int nblocks = len / 16;
+    const ekS32 nblocks = len / 16;
     const uint8_t *tail;
 
     uint64_t h1 = seed;
@@ -731,7 +731,7 @@ static ekU32 murmur3int(ekS32 i)
 static ekU32 djb2string(const unsigned char *str)
 {
     ekU32 hash = 5381;
-    int c;
+    ekS32 c;
 
     while(c = *str++)
     {
@@ -741,10 +741,10 @@ static ekU32 djb2string(const unsigned char *str)
     return hash;
 }
 
-static unsigned int djb2int(ekS32 i)
+static unsigned ekS32 djb2int(ekS32 i)
 {
     const char *p = (const char *)&i;
-    unsigned int hash = 5381;
+    unsigned ekS32 hash = 5381;
 
     hash = ((hash << 5) + hash) + p[0];
     hash = ((hash << 5) + hash) + p[1];

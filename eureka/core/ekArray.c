@@ -57,7 +57,7 @@ static ekArray *ekArrayChangeCapacity(struct ekContext *E, ekSize newCapacity, c
     {
         if(prevArray)
         {
-            int copyCount = prevArray->size;
+            ekS32 copyCount = prevArray->size;
             if(copyCount > newArray->capacity)
             {
                 copyCount = newArray->capacity;
@@ -112,11 +112,11 @@ static void ekArrayChangeSize(struct ekContext *E, char ***daptr, ekSize newSize
 }
 
 // calls ekArrayChangeCapacity in preparation for new data, if necessary
-static ekArray *ekArrayMakeRoom(struct ekContext *E, char ***daptr, int incomingCount)
+static ekArray *ekArrayMakeRoom(struct ekContext *E, char ***daptr, ekS32 incomingCount)
 {
     ekArray *da = ekArrayGet(E, (char ** *)daptr, 1);
-    int capacityNeeded = da->size + incomingCount;
-    int newCapacity = da->capacity;
+    ekS32 capacityNeeded = da->size + incomingCount;
+    ekS32 newCapacity = da->capacity;
     while(newCapacity < capacityNeeded)
     {
         newCapacity *= 2;    // is this dumb?
@@ -129,12 +129,12 @@ static ekArray *ekArrayMakeRoom(struct ekContext *E, char ***daptr, int incoming
 }
 
 // clears [start, (end-1)]
-static void ekArrayClearRange(struct ekContext *E, ekArray *da, int start, int end, void *destroyFunc)
+static void ekArrayClearRange(struct ekContext *E, ekArray *da, ekS32 start, ekS32 end, void *destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     if(func)
     {
-        int i;
+        ekS32 i;
         for(i = start; i < end; ++i)
         {
             if(da->values[i])
@@ -145,12 +145,12 @@ static void ekArrayClearRange(struct ekContext *E, ekArray *da, int start, int e
     }
 }
 
-static void ekArrayClearRangeP1(struct ekContext *E, ekArray *da, int start, int end, void *destroyFunc, void *p1)
+static void ekArrayClearRangeP1(struct ekContext *E, ekArray *da, ekS32 start, ekS32 end, void *destroyFunc, void *p1)
 {
     ekDestroyCB1 func = destroyFunc;
     if(func)
     {
-        int i;
+        ekS32 i;
         for(i = start; i < end; ++i)
         {
             if(da->values[i])
@@ -382,8 +382,8 @@ void ekArraySquash(struct ekContext *E, void *daptr)
     ekArray *da = ekArrayGet(E, (char ** *)daptr, 0);
     if(da)
     {
-        int head = 0;
-        int tail = 0;
+        ekS32 head = 0;
+        ekS32 tail = 0;
         for(; tail < da->size ; tail++)
         {
             if(da->values[tail] != NULL)
@@ -396,7 +396,7 @@ void ekArraySquash(struct ekContext *E, void *daptr)
     }
 }
 
-void ekArrayShrink(struct ekContext *E, void *daptr, int n, ekDestroyCB cb)
+void ekArrayShrink(struct ekContext *E, void *daptr, ekS32 n, ekDestroyCB cb)
 {
     ekArray *da = ekArrayGet(E, (char ** *)daptr, 0);
     if(!da || !da->size)
@@ -438,7 +438,7 @@ static ek32Array *ek32ArrayChangeCapacity(struct ekContext *E, ekSize newCapacit
     {
         if(prevArray)
         {
-            int copyCount = prevArray->size;
+            ekS32 copyCount = prevArray->size;
             if(copyCount > newArray->capacity)
             {
                 copyCount = newArray->capacity;
@@ -473,11 +473,11 @@ static ek32Array *ek32ArrayGet(struct ekContext *E, ekU32 **daptr, ekBool autoCr
 }
 
 // calls ekArrayChangeCapacity in preparation for new data, if necessary
-static ek32Array *ek32ArrayMakeRoom(struct ekContext *E, ekU32 **daptr, int incomingCount)
+static ek32Array *ek32ArrayMakeRoom(struct ekContext *E, ekU32 **daptr, ekS32 incomingCount)
 {
     ek32Array *da = ek32ArrayGet(E, daptr, 1);
-    int capacityNeeded = da->size + incomingCount;
-    int newCapacity = da->capacity;
+    ekS32 capacityNeeded = da->size + incomingCount;
+    ekS32 newCapacity = da->capacity;
     while(newCapacity < capacityNeeded)
     {
         newCapacity *= 2;    // is this dumb?
@@ -491,7 +491,7 @@ static ek32Array *ek32ArrayMakeRoom(struct ekContext *E, ekU32 **daptr, int inco
 
 ekSize ek32ArrayPushUnique(struct ekContext *E, void *daptr, ekU32 *v)
 {
-    int i;
+    ekS32 i;
     ek32Array *da = ek32ArrayGet(E, daptr, ekTrue);
     for(i = 0; i < da->size; ++i)
     {

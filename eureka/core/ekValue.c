@@ -38,7 +38,7 @@ void ekDumpParamsDestroy(struct ekContext *E, ekDumpParams *params)
 ekValue ekValueNull = {EVT_NULL};
 ekValue *ekValueNullPtr = &ekValueNull;
 
-ekValue *ekValueCreateInt(struct ekContext *E, int v)
+ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v)
 {
     ekValue *p = ekValueCreate(E);
     p->type = EVT_INT;
@@ -160,7 +160,7 @@ static void ekValueAddClosureVar(ekContext *E, ekMap *closureVars, ekMapEntry *e
 void ekValueAddClosureVars(struct ekContext *E, ekValue *p)
 {
     ekFrame *frame;
-    int frameIndex;
+    ekS32 frameIndex;
 
     if(p->type != EVT_BLOCK)
     {
@@ -244,7 +244,7 @@ void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v)
 
 // ---------------------------------------------------------------------------
 
-ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCount, ekBool firstArgIsa)
+ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa)
 {
     ekValue *p = ekValueCreate(E);
     if(firstArgIsa)
@@ -275,7 +275,7 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCo
 
     if(argCount)
     {
-        int i = 0;
+        ekS32 i = 0;
         if(firstArgIsa)
         {
             i++;
@@ -285,7 +285,7 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, int argCo
             ekValue **ref;
             ekValue *key = ekContextGetArg(E, i, argCount);
             ekValue *val = ekValueNullPtr;
-            int valueArg = i+1;
+            ekS32 valueArg = i+1;
             if(valueArg < argCount)
             {
                 val = ekContextGetArg(E, valueArg, argCount);
@@ -320,9 +320,9 @@ void ekValueClear(struct ekContext *E, ekValue *p)
 }
 
 #ifdef EUREKA_TRACE_REFS
-static int sEurekaValueDebugCount = 0;
+static ekS32 sEurekaValueDebugCount = 0;
 
-int ekValueDebugCount()
+ekS32 ekValueDebugCount()
 {
     return sEurekaValueDebugCount;
 }
@@ -496,7 +496,7 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
     char *next;
 
     ekValue *arg;
-    int argIndex = 0;
+    ekS32 argIndex = 0;
 
     ekValue *ret = ekValueCreateString(E, "");
     ekString *str = &ret->stringVal;
@@ -504,7 +504,7 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
     while(curr && (next = strchr(curr, '%')))
     {
         // First, add in all of the stuff before the %
-        ekStringConcatLen(E, str, curr, (int)(next - curr));
+        ekStringConcatLen(E, str, curr, (ekS32)(next - curr));
         next++;
 
         switch(*next)
@@ -530,7 +530,7 @@ ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCoun
                 if(arg)
                 {
                     char temp[32];
-                    ekValueAddRefNote(E, arg, "int conversion");
+                    ekValueAddRefNote(E, arg, "ekS32 conversion");
                     arg = ekValueToInt(E, arg);
                     sprintf(temp, "%d", arg->intVal);
                     ekStringConcat(E, str, temp);
@@ -575,7 +575,7 @@ ekValue *ekValueIndex(struct ekContext *E, ekValue *p, ekValue *index, ekBool lv
     return v;
 }
 
-const char *ekValueTypeName(struct ekContext *E, int type)
+const char *ekValueTypeName(struct ekContext *E, ekS32 type)
 {
     if((type >= 0) && (type < ekArraySize(E, &E->types)))
     {
@@ -591,11 +591,11 @@ void ekValueDump(struct ekContext *E, ekDumpParams *params, ekValue *p)
 }
 
 #ifdef EUREKA_TRACE_REFS
-void ekValueTraceRefs(struct ekContext *E, struct ekValue *p, int delta, const char *note)
+void ekValueTraceRefs(struct ekContext *E, struct ekValue *p, ekS32 delta, const char *note)
 {
     const char *destroyed = "";
     char tempPtr[32];
-    int newRefs = p->refs;
+    ekS32 newRefs = p->refs;
     if(p == ekValueNullPtr)
     {
         sprintf(tempPtr, "0xEK_NULL");

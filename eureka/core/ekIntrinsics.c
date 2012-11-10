@@ -23,7 +23,7 @@ static ekU32 ekiEval(struct ekContext *E, ekU32 argCount)
     ekValue *ret = NULL;
     if(argCount)
     {
-        int i;
+        ekS32 i;
         ekValue *v = ekContextGetArg(E, 0, argCount);
         for(i = 0; i < argCount; i++)
         {
@@ -137,7 +137,7 @@ static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
     {
-        int i;
+        ekS32 i;
         for(i = 0; i < argCount; i++)
         {
             ekValue *v = ekContextGetArg(E, i, argCount);
@@ -175,7 +175,7 @@ static char *loadFile(struct ekContext *E, const char *filename)
     FILE *f = fopen(filename, "rb");
     if(f)
     {
-        int size;
+        ekS32 size;
         char *buffer;
 
         fseek(f, 0, SEEK_END);

@@ -108,8 +108,8 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts)
 
     if(ekArraySize(E, &compiler->errors))
     {
-        int i;
-        int total = 0;
+        ekS32 i;
+        ekS32 total = 0;
         for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
         {
             char *error = (char *)compiler->errors[i];
@@ -180,7 +180,7 @@ void ekContextRecover(ekContext *E)
 {
     if(E->errorType == EVE_RUNTIME)
     {
-        int prevStackCount = 0;
+        ekS32 prevStackCount = 0;
 
         ekFrame *frame = ekContextPopFrames(E, EFT_CHUNK, ekTrue);
         if(frame)  // recovery should work on an empty frame stack
@@ -288,7 +288,7 @@ static ekValue *ekContextRegister(struct ekContext *E, const char *name, ekValue
 
 static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool lvalue)
 {
-    int i;
+    ekS32 i;
     ekFrame *frame;
     ekValue **valueRef = NULL;
     ekMapEntry *hashEntry;
@@ -363,7 +363,7 @@ static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool l
     return NULL;
 }
 
-static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, int argCount)
+static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, ekS32 argCount)
 {
     ekBool ret = ekTrue;
     ekValue *initFunc = ekFindFunc(E, isa, "init");
@@ -401,7 +401,7 @@ ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep)
     return E->stack[(ekArraySize(E, &E->stack) - 1) - howDeep];
 }
 
-static ekS32 ekContextPopInts(struct ekContext *E, int count, int *output)
+static ekS32 ekContextPopInts(struct ekContext *E, ekS32 count, ekS32 *output)
 {
     ekS32 i;
     for(i=0; i<count; i++)
@@ -421,7 +421,7 @@ static ekS32 ekContextPopInts(struct ekContext *E, int count, int *output)
 
 ekValue *ekContextThis(ekContext *E)
 {
-    int i;
+    ekS32 i;
     for(i = ekArraySize(E, &E->frames) - 1; i >= 0; i--)
     {
         ekFrame *frame = E->frames[i];
@@ -434,14 +434,14 @@ ekValue *ekContextThis(ekContext *E)
     return ekValueNullPtr;
 }
 
-ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat, ...)
+ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argFormat, ...)
 {
     ekBool required = ekTrue;
     const char *c;
     ekValue *v;
     ekValue **valuePtr;
     ekValue ***leftovers = NULL;
-    int argsTaken = 0; // from the ek stack (the amount of incoming varargs solely depends on argFormat)
+    ekS32 argsTaken = 0; // from the ek stack (the amount of incoming varargs solely depends on argFormat)
     va_list args;
     va_start(args, argFormat);
 
@@ -530,7 +530,7 @@ ekBool ekContextGetArgs(struct ekContext *E, int argCount, const char *argFormat
 }
 
 // TODO: reuse code between ekContextArgsFailure and ekContextSetError
-int ekContextArgsFailure(struct ekContext *E, int argCount, const char *errorFormat, ...)
+ekS32 ekContextArgsFailure(struct ekContext *E, ekS32 argCount, const char *errorFormat, ...)
 {
     va_list args;
     char tempStr[MAX_ERROR_LENGTH + 1];
@@ -563,10 +563,10 @@ ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount)
 // ------------------------------------------------------------------------------------------------
 // Frame Stack Manipulation
 
-ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure)
+ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, ekS32 argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure)
 {
     ekFrame *frame;
-    int i;
+    ekS32 i;
 
     if(thisVal == NULL)
     {
@@ -579,7 +579,7 @@ ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, e
         if(argCount > block->argCount)
         {
             // Too many arguments passed to this function. Pop some!
-            int i;
+            ekS32 i;
             for(i = 0; i < (argCount - block->argCount); i++)
             {
                 ekValue *v = ekArrayPop(E, &E->stack);
@@ -589,7 +589,7 @@ ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, e
         else if(block->argCount > argCount)
         {
             // Too few arguments -- pad with nulls
-            int i;
+            ekS32 i;
             for(i = 0; i < (block->argCount - argCount); i++)
             {
                 ekArrayPush(E, &E->stack, &ekValueNull); // No need to refcount here
@@ -603,7 +603,7 @@ ekFrame *ekContextPushFrame(struct ekContext *E, ekBlock *block, int argCount, e
     return frame;
 }
 
-ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, int argCount)
+ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, ekValue *callable, ekS32 argCount)
 {
     // LCOV_EXCL_START - TODO: ektest embedding
     if(!callable)
@@ -642,7 +642,7 @@ ekBool ekContextCall(struct ekContext *E, ekFrame **framePtr, ekValue *thisVal, 
 }
 
 // LCOV_EXCL_START - TODO: ektest embedding
-ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, int argCount)
+ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, ekS32 argCount)
 {
     ekFrame *frame = NULL;
     ekValue *func = ekContextResolve(E, name, ekFalse);
@@ -662,7 +662,7 @@ ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char
 // TODO: merge this function with PushFrame and _RET
 ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure)
 {
-    int retCount;
+    ekS32 retCount;
     ekFrame *frame = ekFrameCreate(E, EFT_FUNC, thisVal, NULL, ekArraySize(E, &E->stack), argCount, closure);
     ekArrayPush(E, &E->frames, frame);
 
@@ -686,10 +686,10 @@ static ekContextFrameCleanup(struct ekContext *E, ekFrame *frame)
 {
     if(frame->cleanupCount)
     {
-        int i;
+        ekS32 i;
         for(i=0; i < frame->cleanupCount; i++)
         {
-            int index = ((ekArraySize(E, &E->stack) - 1) - E->lastRet) - i;
+            ekS32 index = ((ekArraySize(E, &E->stack) - 1) - E->lastRet) - i;
             ekValueRemoveRefNote(E, E->stack[index], "ekContextFrameCleanup");
             E->stack[index] = NULL;
         }
@@ -746,7 +746,7 @@ static const char *ekValueDebugString(struct ekContext *E, ekValue *v)
             sprintf(valString, "(%s)", ekStringSafePtr(&v->stringVal));
             break;
         case EVT_ARRAY:
-            sprintf(valString, "(count: %d)", (int)ekArraySize(E, &v->arrayVal));
+            sprintf(valString, "(count: %d)", (ekS32)ekArraySize(E, &v->arrayVal));
             break;
     }
 
@@ -756,7 +756,7 @@ static const char *ekValueDebugString(struct ekContext *E, ekValue *v)
 
 static void ekContextLogState(ekContext *E)
 {
-    int i;
+    ekS32 i;
 
     ekTraceExecution(("\n\n\n------------------------------------------\n"));
 
@@ -825,7 +825,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_AND:
             case EOP_OR:
             {
-                int i;
+                ekS32 i;
                 ekValue *performSkipValue = ekArrayTop(E, &E->stack);
                 ekBool performSkip = ekFalse;
                 if(!performSkipValue)
@@ -1114,8 +1114,8 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_VARARGS:
             {
-                int i;
-                int varargCount = frame->argCount - operand;
+                ekS32 i;
+                ekS32 varargCount = frame->argCount - operand;
                 ekValue *varargsArray = ekValueCreateArray(E);
 
                 // Only one of these for loops will actually loop
@@ -1138,7 +1138,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                 ekValue *value = ekArrayPop(E, &E->stack);
                 if(value && index)
                 {
-                    int opFlags = operand;
+                    ekS32 opFlags = operand;
                     ekValue *ret = ekValueIndex(E, value, index, (opFlags & EOF_LVALUE) ? ekTrue : ekFalse);
                     if(ret)
                     {
@@ -1181,8 +1181,8 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_DUPE:
             case EOP_MOVE:
             {
-                int topIndex = ekArraySize(E, &E->stack) - 1;
-                int requestedIndex = topIndex - operand;
+                ekS32 topIndex = ekArraySize(E, &E->stack) - 1;
+                ekS32 requestedIndex = topIndex - operand;
                 if(requestedIndex >= 0)
                 {
                     ekValue *val = E->stack[requestedIndex];
@@ -1211,7 +1211,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_POP:
             {
-                int i;
+                ekS32 i;
                 for(i = 0; i < operand; i++)
                 {
                     ekValue *v = ekArrayPop(E, &E->stack);
@@ -1222,7 +1222,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_CALL:
             {
-                int argCount = operand;
+                ekS32 argCount = operand;
                 ekFrame *oldFrame = frame;
                 ekValue *thisVal = ekArrayPop(E, &E->stack);
                 ekValue *callable = ekArrayPop(E, &E->stack);
@@ -1238,7 +1238,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_RET:
             {
-                int argCount = operand;
+                ekS32 argCount = operand;
                 frame = ekContextPopFrames(E, EFT_FUNC, ekTrue);
                 //                if(!argCount && frame && (frame->flags & EFF_INIT) && frame->thisVal)
                 //                {
@@ -1273,12 +1273,12 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
 
             case EOP_KEEP:
             {
-                int keepCount = operand;
-                int offerCount = E->lastRet;
+                ekS32 keepCount = operand;
+                ekS32 offerCount = E->lastRet;
 
                 if(keepCount < offerCount)
                 {
-                    int i;
+                    ekS32 i;
                     for(i = 0; i < (offerCount - keepCount); i++)
                     {
                         ekTraceExecution(("-- cleaning stack entry --\n"));
@@ -1288,7 +1288,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                 }
                 else if(keepCount > offerCount)
                 {
-                    int i;
+                    ekS32 i;
                     for(i = 0; i < (keepCount - offerCount); i++)
                     {
                         ekTraceExecution(("-- padding stack with null --\n"));
@@ -1451,9 +1451,9 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_BITWISE_AND:
             case EOP_BITWISE_OR:
             {
-                int i[2];
-                int ret;
-                int argsNeeded = (opcode == EOP_BITWISE_NOT) ? 1 : 2;
+                ekS32 i[2];
+                ekS32 ret;
+                ekS32 argsNeeded = (opcode == EOP_BITWISE_NOT) ? 1 : 2;
                 if(ekContextPopInts(E, argsNeeded, i) != argsNeeded)
                 {
                     ekContextSetError(E, EVE_RUNTIME, "Bitwise operations require integer friendly arguments");
@@ -1498,7 +1498,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_ARRAY:
             {
                 ekValue *a = ekValueCreateArray(E);
-                int i;
+                ekS32 i;
                 for(i = 0; i < operand; i++)
                 {
                     ekValue *v = ekContextGetArg(E, i, operand);

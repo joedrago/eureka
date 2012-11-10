@@ -14,9 +14,9 @@
 #include <string.h>
 #include <stdio.h>
 
-void ekOpsDump(ekOp *ops, int count)
+void ekOpsDump(ekOp *ops, ekS32 count)
 {
-    int i = 0;
+    ekS32 i = 0;
     for(i = 0; i < count; i++)
     {
         ekOp *op = &ops[i];
@@ -109,7 +109,7 @@ void ekOpsDump(ekOp *ops, int count)
 
 void ekChunkDump(struct ekContext *E, ekChunk *chunk)
 {
-    int i;
+    ekS32 i;
 
     for(i = 0; i < ekArraySize(E, &chunk->kStrings); i++)
     {
