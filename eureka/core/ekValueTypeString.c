@@ -56,6 +56,30 @@ struct ekValue *stringFuncToString(struct ekContext *E, struct ekValue *p)
     return p;
 }
 
+static struct ekValue *stringFuncReverse(struct ekContext *E, struct ekValue *p)
+{
+    if(p->stringVal.len)
+    {
+        ekValue *reversed = ekValueCreateString(E, ekStringSafePtr(&p->stringVal));
+        char *front = reversed->stringVal.text;
+        char *back  = reversed->stringVal.text + reversed->stringVal.len - 1;
+        while(back > front)
+        {
+            char tmp = *front;
+            *front = *back;
+            *back = tmp;
+
+            ++front;
+            --back;
+        }
+        ekValueRemoveRefNote(E, p, "reverse string done with input");
+        return reversed;
+    }
+
+    // Continue using the empty string value
+    return p;
+}
+
 struct ekValue *stringFuncArithmetic(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op)
 {
     ekValue *ret = NULL;
@@ -120,6 +144,7 @@ void ekValueTypeRegisterString(struct ekContext *E)
     type->funcToInt      = stringFuncToInt;
     type->funcToFloat    = stringFuncToFloat;
     type->funcToString   = stringFuncToString;
+    type->funcReverse    = stringFuncReverse;
     type->funcArithmetic = stringFuncArithmetic;
     type->funcCmp        = stringFuncCmp;
     type->funcLength     = stringFuncLength;
