@@ -130,6 +130,7 @@ ekValue *ekValueToBool(struct ekContext *E, ekValue *p);
 ekValue *ekValueToInt(struct ekContext *E, ekValue *p);
 ekValue *ekValueToFloat(struct ekContext *E, ekValue *p);
 ekValue *ekValueToString(struct ekContext *E, ekValue *p);
+ekValue *ekValueReverse(struct ekContext *E, ekValue *p);
 
 ekCFunction *ekValueIter(struct ekContext *E, ekValue *p);
 ekValue *ekValueStringFormat(struct ekContext *E, ekValue *format, ekS32 argCount);

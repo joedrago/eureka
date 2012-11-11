@@ -60,12 +60,6 @@ void ekValueTypeRegisterBlock(struct ekContext *E)
     type->funcToBool     = blockFuncToBool;
     type->funcToInt      = blockFuncToInt;
     type->funcToFloat    = blockFuncToFloat;
-    type->funcToString   = ekValueTypeFuncNotUsed;
-    type->funcIter       = ekValueTypeFuncNotUsed;
-    type->funcArithmetic = ekValueTypeFuncNotUsed;
-    type->funcCmp        = ekValueTypeFuncNotUsed;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = blockFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_BLOCK);

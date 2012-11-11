@@ -81,19 +81,7 @@ ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
     // If you are hitting one of these asserts, then your custom type isn't handling a required function.
     // If you're a C++ person, pretend the compiler is telling you that you forgot to implement a pure virtual.
     // If you don't want to do anything for a particular function, explicitly set it to ekValueTypeFuncNotUsed.
-    ekAssert(newType->funcClear);
-    ekAssert(newType->funcClone);
-    ekAssert(newType->funcToBool);
-    ekAssert(newType->funcToInt);
-    ekAssert(newType->funcToFloat);
-    ekAssert(newType->funcToString);
-    ekAssert(newType->funcIter);
-    ekAssert(newType->funcArithmetic);
-    ekAssert(newType->funcCmp);
-    ekAssert(newType->funcLength);
-    ekAssert(newType->funcIndex);
-    ekAssert(newType->funcDump);
-    ekAssert(newType->funcDump != ekValueTypeFuncNotUsed); // required!
+    ekAssert(newType->funcDump); // required!
 
     newType->id = ekArrayPush(E, &E->types, newType);
     return newType->id;

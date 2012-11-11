@@ -47,17 +47,10 @@ static void refFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValu
 void ekValueTypeRegisterRef(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "ref");
-    type->funcClear      = ekValueTypeFuncNotUsed;
     type->funcClone      = refFuncClone;
     type->funcToBool     = refFuncToBool;
     type->funcToInt      = refFuncToInt;
     type->funcToFloat    = refFuncToFloat;
-    type->funcToString   = ekValueTypeFuncNotUsed;
-    type->funcIter       = ekValueTypeFuncNotUsed;
-    type->funcArithmetic = ekValueTypeFuncNotUsed;
-    type->funcCmp        = ekValueTypeFuncNotUsed;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = refFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_REF);

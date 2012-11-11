@@ -32,17 +32,7 @@ static void nullFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVal
 void ekValueTypeRegisterNull(struct ekContext *E)
 {
     ekValueType *type   = ekValueTypeCreate(E, "null");
-    type->funcClear      = ekValueTypeFuncNotUsed;
-    type->funcClone      = ekValueTypeFuncNotUsed;
-    type->funcToBool     = ekValueTypeFuncNotUsed;
-    type->funcToInt      = ekValueTypeFuncNotUsed;
-    type->funcToFloat    = ekValueTypeFuncNotUsed;
     type->funcToString   = nullFuncToString;
-    type->funcIter       = ekValueTypeFuncNotUsed;
-    type->funcArithmetic = ekValueTypeFuncNotUsed;
-    type->funcCmp        = ekValueTypeFuncNotUsed;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = nullFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_NULL);

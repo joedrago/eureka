@@ -120,11 +120,9 @@ void ekValueTypeRegisterString(struct ekContext *E)
     type->funcToInt      = stringFuncToInt;
     type->funcToFloat    = stringFuncToFloat;
     type->funcToString   = stringFuncToString;
-    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = stringFuncArithmetic;
     type->funcCmp        = stringFuncCmp;
     type->funcLength     = stringFuncLength;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = stringFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_STRING);

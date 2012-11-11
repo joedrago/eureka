@@ -124,17 +124,13 @@ static ekU32 ekiInt(struct ekContext *E, ekU32 argCount)
 void ekValueTypeRegisterInt(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "int");
-    type->funcClear      = ekValueTypeFuncNotUsed;
     type->funcClone      = intFuncClone;
     type->funcToBool     = intFuncToBool;
     type->funcToInt      = intFuncToInt;
     type->funcToFloat    = intFuncToFloat;
     type->funcToString   = intFuncToString;
-    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = intFuncArithmetic;
     type->funcCmp        = intFuncCmp;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = intFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_INT);

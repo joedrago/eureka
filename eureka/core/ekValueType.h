@@ -21,15 +21,13 @@ typedef ekBool(*ekValueTypeFuncToBool)(struct ekContext *E, struct ekValue *p);
 typedef ekS32(*ekValueTypeFuncToInt)(struct ekContext *E, struct ekValue *p);
 typedef ekF32(*ekValueTypeFuncToFloat)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *E, struct ekValue *p);
+typedef struct ekValue *(*ekValueTypeFuncReverse)(struct ekContext *E, struct ekValue *p);
 typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
 typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult);
 typedef ekS32 (*ekValueTypeFuncLength)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *E, struct ekValue *p, struct ekValue *index, ekBool lvalue);
 typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
-
-// This is used to enforce the setting of every function ptr in a ekValueType*; an explicit alternative to NULL
-#define ekValueTypeFuncNotUsed ((void*)-1)
 
 typedef struct ekValueType
 {
@@ -47,6 +45,7 @@ typedef struct ekValueType
     ekValueTypeFuncToInt funcToInt;
     ekValueTypeFuncToFloat funcToFloat;
     ekValueTypeFuncToString funcToString;
+    ekValueTypeFuncReverse funcReverse;
     ekValueTypeFuncIter funcIter;
     ekValueTypeFuncArithmetic funcArithmetic;
     ekValueTypeFuncCmp funcCmp;
@@ -77,7 +76,7 @@ void ekValueTypeRegisterRef(struct ekContext *E);
 
 // If the function ptr doesn't exist, just return 0 (NULL) safely, otherwise call it with arguments after the macro
 #define ekValueTypeSafeCall(id, funcName) \
-    (((ekValueType*)E->types[id])->func ## funcName == ekValueTypeFuncNotUsed) ? 0 \
+    (((ekValueType*)E->types[id])->func ## funcName == NULL) ? 0 \
     : ((ekValueType*)E->types[id])->func ## funcName
 
 

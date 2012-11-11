@@ -120,6 +120,19 @@ ekU32 ekiLength(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+ekU32 ekiReverse(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "reverse(v)");
+    }
+    ekArrayPush(E, &E->stack, ekValueReverse(E, v));
+    return 1;
+}
+
+// ---------------------------------------------------------------------------
+
 ekU32 ekiDump(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
@@ -262,6 +275,7 @@ void ekIntrinsicsRegister(struct ekContext *E)
     // Value related
     ekContextAddIntrinsic(E, "type", ekiType);
     ekContextAddIntrinsic(E, "length", ekiLength);
+    ekContextAddIntrinsic(E, "reverse", ekiReverse);
     ekContextAddIntrinsic(E, "dump", ekiDump);
     ekContextAddIntrinsic(E, "iterator", ekiIterator);
 

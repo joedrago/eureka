@@ -134,17 +134,13 @@ static ekU32 ekiFloat(struct ekContext *E, ekU32 argCount)
 void ekValueTypeRegisterFloat(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "float");
-    type->funcClear      = ekValueTypeFuncNotUsed;
     type->funcClone      = floatFuncClone;
     type->funcToBool     = floatFuncToBool;
     type->funcToInt      = floatFuncToInt;
     type->funcToFloat    = floatFuncToFloat;
     type->funcToString   = floatFuncToString;
-    type->funcIter       = ekValueTypeFuncNotUsed;
     type->funcArithmetic = floatFuncArithmetic;
     type->funcCmp        = floatFuncCmp;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = floatFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_FLOAT);

@@ -515,6 +515,18 @@ ekValue *ekValueToString(struct ekContext *E, ekValue *p)
     return value;
 }
 
+ekValue *ekValueReverse(struct ekContext *E, ekValue *p)
+{
+    ekValue *reversed = ekValueTypeSafeCall(p->type, Reverse)(E, p);
+    if(!reversed)
+    {
+        ekContextSetError(E, EVE_RUNTIME, "reverse: unsupported type %s", ekValueTypeName(E, p->type));
+        ekValueRemoveRefNote(E, p, "ekValueReverse failed, p done either way");
+        reversed = ekValueNullPtr;
+    }
+    return reversed;
+}
+
 ekCFunction *ekValueIter(struct ekContext *E, ekValue *p)
 {
     return ekValueTypeSafeCall(p->type, Iter)(E, p);

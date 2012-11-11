@@ -60,12 +60,6 @@ void ekValueTypeRegisterCFunction(struct ekContext *E)
     type->funcToBool     = cfunctionFuncToBool;
     type->funcToInt      = cfunctionFuncToInt;
     type->funcToFloat    = cfunctionFuncToFloat;
-    type->funcToString   = ekValueTypeFuncNotUsed;
-    type->funcIter       = ekValueTypeFuncNotUsed;
-    type->funcArithmetic = ekValueTypeFuncNotUsed;
-    type->funcCmp        = ekValueTypeFuncNotUsed;
-    type->funcLength     = ekValueTypeFuncNotUsed;
-    type->funcIndex      = ekValueTypeFuncNotUsed;
     type->funcDump       = cfunctionFuncDump;
     ekValueTypeRegister(E, type);
     ekAssert(type->id == EVT_CFUNCTION);

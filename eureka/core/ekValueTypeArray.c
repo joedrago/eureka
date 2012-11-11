@@ -114,6 +114,23 @@ static ekCFunction *arrayFuncIter(struct ekContext *E, struct ekValue *p)
     return arrayCreateIterator;
 }
 
+static struct ekValue *arrayFuncReverse(struct ekContext *E, struct ekValue *p)
+{
+    ekValue *reversed = ekValueCreateArray(E);
+    int size = ekArraySize(E, &p->arrayVal);
+    if(size)
+    {
+        int i;
+        for(i = size - 1; i >= 0; --i)
+        {
+            ekValueAddRefNote(E, p->arrayVal[i], "array reverse sharing index");
+            ekArrayPush(E, &reversed->arrayVal, p->arrayVal[i]);
+        }
+    }
+    ekValueRemoveRefNote(E, p, "array reverse done with input array");
+    return reversed;
+}
+
 static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value, struct ekValue *index, ekBool lvalue)
 {
     ekValue *ret = NULL;
@@ -180,10 +197,8 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     type->funcToBool     = arrayFuncToBool;
     type->funcToInt      = arrayFuncToInt;
     type->funcToFloat    = arrayFuncToFloat;
-    type->funcToString   = ekValueTypeFuncNotUsed;
+    type->funcReverse    = arrayFuncReverse;
     type->funcIter       = arrayFuncIter;
-    type->funcArithmetic = ekValueTypeFuncNotUsed;
-    type->funcCmp        = ekValueTypeFuncNotUsed;
     type->funcLength     = arrayFuncLength;
     type->funcIndex      = arrayFuncIndex;
     type->funcDump       = arrayFuncDump;
