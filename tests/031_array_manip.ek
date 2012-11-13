@@ -8,3 +8,10 @@ while(var p = pop(a))
 {
     print("Popped: ", p, "\n");
 }
+
+var z = [];
+unshift(z, 1, 2, 3);
+while(var p = shift(z))
+{
+    print("Shifted: ", p, "\n");
+}

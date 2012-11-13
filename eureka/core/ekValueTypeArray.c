@@ -35,7 +35,7 @@ ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
         ekValueArrayPush(E, a, v);
     }
 
-    ekValueRemoveRefNote(E, a, "array_push a done");
+    ekValueRemoveRefNote(E, a, "array push a done");
     ekArrayDestroy(E, &values, NULL);
     return 0;
 }
@@ -59,7 +59,55 @@ ekU32 arrayIntrinsicPop(struct ekContext *E, ekU32 argCount)
     }
 
     ekArrayPush(E, &E->stack, v);
-    ekValueRemoveRefNote(E, a, "array_pop a done");
+    ekValueRemoveRefNote(E, a, "array pop a done");
+    return 1;
+}
+
+ekU32 arrayIntrinsicUnshift(struct ekContext *E, ekU32 argCount)
+{
+    ekS32 i;
+    ekValue *a = NULL;
+    ekValue **values = NULL;
+    if(!ekContextGetArgs(E, argCount, "a.", &a, &values))
+    {
+        return ekContextArgsFailure(E, argCount, "unshift([array] a [, ... value])");
+    }
+
+    if(ekArraySize(E, &values))
+    {
+        for(i = ekArraySize(E, &values) - 1; i >= 0; --i)
+        {
+            ekValue *v = (ekValue *)values[i];
+            ekArrayUnshift(E, &a->arrayVal, v);
+        }
+    }
+
+    ekValueRemoveRefNote(E, a, "array unshift a done");
+    ekArrayDestroy(E, &values, NULL);
+    return 0;
+}
+
+ekU32 arrayIntrinsicShift(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *v;
+    if(!ekContextGetArgs(E, argCount, "a", &a))
+    {
+        return ekContextArgsFailure(E, argCount, "shift([array] a)");
+    }
+
+    if(ekArraySize(E, &a->arrayVal))
+    {
+        v = a->arrayVal[0];
+        ekArrayErase(E, &a->arrayVal, 0);
+    }
+    else
+    {
+        v = ekValueNullPtr;
+    }
+
+    ekArrayPush(E, &E->stack, v);
+    ekValueRemoveRefNote(E, a, "array shift a done");
     return 1;
 }
 
@@ -230,4 +278,6 @@ void ekValueTypeRegisterArray(struct ekContext *E)
 
     ekContextAddIntrinsic(E, "push", arrayIntrinsicPush);
     ekContextAddIntrinsic(E, "pop", arrayIntrinsicPop);
+    ekContextAddIntrinsic(E, "unshift", arrayIntrinsicUnshift);
+    ekContextAddIntrinsic(E, "shift", arrayIntrinsicShift);
 }
