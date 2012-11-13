@@ -39,7 +39,7 @@ for my $test (@tests)
 
     if($mode eq 'test')
     {
-        printf("                   \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+        printf("                           \rRunning tests [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
         my $cmd = "$ekTestExe -d $extraFlags $test 2>&1 > $ekTestOutput";
         my $ret = system($cmd);
         my $code = $ret >> 8;
@@ -64,11 +64,11 @@ for my $test (@tests)
         if($expected)
         {
             # If we're expecting some kind of error, don't bother graphing
-            printf("                   \rSkipping dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+            printf("                           \rSkipping dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
         }
         else
         {
-            printf("                   \rGenerating dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+            printf("                      \rGenerating dot graph [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
             my $cmd = "$ekTestExe -g $extraFlags $test | dot -Tpng > $ekTestOutput";
             my $ret = system($cmd);
             my $code = $ret >> 8;
@@ -77,7 +77,7 @@ for my $test (@tests)
 }
 if($mode eq 'test')
 {
-    printf("             \nTest results: [%3d / %3d] passed.\n", $passed, scalar(@tests));
+    printf("                \nTest results: [%3d / %3d] passed.\n", $passed, scalar(@tests));
 }
 
 if(scalar(@failed))

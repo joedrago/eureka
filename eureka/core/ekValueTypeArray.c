@@ -40,6 +40,29 @@ ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
     return 0;
 }
 
+ekU32 arrayIntrinsicPop(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *v;
+    if(!ekContextGetArgs(E, argCount, "a", &a))
+    {
+        return ekContextArgsFailure(E, argCount, "pop([array] a)");
+    }
+
+    if(ekArraySize(E, &a->arrayVal))
+    {
+        v = ekArrayPop(E, &a->arrayVal);
+    }
+    else
+    {
+        v = ekValueNullPtr;
+    }
+
+    ekArrayPush(E, &E->stack, v);
+    ekValueRemoveRefNote(E, a, "array_pop a done");
+    return 1;
+}
+
 // ---------------------------------------------------------------------------
 // EVT_ARRAY Funcs
 
@@ -206,4 +229,5 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     ekAssert(type->id == EVT_ARRAY);
 
     ekContextAddIntrinsic(E, "push", arrayIntrinsicPush);
+    ekContextAddIntrinsic(E, "pop", arrayIntrinsicPop);
 }

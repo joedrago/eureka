@@ -1,0 +1,5 @@
+var a = reverse([1,2,3]);
+print(a[0], a[1], a[2], "\n");
+
+var s = reverse("ereht olleh");
+print(s, "\n");
