@@ -19,7 +19,7 @@
 // ---------------------------------------------------------------------------
 // EVT_ARRAY Global Intrinsics
 
-ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
+static ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
 {
     ekS32 i;
     ekValue *a = NULL;
@@ -40,7 +40,7 @@ ekU32 arrayIntrinsicPush(struct ekContext *E, ekU32 argCount)
     return 0;
 }
 
-ekU32 arrayIntrinsicPop(struct ekContext *E, ekU32 argCount)
+static ekU32 arrayIntrinsicPop(struct ekContext *E, ekU32 argCount)
 {
     ekValue *a = NULL;
     ekValue *v;
@@ -63,7 +63,7 @@ ekU32 arrayIntrinsicPop(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-ekU32 arrayIntrinsicUnshift(struct ekContext *E, ekU32 argCount)
+static ekU32 arrayIntrinsicUnshift(struct ekContext *E, ekU32 argCount)
 {
     ekS32 i;
     ekValue *a = NULL;
@@ -87,7 +87,7 @@ ekU32 arrayIntrinsicUnshift(struct ekContext *E, ekU32 argCount)
     return 0;
 }
 
-ekU32 arrayIntrinsicShift(struct ekContext *E, ekU32 argCount)
+static ekU32 arrayIntrinsicShift(struct ekContext *E, ekU32 argCount)
 {
     ekValue *a = NULL;
     ekValue *v;
@@ -188,10 +188,10 @@ static ekCFunction *arrayFuncIter(struct ekContext *E, struct ekValue *p)
 static struct ekValue *arrayFuncReverse(struct ekContext *E, struct ekValue *p)
 {
     ekValue *reversed = ekValueCreateArray(E);
-    int size = ekArraySize(E, &p->arrayVal);
+    ekS32 size = ekArraySize(E, &p->arrayVal);
     if(size)
     {
-        int i;
+        ekS32 i;
         for(i = size - 1; i >= 0; --i)
         {
             ekValueAddRefNote(E, p->arrayVal[i], "array reverse sharing index");

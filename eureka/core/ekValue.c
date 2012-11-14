@@ -167,6 +167,15 @@ ekValue *ekValueCreateString(struct ekContext *E, const char *s)
     return p;
 }
 
+ekValue *ekValueCreateStringLen(struct ekContext *E, const char *s, ekS32 len)
+{
+    ekValue *p = ekValueCreate(E);
+    p->type = EVT_STRING;
+    ekStringSetLen(E, &p->stringVal, s, len);
+    ekTraceValues(("ekValueCreateStringLen %p\n", p));
+    return p;
+}
+
 ekValue *ekValueDonateString(struct ekContext *E, char *s)
 {
     ekValue *p = ekValueCreate(E);

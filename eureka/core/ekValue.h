@@ -96,6 +96,7 @@ ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v);
 ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v);
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s);
 ekValue *ekValueCreateString(struct ekContext *E, const char *s);
+ekValue *ekValueCreateStringLen(struct ekContext *E, const char *s, ekS32 len);
 ekValue *ekValueDonateString(struct ekContext *E, char *s);  // grants ownership to the char*
 ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block);
 ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func);

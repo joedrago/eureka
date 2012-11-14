@@ -18,7 +18,82 @@
 // ---------------------------------------------------------------------------
 // EVT_STRING Intrinsics
 
-// TODO: add substr, split, [others]
+// TODO: add substr, join, [others]
+
+static ekU32 stringIntrinsicSplit(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *sep = NULL;
+    ekValue *str = NULL;
+    ekValue *a;
+    if(!ekContextGetArgs(E, argCount, "ss", &str, &sep))
+    {
+        return ekContextArgsFailure(E, argCount, "split([string] str, [string] seps)");
+    }
+
+    a = ekValueCreateArray(E);
+    {
+        const char *front = ekStringSafePtr(&str->stringVal);
+        const char *seps = ekStringSafePtr(&sep->stringVal);
+        while(*front)
+        {
+            ekS32 split = strcspn(front, seps);
+            if(split > 0)
+            {
+                ekValue *newString = ekValueCreateStringLen(E, front, split);
+                ekArrayPush(E, &a->arrayVal, newString);
+            }
+            front += split + 1;
+        }
+    }
+
+    ekArrayPush(E, &E->stack, a);
+    ekValueRemoveRefNote(E, sep, "string split sep done");
+    ekValueRemoveRefNote(E, str, "string split str done");
+    return 1;
+}
+
+static ekU32 stringIntrinsicJoin(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *sep = NULL;
+    ekValue *str;
+    ekS32 i;
+    if(!ekContextGetArgs(E, argCount, "as", &a, &sep))
+    {
+        return ekContextArgsFailure(E, argCount, "join([array] a, [string] sep)");
+    }
+
+    str = ekValueCreateString(E, "");
+    for(i = 0; i < ekArraySize(E, &a->arrayVal); ++i)
+    {
+        ekValue *v = a->arrayVal[i];
+        if(i)
+        {
+            ekStringConcat(E, &str->stringVal, ekStringSafePtr(&sep->stringVal));
+        }
+        ekValueAddRefNote(E, v, "converting to string, but keeping in array");
+        v = ekValueToString(E, v);
+        ekStringConcat(E, &str->stringVal, ekStringSafePtr(&v->stringVal));
+        ekValueRemoveRefNote(E, v, "done with temp string");
+    }
+
+    ekArrayPush(E, &E->stack, str);
+    ekValueRemoveRefNote(E, a, "string split a done");
+    ekValueRemoveRefNote(E, sep, "string split sep done");
+    return 1;
+}
+
+static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *v = NULL;
+    if(!ekContextGetArgs(E, argCount, "?", &v))
+    {
+        return ekContextArgsFailure(E, argCount, "string(value)");
+    }
+
+    ekArrayPush(E, &E->stack, ekValueToString(E, v));
+    return 1;
+}
 
 // ---------------------------------------------------------------------------
 // EVT_STRING Funcs
@@ -123,18 +198,6 @@ static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekV
     ekStringConcatLen(E, &params->output, "\"", 1);
 }
 
-static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
-        return ekContextArgsFailure(E, argCount, "string(value)");
-    }
-
-    ekArrayPush(E, &E->stack, ekValueToString(E, v));
-    return 1;
-}
-
 void ekValueTypeRegisterString(struct ekContext *E)
 {
     ekValueType *type = ekValueTypeCreate(E, "string");
@@ -153,4 +216,6 @@ void ekValueTypeRegisterString(struct ekContext *E)
     ekAssert(type->id == EVT_STRING);
 
     ekContextAddIntrinsic(E, "string", ekiString);
+    ekContextAddIntrinsic(E, "split", stringIntrinsicSplit);
+    ekContextAddIntrinsic(E, "join", stringIntrinsicJoin);
 }
