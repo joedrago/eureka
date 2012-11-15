@@ -111,6 +111,41 @@ static ekU32 arrayIntrinsicShift(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+static ekU32 arrayIntrinsicSort(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *a = NULL;
+    ekValue *newa;
+    int i;
+    int size;
+    if(!ekContextGetArgs(E, argCount, "a", &a))
+    {
+        return ekContextArgsFailure(E, argCount, "sort([array] a)");
+    }
+
+    // Let's do the dumbest stable insertion sort ever. We'll walk backwards
+    // in our new array performing Cmp until we find a home, and then Insert.
+
+    newa = ekValueCreateArray(E);
+    size = ekArraySize(E, &a->arrayVal);
+    for(i = 0; i < size; ++i)
+    {
+        int insertIndex = ekArraySize(E, &newa->arrayVal);
+        for( ; insertIndex > 0; --insertIndex)
+        {
+            if(ekValueCmp(E, newa->arrayVal[insertIndex - 1], a->arrayVal[i]) < 0)
+            {
+                break;
+            }
+        }
+        ekValueAddRefNote(E, a->arrayVal[i], "adding to array");
+        ekArrayInsert(E, &newa->arrayVal, insertIndex, a->arrayVal[i]);
+    }
+
+    ekArrayPush(E, &E->stack, newa);
+    ekValueRemoveRefNote(E, a, "array shift a done");
+    return 1;
+}
+
 // ---------------------------------------------------------------------------
 // EVT_ARRAY Funcs
 
@@ -280,4 +315,5 @@ void ekValueTypeRegisterArray(struct ekContext *E)
     ekContextAddIntrinsic(E, "pop", arrayIntrinsicPop);
     ekContextAddIntrinsic(E, "unshift", arrayIntrinsicUnshift);
     ekContextAddIntrinsic(E, "shift", arrayIntrinsicShift);
+    ekContextAddIntrinsic(E, "sort", arrayIntrinsicSort);
 }

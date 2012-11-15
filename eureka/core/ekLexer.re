@@ -100,9 +100,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     ([a-zA-Z_$] | UniversalChar) ([a-zA-Z_0-9$] | UniversalChar)*
         { return ETT_IDENTIFIER; }
 
-    (['] (EscapeSequence|any\[\n\r\\']|UniversalChar)+ ['])
-        { return ETT_LITERALSTRING; }
-
     ((FractionalConstant ExponentPart?) | (Digit+ ExponentPart)) FloatingSuffix?
         { return ETT_FLOATNUM; }
 
