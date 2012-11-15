@@ -761,7 +761,7 @@ asmFunc(For)
     ekSyntax *body = syntax->r.p;
     ekCode   *loop = ekCodeCreate();
     ekS32 loopVarCount = ekArraySize(E, &vars->v.a);
-    ekS32 index;
+    ekS32 index = 0;
 
     // Get the iterator onto the stack
     asmDispatch[iter->type].assemble(E, compiler, dst, iter, 1, ASM_NORMAL);

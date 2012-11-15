@@ -1285,8 +1285,8 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                     ekS32 i;
                     for(i = 0; i < (offerCount - keepCount); i++)
                     {
-                        ekTraceExecution(("-- cleaning stack entry --\n"));
                         ekValue *v = ekArrayPop(E, &E->stack);
+                        ekTraceExecution(("-- cleaning stack entry --\n"));
                         ekValueRemoveRefNote(E, v, "KEEP cleaning stack");
                     }
                 }

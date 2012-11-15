@@ -105,7 +105,7 @@ foreach(dsrc ${DOCSRC})
     get_filename_component(basename "${dsrc}" NAME_WE)
     set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")
     add_custom_command(OUTPUT ${ddst}
-        COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc text "${dsrc}" > "${ddst}"
+        COMMAND ekdoc text "${dsrc}" > "${ddst}"
         DEPENDS ${dsrc}
         DEPENDS ekdoc
     )
@@ -113,7 +113,7 @@ foreach(dsrc ${DOCSRC})
     set(ddst "${CMAKE_BINARY_DIR}/wordpress/${basename}.wordpress")
     add_custom_command(OUTPUT ${ddst}
         COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/wordpress
-        COMMAND ${CMAKE_BINARY_DIR}/tools/ekdoc/ekdoc wordpress "${dsrc}" > "${ddst}"
+        COMMAND ekdoc wordpress "${dsrc}" > "${ddst}"
         DEPENDS ${dsrc}
         DEPENDS ekdoc
     )
