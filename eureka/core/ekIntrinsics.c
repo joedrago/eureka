@@ -161,6 +161,66 @@ static ekU32 ekiIterator(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+static ekU32 rangeIterator(struct ekContext *E, ekU32 argCount)
+{
+    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekValue *i;
+    ekValue *end;
+    ekAssert(frame->closure && frame->closure->closureVars);
+    i = ekMapGetS2P(E, frame->closure->closureVars, "i");
+    end = ekMapGetS2P(E, frame->closure->closureVars, "end");
+    ekAssert((i->type == EVT_INT) && (end->type == EVT_INT));
+    ekAssert(argCount == 0);
+    ekContextPopValues(E, argCount);
+
+    if(i->intVal < end->intVal)
+    {
+        ekArrayPush(E, &E->stack, ekValueCreateInt(E, i->intVal));
+        ++i->intVal;
+    }
+    else
+    {
+        ekArrayPush(E, &E->stack, ekValueNullPtr);
+    }
+    return 1;
+}
+
+static ekU32 ekiRange(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *i1 = NULL;
+    ekValue *i2 = NULL;
+    ekValue *closure;
+    int start = 0;
+    int end = 0;
+    if(!ekContextGetArgs(E, argCount, "i|i", &i1, &i2))
+    {
+        return ekContextArgsFailure(E, argCount, "range(end) or range(start, end)");
+    }
+    closure = ekValueCreateCFunction(E, rangeIterator);
+    closure->closureVars = ekMapCreate(E, EMKT_STRING);
+    if(i2)
+    {
+        start = i1->intVal;
+        end   = i2->intVal;
+    }
+    else
+    {
+        end = i1->intVal;
+    }
+    ekValueRemoveRefNote(E, i1, "ekiRange i1 done");
+    if(i2)
+    {
+        ekValueRemoveRefNote(E, i2, "ekiRange i2 done");
+    }
+    ekMapGetS2P(E, closure->closureVars, "i")   = ekValueCreateInt(E, start);
+    ekMapGetS2P(E, closure->closureVars, "end") = ekValueCreateInt(E, end);
+    ekArrayPush(E, &E->stack, closure);
+    return 1;
+}
+
+
+// ---------------------------------------------------------------------------
+
 static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
 {
     if(argCount)
@@ -277,7 +337,10 @@ void ekIntrinsicsRegister(struct ekContext *E)
     ekContextAddIntrinsic(E, "length", ekiLength);
     ekContextAddIntrinsic(E, "reverse", ekiReverse);
     ekContextAddIntrinsic(E, "dump", ekiDump);
+
+    // Iterators
     ekContextAddIntrinsic(E, "iterator", ekiIterator);
+    ekContextAddIntrinsic(E, "range", ekiRange);
 
     // TODO: Move these out of here
     ekContextAddIntrinsic(E, "print", ekiPrint);

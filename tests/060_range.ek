@@ -1,0 +1,9 @@
+for(i in range(10))
+{
+    print("0-9 : %d\n" % i);
+}
+
+for(i in range(5,10))
+{
+    print("5-9 : %d\n" % i);
+}

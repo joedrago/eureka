@@ -9,7 +9,7 @@ var xyzIter = {
     init => function(a)
     {
         this.obj = a;
-        this.keys = ['x', 'y', 'z'];
+        this.keys = ["x", "y", "z"];
         return this;
     },
     count => function()
