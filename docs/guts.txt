@@ -219,6 +219,33 @@ ekAssemble, located in the compiler source. ekAssemble takes an ekCompiler as
 its input, and slowly builds an ekChunk structure as it recursively walks the
 syntax tree.
 
+Inside of ekCompiler.c, there exists a mapping from every type of node in the
+AST to a function that provides its assembly, and those functions are
+responsible for assembling all of their child nodes. Since the output of a
+compilation is a "chunk", and chunks are defined as statement lists (as shown in
+the grammar earlier), the assembler is really just the output of
+ekAssembleStatementList.
+
+Due to the nature of the Eureka interpreter being entirely stack based (no
+registers), very little information needs to be conveyed from node to node
+during assembly. The input to each assembly function (along with some flags) is
+simply "how many values does the parent node want left on the stack", and the
+return value is "how many values are left on the stack". Each assembly function
+is required to provide the exact amount of requested values on the stack. This
+is achieved with a simple return macro PAD, which ensures that the value
+requested (keep) matches the values left on the stack by appending POP or
+PUSHNULL opcodes accordingly.
+
+For the chunk, the input is simple; when a chunk is done executing, there
+shouldn't be any values left on the stack, so zero is passed in at the top
+level. However, let's use an example such as this:
+
+    a = 3 + 5;
+
+This would create this syntax tree (slightly simplified):
+
+Image: syntax35.png
+
 TODO:
   * Finish Assembling
   * Intepreting
