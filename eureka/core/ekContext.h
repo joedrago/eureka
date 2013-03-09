@@ -90,6 +90,8 @@ void ekContextClearError(ekContext *E);
 const char *ekContextGetError(ekContext *E);
 
 void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
+void ekContextAddGlobal(struct ekContext *E, const char *name, ekValue *v); // takes ownership
+void ekContextPushValue(struct ekContext *E, ekValue *v);                   // takes ownership
 
 void ekContextPopValues(struct ekContext *E, ekU32 count);
 ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep);  // 0 is "top of stack"

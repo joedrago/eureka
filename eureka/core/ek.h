@@ -14,6 +14,7 @@
 #include "ekTypes.h"
 #include "ekArray.h"
 #include "ekMap.h"
+#include "ekObject.h"
 #include "ekCompiler.h"
 #include "ekContext.h"
 

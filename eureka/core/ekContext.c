@@ -262,6 +262,21 @@ void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction fu
     ekMapGetS2P(E, E->intrinsics, name) = func;
 }
 
+void ekContextAddGlobal(struct ekContext *E, const char *name, ekValue *v)
+{
+    ekValue *prev = ekMapGetS2P(E, E->globals, name);
+    ekMapGetS2P(E, E->globals, name) = v;
+    if(prev)
+    {
+        ekValueRemoveRefNote(E, prev, "ekContextAddGlobal overriding prev");
+    }
+}
+
+void ekContextPushValue(struct ekContext *E, ekValue *v)
+{
+    ekArrayPush(E, &E->stack, v);
+}
+
 // TODO: this needs to protect against variable masking/shadowing
 static ekValue *ekContextRegister(struct ekContext *E, const char *name, ekValue *value)
 {
