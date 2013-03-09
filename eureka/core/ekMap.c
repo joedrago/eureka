@@ -373,9 +373,9 @@ typedef unsigned __int64 uint64_t;
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32(const void *key, ekS32 len, uint32_t seed, void *out);
-void MurmurHash3_x86_128(const void *key, ekS32 len, uint32_t seed, void *out);
-void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void *out);
+static void MurmurHash3_x86_32(const void *key, ekS32 len, uint32_t seed, void *out);
+static void MurmurHash3_x86_128(const void *key, ekS32 len, uint32_t seed, void *out);
+static void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void *out);
 
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
@@ -399,12 +399,12 @@ void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void *out);
 
 #define FORCE_INLINE __attribute__((always_inline))
 
-inline uint32_t rotl32(uint32_t x, int8_t r)
+static inline uint32_t rotl32(uint32_t x, int8_t r)
 {
     return (x << r) | (x >> (32 - r));
 }
 
-inline uint64_t rotl64(uint64_t x, int8_t r)
+static inline uint64_t rotl64(uint64_t x, int8_t r)
 {
     return (x << r) | (x >> (64 - r));
 }
@@ -420,12 +420,12 @@ inline uint64_t rotl64(uint64_t x, int8_t r)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-FORCE_INLINE uint32_t getblock32(const uint32_t *p, ekS32 i)
+static FORCE_INLINE uint32_t getblock32(const uint32_t *p, ekS32 i)
 {
     return p[i];
 }
 
-FORCE_INLINE uint64_t getblock64(const uint64_t *p, ekS32 i)
+static FORCE_INLINE uint64_t getblock64(const uint64_t *p, ekS32 i)
 {
     return p[i];
 }
@@ -433,7 +433,7 @@ FORCE_INLINE uint64_t getblock64(const uint64_t *p, ekS32 i)
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
 
-FORCE_INLINE uint32_t fmix32(uint32_t h)
+static FORCE_INLINE uint32_t fmix32(uint32_t h)
 {
     h ^= h >> 16;
     h *= 0x85ebca6b;
@@ -446,7 +446,7 @@ FORCE_INLINE uint32_t fmix32(uint32_t h)
 
 //----------
 
-FORCE_INLINE uint64_t fmix64(uint64_t k)
+static FORCE_INLINE uint64_t fmix64(uint64_t k)
 {
     k ^= k >> 33;
     k *= BIG_CONSTANT(0xff51afd7ed558ccd);
@@ -459,8 +459,8 @@ FORCE_INLINE uint64_t fmix64(uint64_t k)
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_32(const void *key, ekS32 len,
-                        uint32_t seed, void *out)
+static void MurmurHash3_x86_32(const void *key, ekS32 len,
+                               uint32_t seed, void *out)
 {
     const uint8_t *tail;
     uint32_t k1;
@@ -520,8 +520,8 @@ void MurmurHash3_x86_32(const void *key, ekS32 len,
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x86_128(const void *key, ekS32 len,
-                         uint32_t seed, void *out)
+static void MurmurHash3_x86_128(const void *key, ekS32 len,
+                                uint32_t seed, void *out)
 {
     ekS32 i;
     const uint8_t *tail;
@@ -627,8 +627,8 @@ void MurmurHash3_x86_128(const void *key, ekS32 len,
 
 //-----------------------------------------------------------------------------
 
-void MurmurHash3_x64_128(const void *key, ekS32 len,
-                         uint32_t seed, void *out)
+static void MurmurHash3_x64_128(const void *key, ekS32 len,
+                                uint32_t seed, void *out)
 {
     ekS32 i;
     const uint8_t *data = (const uint8_t *)key;

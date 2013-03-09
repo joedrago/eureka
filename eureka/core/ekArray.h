@@ -22,7 +22,7 @@ void ekArrayClearP2(struct ekContext *E, void *daptr, void * /*dynDestroyFuncP2*
 void ekArrayClearStrings(struct ekContext *E, void *daptr);
 
 // front/back manipulation
-void *daShift(struct ekContext *E, void *daptr);
+void *ekArrayShift(struct ekContext *E, void *daptr);
 void ekArrayUnshift(struct ekContext *E, void *daptr, void *p);
 ekSize ekArrayPush(struct ekContext *E, void *daptr, void *entry);
 ekSize ekArrayPushUniqueString(struct ekContext *E, void *daptr, char *s);
