@@ -89,61 +89,110 @@ int main(int argc, char *argv[])
 #endif
     {
         ekContext *E = ekContextCreate(NULL);
+        const char *script = NULL;
+        char *code = NULL;
         int dump = 0;
-        int running = 1;
+        int repl = 0;
         char *line;
         int i;
+        char *c;
 
-        for(i = 1; i < argc; i++)
+        for(i = 1; i < argc; ++i)
         {
             if(argv[i][0] == '-')
             {
-                switch(argv[i][1])
+                for(c = argv[i] + 1; *c; ++c)
                 {
-                    case 'd':
-                        dump = 1;
-                        break;
-                };
-            }
-        }
-
-        while(running && (line = readline(getprompt(E))))
-        {
-            char *code = NULL;
-            if(!strcmp(line, "$globals"))
-            {
-                ekMapIterateP1(E, E->globals, printVariable, NULL);
-            }
-            else if(!strncmp(line, "$load ", 6))
-            {
-                code = loadFile(line + 6);
-            }
-            else if(!strcmp(line, "$quit"))
-            {
-                running = 0;
+                    switch(*c)
+                    {
+                        case 'd':
+                            dump = 1;
+                            break;
+                        case 'r':
+                            repl = 1;
+                            break;
+                    };
+                }
             }
             else
             {
-                code = strdup(line);
+                script = argv[i];
+                ++i;
+                printf("script: %s\n", script); // TODO: remove
+                break;
             }
+        }
+        for(; i < argc; ++i)
+        {
+            printf("script arg: %s\n", argv[i]);
+        }
 
-            if(code)
+        if(!script && !repl)
+        {
+            // No script to run, no request for a read-eval-print loop.
+            // Clue them in on their mistake and bail out.
+
+            fprintf(stderr, "Syntax: %s [-d] [-r] [file.ek]\n", argv[0]);
+        }
+        else
+        {
+            if(script)
             {
-                int opts = EEO_DEFAULT;
-                if(dump)
+                code = loadFile(script);
+                if(code)
                 {
-                    opts = EEO_DUMP;
+                    int opts = EEO_DEFAULT;
+                    if(dump)
+                    {
+                        opts = EEO_DUMP;
+                    }
+                    ekContextEval(E, code, opts);
+                    if(ekContextGetError(E))
+                    {
+                        printf("Errors:\n%s\n", ekContextGetError(E));
+                        ekContextRecover(E);
+                    }
+                    free(code);
                 }
-                ekContextEval(E, code, opts);
-                if(ekContextGetError(E))
-                {
-                    printf("Errors:\n%s\n", ekContextGetError(E));
-                    ekContextRecover(E);
-                }
-                free(code);
             }
 
-            free(line);
+            while(repl && (line = readline(getprompt(E))))
+            {
+                if(!strcmp(line, "$globals"))
+                {
+                    ekMapIterateP1(E, E->globals, printVariable, NULL);
+                }
+                else if(!strncmp(line, "$load ", 6))
+                {
+                    code = loadFile(line + 6);
+                }
+                else if(!strcmp(line, "$quit"))
+                {
+                    repl = 0;
+                }
+                else
+                {
+                    code = strdup(line);
+                }
+
+                if(code)
+                {
+                    int opts = EEO_DEFAULT;
+                    if(dump)
+                    {
+                        opts = EEO_DUMP;
+                    }
+                    ekContextEval(E, code, opts);
+                    if(ekContextGetError(E))
+                    {
+                        printf("Errors:\n%s\n", ekContextGetError(E));
+                        ekContextRecover(E);
+                    }
+                    free(code);
+                }
+
+                free(line);
+            }
         }
         ekContextDestroy(E);
     }
