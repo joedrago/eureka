@@ -8,4 +8,4 @@
 add_executable(eureka
     main.c
 )
-target_link_libraries (eureka ek ${EUREKA_MOD_LIBS} ${EUREKA_COMMON_LIBS})
+target_link_libraries (eureka ek ${EUREKA_COMMON_LIBS})

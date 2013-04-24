@@ -59,6 +59,7 @@ void ekValueTypeDestroy(struct ekContext *E, ekValueType *type);
 void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func);
 struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue);
 ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
+ekS32 ekValueTypeId(struct ekContext *E, const char *name); // returns TypeId associated with type (by name)
 
 void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 

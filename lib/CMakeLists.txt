@@ -114,6 +114,13 @@ if(EUREKA_ENABLE_MOD_PCRE)
     )
 endif()
 
+if(EUREKA_ENABLE_MOD_FILE)
+    set(ek_modules ${ek_modules}
+        ekmFile.c
+        ekmFile.h
+    )
+endif()
+
 set(ek_extras
 )
 

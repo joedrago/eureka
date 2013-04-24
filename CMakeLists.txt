@@ -4,18 +4,23 @@ project(eureka)
 
 # ----------------------------------------------------------------------------
 
-set(EUREKA_MOD_LIBS ";")
+set(EUREKA_COMMON_LIBS ";")
 
 set(EUREKA_ENABLE_MOD_JSON "ON" CACHE BOOL "Enables JSON support.")
 if(EUREKA_ENABLE_MOD_JSON)
     add_definitions(-DEUREKA_ENABLE_MOD_JSON=1)
-    list(APPEND EUREKA_MOD_LIBS cjson)
+    list(APPEND EUREKA_COMMON_LIBS cjson)
 endif()
 
 set(EUREKA_ENABLE_MOD_PCRE "ON" CACHE BOOL "Enables PCRE support.")
 if(EUREKA_ENABLE_MOD_PCRE)
     add_definitions(-DEUREKA_ENABLE_MOD_PCRE=1 -DPCRE_STATIC=1)
-    list(APPEND EUREKA_MOD_LIBS pcre)
+    list(APPEND EUREKA_COMMON_LIBS pcre)
+endif()
+
+set(EUREKA_ENABLE_MOD_FILE "ON" CACHE BOOL "Enables file support.")
+if(EUREKA_ENABLE_MOD_FILE)
+    add_definitions(-DEUREKA_ENABLE_MOD_FILE=1)
 endif()
 
 set(EUREKA_ENABLE_EXT_DISASM "ON" CACHE BOOL "Enables Eureka disassembly support.")
@@ -29,10 +34,6 @@ if(EUREKA_ENABLE_EXT_DOT)
 endif()
 
 set(EUREKA_RE2C_PATH "re2c" CACHE STRING "Path to re2c executable.")
-
-if(UNIX)
-    list(APPEND EUREKA_MOD_LIBS m)
-endif()
 
 # ----------------------------------------------------------------------------
 
@@ -81,7 +82,9 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/ext/pcre/cmake) # for FindReadline.cmake
 find_package( Readline )
 
-set(EUREKA_COMMON_LIBS "")
+if(UNIX)
+    set(EUREKA_COMMON_LIBS ${EUREKA_COMMON_LIBS} m)
+endif()
 
 if(READLINE_FOUND)
     add_definitions(-DHAVE_READLINE=1)

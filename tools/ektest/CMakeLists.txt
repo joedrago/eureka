@@ -8,4 +8,4 @@
 add_executable(ektest
     main.c
 )
-target_link_libraries (ektest ek ${EUREKA_MOD_LIBS})
+target_link_libraries (ektest ek ${EUREKA_COMMON_LIBS})

@@ -78,6 +78,7 @@ typedef struct ekValue
         struct ekValue **refVal;
         struct ekValue **arrayVal;
         struct ekObject *objectVal;
+        void *ptrVal; // Raw ptr used when creating custom ekValueTypes
     };
 } ekValue;
 

@@ -69,7 +69,7 @@ struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct 
 ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
 {
     ekS32 i;
-    for(i=0; i<ekArraySize(E, &E->types); i++)
+    for(i=0; i<ekArraySize(E, &E->types); ++i)
     {
         ekValueType *t = E->types[i];
         if(!strcmp(newType->name, t->name))
@@ -85,6 +85,20 @@ ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
 
     newType->id = ekArrayPush(E, &E->types, newType);
     return newType->id;
+}
+
+ekS32 ekValueTypeId(struct ekContext *E, const char *name)
+{
+    ekS32 i;
+    for(i=0; i<ekArraySize(E, &E->types); ++i)
+    {
+        ekValueType *t = E->types[i];
+        if(!strcmp(t->name, name))
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // ---------------------------------------------------------------------------

@@ -5,25 +5,11 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "ekmAll.h"
+#ifndef EKMFILE_H
+#define EKMFILE_H
 
-#ifdef EUREKA_ENABLE_MOD_JSON
-#include "ekmJSON.h"
-#endif
+#include "ekTypes.h"
 
-#ifdef EUREKA_ENABLE_MOD_PCRE
-#include "ekmPCRE.h"
-#endif
+void ekModuleRegisterFile(struct ekContext *E);
 
-void ekModuleRegisterAll(struct ekContext *E)
-{
-#ifdef EUREKA_ENABLE_MOD_JSON
-    ekModuleRegisterJSON(E);
 #endif
-#ifdef EUREKA_ENABLE_MOD_PCRE
-    ekModuleRegisterPCRE(E);
-#endif
-#ifdef EUREKA_ENABLE_MOD_FILE
-    ekModuleRegisterFile(E);
-#endif
-}

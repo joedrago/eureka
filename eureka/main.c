@@ -34,6 +34,7 @@ static char *readline(const char *prompt)
     }
     return NULL;
 }
+static void add_history(const char *line) {}
 #endif
 
 // ---------------------------------------------------------------------------
@@ -156,6 +157,10 @@ int main(int argc, char *argv[])
 
             while(repl && (line = readline(getprompt(E))))
             {
+                if(line[0])
+                {
+                    add_history(line);
+                }
                 if(!strcmp(line, "$globals"))
                 {
                     ekMapIterateP1(E, E->globals, printVariable, NULL);
