@@ -323,7 +323,7 @@ void ekMapEraseI(struct ekContext *E, ekMap *yh, ekU32 key, void * /*ekDestroyCB
 
 void ekMapIterateP1(struct ekContext *E, ekMap *yh, void *rawcb, void *arg1)
 {
-    ek2IterateCB1 cb = (ek2IterateCB1)rawcb;
+    ekIterateCB1 cb = (ekIterateCB1)rawcb;
     ekS32 i;
     ekS32 endIndex = yh->split + yh->mod;
     if(!cb)

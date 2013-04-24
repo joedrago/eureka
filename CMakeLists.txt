@@ -78,6 +78,17 @@ else()
     endif()
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/ext/pcre/cmake) # for FindReadline.cmake
+find_package( Readline )
+
+set(EUREKA_COMMON_LIBS "")
+
+if(READLINE_FOUND)
+    add_definitions(-DHAVE_READLINE=1)
+    include_directories(${READLINE_INCLUDE_DIR})
+    set(EUREKA_COMMON_LIBS ${EUREKA_COMMON_LIBS} ${READLINE_LIBRARY})
+endif()
+
 add_subdirectory(ext)
 
 include_directories(lib)

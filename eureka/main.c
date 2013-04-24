@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------------
 
 #ifdef HAVE_READLINE
-#include <readline.h>
+#include <readline/readline.h>
 #else
 #define LINE_BUFFER_SIZE 4096
 static char sLineBuffer[LINE_BUFFER_SIZE];
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         const char *script = NULL;
         char *code = NULL;
         int evalOpts = EEO_DEFAULT;
-        int repl = 0;
+        int repl = 0; // interested in a read-eval-print loop (REPL)
         char *line;
         int i;
         char *c;
@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
                         ekContextRecover(E);
                     }
                     free(code);
+                    code = NULL;
                 }
             }
 
@@ -181,6 +182,7 @@ int main(int argc, char *argv[])
                         ekContextRecover(E);
                     }
                     free(code);
+                    code = NULL;
                 }
 
                 free(line);

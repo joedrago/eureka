@@ -42,7 +42,7 @@ typedef struct ekMap
     ekS32 count;           // count tracking for convenience
 } ekMap;
 
-typedef void (*ek2IterateCB1)(struct ekContext *E, void *arg1, ekMapEntry *entry);
+typedef void (*ekIterateCB1)(struct ekContext *E, void *arg1, ekMapEntry *entry);
 
 ekMap *ekMapCreate(struct ekContext *E, ekMapKeyType keyType);
 void ekMapDestroy(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc);
