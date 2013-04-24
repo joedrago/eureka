@@ -78,14 +78,9 @@ else()
     endif()
 endif()
 
-add_subdirectory(external)
+add_subdirectory(ext)
 
-include_directories(
-    lib/core
-    lib/modules
-    lib/extras
-)
-
+include_directories(lib)
 add_subdirectory(lib)
 add_subdirectory(eureka)
 add_subdirectory(tools)
@@ -107,7 +102,7 @@ if(UNIX)
 endif()
 
 set(DOCTXT)
-file(GLOB_RECURSE DOCSRC ${CMAKE_SOURCE_DIR}/eureka/docsrc/*.ekd)
+file(GLOB_RECURSE DOCSRC ${CMAKE_SOURCE_DIR}/docs/src/*.ekd)
 foreach(dsrc ${DOCSRC})
     get_filename_component(basename "${dsrc}" NAME_WE)
     set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")

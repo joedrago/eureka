@@ -10,8 +10,8 @@ MACRO(add_lemon_files _sources )
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/core/${_basename}.c)
-      set(_template ${CMAKE_CURRENT_SOURCE_DIR}/core/${_basename}.lt)
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
+      set(_template ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.lt)
 
       ADD_CUSTOM_COMMAND(
          OUTPUT ${_out}
@@ -30,7 +30,7 @@ MACRO(add_re2c_files _sources )
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
       GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
 
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/core/${_basename}.re.inc)
+      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.re.inc)
       set(_incd ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
 
       ADD_CUSTOM_COMMAND(
@@ -46,71 +46,71 @@ MACRO(add_re2c_files _sources )
 ENDMACRO(add_re2c_files)
 
 set(ek_src
-    core/ekArray.h
-    core/ekArray.c
-    core/ekBlock.h
-    core/ekBlock.c
-    core/ekChunk.h
-    core/ekChunk.c
-    core/ekCode.h
-    core/ekCode.c
-    core/ekCompiler.h
-    core/ekCompiler.c
-    core/ekContext.h
-    core/ekContext.c
-    core/ekObject.h
-    core/ekObject.c
-    core/ekFrame.h
-    core/ekFrame.c
-    core/ekIntrinsics.h
-    core/ekIntrinsics.c
-    core/ekLexer.c
-    core/ekLexer.h
-    core/ekLexer.re
-    core/ekMap.h
-    core/ekMap.c
-    core/ekOp.h
-    core/ekOp.c
-    core/ekParser.y
-    core/ekString.h
-    core/ekString.c
-    core/ekSyntax.h
-    core/ekSyntax.c
-    core/ekTypes.h
-    core/ekTypes.c
-    core/ekValue.h
-    core/ekValue.c
-    core/ekValueType.h
-    core/ekValueType.c
-    core/ekValueTypeArray.c
-    core/ekValueTypeBlock.c
-    core/ekValueTypeCFunction.c
-    core/ekValueTypeFloat.c
-    core/ekValueTypeInt.c
-    core/ekValueTypeNull.c
-    core/ekValueTypeObject.c
-    core/ekValueTypeRef.c
-    core/ekValueTypeString.c
+    ekArray.h
+    ekArray.c
+    ekBlock.h
+    ekBlock.c
+    ekChunk.h
+    ekChunk.c
+    ekCode.h
+    ekCode.c
+    ekCompiler.h
+    ekCompiler.c
+    ekContext.h
+    ekContext.c
+    ekObject.h
+    ekObject.c
+    ekFrame.h
+    ekFrame.c
+    ekIntrinsics.h
+    ekIntrinsics.c
+    ekLexer.c
+    ekLexer.h
+    ekLexer.re
+    ekMap.h
+    ekMap.c
+    ekOp.h
+    ekOp.c
+    ekParser.y
+    ekString.h
+    ekString.c
+    ekSyntax.h
+    ekSyntax.c
+    ekTypes.h
+    ekTypes.c
+    ekValue.h
+    ekValue.c
+    ekValueType.h
+    ekValueType.c
+    ekValueTypeArray.c
+    ekValueTypeBlock.c
+    ekValueTypeCFunction.c
+    ekValueTypeFloat.c
+    ekValueTypeInt.c
+    ekValueTypeNull.c
+    ekValueTypeObject.c
+    ekValueTypeRef.c
+    ekValueTypeString.c
 )
 
 set(ek_modules
-    modules/ekmAll.c
-    modules/ekmAll.h
+    ekmAll.c
+    ekmAll.h
 )
 
 if(EUREKA_ENABLE_MOD_JSON)
     include_directories(${cjson_SOURCE_DIR})
     set(ek_modules ${ek_modules}
-        modules/ekmJSON.c
-        modules/ekmJSON.h
+        ekmJSON.c
+        ekmJSON.h
     )
 endif()
 
 if(EUREKA_ENABLE_MOD_PCRE)
     include_directories(${PCRE_BINARY_DIR})
     set(ek_modules ${ek_modules}
-        modules/ekmPCRE.c
-        modules/ekmPCRE.h
+        ekmPCRE.c
+        ekmPCRE.h
     )
 endif()
 
@@ -119,20 +119,20 @@ set(ek_extras
 
 if(EUREKA_ENABLE_EXT_DISASM)
     set(ek_extras ${ek_extras}
-        extras/ekxDisasm.h
-        extras/ekxDisasm.c
+        ekxDisasm.h
+        ekxDisasm.c
     )
 endif()
 
 if(EUREKA_ENABLE_EXT_DOT)
     set(ek_extras ${ek_extras}
-        extras/ekxDot.h
-        extras/ekxDot.c
+        ekxDot.h
+        ekxDot.c
     )
 endif()
 
-add_lemon_files(ek_src core/ekParser.y)
-add_re2c_files(ek_src core/ekLexer.re)
+add_lemon_files(ek_src ekParser.y)
+add_re2c_files(ek_src ekLexer.re)
 
 add_library(ek
     ${ek_src}
