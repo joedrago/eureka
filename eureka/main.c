@@ -59,7 +59,7 @@ char *loadFile(const char *filename)
         return buffer;
     }
 
-    printf("cant open '%s' for read\n", filename);
+    fprintf(stderr, "cant open '%s' for read\n", filename);
     return NULL;
 }
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         ekContext *E = ekContextCreate(NULL);
         const char *script = NULL;
         char *code = NULL;
-        int dump = 0;
+        int evalOpts = EEO_DEFAULT;
         int repl = 0;
         char *line;
         int i;
@@ -105,8 +105,11 @@ int main(int argc, char *argv[])
                 {
                     switch(*c)
                     {
+                        case 'c':
+                            evalOpts |= EEO_COMPILE;
+                            break;
                         case 'd':
-                            dump = 1;
+                            evalOpts |= EEO_DUMP;
                             break;
                         case 'r':
                             repl = 1;
@@ -118,7 +121,6 @@ int main(int argc, char *argv[])
             {
                 script = argv[i];
                 ++i;
-                printf("script: %s\n", script); // TODO: remove
                 break;
             }
         }
@@ -141,12 +143,7 @@ int main(int argc, char *argv[])
                 code = loadFile(script);
                 if(code)
                 {
-                    int opts = EEO_DEFAULT;
-                    if(dump)
-                    {
-                        opts = EEO_DUMP;
-                    }
-                    ekContextEval(E, code, opts);
+                    ekContextEval(E, code, evalOpts);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));
@@ -177,12 +174,7 @@ int main(int argc, char *argv[])
 
                 if(code)
                 {
-                    int opts = EEO_DEFAULT;
-                    if(dump)
-                    {
-                        opts = EEO_DUMP;
-                    }
-                    ekContextEval(E, code, opts);
+                    ekContextEval(E, code, evalOpts);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));

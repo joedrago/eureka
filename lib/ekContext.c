@@ -155,20 +155,23 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts)
 #endif
             }
 
+            if(!(evalOpts & EEO_COMPILE))
+            {
 #ifdef EUREKA_TRACE_EXECUTION
-            ekTraceExecution(("--- begin chunk execution ---\n"));
+                ekTraceExecution(("--- begin chunk execution ---\n"));
 #endif
-            // Execute the chunk's block
-            ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, ekValueNullPtr, NULL);
-            ekContextLoop(E, ekTrue);
+                // Execute the chunk's block
+                ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, ekValueNullPtr, NULL);
+                ekContextLoop(E, ekTrue);
 
 #ifdef EUREKA_TRACE_EXECUTION
-            ekTraceExecution(("---  end  chunk execution ---\n"));
+                ekTraceExecution(("---  end  chunk execution ---\n"));
 #endif
-            if(!chunk->temporary)
-            {
-                ekArrayPush(E, &E->chunks, chunk);
-                chunk = NULL; // forget the ptr
+                if(!chunk->temporary)
+                {
+                    ekArrayPush(E, &E->chunks, chunk);
+                    chunk = NULL; // forget the ptr
+                }
             }
         }
 

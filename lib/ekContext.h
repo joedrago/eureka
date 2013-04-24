@@ -38,7 +38,8 @@ enum
     EEO_DEFAULT  = 0,
 
     EEO_DUMP     = (1 << 0),
-    EEO_OPTIMIZE = (1 << 1)
+    EEO_OPTIMIZE = (1 << 1),
+    EEO_COMPILE  = (1 << 2)  // compile only, skip evaluation
 };
 
 typedef struct ekMemoryInfo
