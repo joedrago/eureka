@@ -79,8 +79,15 @@ else()
 endif()
 
 add_subdirectory(external)
+
+include_directories(
+    lib/core
+    lib/modules
+    lib/extras
+)
+
+add_subdirectory(lib)
 add_subdirectory(eureka)
-add_subdirectory(demos)
 add_subdirectory(tools)
 
 add_custom_target(tests

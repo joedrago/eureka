@@ -5,8 +5,6 @@
 #                  http:#www.boost.org/LICENSE_1_0.txt)
 # ---------------------------------------------------------------------------
 
-project(ekdoc C)
-
 add_executable(ekdoc
     main.c
     dynString.c

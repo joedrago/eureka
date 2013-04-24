@@ -5,15 +5,7 @@
 #                  http:#www.boost.org/LICENSE_1_0.txt)
 # ---------------------------------------------------------------------------
 
-project(ektest C)
-
-include_directories (
-    ${eureka_SOURCE_DIR}/core
-    ${eureka_SOURCE_DIR}/modules
-    ${eureka_SOURCE_DIR}/extras
-)
-
 add_executable(ektest
     main.c
 )
-target_link_libraries (ektest eureka ${EUREKA_MOD_LIBS})
+target_link_libraries (ektest ek ${EUREKA_MOD_LIBS})
