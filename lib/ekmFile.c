@@ -20,14 +20,127 @@
 #include <sys/stat.h>
 
 // ---------------------------------------------------------------------------
-// File Data Structure
+// File Definitions and Data Structures
+
+enum // Eureka File State
+{
+    EFS_CLOSED = 0,
+    EFS_READ,
+    EFS_WRITE,
+    EFS_APPEND
+};
+
 
 typedef struct ekFile
 {
     ekValue *filename;
-    int separator;    // defaults to newline
     FILE *handle;
+    int state;
 } ekFile;
+
+// ---------------------------------------------------------------------------
+// File Helpers
+
+static ekValue *thisFile(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue = ekContextThis(E);
+    // TODO: lots of sanity checking (not a null ptr, is a file, etc)
+    return thisValue;
+}
+
+static void switchState(struct ekContext *E, ekFile *file, int newState)
+{
+    const char *mode = NULL;
+    if(file->state == newState)
+    {
+        return;
+    }
+    if(file->handle)
+    {
+        fclose(file->handle);
+        file->handle = NULL;
+    }
+    switch(newState)
+    {
+        case EFS_CLOSED:
+            // do nothing, we already closed it
+            break;
+
+        case EFS_READ:
+            mode = "rb";
+            break;
+
+        case EFS_WRITE:
+            mode = "wb";
+            break;
+
+        case EFS_APPEND:
+            mode = "ab";
+            break;
+    }
+    if(mode)
+    {
+        file->handle = fopen(ekStringSafePtr(&file->filename->stringVal), mode);
+    }
+    file->state = newState;
+}
+
+static ekValue *readLineInternal(struct ekContext *E, ekFile *file, int chomp)
+{
+    ekValue *ret = ekValueNullPtr;
+    if(file->handle)
+    {
+        int readBufferSize = 100;
+        int startPos = ftell(file->handle);
+        char *readBuffer = NULL;
+        char *sepLoc;
+        int bytesRead;
+
+        while(ret == ekValueNullPtr)
+        {
+            readBufferSize *= 2;
+            readBuffer = ekRealloc(readBuffer, readBufferSize);
+            fseek(file->handle, startPos, SEEK_SET);
+            bytesRead = fread(readBuffer, 1, readBufferSize-1, file->handle);
+
+            if(bytesRead > 0)
+            {
+                readBuffer[bytesRead] = 0;
+                sepLoc = strchr(readBuffer, '\n');
+                if(sepLoc)
+                {
+                    int advance = (int)(sepLoc - readBuffer + 1); // how much to advance the file pointer?
+                    if(chomp)
+                    {
+                        while((*sepLoc == '\n') || (*sepLoc == '\r') )
+                        {
+                            --sepLoc;
+                        }
+                    }
+                    *(sepLoc+1) = 0;
+                    ret = ekValueCreateString(E, readBuffer);
+                    fseek(file->handle, startPos + advance, SEEK_SET); // move the file ptr back to the beginning of the next line
+                }
+                else
+                {
+                    if(bytesRead < (readBufferSize-1))
+                    {
+                        // we must have reached the end of the file. Just return 'the rest'.
+                        ret = ekValueCreateString(E, readBuffer);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        ekFree(readBuffer);
+    }
+    return ret;
+}
 
 // ---------------------------------------------------------------------------
 // File Funcs
@@ -35,6 +148,7 @@ typedef struct ekFile
 static void fileFuncClear(struct ekContext *E, struct ekValue *p)
 {
     ekFile *file = (ekFile *)p->ptrVal;
+    switchState(E, file, EFS_CLOSED);
     ekValueRemoveRefNote(E, file->filename, "file doesnt need filename anymore");
     ekFree(file);
 }
@@ -68,68 +182,6 @@ static struct ekValue *fileFuncToString(struct ekContext *E, struct ekValue *p)
     return filenameValue;
 }
 
-#if 0
-
-static ekU32 objectIterator(struct ekContext *E, ekU32 argCount)
-{
-    ekFrame *frame = ekArrayTop(E, &E->frames);
-    ekValue *m;
-    ekValue *keys;
-    ekValue *index;
-    ekValue *v;
-    ekAssert(frame->closure && frame->closure->closureVars);
-    m = ekMapGetS2P(E, frame->closure->closureVars, "map");
-    keys = ekMapGetS2P(E, frame->closure->closureVars, "keys");
-    index = ekMapGetS2P(E, frame->closure->closureVars, "index");
-    ekAssert((m->type == EVT_OBJECT) && (keys->type == EVT_ARRAY) && (index->type == EVT_INT));
-    ekAssert(argCount == 0);
-    ekContextPopValues(E, argCount);
-
-    if(index->intVal < ekArraySize(E, &keys->arrayVal))
-    {
-        ekValue *key = keys->arrayVal[index->intVal++];
-        ekValueAddRefNote(E, key, "pairs_iterator using key");
-        ekArrayPush(E, &E->stack, key);
-        v = ekValueIndex(E, m, key, ekFalse); // should addref the value
-        if(!v)
-        {
-            v = ekValueNullPtr;
-        }
-        ekArrayPush(E, &E->stack, v);
-        return 2;
-    }
-
-    ekArrayPush(E, &E->stack, ekValueNullPtr);
-    return 1;
-}
-
-static ekU32 objectCreateIterator(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *m = NULL;
-    ekValue *closure;
-    ekValue *keys;
-    if(!ekContextGetArgs(E, argCount, "m", &m))
-    {
-        return ekContextArgsFailure(E, argCount, "pairs(map)");
-    }
-    closure = ekValueCreateCFunction(E, objectIterator);
-    closure->closureVars = ekMapCreate(E, EMKT_STRING);
-    keys = ekValueCreateArray(E);
-    ekMapIterateP1(E, m->objectVal->hash, ekAppendKey, keys);
-    ekMapGetS2P(E, closure->closureVars, "map") = m;
-    ekMapGetS2P(E, closure->closureVars, "keys") = keys;
-    ekMapGetS2P(E, closure->closureVars, "index") = ekValueCreateInt(E, 0);
-    ekArrayPush(E, &E->stack, closure);
-    return 1;
-}
-
-static ekCFunction *fileFuncIter(struct ekContext *E, struct ekValue *p)
-{
-    return objectCreateIterator;
-}
-
-#endif
-
 static void fileFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
 {
     ekFile *file = (ekFile *)p->ptrVal;
@@ -142,13 +194,6 @@ static void fileFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVal
 // ---------------------------------------------------------------------------
 // File intrinsics
 
-static ekValue *thisFile(struct ekContext *E, ekU32 argCount)
-{
-    ekValue *thisValue = ekContextThis(E);
-    // TODO: lots of sanity checking (not a null ptr, is a file, etc)
-    return thisValue;
-}
-
 static ekU32 fileExists(struct ekContext *E, ekU32 argCount)
 {
     ekValue *thisValue;
@@ -157,12 +202,12 @@ static ekU32 fileExists(struct ekContext *E, ekU32 argCount)
     ekValue *filenameValue;
     ekFile *file;
 
+    ekContextPopValues(E, argCount); // ignore any arguments (warn?)
+
     if((thisValue = thisFile(E, argCount)) == NULL)
     {
         return 0;
     }
-
-    ekContextPopValues(E, argCount); // ignore any arguments (warn?)
 
     file = (ekFile *)thisValue->ptrVal;
     {
@@ -185,10 +230,11 @@ static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
     ekValue *ret = ekValueNullPtr;
     ekValue *modesValue = NULL;
     ekFile *file;
+    const char *c;
 
     if((thisValue = thisFile(E, argCount)) == NULL)
     {
-        return 0;
+        return ekContextArgsFailure(E, argCount, "file.open() must be called as a member function");
     }
 
     if(!ekContextGetArgs(E, argCount, "|s", &modesValue)) // assumes "r" if absent
@@ -199,17 +245,28 @@ static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
     file = (ekFile *)thisValue->ptrVal;
     {
         const char *modes = "r";
+        int state = EFS_READ;
         if(modesValue)
         {
             modes = ekStringSafePtr(&modesValue->stringVal);
-            // TODO: do not just blindly pass this through
         }
-        if(file->handle)
+        for(c = modes; *c; ++c)
         {
-            fclose(file->handle);
-            file->handle = NULL;
+            switch(*c)
+            {
+                case 'r':
+                    state = EFS_READ;
+                    break;
+                case 'w':
+                    state = EFS_WRITE;
+                    break;
+                case 'a':
+                    state = EFS_APPEND;
+                    break;
+            };
         }
-        file->handle = fopen(ekStringSafePtr(&file->filename->stringVal), modes);
+        
+        switchState(E, file, state);
         if(file->handle)
         {
             ret = thisValue;
@@ -221,6 +278,144 @@ static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
     }
 
     ekArrayPush(E, &E->stack, ret); // will be Null if we failed to open, otherwise thisValue
+    return 1;
+}
+
+static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    int exists = 0;
+    ekValue *ret = ekValueNullPtr;
+    ekValue *chompValue = NULL;
+    int chomp = 0;
+    ekFile *file;
+
+    if((thisValue = thisFile(E, argCount)) == NULL)
+    {
+        return ekContextArgsFailure(E, argCount, "file.read() must be called as a member function");
+    }
+
+    if(!ekContextGetArgs(E, argCount, "|?", &chompValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.read([optional bool] chompNewline)");
+    }
+
+    if(chompValue)
+    {
+        chompValue = ekValueToBool(E, chompValue);
+        chomp = chompValue->intVal;
+        ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
+    }
+
+    file = (ekFile *)thisValue->ptrVal;
+    switchState(E, file, EFS_READ);
+    ret = readLineInternal(E, file, chomp);
+
+    ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
+    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
+    return 1;
+}
+
+static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    int exists = 0;
+    ekValue *ret = ekValueNullPtr;
+    ekValue *lineValue;
+    ekValue *chompValue = NULL;
+    int chomp = 0;
+    ekFile *file;
+
+    if((thisValue = thisFile(E, argCount)) == NULL)
+    {
+        return ekContextArgsFailure(E, argCount, "file.lines() must be called as a member function");
+    }
+
+    if(!ekContextGetArgs(E, argCount, "|?", &chompValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.lines([optional bool] chompNewline)");
+    }
+
+    if(chompValue)
+    {
+        chompValue = ekValueToBool(E, chompValue);
+        chomp = chompValue->intVal;
+        ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
+    }
+
+    file = (ekFile *)thisValue->ptrVal;
+    switchState(E, file, EFS_READ);
+
+    ret = ekValueCreateArray(E);
+    while((lineValue = readLineInternal(E, file, chomp)) != ekValueNullPtr)
+    {
+        ekValueArrayPush(E, ret, lineValue);
+    }
+
+    ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
+    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
+    return 1;
+}
+
+static ekU32 fileRead(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    int exists = 0;
+    ekValue *ret = ekValueNullPtr;
+    ekValue *bytesValue = NULL;
+    int bytes = 0;
+    ekFile *file;
+
+    if((thisValue = thisFile(E, argCount)) == NULL)
+    {
+        return ekContextArgsFailure(E, argCount, "file.read() must be called as a member function");
+    }
+
+    if(!ekContextGetArgs(E, argCount, "|i", &bytesValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.read([optional int] bytes)");
+    }
+
+    file = (ekFile *)thisValue->ptrVal;
+    switchState(E, file, EFS_READ);
+
+    if(file->handle)
+    {
+        if(bytesValue)
+        {
+            bytesValue = ekValueToInt(E, bytesValue);
+            bytes = bytesValue->intVal;
+            ekValueRemoveRefNote(E, bytesValue, "bytesValue temporary no longer needed");
+        }
+        else
+        {
+            // we want "the rest" of the file (could be the whole thing if you just opened it)
+            int end;
+            int currentPos = ftell(file->handle);
+            fseek(file->handle, 0, SEEK_END);
+            end = ftell(file->handle);
+            fseek(file->handle, currentPos, SEEK_SET);
+            bytes = end - currentPos;
+        }
+
+        if(bytes > 0)
+        {
+            char *data = ekAlloc(bytes+1);
+            int bytesRead = fread(data, 1, bytes, file->handle);
+            if(bytesRead >= 0)
+            {
+                data[bytesRead] = 0;
+                ret = ekValueDonateString(E, data);
+            }
+            else
+            {
+                ekFree(data);
+            }
+        }
+    }
+
+    ekValueRemoveRefNote(E, thisValue, "fileRead no longer needs thisValue");
+    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
     return 1;
 }
 
@@ -243,6 +438,10 @@ static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
+    if((file->state != EFS_WRITE) && (file->state != EFS_APPEND))
+    {
+        switchState(E, file, EFS_WRITE);
+    }
     if(file->handle)
     {
         const char *data = ekStringSafePtr(&dataValue->stringVal);
@@ -255,6 +454,46 @@ static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
     }
     ekValueRemoveRefNote(E, thisValue, "fileWrite no longer needs thisValue");
     ekArrayPush(E, &E->stack, ret); // will be true if we successfully wrote
+    return 1;
+}
+
+static ekU32 fileSize(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    ekValue *ret = ekValueNullPtr;
+    ekValue *filenameValue;
+    ekFile *file;
+
+    if((thisValue = thisFile(E, argCount)) == NULL)
+    {
+        return 0;
+    }
+
+    ekContextPopValues(E, argCount); // ignore any arguments (warn?)
+
+    file = (ekFile *)thisValue->ptrVal;
+    {
+        if(file->handle)
+        {
+            int end;
+            int currentPos = ftell(file->handle);
+            fseek(file->handle, 0, SEEK_END);
+            end = ftell(file->handle);
+            fseek(file->handle, currentPos, SEEK_SET);
+            ret = ekValueCreateInt(E, end);
+        }
+        else
+        {
+            struct stat s;
+            if(stat(ekStringSafePtr(&file->filename->stringVal), &s) != -1)
+            {
+                ret = ekValueCreateInt(E, s.st_size);
+            }
+        }
+    }
+
+    ekValueRemoveRefNote(E, thisValue, "fileSize doesnt need this anymore");
+    ekArrayPush(E, &E->stack, ret);
     return 1;
 }
 
@@ -305,7 +544,6 @@ static ekU32 newFile(struct ekContext *E, ekU32 argCount)
     ret->type = ekValueTypeId(E, "file");
     file = (ekFile *)ekAlloc(sizeof(ekFile));
     file->filename = filenameValue; // takes ownership
-    file->separator = '\n';
     ret->ptrVal = file;
 
     ekArrayPush(E, &E->stack, ret);
@@ -329,7 +567,11 @@ static void ekValueTypeRegisterFile(struct ekContext *E)
 
     ekValueTypeAddIntrinsic(E, type, "exists", fileExists);
     ekValueTypeAddIntrinsic(E, type, "open", fileOpen);
+    ekValueTypeAddIntrinsic(E, type, "read", fileRead);
+    ekValueTypeAddIntrinsic(E, type, "readline", fileReadLine);
+    ekValueTypeAddIntrinsic(E, type, "lines", fileLines);
     ekValueTypeAddIntrinsic(E, type, "write", fileWrite);
+    ekValueTypeAddIntrinsic(E, type, "size", fileSize);
     ekValueTypeAddIntrinsic(E, type, "close", fileClose);
     ekValueTypeRegister(E, type);
 }
