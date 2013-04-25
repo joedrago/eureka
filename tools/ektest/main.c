@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     }
 
 #ifdef PLATFORM_WIN32
-    _CrtDumpMemoryLeaks();
+    // _CrtDumpMemoryLeaks();
 #endif
     return ret;
 }
