@@ -95,6 +95,46 @@ static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+static ekU32 stringIntrinsicChomp(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *str = NULL;
+    ekValue *newstr = ekValueNullPtr;
+    char *c;
+    int len;
+
+    if(!ekContextGetArgs(E, argCount, "s", &str))
+    {
+        return ekContextArgsFailure(E, argCount, "chomp([string] str)");
+    }
+
+
+    len = str->stringVal.len;
+    if(str->stringVal.text && str->stringVal.len)
+    {
+        char *end = &str->stringVal.text[len-1];
+        while(len && ((*end == '\n') || (*end == '\r')))
+        {
+            --len;
+            --end;
+        }
+        *(end+1) = 0;
+    }
+
+    if(len != str->stringVal.len)
+    {
+        newstr = ekValueCreateStringLen(E, str->stringVal.text, len);
+    }
+    else
+    {
+        newstr = str;
+        ekValueAddRefNote(E, str, "chomp not changing string; reuse");
+    }
+
+    ekArrayPush(E, &E->stack, newstr);
+    ekValueRemoveRefNote(E, str, "string split str done");
+    return 1;
+}
+
 // ---------------------------------------------------------------------------
 // EVT_STRING Funcs
 
@@ -218,4 +258,5 @@ void ekValueTypeRegisterString(struct ekContext *E)
     ekContextAddIntrinsic(E, "string", ekiString);
     ekContextAddIntrinsic(E, "split", stringIntrinsicSplit);
     ekContextAddIntrinsic(E, "join", stringIntrinsicJoin);
+    ekContextAddIntrinsic(E, "chomp", stringIntrinsicChomp);
 }

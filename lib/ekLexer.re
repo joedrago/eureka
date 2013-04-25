@@ -32,6 +32,7 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
 /*!re2c
     "\"\"\""        { goto heredoc; }
+    "#"             { goto comment; }
     "//"            { goto comment; }
     "..."           { return ETT_ELLIPSIS; }
     "&&"            { return ETT_AND; }
