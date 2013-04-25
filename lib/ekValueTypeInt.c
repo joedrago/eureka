@@ -123,7 +123,7 @@ static ekU32 ekiInt(struct ekContext *E, ekU32 argCount)
 
 void ekValueTypeRegisterInt(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "int");
+    ekValueType *type = ekValueTypeCreate(E, "int", 'i');
     type->funcClone      = intFuncClone;
     type->funcToBool     = intFuncToBool;
     type->funcToInt      = intFuncToInt;

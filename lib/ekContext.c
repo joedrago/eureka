@@ -459,6 +459,7 @@ ekValue *ekContextThis(ekContext *E)
 ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argFormat, ...)
 {
     ekBool required = ekTrue;
+    ekBool nextUsesThis = ekFalse;
     const char *c;
     ekValue *v;
     ekValue **valuePtr;
@@ -466,6 +467,7 @@ ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argForm
     ekS32 argsTaken = 0; // from the ek stack (the amount of incoming varargs solely depends on argFormat)
     va_list args;
     va_start(args, argFormat);
+    int type;
 
     for(c = argFormat; *c; c++)
     {
@@ -475,55 +477,82 @@ ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argForm
             continue;
         }
 
+        if(*c == '*')
+        {
+            nextUsesThis = ekTrue;
+            continue;
+        }
+
         if(*c == '.')
         {
             leftovers = va_arg(args, ekValue ** *);
             break;
         };
 
-        if(argsTaken == argCount)
+        if(nextUsesThis)
         {
-            // We have run out of incoming ek arguments!
-            // If the current argument is required, we've just failed.
-            // If not, what we've gathered is "enough". Pop the args and return success.
-            if(!required)
-            {
-                ekContextPopValues(E, argCount);
-                return ekTrue;
-            }
-            return ekFalse;
-        };
-
-        v = ekContextGetArg(E, argsTaken, argCount);
-        if(!v)
-        {
-            // this is a very serious failure (argCount doesn't agree with ekContextGetArg)
-            ekContextSetError(E, EVE_RUNTIME, "ekContextGetArgs(): VM stack and argCount disagree!");
-            return ekFalse;
+            v = ekContextThis(E);
+            ekValueRemoveRefNote(E, v, "GetArgs remove +ref from ekContextThis (it will be incremented at end of loop if ok)");
+            nextUsesThis = ekFalse;
         }
-        argsTaken++;
-
-        switch(*c)
+        else
         {
-            default:
-            case '?': /* can be anything */                    break;
-            case 'n': if(v->type != EVT_NULL) { return ekFalse; } break;
-            case 's': if(v->type != EVT_STRING) { return ekFalse; } break;
-            case 'i': if(v->type != EVT_INT) { return ekFalse; } break;
-            case 'f': if(v->type != EVT_FLOAT) { return ekFalse; } break;
-            case 'a': if(v->type != EVT_ARRAY) { return ekFalse; } break;
-            case 'm': if(v->type != EVT_OBJECT) { return ekFalse; } break;  // "map"
-            case 'o': if(v->type != EVT_OBJECT) { return ekFalse; } break;
-            case 'c':
+            if(argsTaken == argCount)
             {
-                // "callable" - function, object, etc
-                if(!ekValueIsCallable(v))
+                // We have run out of incoming ek arguments!
+                // If the current argument is required, we've just failed.
+                // If not, what we've gathered is "enough". Pop the args and return success.
+                if(!required)
+                {
+                    ekContextPopValues(E, argCount);
+                    return ekTrue;
+                }
+                return ekFalse;
+            };
+
+            v = ekContextGetArg(E, argsTaken, argCount);
+            if(!v)
+            {
+                // this is a very serious failure (argCount doesn't agree with ekContextGetArg)
+                ekContextSetError(E, EVE_RUNTIME, "ekContextGetArgs(): VM stack and argCount disagree!");
+                return ekFalse;
+            }
+            argsTaken++;
+        }
+
+        for(type = 0; type < ekArraySize(E, &E->types); ++type)
+        {
+            ekValueType *vt = E->types[type];
+            if(vt->format && (vt->format == *c))
+            {
+                if(v->type != type)
                 {
                     return ekFalse;
                 }
+                break;
             }
-            break;
-        };
+        }
+
+        if(type == ekArraySize(E, &E->types)) // didn't find format in types table, check builtins
+        {
+            switch(*c)
+            {
+                default:
+                case '?': /* can be anything */
+                {
+                    break;
+                }
+                case 'c':
+                {
+                    // "callable" - function, object, etc
+                    if(!ekValueIsCallable(v))
+                    {
+                        return ekFalse;
+                    }
+                }
+                break;
+            };
+        }
 
         valuePtr = va_arg(args, ekValue **);
         *valuePtr = v;

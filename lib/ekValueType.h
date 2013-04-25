@@ -33,6 +33,7 @@ typedef struct ekValueType
 {
     ekS32 id;
     char name[EVT_MAXNAMELEN + 1];
+    int format;                                      // Format string type representation when using ekContextGetArgs(). By convention, custom types use a capital letter ('F')
 
     struct ekMap *intrinsics;                        // map of funcName -> ekCFunction, used as an Index fallback for things like .length()
 
@@ -54,12 +55,12 @@ typedef struct ekValueType
     ekValueTypeFuncDump funcDump;
 } ekValueType;
 
-ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name);
+ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name, int format);
 void ekValueTypeDestroy(struct ekContext *E, ekValueType *type);
 void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func);
 struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue);
 ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType); // takes ownership of newType (use ekAlloc), returns new type id
-ekS32 ekValueTypeId(struct ekContext *E, const char *name); // returns TypeId associated with type (by name)
+ekS32 ekValueTypeId(struct ekContext *E, int format); // returns TypeId associated with type (by format)
 
 void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 

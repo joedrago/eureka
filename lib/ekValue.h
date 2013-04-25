@@ -82,7 +82,7 @@ typedef struct ekValue
     };
 } ekValue;
 
-ekValue *ekValueCreate(struct ekContext *E);
+ekValue *ekValueCreate(struct ekContext *E, int type);
 void ekValueDestroy(struct ekContext *E, ekValue *p);
 
 void ekValueAddRef(struct ekContext *E, ekValue *p);
@@ -125,6 +125,7 @@ ekValue *ekValueDiv(struct ekContext *E, ekValue *a, ekValue *b);
 
 ekS32 ekValueCmp(struct ekContext *E, ekValue *a, ekValue *b);
 ekS32 ekValueLength(struct ekContext *E, ekValue *p);
+const char *ekValueSafeStr(ekValue *stringValue);
 
 // These assume that you are using the pattern: v = ekValueTo*(E, v)
 // and auto-unref the passed-in value for you.

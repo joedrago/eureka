@@ -46,7 +46,7 @@ static void refFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValu
 
 void ekValueTypeRegisterRef(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "ref");
+    ekValueType *type = ekValueTypeCreate(E, "ref", 0);
     type->funcClone      = refFuncClone;
     type->funcToBool     = refFuncToBool;
     type->funcToInt      = refFuncToInt;

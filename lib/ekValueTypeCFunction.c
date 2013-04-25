@@ -54,7 +54,7 @@ static void cfunctionFuncDump(struct ekContext *E, ekDumpParams *params, struct 
 
 void ekValueTypeRegisterCFunction(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "cfunction");
+    ekValueType *type = ekValueTypeCreate(E, "cfunction", 0);
     type->funcClear      = cfunctionFuncClear;
     type->funcClone      = cfunctionFuncClone;
     type->funcToBool     = cfunctionFuncToBool;

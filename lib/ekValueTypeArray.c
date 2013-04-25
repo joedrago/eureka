@@ -297,7 +297,7 @@ static void arrayFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVa
 
 void ekValueTypeRegisterArray(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "array");
+    ekValueType *type = ekValueTypeCreate(E, "array", 'a');
     type->funcClear      = arrayFuncClear;
     type->funcClone      = arrayFuncClone;
     type->funcToBool     = arrayFuncToBool;

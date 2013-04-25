@@ -93,6 +93,12 @@ const char *ekContextGetError(ekContext *E);
 void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
 void ekContextAddGlobal(struct ekContext *E, const char *name, ekValue *v); // takes ownership
 void ekContextPushValue(struct ekContext *E, ekValue *v);                   // takes ownership
+#define ekContextPushInt(E, I) ekContextPushValue(E, ekValueCreateInt(E, I))
+#define ekContextPushFloat(E, F) ekContextPushValue(E, ekValueCreateFloat(E, F))
+#define ekContextPushString(E, STR) ekContextPushValue(E, ekValueCreateString(E, STR))
+#define ekContextReturnInt(E, I) { ekContextPushValue(E, ekValueCreateInt(E, I)); return 1; }
+#define ekContextReturnFloat(E, F) { ekContextPushValue(E, ekValueCreateFloat(E, F)) return 1; }
+#define ekContextReturnString(E, STR) { ekContextPushValue(E, ekValueCreateString(E, STR)) return 1; }
 
 void ekContextPopValues(struct ekContext *E, ekU32 count);
 ekValue *ekContextGetValue(struct ekContext *E, ekU32 howDeep);  // 0 is "top of stack"

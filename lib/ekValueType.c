@@ -16,10 +16,11 @@
 
 // ---------------------------------------------------------------------------
 
-ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name)
+ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name, int format)
 {
     ekValueType *type = ekAlloc(sizeof(ekValueType));
     strcpy(type->name, name);
+    type->format = format;
     return type;
 }
 
@@ -50,7 +51,7 @@ struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct 
     ekMap *map = E->types[type]->intrinsics;
     if(map && index && (index->type == EVT_STRING))
     {
-        ekMapEntry *mapEntry = ekMapGetS(E, map, ekStringSafePtr(&index->stringVal), ekFalse);
+        ekMapEntry *mapEntry = ekMapGetS(E, map, ekValueSafeStr(index), ekFalse);
         if(mapEntry && mapEntry->valuePtr)
         {
             if(lvalue)
@@ -87,13 +88,14 @@ ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
     return newType->id;
 }
 
-ekS32 ekValueTypeId(struct ekContext *E, const char *name)
+ekS32 ekValueTypeId(struct ekContext *E, int format)
 {
     ekS32 i;
     for(i=0; i<ekArraySize(E, &E->types); ++i)
     {
         ekValueType *t = E->types[i];
-        if(!strcmp(t->name, name))
+
+        if(t->format && (t->format == format))
         {
             return i;
         }

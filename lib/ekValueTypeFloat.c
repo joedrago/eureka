@@ -133,7 +133,7 @@ static ekU32 ekiFloat(struct ekContext *E, ekU32 argCount)
 
 void ekValueTypeRegisterFloat(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "float");
+    ekValueType *type = ekValueTypeCreate(E, "float", 'f');
     type->funcClone      = floatFuncClone;
     type->funcToBool     = floatFuncToBool;
     type->funcToInt      = floatFuncToInt;

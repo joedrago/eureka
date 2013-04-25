@@ -42,7 +42,7 @@ ekS32 ekValueDebugHighWatermark()
 
 // ---------------------------------------------------------------------------
 
-ekValue *ekValueCreate(ekContext *E)
+ekValue *ekValueCreate(ekContext *E, int type)
 {
     ekValue *value;
     if(ekArraySize(E, &E->freeValues) > 0)
@@ -66,6 +66,7 @@ ekValue *ekValueCreate(ekContext *E)
 #endif
     }
     value->refs = 1;
+    value->type = type;
     return value;
 }
 
@@ -133,8 +134,7 @@ void ekValueRemoveRef(struct ekContext *E, ekValue *p)
 
 ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_INT;
+    ekValue *p = ekValueCreate(E, EVT_INT);
     p->intVal = v;
     ekTraceValues(("ekValueCreateInt %p [%d]\n", p, v));
     return p;
@@ -142,8 +142,7 @@ ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v)
 
 ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_FLOAT;
+    ekValue *p = ekValueCreate(E, EVT_FLOAT);
     p->floatVal = v;
     ekTraceValues(("ekValueCreateFloat %p [%f]\n", p, v));
     return p;
@@ -151,8 +150,7 @@ ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v)
 
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_STRING;
+    ekValue *p = ekValueCreate(E, EVT_STRING);
     ekStringSetK(E, &p->stringVal, s);
     ekTraceValues(("ekValueCreateKString %p\n", p));
     return p;
@@ -160,8 +158,7 @@ ekValue *ekValueCreateKString(struct ekContext *E, const char *s)
 
 ekValue *ekValueCreateString(struct ekContext *E, const char *s)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_STRING;
+    ekValue *p = ekValueCreate(E, EVT_STRING);
     ekStringSet(E, &p->stringVal, s);
     ekTraceValues(("ekValueCreateString %p\n", p));
     return p;
@@ -169,8 +166,7 @@ ekValue *ekValueCreateString(struct ekContext *E, const char *s)
 
 ekValue *ekValueCreateStringLen(struct ekContext *E, const char *s, ekS32 len)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_STRING;
+    ekValue *p = ekValueCreate(E, EVT_STRING);
     ekStringSetLen(E, &p->stringVal, s, len);
     ekTraceValues(("ekValueCreateStringLen %p\n", p));
     return p;
@@ -178,8 +174,7 @@ ekValue *ekValueCreateStringLen(struct ekContext *E, const char *s, ekS32 len)
 
 ekValue *ekValueDonateString(struct ekContext *E, char *s)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_STRING;
+    ekValue *p = ekValueCreate(E, EVT_STRING);
     ekStringDonate(E, &p->stringVal, s);
     ekTraceValues(("ekValueDonateString %p\n", p));
     return p;
@@ -187,8 +182,7 @@ ekValue *ekValueDonateString(struct ekContext *E, char *s)
 
 ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_BLOCK;
+    ekValue *p = ekValueCreate(E, EVT_BLOCK);
     p->closureVars = NULL;
     p->blockVal = block;
     ekTraceValues(("ekValueCreateFunction %p\n", p));
@@ -197,8 +191,7 @@ ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block)
 
 ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_CFUNCTION;
+    ekValue *p = ekValueCreate(E, EVT_CFUNCTION);
     p->cFuncVal = func;
     ekTraceValues(("ekValueCreateCFunction %p\n", p));
     return p;
@@ -206,8 +199,7 @@ ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func)
 
 ekValue *ekValueCreateRef(struct ekContext *E, struct ekValue **ref)
 {
-    ekValue *p = ekValueCreate(E);
-    p->type = EVT_REF;
+    ekValue *p = ekValueCreate(E, EVT_REF);
     p->refVal = ref;
     ekTraceValues(("ekValueCreateRef %p\n", p));
     return p;
@@ -331,9 +323,8 @@ ekBool ekValueTestInherits(struct ekContext *E, ekValue *child, ekValue *parent)
 
 ekValue *ekValueCreateArray(struct ekContext *E)
 {
-    ekValue *p = ekValueCreate(E);
+    ekValue *p = ekValueCreate(E, EVT_ARRAY);
     p->arrayVal = NULL;
-    p->type = EVT_ARRAY;
     return p;
 }
 
@@ -348,7 +339,7 @@ void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v)
 
 ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa)
 {
-    ekValue *p = ekValueCreate(E);
+    ekValue *p = ekValueCreate(E, EVT_OBJECT);
     if(firstArgIsa)
     {
         ekAssert(argCount);
@@ -373,7 +364,6 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 arg
         }
     }
     p->objectVal = ekObjectCreate(E, isa);
-    p->type = EVT_OBJECT;
 
     if(argCount)
     {
@@ -436,6 +426,15 @@ ekS32 ekValueLength(struct ekContext *E, ekValue *p)
     return ekValueTypeSafeCall(p->type, Length)(E, p);
 }
 
+const char *ekValueSafeStr(ekValue *stringValue)
+{
+    if(!stringValue || (stringValue->type != EVT_STRING))
+    {
+        return "";
+    }
+    return ekStringSafePtr(&stringValue->stringVal);
+}
+
 void ekValueCloneData(struct ekContext *E, ekValue *dst, ekValue *src)
 {
     dst->type = src->type;
@@ -444,7 +443,7 @@ void ekValueCloneData(struct ekContext *E, ekValue *dst, ekValue *src)
 
 ekValue *ekValueClone(struct ekContext *E, ekValue *p)
 {
-    ekValue *n = ekValueCreate(E);
+    ekValue *n = ekValueCreate(E, p->type);
     ekValueCloneData(E, n, p);
     ekTraceValues(("ekValueClone %p -> %p\n", p, n));
     return n;

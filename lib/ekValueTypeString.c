@@ -32,8 +32,8 @@ static ekU32 stringIntrinsicSplit(struct ekContext *E, ekU32 argCount)
 
     a = ekValueCreateArray(E);
     {
-        const char *front = ekStringSafePtr(&str->stringVal);
-        const char *seps = ekStringSafePtr(&sep->stringVal);
+        const char *front = ekValueSafeStr(str);
+        const char *seps = ekValueSafeStr(sep);
         while(*front)
         {
             ekS32 split = strcspn(front, seps);
@@ -69,11 +69,11 @@ static ekU32 stringIntrinsicJoin(struct ekContext *E, ekU32 argCount)
         ekValue *v = a->arrayVal[i];
         if(i)
         {
-            ekStringConcat(E, &str->stringVal, ekStringSafePtr(&sep->stringVal));
+            ekStringConcat(E, &str->stringVal, ekValueSafeStr(sep));
         }
         ekValueAddRefNote(E, v, "converting to string, but keeping in array");
         v = ekValueToString(E, v);
-        ekStringConcat(E, &str->stringVal, ekStringSafePtr(&v->stringVal));
+        ekStringConcat(E, &str->stringVal, ekValueSafeStr(v));
         ekValueRemoveRefNote(E, v, "done with temp string");
     }
 
@@ -240,7 +240,7 @@ static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekV
 
 void ekValueTypeRegisterString(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "string");
+    ekValueType *type = ekValueTypeCreate(E, "string", 's');
     type->funcClear      = stringFuncClear;
     type->funcClone      = stringFuncClone;
     type->funcToBool     = stringFuncToBool;

@@ -54,7 +54,7 @@ static void blockFuncDump(struct ekContext *E, ekDumpParams *params, struct ekVa
 
 void ekValueTypeRegisterBlock(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "block");
+    ekValueType *type = ekValueTypeCreate(E, "block", 0);
     type->funcClear      = blockFuncClear;
     type->funcClone      = blockFuncClone;
     type->funcToBool     = blockFuncToBool;
