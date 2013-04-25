@@ -241,6 +241,7 @@ static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
                     printf("%f", v->floatVal);
                     break;
                 default:
+                    ekValueAddRefNote(E, v, "keeping ref for print's default ToString (symmetry with PopValues)");
                     v = ekValueToString(E, v);
                     printf("%s", ekStringSafePtr(&v->stringVal));
                     ekValueRemoveRefNote(E, v, "done with temp string (default)");
