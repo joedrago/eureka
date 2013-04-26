@@ -46,10 +46,10 @@ void ekSyntaxDestroy(struct ekContext *E, ekSyntax *syntax)
     ekFree(syntax);
 }
 
-ekSyntax *ekSyntaxCreateKString(struct ekContext *E, struct ekToken *token)
+ekSyntax *ekSyntaxCreateKString(struct ekContext *E, struct ekToken *token, int isRegex)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_KSTRING, token->line);
-    syntax->v.s = ekTokenToString(E, token);
+    syntax->v.s = ekTokenToString(E, token, isRegex);
     return syntax;
 }
 
@@ -78,7 +78,7 @@ ekSyntax *ekSyntaxCreateKFloat(struct ekContext *E, struct ekToken *token, ekU32
 ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *E, struct ekToken *token)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_IDENTIFIER, token->line);
-    syntax->v.s = ekTokenToString(E, token);
+    syntax->v.s = ekTokenToString(E, token, 0);
     return syntax;
 }
 
@@ -252,7 +252,7 @@ ekSyntax *ekSyntaxCreateFor(struct ekContext *E, ekSyntax *vars, ekSyntax *iter,
 ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *E, struct ekToken *name, ekSyntax *args, ekSyntax *body, ekS32 line)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_FUNCTION, line);
-    syntax->v.s = (name) ? ekTokenToString(E, name) : NULL;
+    syntax->v.s = (name) ? ekTokenToString(E, name, 0) : NULL;
     syntax->l.p = args;
     syntax->r.p = body;
     syntax->line = line;
@@ -264,7 +264,7 @@ ekSyntax *ekSyntaxCreateFunctionArgs(struct ekContext *E, ekSyntax *args, struct
     ekS32 line = (args) ? args->line : (varargs) ? varargs->line : 0;
     ekSyntax *syntax = ekSyntaxCreate(E, EST_FUNCTION_ARGS, line);
     syntax->l.p = args;
-    syntax->v.s = (varargs) ? ekTokenToString(E, varargs) : NULL;
+    syntax->v.s = (varargs) ? ekTokenToString(E, varargs, 0) : NULL;
     return syntax;
 }
 

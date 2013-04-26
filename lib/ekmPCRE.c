@@ -16,6 +16,17 @@
 
 #define EUREKA_MAX_REGEX_VECTORS (30)
 
+// ---------------------------------------------------------------------------
+// Data Structures
+
+typedef struct ekRegex
+{
+    ekValue *filename;
+    FILE *handle;
+    int state;
+} ekFile;
+
+
 static ekS32 ekRegexOptionsToPCREFlags(const char *options)
 {
     ekS32 pcreFlags = 0;
@@ -47,9 +58,9 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     ekS32 regexErrorOffset;
     ekS32 regexVectors[EUREKA_MAX_REGEX_VECTORS];
 
-    if(!ekContextGetArgs(E, argCount, "ss|s", &pattern, &subject, &options))
+    if(!ekContextGetArgs(E, argCount, "ss|s", &subject, &pattern, &options))
     {
-        return ekContextArgsFailure(E, argCount, "regex_match([string] pattern, [string] subject, [optional string] options)");
+        return ekContextArgsFailure(E, argCount, "match([string] subject, [string] pattern, [optional string] options)");
     }
 
     if(options)
@@ -60,14 +71,12 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     regex = pcre_compile(ekStringSafePtr(&pattern->stringVal), regexFlags, &regexError, &regexErrorOffset, NULL);
     if(regex)
     {
-        ekS32 len = strlen(ekStringSafePtr(&subject->stringVal));
-        ekS32 err = pcre_exec(regex, 0, ekStringSafePtr(&subject->stringVal), len, 0, 0, regexVectors, EUREKA_MAX_REGEX_VECTORS);
+        ekS32 len = strlen(ekValueSafeStr(subject));
+        ekS32 err = pcre_exec(regex, 0, ekValueSafeStr(subject), len, 0, 0, regexVectors, EUREKA_MAX_REGEX_VECTORS);
         if(err > 0)
         {
             ekS32 i;
             matches = ekValueCreateArray(E);
-            //results = ekValueObjectCreate(E, NULL, 0);
-            //ekValueObjectSetMember(E, results, "matches", matches);
             results = matches;
             for(i=0; i<err; i++)
             {
@@ -90,5 +99,5 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
 
 void ekModuleRegisterPCRE(struct ekContext *E)
 {
-    ekContextAddIntrinsic(E, "regex_match", regex_match);
+    ekContextAddIntrinsic(E, "match", regex_match);
 }

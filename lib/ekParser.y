@@ -371,7 +371,10 @@ expression(EXPR) ::= NEGATIVE FLOATNUM(F).
     { EXPR = ekSyntaxCreateKFloat(C->E, &F, CKO_NEGATIVE); }
 
 expression(EXPR) ::= LITERALSTRING(L).
-    { EXPR = ekSyntaxCreateKString(C->E, &L); }
+    { EXPR = ekSyntaxCreateKString(C->E, &L, 0); }
+
+expression(EXPR) ::= REGEXSTRING(R).
+    { EXPR = ekSyntaxCreateKString(C->E, &R, 1); }
 
 expression(EXPR) ::= NULL(N).
     { EXPR = ekSyntaxCreateNull(C->E, N.line); }
@@ -423,10 +426,10 @@ lvalue_indexable(L) ::= lvalue_indexable(ARRAY) OPENBRACKET expression(INDEX) CL
     { L = ekSyntaxCreateIndex(C->E, ARRAY, INDEX, ekFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) PERIOD IDENTIFIER(MEMBER).
-    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER), ekFalse); }
+    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER, 0), ekFalse); }
 
 lvalue_indexable(L) ::= lvalue_indexable(OBJECT) COLONCOLON IDENTIFIER(MEMBER).
-    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER), ekTrue); }
+    { L = ekSyntaxCreateIndex(C->E, OBJECT, ekSyntaxCreateKString(C->E, &MEMBER, 0), ekTrue); }
 
 lvalue_indexable(L) ::= IDENTIFIER(I).
     { L = ekSyntaxCreateIdentifier(C->E, &I); }

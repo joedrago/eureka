@@ -71,5 +71,6 @@
 #define ETT_INTEGER                        71
 #define ETT_FLOATNUM                       72
 #define ETT_LITERALSTRING                  73
-#define ETT_NULL                           74
-#define ETT_VAR                            75
+#define ETT_REGEXSTRING                    74
+#define ETT_NULL                           75
+#define ETT_VAR                            76

@@ -24,6 +24,8 @@ syn match   eurekaLineComment      "#.*" contains=@Spell,eurekaCommentTodo
 syn match   eurekaCommentSkip      "^[ \t]*\*\($\|[ \t]\+\)"
 syn region  eurekaComment          start="/\*"  end="\*/" contains=@Spell,eurekaCommentTodo
 syn match   eurekaSpecial          "\\\d\d\d\|\\."
+syn region  eurekaStringR1         start=+r"+  skip=+\\\\\|\\"+  end=+"\|$+    contains=eurekaSpecial,@htmlPreproc
+syn region  eurekaStringR2         start=+@+  skip=+\\\\\|\\@+  end=+@\|$+    contains=eurekaSpecial,@htmlPreproc
 syn region  eurekaStringD          start=+"+  skip=+\\\\\|\\"+  end=+"\|$+    contains=eurekaSpecial,@htmlPreproc
 syn region  eurekaStringS          start=+'+  skip=+\\\\\|\\'+  end=+'\|$+    contains=eurekaSpecial,@htmlPreproc
 
@@ -78,6 +80,8 @@ if version >= 508 || !exists("did_eureka_syn_inits")
   HiLink eurekaLineComment      Comment
   HiLink eurekaCommentTodo      Todo
   HiLink eurekaSpecial          Special
+  HiLink eurekaStringR1         String
+  HiLink eurekaStringR2         String
   HiLink eurekaStringS          String
   HiLink eurekaStringD          String
   HiLink eurekaCharacter        Character

@@ -129,7 +129,7 @@ ekToken *ekTokenClone(struct ekContext *E, ekToken *token)
     return ret;
 }
 
-char *ekTokenToString(struct ekContext *E, ekToken *t)
+char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
 {
     const char *src = t->text;
     const char *end = src + t->len;
@@ -137,61 +137,96 @@ char *ekTokenToString(struct ekContext *E, ekToken *t)
     char *dst = str;
     ekBool escaped = ekFalse;
 
-    // Remove outer quotes
-    if(t->len > 1)
+    if(isRegex) // Completely unescaped. Backslashes are passed directly as-is to PCRE
     {
-        if(*src == '\"')
-        {
-            src++;
-        }
-        if(*(end - 1) == '\"')
-        {
-            end--;
-        }
-    }
+        int len;
 
-    // The unescaped string should always be smaller or the same size,
-    // so len+1 should be fine for now. Replace with actual len calc.
-
-    while(src != end)
-    {
-        if(escaped)
+        if(t->len > 1)
         {
-            switch(*src)
+            if(*src == 'r')
             {
-                case '\\':
-                    *dst = '\\';
-                    break;
-                case 't':
-                    *dst = '\t';
-                    break;
-                case 'n':
-                    *dst = '\n';
-                    break;
-
-                default:
-                    *dst = *src; // anything else should just be pass-through, such as \"
+                ++src;
+                if(*src == '"')
+                {
+                    src++;
+                }
+                if(*(end - 1) == '"')
+                {
+                    end--;
+                }
             }
-            escaped = ekFalse;
-        }
-        else
-        {
-            if(*src == '\\')
+            else if(*src == '@')
             {
-                escaped = ekTrue;
                 src++;
-                continue;
+            }
+            if(*(end - 1) == '@')
+            {
+                end--;
+            }
+        }
+        
+        len = (int)(end - src);
+        memcpy(dst, src, len);
+        dst[len] = 0;
+    }
+    else
+    {
+        // Remove outer quotes
+        if(t->len > 1)
+        {
+            if(*src == '\"')
+            {
+                src++;
+            }
+            if(*(end - 1) == '\"')
+            {
+                end--;
+            }
+        }
+
+        // The unescaped string should always be smaller or the same size,
+        // so len+1 should be fine for now. Replace with actual len calc.
+
+        while(src != end)
+        {
+            if(escaped)
+            {
+                switch(*src)
+                {
+                    case '\\':
+                        *dst = '\\';
+                        break;
+                    case 't':
+                        *dst = '\t';
+                        break;
+                    case 'n':
+                        *dst = '\n';
+                        break;
+
+                    default:
+                        *dst = *src; // anything else should just be pass-through, such as \"
+                }
+                escaped = ekFalse;
             }
             else
             {
-                *dst = *src;
+                if(*src == '\\')
+                {
+                    escaped = ekTrue;
+                    src++;
+                    continue;
+                }
+                else
+                {
+                    *dst = *src;
+                }
             }
-        }
 
-        dst++;
-        src++;
+            dst++;
+            src++;
+        }
+        *dst = 0;
     }
-    *dst = 0;
     return str;
 }
 

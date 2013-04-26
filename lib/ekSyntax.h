@@ -116,7 +116,7 @@ enum
 };
 
 ekSyntax *ekSyntaxCreate(struct ekContext *E, ekU32 type, ekS32 line);
-ekSyntax *ekSyntaxCreateKString(struct ekContext *E, struct ekToken *token);
+ekSyntax *ekSyntaxCreateKString(struct ekContext *E, struct ekToken *token, int isRegex);
 ekSyntax *ekSyntaxCreateKInt(struct ekContext *E, struct ekToken *token, ekU32 opts);
 ekSyntax *ekSyntaxCreateKFloat(struct ekContext *E, struct ekToken *token, ekU32 opts);
 ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *E, struct ekToken *token);

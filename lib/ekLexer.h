@@ -30,7 +30,7 @@ typedef struct ekToken
 
 ekToken *ekTokenClone(struct ekContext *E, ekToken *token);
 
-char *ekTokenToString(struct ekContext *E, ekToken *t); // ekAlloc's a string copy
+char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex); // ekAlloc's a string copy
 ekS32 ekTokenToInt(struct ekContext *E, ekToken *t);
 float ekTokenToFloat(struct ekContext *E, ekToken *t);
 
