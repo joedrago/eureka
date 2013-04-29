@@ -107,6 +107,7 @@ ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 arg
 
 // Special calls for arrays
 void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v);
+void ekValueArrayClear(struct ekContext *E, ekValue *p);
 
 // Special calls for refs
 ekBool ekValueSetRefVal(struct ekContext *E, ekValue *ref, ekValue *p);

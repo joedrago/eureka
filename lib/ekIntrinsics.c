@@ -30,7 +30,7 @@ static ekU32 ekiEval(struct ekContext *E, ekU32 argCount)
             ekValue *v = ekContextGetArg(E, i, argCount);
             if(v->type == EVT_STRING)
             {
-                ekContextEval(E, ekStringSafePtr(&v->stringVal), 0);
+                ekContextEval(E, ekStringSafePtr(&v->stringVal), 0, NULL);
                 if(E->error)
                 {
                     // steal the error from the VM so we can recover and THEN give it back as a ekValue

@@ -24,8 +24,8 @@ typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext *E, struct e
 typedef struct ekValue *(*ekValueTypeFuncReverse)(struct ekContext *E, struct ekValue *p);
 typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op);
-typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult);
-typedef ekS32 (*ekValueTypeFuncLength)(struct ekContext *E, struct ekValue *p);
+typedef ekBool(*ekValueTypeFuncCmp)(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult);
+typedef ekS32(*ekValueTypeFuncLength)(struct ekContext *E, struct ekValue *p);
 typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext *E, struct ekValue *p, struct ekValue *index, ekBool lvalue);
 typedef void (*ekValueTypeFuncDump)(struct ekContext *E, ekDumpParams *params, struct ekValue *p); // creates debug text representing value, caller responsible for ekFree()
 

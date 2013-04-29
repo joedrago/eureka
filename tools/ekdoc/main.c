@@ -690,18 +690,18 @@ void ekdOutputText(ekdNode *root, char **output)
                 break;
             case TYPE_TITLE1:
             case TYPE_TITLE2:
+            {
+                int i;
+                char c = (n->type == TYPE_TITLE1) ? '-' : '=';
+                dsConcatf(output, "%s\n", n->text);
+                for(i=0; i < strlen(n->text); ++i)
                 {
-                    int i;
-                    char c = (n->type == TYPE_TITLE1) ? '-' : '=';
-                    dsConcatf(output, "%s\n", n->text);
-                    for(i=0; i < strlen(n->text); ++i)
-                    {
-                        dsConcatf(output, "%c", c);
-                    }
-                    dsConcatf(output, "\n");
-
+                    dsConcatf(output, "%c", c);
                 }
-                break;
+                dsConcatf(output, "\n");
+
+            }
+            break;
         };
     }
 }

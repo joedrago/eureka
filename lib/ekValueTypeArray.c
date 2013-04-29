@@ -130,7 +130,7 @@ static ekU32 arrayIntrinsicSort(struct ekContext *E, ekU32 argCount)
     for(i = 0; i < size; ++i)
     {
         int insertIndex = ekArraySize(E, &newa->arrayVal);
-        for( ; insertIndex > 0; --insertIndex)
+        for(; insertIndex > 0; --insertIndex)
         {
             if(ekValueCmp(E, newa->arrayVal[insertIndex - 1], a->arrayVal[i]) < 0)
             {
@@ -151,7 +151,7 @@ static ekU32 arrayIntrinsicSort(struct ekContext *E, ekU32 argCount)
 
 static void arrayFuncClear(struct ekContext *E, struct ekValue *p)
 {
-    ekArrayDestroy(E, &p->arrayVal, (ekDestroyCB)ekValueRemoveRefHashed);
+    ekArrayDestroy(E, &p->arrayVal, (ekDestroyCB)ekValueRemoveRefArray);
 }
 
 static void arrayFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)

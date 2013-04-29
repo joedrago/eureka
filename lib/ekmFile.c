@@ -128,7 +128,7 @@ static ekValue *readLineInternal(struct ekContext *E, ekFile *file, int chomp)
                     int advance = (int)(sepLoc - readBuffer + 1); // how much to advance the file pointer?
                     if(chomp)
                     {
-                        while((*sepLoc == '\n') || (*sepLoc == '\r') )
+                        while((*sepLoc == '\n') || (*sepLoc == '\r'))
                         {
                             --sepLoc;
                         }
@@ -158,7 +158,7 @@ static ekValue *readLineInternal(struct ekContext *E, ekFile *file, int chomp)
     return ret;
 }
 
-static ekValue * absolutePath(struct ekContext *E, ekValue *path)
+static ekValue *absolutePath(struct ekContext *E, ekValue *path)
 {
     char temppath[MAX_PATH_LENGTH];
     realpath(ekValueSafeStr(path), temppath);

@@ -96,7 +96,7 @@ static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
     return !chunk->hasFuncs;
 }
 
-void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts)
+void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValue *result)
 {
     ekChunk *chunk;
     ekCompiler *compiler;
@@ -162,7 +162,7 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts)
 #endif
                 // Execute the chunk's block
                 ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, ekValueNullPtr, NULL);
-                ekContextLoop(E, ekTrue);
+                ekContextLoop(E, ekTrue, result);
 
 #ifdef EUREKA_TRACE_EXECUTION
                 ekTraceExecution(("---  end  chunk execution ---\n"));
@@ -606,7 +606,7 @@ ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount)
     {
         return iter(E, argCount);
     }
-    
+
     // Left the argument on the stack, so return 1
     return 1;
 }
@@ -703,7 +703,7 @@ ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char
     }
     if(ekContextCall(E, &frame, thisVal, func, argCount))
     {
-        ekContextLoop(E, ekTrue);
+        ekContextLoop(E, ekTrue, NULL);
         return ekTrue;
     }
     return ekFalse;
@@ -833,7 +833,7 @@ static void ekContextLogState(ekContext *E)
 // ------------------------------------------------------------------------------------------------
 // VM / Opcode Interpreter
 
-void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
+void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
 {
     ekFrame *frame = ekArrayTop(E, &E->frames);
     ekBool continueLooping = ekTrue;
@@ -1142,6 +1142,12 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                 {
                     ekArrayPop(E, &E->stack);
                 }
+                if(result)
+                {
+                    ekValueArrayClear(E, result);
+                    ekValueAddRefNote(E, val, "remembering VSET in eval result");
+                    ekValueArrayPush(E, result, val);
+                }
                 continueLooping = ekValueSetRefVal(E, ref, val);
                 ekValueRemoveRefNote(E, ref, "VSET temporary reference");
                 if(!operand)
@@ -1263,10 +1269,25 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
             case EOP_POP:
             {
                 ekS32 i;
-                for(i = 0; i < operand; i++)
+                if(result)
                 {
-                    ekValue *v = ekArrayPop(E, &E->stack);
-                    ekValueRemoveRefNote(E, v, "POP");
+                    ekValueArrayClear(E, result);
+                    for(i = 0; i < operand; i++)
+                    {
+                        ekValue *v = ekArrayPop(E, &E->stack);
+#ifdef EUREKA_TRACE_REFS
+                        ekValueTraceRefs(E, v, 0, "ownership transferred to result");
+#endif
+                        ekValueArrayPush(E, result, v);
+                    }
+                }
+                else
+                {
+                    for(i = 0; i < operand; i++)
+                    {
+                        ekValue *v = ekArrayPop(E, &E->stack);
+                        ekValueRemoveRefNote(E, v, "POP");
+                    }
                 }
             }
             break;
@@ -1439,7 +1460,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop)
                     performLeave = !cond->intVal; // don't leave if expr is true!
                     ekValueRemoveRefNote(E, cond, "LEAVE cond done");
                 }
-                else if (operand == 2)
+                else if(operand == 2)
                 {
                     ekValue *cond = ekArrayPop(E, &E->stack);
                     performLeave = (cond->type == EVT_NULL);

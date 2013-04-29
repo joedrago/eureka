@@ -83,7 +83,7 @@ typedef struct ekContext
 ekContext *ekContextCreate(ekMemoryInfo *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
 void ekContextDestroy(ekContext *E);
 
-void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts);
+void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValue *result);
 void ekContextRecover(ekContext *E); // cleans out frames, clears error
 
 void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...);
@@ -111,7 +111,7 @@ struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, e
 ekBool ekContextCall(struct ekContext *E, struct ekFrame **framePtr, ekValue *thisVal, ekValue *callable, ekS32 argCount);
 struct ekFrame *ekContextPopFrames(struct ekContext *E, ekU32 frameTypeToFind, ekBool keepIt);
 
-void ekContextLoop(struct ekContext *E, ekBool stopAtPop); // stopAtPop means to stop processing if we ever have less frames than we started with
+void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result); // stopAtPop means to stop processing if we ever have less frames than we started with
 
 ekBool ekContextCallFuncByName(struct ekContext *E, ekValue *thisVal, const char *name, ekS32 argCount); // returns whether or not it found it
 ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCount, ekValue *thisVal, ekValue *closure);

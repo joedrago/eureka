@@ -164,7 +164,7 @@ char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
                 end--;
             }
         }
-        
+
         len = (int)(end - src);
         memcpy(dst, src, len);
         dst[len] = 0;

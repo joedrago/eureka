@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
                 code = loadFile(script);
                 if(code)
                 {
-                    ekContextEval(E, code, evalOpts);
+                    ekContextEval(E, code, evalOpts, NULL);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));
@@ -180,12 +180,25 @@ int main(int argc, char *argv[])
 
                 if(code)
                 {
-                    ekContextEval(E, code, evalOpts);
+                    ekValue *result = ekValueCreateArray(E);
+                    ekContextEval(E, code, evalOpts, result);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));
                         ekContextRecover(E);
                     }
+                    else
+                    {
+                        int i;
+                        for(i = 0; i < ekArraySize(E, &result->arrayVal); ++i)
+                        {
+                            ekDumpParams *dump = ekDumpParamsCreate(E);
+                            ekValueDump(E, dump, result->arrayVal[i]);
+                            printf("=> %s\n", ekStringSafePtr(&dump->output));
+                            ekDumpParamsDestroy(E, dump);
+                        }
+                    }
+                    ekValueRemoveRefNote(E, result, "eval result done");
                     free(code);
                     code = NULL;
                 }

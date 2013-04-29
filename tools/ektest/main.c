@@ -33,7 +33,7 @@ int loadChunk(const char *code, ekU32 evalFlags)
     {
         char *error = NULL;
         ekContext *E = ekContextCreate(NULL);
-        ekContextEval(E, code, evalFlags);
+        ekContextEval(E, code, evalFlags, NULL);
         if(ekContextGetError(E))
         {
             error = strdup(ekContextGetError(E));

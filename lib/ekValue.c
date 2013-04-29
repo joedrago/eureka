@@ -335,6 +335,13 @@ void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v)
     ekArrayPush(E, &p->arrayVal, v);
 }
 
+void ekValueArrayClear(struct ekContext *E, ekValue *p)
+{
+    ekAssert(p->type == EVT_ARRAY);
+
+    ekArrayClear(E, &p->arrayVal, (ekDestroyCB)ekValueRemoveRefArray);
+}
+
 // ---------------------------------------------------------------------------
 
 ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa)
