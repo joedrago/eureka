@@ -26,6 +26,9 @@
 #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 #else
 #define MAX_PATH_LENGTH 2048
+#include <sys/types.h>
+#include <dirent.h>
+#define USE_DIRENT
 #endif
 
 // ---------------------------------------------------------------------------
@@ -50,10 +53,10 @@ typedef struct ekFile
 // ---------------------------------------------------------------------------
 // File Helpers
 
-static int isDir(struct ekContext *E, ekFile *file)
+static int isDir(struct ekContext *E, ekValue *filenameValue)
 {
     struct stat s;
-    if(stat(ekValueSafeStr(file->filename), &s) != -1)
+    if(stat(ekValueSafeStr(filenameValue), &s) != -1)
     {
         if(S_ISDIR(s.st_mode))
         {
@@ -185,76 +188,106 @@ static ekU32 newFile(struct ekContext *E, ekU32 argCount)
     file->filename = absolutePath(E, filenameValue); // takes ownership
     ret->ptrVal = file;
 
-    ekArrayPush(E, &E->stack, ret);
-    return 1;
+    ekContextReturn(E, ret);
+}
+
+static ekU32 fileAbs(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *filenameValue = NULL;
+    struct stat s;
+    int exists = 0;
+
+    if(!ekContextGetArgs(E, argCount, "s", &filenameValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.exists(path)");
+    }
+
+    filenameValue = absolutePath(E, filenameValue);
+
+    ekContextReturn(E, filenameValue);
 }
 
 static ekU32 fileExists(struct ekContext *E, ekU32 argCount)
 {
-    ekValue *thisValue;
-    ekFile *file;
+    ekValue *filenameValue = NULL;
     struct stat s;
     int exists = 0;
 
-    if(!ekContextGetArgs(E, argCount, "*F", &thisValue))
+    if(!ekContextGetArgs(E, argCount, "s", &filenameValue))
     {
-        return ekContextArgsFailure(E, argCount, "file.exists()");
+        return ekContextArgsFailure(E, argCount, "file.exists(path)");
     }
 
-    file = (ekFile *)thisValue->ptrVal;
-    if(stat(ekValueSafeStr(file->filename), &s) != -1)
+    if(stat(ekValueSafeStr(filenameValue), &s) != -1)
     {
         exists = 1;
     }
 
-    ekValueRemoveRefNote(E, thisValue, "fileExists doesnt need this anymore");
+    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
     ekContextReturnInt(E, exists);
+}
+
+static ekU32 fileLs(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *filenameValue = NULL;
+    ekValue *arrayValue = NULL;
+
+    if(!ekContextGetArgs(E, argCount, "s", &filenameValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.ls(dirpath)");
+    }
+
+    arrayValue = ekValueCreateArray(E);
+
+#ifdef USE_DIRENT
+    {
+        DIR *dir = opendir(ekValueSafeStr(filenameValue));
+        if(dir)
+        {
+            struct dirent *entry;
+            while(entry = readdir(dir))
+            {
+                if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+                {
+                    ekValueArrayPush(E, arrayValue, ekValueCreateString(E, entry->d_name));
+                }
+            }
+            closedir(dir);
+        }
+    }
+#endif
+
+    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
+    ekContextReturn(E, arrayValue);
 }
 
 static ekU32 fileIsDir(struct ekContext *E, ekU32 argCount)
 {
-    ekValue *thisValue;
-    int exists = 0;
-    ekValue *ret = ekValueNullPtr;
     ekValue *filenameValue;
-    ekFile *file;
+    int isdir = 0;
 
-    if(!ekContextGetArgs(E, argCount, "*F", &thisValue))
+    if(!ekContextGetArgs(E, argCount, "s", &filenameValue))
     {
-        return ekContextArgsFailure(E, argCount, "file.isdir()");
+        return ekContextArgsFailure(E, argCount, "file.isdir(path)");
     }
 
-    file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        ret = ekValueCreateInt(E, 1);
-    }
+    isdir = isDir(E, filenameValue);
 
-    ekValueRemoveRefNote(E, thisValue, "fileExists doesnt need this anymore");
-    ekArrayPush(E, &E->stack, ret);
-    return 1;
+    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
+    ekContextReturnInt(E, isdir);
 }
 
-static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
+static ekU32 fileOpenInternal(struct ekContext *E, ekValue *fileValue, ekValue *modesValue)
 {
-    ekValue *thisValue;
     ekValue *ret = ekValueNullPtr;
-    ekValue *modesValue = NULL;
-    ekFile *file;
-    const char *c;
-
-    if(!ekContextGetArgs(E, argCount, "*F|s", &thisValue, &modesValue)) // assumes "r" if absent
-    {
-        return ekContextArgsFailure(E, argCount, "file.open([string] modes)");
-    }
-
-    file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
+    ekFile *file = (ekFile *)fileValue->ptrVal;
+    if(isDir(E, file->filename))
     {
         return ekContextArgsFailure(E, 0, "file.open() does not work on directories");
     }
 
     {
+        const char *c;
         const char *modes = "r";
         int state = EFS_READ;
         if(modesValue)
@@ -280,16 +313,47 @@ static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
         switchState(E, file, state);
         if(file->handle)
         {
-            ret = thisValue;
+            ret = fileValue;
         }
         else
         {
-            ekValueRemoveRefNote(E, thisValue, "fileOpen failed, so forget about thisValue");
+            ekValueRemoveRefNote(E, fileValue, "fileOpen failed, so forget about fileValue");
         }
     }
 
-    ekArrayPush(E, &E->stack, ret); // will be Null if we failed to open, otherwise thisValue
-    return 1;
+    ekContextReturn(E, ret);
+}
+
+static ekU32 fileMemberOpen(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    ekValue *modesValue = NULL;
+    if(!ekContextGetArgs(E, argCount, "*F|s", &thisValue, &modesValue)) // assumes "r" if absent
+    {
+        return ekContextArgsFailure(E, argCount, "fileVal.open([string] modes)");
+    }
+    return fileOpenInternal(E, thisValue, modesValue);
+}
+
+
+static ekU32 fileOpen(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *fileValue = ekValueNullPtr;
+    ekValue *filenameValue;
+    ekValue *modesValue = NULL;
+    ekFile *file;
+
+    if(!ekContextGetArgs(E, argCount, "s|s", &filenameValue, &modesValue)) // assumes "r" if absent
+    {
+        return ekContextArgsFailure(E, argCount, "file.open([string] filename, [string] modes)");
+    }
+
+    fileValue = ekValueCreate(E, ekValueTypeId(E, 'F'));
+    file = (ekFile *)ekAlloc(sizeof(ekFile));
+    file->filename = absolutePath(E, filenameValue); // takes ownership
+    fileValue->ptrVal = file;
+
+    return fileOpenInternal(E, fileValue, modesValue);
 }
 
 static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
@@ -306,11 +370,6 @@ static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, 0, "file.readline() does not work on directories");
-    }
-
     if(chompValue)
     {
         chompValue = ekValueToBool(E, chompValue);
@@ -322,8 +381,7 @@ static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
     ret = readLineInternal(E, file, chomp);
 
     ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
-    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
-    return 1;
+    ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
 static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
@@ -341,11 +399,6 @@ static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, 0, "file.lines() does not work on directories");
-    }
-
     if(chompValue)
     {
         chompValue = ekValueToBool(E, chompValue);
@@ -362,8 +415,7 @@ static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
     }
 
     ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
-    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
-    return 1;
+    ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
 static ekU32 fileRead(struct ekContext *E, ekU32 argCount)
@@ -380,10 +432,6 @@ static ekU32 fileRead(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, 0, "file.read() does not work on directories");
-    }
 
     switchState(E, file, EFS_READ);
 
@@ -423,8 +471,7 @@ static ekU32 fileRead(struct ekContext *E, ekU32 argCount)
     }
 
     ekValueRemoveRefNote(E, thisValue, "fileRead no longer needs thisValue");
-    ekArrayPush(E, &E->stack, ret); // will be the data if we succesfully read
-    return 1;
+    ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
 static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
@@ -440,10 +487,6 @@ static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, 0, "file.write() does not work on directories");
-    }
 
     if((file->state != EFS_WRITE) && (file->state != EFS_APPEND))
     {
@@ -466,9 +509,37 @@ static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
 
 static ekU32 fileSize(struct ekContext *E, ekU32 argCount)
 {
-    ekValue *thisValue;
     ekValue *ret = ekValueNullPtr;
     ekValue *filenameValue;
+    ekFile *file;
+    struct stat s;
+
+    if(!ekContextGetArgs(E, argCount, "s", &filenameValue))
+    {
+        return ekContextArgsFailure(E, argCount, "file.size(path)");
+    }
+
+    if(stat(ekValueSafeStr(file->filename), &s) != -1)
+    {
+        if(S_ISDIR(s.st_mode))
+        {
+            return ekContextArgsFailure(E, 0, "file.size() does not work on directories");
+        }
+        else
+        {
+            ret = ekValueCreateInt(E, s.st_size);
+        }
+    }
+
+    ekValueRemoveRefNote(E, filenameValue, "fileSize doesnt need filename anymore");
+    ekArrayPush(E, &E->stack, ret);
+    return 1;
+}
+
+static ekU32 fileMemberSize(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *thisValue;
+    ekValue *ret = ekValueNullPtr;
     ekFile *file;
 
     if(!ekContextGetArgs(E, argCount, "*F", &thisValue))
@@ -477,34 +548,18 @@ static ekU32 fileSize(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
+
+    if(file->handle)
     {
-        return ekContextArgsFailure(E, 0, "file.size() does not work on directories");
+        int end;
+        int currentPos = ftell(file->handle);
+        fseek(file->handle, 0, SEEK_END);
+        end = ftell(file->handle);
+        fseek(file->handle, currentPos, SEEK_SET);
+        ret = ekValueCreateInt(E, end);
     }
 
-    ekContextPopValues(E, argCount); // ignore any arguments (warn?)
-
-    {
-        if(file->handle)
-        {
-            int end;
-            int currentPos = ftell(file->handle);
-            fseek(file->handle, 0, SEEK_END);
-            end = ftell(file->handle);
-            fseek(file->handle, currentPos, SEEK_SET);
-            ret = ekValueCreateInt(E, end);
-        }
-        else
-        {
-            struct stat s;
-            if(stat(ekValueSafeStr(file->filename), &s) != -1)
-            {
-                ret = ekValueCreateInt(E, s.st_size);
-            }
-        }
-    }
-
-    ekValueRemoveRefNote(E, thisValue, "fileSize doesnt need this anymore");
+    ekValueRemoveRefNote(E, thisValue, "fileMemberSize doesnt need this anymore");
     ekArrayPush(E, &E->stack, ret);
     return 1;
 }
@@ -522,10 +577,6 @@ static ekU32 fileClose(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, argCount, "file.close() does not work on directories");
-    }
 
     if(switchState(E, file, EFS_CLOSED))
     {
@@ -570,10 +621,6 @@ static ekU32 fileIterate(struct ekContext *E, ekU32 argCount)
     }
 
     file = (ekFile *)thisValue->ptrVal;
-    if(isDir(E, file))
-    {
-        return ekContextArgsFailure(E, 0, "file.iterate() does not work on directories");
-    }
 
     if(chompValue)
     {
@@ -675,9 +722,6 @@ static void ekValueTypeRegisterFile(struct ekContext *E)
     type->funcIter       = fileFuncIter;
     type->funcDump       = fileFuncDump;
 
-    ekValueTypeAddIntrinsic(E, type, "exists", fileExists);
-    ekValueTypeAddIntrinsic(E, type, "isdir", fileIsDir);
-    ekValueTypeAddIntrinsic(E, type, "open", fileOpen);
     ekValueTypeAddIntrinsic(E, type, "read", fileRead);
     ekValueTypeAddIntrinsic(E, type, "readline", fileReadLine);
     ekValueTypeAddIntrinsic(E, type, "iterate", fileIterate);
@@ -685,13 +729,24 @@ static void ekValueTypeRegisterFile(struct ekContext *E)
     ekValueTypeAddIntrinsic(E, type, "write", fileWrite);
     ekValueTypeAddIntrinsic(E, type, "size", fileSize);
     ekValueTypeAddIntrinsic(E, type, "close", fileClose);
-    // needs .files() for directories, and fileCreateIterator needs to automatically choose .files() for dirs
+
     ekValueTypeRegister(E, type);
 }
+
+static ekModuleFunc fileFuncs[] =
+{
+    { "abs", fileAbs },
+    { "open", fileOpen },
+    { "size", fileSize },
+    { "isdir", fileIsDir },
+    { "exists", fileExists },
+    { "ls", fileLs },
+
+    { NULL, NULL }
+};
 
 void ekModuleRegisterFile(struct ekContext *E)
 {
     ekValueTypeRegisterFile(E);
-
-    ekContextAddIntrinsic(E, "file", newFile);
+    ekContextAddModule(E, "file", fileFuncs);
 }

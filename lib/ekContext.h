@@ -90,12 +90,20 @@ void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFo
 void ekContextClearError(ekContext *E);
 const char *ekContextGetError(ekContext *E);
 
+typedef struct ekModuleFunc
+{
+    const char *name;
+    ekCFunction *func;
+} ekModuleFunc;
+
+void ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *funcs); // array should end in NULL
 void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
 void ekContextAddGlobal(struct ekContext *E, const char *name, ekValue *v); // takes ownership
 void ekContextPushValue(struct ekContext *E, ekValue *v);                   // takes ownership
 #define ekContextPushInt(E, I) ekContextPushValue(E, ekValueCreateInt(E, I))
 #define ekContextPushFloat(E, F) ekContextPushValue(E, ekValueCreateFloat(E, F))
 #define ekContextPushString(E, STR) ekContextPushValue(E, ekValueCreateString(E, STR))
+#define ekContextReturn(E, V) { ekContextPushValue(E, V); return 1; }
 #define ekContextReturnInt(E, I) { ekContextPushValue(E, ekValueCreateInt(E, I)); return 1; }
 #define ekContextReturnFloat(E, F) { ekContextPushValue(E, ekValueCreateFloat(E, F)) return 1; }
 #define ekContextReturnString(E, STR) { ekContextPushValue(E, ekValueCreateString(E, STR)) return 1; }
