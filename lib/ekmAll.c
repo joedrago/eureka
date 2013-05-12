@@ -11,8 +11,8 @@
 #include "ekmJSON.h"
 #endif
 
-#ifdef EUREKA_ENABLE_MOD_PCRE
-#include "ekmPCRE.h"
+#ifdef EUREKA_ENABLE_MOD_REGEX
+#include "ekmRegex.h"
 #endif
 
 void ekModuleRegisterAll(struct ekContext *E)
@@ -20,8 +20,8 @@ void ekModuleRegisterAll(struct ekContext *E)
 #ifdef EUREKA_ENABLE_MOD_JSON
     ekModuleRegisterJSON(E);
 #endif
-#ifdef EUREKA_ENABLE_MOD_PCRE
-    ekModuleRegisterPCRE(E);
+#ifdef EUREKA_ENABLE_MOD_REGEX
+    ekModuleRegisterRegex(E);
 #endif
 #ifdef EUREKA_ENABLE_MOD_FILE
     ekModuleRegisterFile(E);

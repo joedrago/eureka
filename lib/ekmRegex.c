@@ -5,9 +5,10 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#include "ekmPCRE.h"
+#include "ekmRegex.h"
 
 #include "ekValue.h"
+#include "ekValueType.h"
 #include "ekContext.h"
 
 #include <string.h>
@@ -21,10 +22,8 @@
 
 typedef struct ekRegex
 {
-    ekValue *filename;
-    FILE *handle;
-    int state;
-} ekFile;
+    pcre *regex;
+} ekRegex;
 
 
 static ekS32 ekRegexOptionsToPCREFlags(const char *options)
@@ -44,7 +43,7 @@ static ekS32 ekRegexOptionsToPCREFlags(const char *options)
     return pcreFlags;
 }
 
-static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
+static ekU32 regexMatch(struct ekContext *E, ekU32 argCount)
 {
     ekValue *pattern = NULL;
     ekValue *subject = NULL;
@@ -60,7 +59,7 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
 
     if(!ekContextGetArgs(E, argCount, "ss|s", &subject, &pattern, &options))
     {
-        return ekContextArgsFailure(E, argCount, "match([string] subject, [string] pattern, [optional string] options)");
+        return ekContextArgsFailure(E, argCount, "re.match([string] subject, [string] pattern, [optional string] options)");
     }
 
     if(options)
@@ -90,14 +89,83 @@ static ekU32 regex_match(struct ekContext *E, ekU32 argCount)
     else
     {
         // Regex compilation errors are fatal for now. I think this is good.
-        ekContextSetError(E, EVE_RUNTIME, "regex_match() error: %s", regexError);
+        ekContextSetError(E, EVE_RUNTIME, "regexMatch() error: %s", regexError);
     }
 
     ekArrayPush(E, &E->stack, results);
     return 1;
 }
 
-void ekModuleRegisterPCRE(struct ekContext *E)
+// ---------------------------------------------------------------------------
+// Regex Funcs
+
+static void regexFuncClear(struct ekContext *E, struct ekValue *p)
 {
-    ekContextAddIntrinsic(E, "match", regex_match);
+    ekRegex *regex = (ekRegex *)p->ptrVal;
+    // TODO: cleanup regex
+}
+
+static void regexFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+{
+    ekAssert(0 && "regexFuncClone not implemented");
+}
+
+static ekBool regexFuncToBool(struct ekContext *E, struct ekValue *p)
+{
+    return ekTrue;
+}
+
+static ekS32 regexFuncToInt(struct ekContext *E, struct ekValue *p)
+{
+    return 1; // ?
+}
+
+static ekF32 regexFuncToFloat(struct ekContext *E, struct ekValue *p)
+{
+    return 1.0f; // ?
+}
+
+static struct ekValue *regexFuncToString(struct ekContext *E, struct ekValue *p)
+{
+    ekValueRemoveRefNote(E, p, "regexFuncToString doesnt need regex anymore");
+    return ekValueCreateKString(E, "[regex]");
+}
+
+static void regexFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+{
+    // TODO: implement something interesting
+    ekStringConcat(E, &params->output, "regex");
+}
+
+//static ekCFunction *regexFuncIter(struct ekContext *E, struct ekValue *p)
+//{
+//    return regexCreateIterator;
+//}
+
+static void ekValueTypeRegisterRegex(struct ekContext *E)
+{
+    ekValueType *type = ekValueTypeCreate(E, "regex", 'R');
+    type->funcClear      = regexFuncClear;
+    type->funcClone      = regexFuncClone;
+    type->funcToBool     = regexFuncToBool;
+    type->funcToInt      = regexFuncToInt;
+    type->funcToFloat    = regexFuncToFloat;
+    type->funcToString   = regexFuncToString;
+    //type->funcIter       = regexFuncIter;
+    type->funcDump       = regexFuncDump;
+
+    ekValueTypeRegister(E, type);
+}
+
+static ekModuleFunc regexFuncs[] =
+{
+    { "match", regexMatch },
+
+    { NULL, NULL }
+};
+
+void ekModuleRegisterRegex(struct ekContext *E)
+{
+    ekValueTypeRegisterRegex(E);
+    ekContextAddModule(E, "re", regexFuncs);
 }

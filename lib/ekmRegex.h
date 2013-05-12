@@ -5,11 +5,11 @@
 //                  http://www.boost.org/LICENSE_1_0.txt)
 // ---------------------------------------------------------------------------
 
-#ifndef EKMPCRE_H
-#define EKMPCRE_H
+#ifndef EKMREGEX_H
+#define EKMREGEX_H
 
 #include "ekTypes.h"
 
-void ekModuleRegisterPCRE(struct ekContext *E);
+void ekModuleRegisterRegex(struct ekContext *E);
 
 #endif

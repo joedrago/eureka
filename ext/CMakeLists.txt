@@ -5,7 +5,7 @@ if(EUREKA_ENABLE_MOD_JSON)
     add_subdirectory(cJSON)
 endif()
 
-if(EUREKA_ENABLE_MOD_PCRE)
+if(EUREKA_ENABLE_MOD_REGEX)
     set(PCRE_MINIMAL_DEFAULT "OFF")
     add_subdirectory(pcre)
 endif()

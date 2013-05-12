@@ -106,11 +106,11 @@ if(EUREKA_ENABLE_MOD_JSON)
     )
 endif()
 
-if(EUREKA_ENABLE_MOD_PCRE)
+if(EUREKA_ENABLE_MOD_REGEX)
     include_directories(${PCRE_BINARY_DIR})
     set(ek_modules ${ek_modules}
-        ekmPCRE.c
-        ekmPCRE.h
+        ekmRegex.c
+        ekmRegex.h
     )
 endif()
 
