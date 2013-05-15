@@ -48,6 +48,7 @@ typedef struct ekFile
     ekValue *filename;
     FILE *handle;
     int state;
+    ekBool permanent; // permanently in a state (stdin, stdout, stderr)
 } ekFile;
 
 // ---------------------------------------------------------------------------
@@ -72,6 +73,11 @@ static int switchState(struct ekContext *E, ekFile *file, int newState)
     if(file->state == newState)
     {
         return 0;
+    }
+    if(file->permanent)
+    {
+        ekContextSetError(E, EVE_RUNTIME, "attempting to change file state on a permanent file: file.%s", ekValueSafeStr(file->filename));
+        return 0; // never change the state on a permanent file!
     }
     if(file->handle)
     {
@@ -107,7 +113,15 @@ static int switchState(struct ekContext *E, ekFile *file, int newState)
 static ekValue *readLineInternal(struct ekContext *E, ekFile *file, int chomp)
 {
     ekValue *ret = ekValueNullPtr;
-    if(file->handle)
+    if(file->handle == stdin)
+    {
+        char readBuffer[1024];
+        if(fgets(readBuffer, 1024, stdin))
+        {
+            ret = ekValueCreateString(E, readBuffer);
+        }
+    }
+    else if(file->handle)
     {
         int readBufferSize = 100;
         int startPos = ftell(file->handle);
@@ -414,7 +428,7 @@ static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
         ekValueArrayPush(E, ret, lineValue);
     }
 
-    ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
+    ekValueRemoveRefNote(E, thisValue, "lines no longer needs thisValue");
     ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
@@ -656,7 +670,10 @@ static ekU32 fileCreateIterator(struct ekContext *E, ekU32 argCount)
 static void fileFuncClear(struct ekContext *E, struct ekValue *p)
 {
     ekFile *file = (ekFile *)p->ptrVal;
-    switchState(E, file, EFS_CLOSED);
+    if(!file->permanent)
+    {
+        switchState(E, file, EFS_CLOSED);
+    }
     ekValueRemoveRefNote(E, file->filename, "file doesnt need filename anymore");
     ekFree(file);
 }
@@ -738,8 +755,25 @@ static ekModuleFunc fileFuncs[] =
     { NULL, NULL }
 };
 
+static void addPermanentFile(struct ekContext *E, ekValue *module, const char *name, FILE *f, int permanentState)
+{
+    ekValue *fileValue = ekValueCreate(E, ekValueTypeId(E, 'F'));
+    ekFile *file = (ekFile *)ekAlloc(sizeof(ekFile));
+    file->filename = ekValueCreateString(E, name);
+    file->state = permanentState;
+    file->permanent = ekTrue;
+    file->handle = f;
+    fileValue->ptrVal = file;
+
+    ekValueObjectSetMember(E, module, name, fileValue);
+}
+
 void ekModuleRegisterFile(struct ekContext *E)
 {
+    ekValue *module = ekContextAddModule(E, "file", fileFuncs);
     ekValueTypeRegisterFile(E);
-    ekContextAddModule(E, "file", fileFuncs);
+
+    addPermanentFile(E, module, "stdin", stdin, EFS_READ);
+    addPermanentFile(E, module, "stdout", stdout, EFS_WRITE);
+    addPermanentFile(E, module, "stderr", stderr, EFS_WRITE);
 }

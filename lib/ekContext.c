@@ -260,7 +260,7 @@ static ekValue *ekFindFunc(struct ekContext *E, ekValue *object, const char *nam
 // ------------------------------------------------------------------------------------------------
 // Variable / Value Stack Manipulation
 
-void ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *funcs)
+ekValue *ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *funcs)
 {
     ekValue *module = ekValueCreateObject(E, NULL, 0, ekFalse);
     for(; funcs->name; ++funcs)
@@ -268,6 +268,7 @@ void ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *fun
         ekValueObjectSetMember(E, module, funcs->name, ekValueCreateCFunction(E, funcs->func));
     }
     ekContextAddGlobal(E, name, module);
+    return module;
 }
 
 void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func)

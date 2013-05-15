@@ -96,7 +96,7 @@ typedef struct ekModuleFunc
     ekCFunction *func;
 } ekModuleFunc;
 
-void ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *funcs); // array should end in NULL
+ekValue *ekContextAddModule(struct ekContext *E, const char *name, ekModuleFunc *funcs); // array should end in NULL
 void ekContextAddIntrinsic(struct ekContext *E, const char *name, ekCFunction func);
 void ekContextAddGlobal(struct ekContext *E, const char *name, ekValue *v); // takes ownership
 void ekContextPushValue(struct ekContext *E, ekValue *v);                   // takes ownership
