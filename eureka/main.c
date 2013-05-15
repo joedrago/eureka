@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
 #endif
     {
         ekContext *E = ekContextCreate(NULL);
+        ekValue *ARGV = ekValueCreateArray(E);
         const char *script = NULL;
         char *code = NULL;
         int evalOpts = EEO_DEFAULT;
@@ -127,8 +128,9 @@ int main(int argc, char *argv[])
         }
         for(; i < argc; ++i)
         {
-            printf("script arg: %s\n", argv[i]);
+            ekValueArrayPush(E, ARGV, ekValueCreateString(E, argv[i]));
         }
+        ekContextAddGlobal(E, "ARGV", ARGV);
 
         if(!script && !repl)
         {
