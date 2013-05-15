@@ -503,8 +503,7 @@ static ekU32 fileWrite(struct ekContext *E, ekU32 argCount)
         }
     }
     ekValueRemoveRefNote(E, thisValue, "fileWrite no longer needs thisValue");
-    ekArrayPush(E, &E->stack, ret); // will be true if we successfully wrote
-    return 1;
+    ekContextReturn(E, ret); // will be true if we successfully wrote
 }
 
 static ekU32 fileSize(struct ekContext *E, ekU32 argCount)
@@ -532,8 +531,7 @@ static ekU32 fileSize(struct ekContext *E, ekU32 argCount)
     }
 
     ekValueRemoveRefNote(E, filenameValue, "fileSize doesnt need filename anymore");
-    ekArrayPush(E, &E->stack, ret);
-    return 1;
+    ekContextReturn(E, ret);
 }
 
 static ekU32 fileMemberSize(struct ekContext *E, ekU32 argCount)
@@ -560,8 +558,7 @@ static ekU32 fileMemberSize(struct ekContext *E, ekU32 argCount)
     }
 
     ekValueRemoveRefNote(E, thisValue, "fileMemberSize doesnt need this anymore");
-    ekArrayPush(E, &E->stack, ret);
-    return 1;
+    ekContextReturn(E, ret);
 }
 
 static ekU32 fileClose(struct ekContext *E, ekU32 argCount)
@@ -584,8 +581,7 @@ static ekU32 fileClose(struct ekContext *E, ekU32 argCount)
     }
 
     ekValueRemoveRefNote(E, thisValue, "fileClose doesnt need this anymore");
-    ekArrayPush(E, &E->stack, ret);
-    return 1;
+    ekContextReturn(E, ret);
 }
 
 // feeds one readline() at a time
@@ -603,8 +599,7 @@ static ekU32 fileIterator(struct ekContext *E, ekU32 argCount)
     ekContextPopValues(E, argCount);
     file = (ekFile *)fileVal->ptrVal;
     switchState(E, file, EFS_READ);
-    ekArrayPush(E, &E->stack, readLineInternal(E, file, chompVal->intVal));
-    return 1;
+    ekContextReturn(E, readLineInternal(E, file, chompVal->intVal));
 }
 
 static ekU32 fileIterate(struct ekContext *E, ekU32 argCount)
@@ -635,8 +630,7 @@ static ekU32 fileIterate(struct ekContext *E, ekU32 argCount)
     closure->closureVars = ekMapCreate(E, EMKT_STRING);
     ekMapGetS2P(E, closure->closureVars, "file") = thisValue;
     ekMapGetS2P(E, closure->closureVars, "chomp") = chompValue;
-    ekArrayPush(E, &E->stack, closure);
-    return 1;
+    ekContextReturn(E, closure);
 }
 
 static ekU32 fileCreateIterator(struct ekContext *E, ekU32 argCount)
@@ -653,8 +647,7 @@ static ekU32 fileCreateIterator(struct ekContext *E, ekU32 argCount)
     closure->closureVars = ekMapCreate(E, EMKT_STRING);
     ekMapGetS2P(E, closure->closureVars, "file") = thisValue;
     ekMapGetS2P(E, closure->closureVars, "chomp") = ekValueCreateInt(E, 0);
-    ekArrayPush(E, &E->stack, closure);
-    return 1;
+    ekContextReturn(E, closure);
 }
 
 // ---------------------------------------------------------------------------
