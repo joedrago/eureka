@@ -22,7 +22,6 @@ IntegerSuffix      = [uU] [lL]? | [lL] [uU]?;
 LongIntegerSuffix  = [uU] ([lL] [lL]) | ([lL] [lL]) [uU]?;
 Backslash          = [\\] | "??/";
 EscapeSequence     = Backslash ([abfnrtv?'"] | Backslash | "x" HexDigit+ | OctalDigit OctalDigit? OctalDigit?);
-RegexEscapeAt      = Backslash "@";
 RegexEscapeQuote   = Backslash ["];
 HexQuad            = HexDigit HexDigit HexDigit HexDigit;
 UniversalChar      = Backslash ("u" HexQuad | "U" HexQuad HexQuad);
@@ -108,9 +107,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
 
     Integer
         { return ETT_INTEGER; }
-
-    ("@" (RegexEscapeAt|any\"@"|UniversalChar)* "@")
-        { return ETT_REGEXSTRING; }
 
     ("r" ["] (RegexEscapeQuote|any\["]|UniversalChar)* ["])
         { return ETT_REGEXSTRING; }
