@@ -32,6 +32,7 @@ enum
     EOP_PUSH_KB,                       // push constant block kb[X] on top of stack
     EOP_PUSH_KI,                       // push constant ekS32 ki[X] on top of stack
     EOP_PUSH_KF,                       // push constant float kf[X] on top of stack
+    EOP_PUSH_BOOL,                     // push bool on the stack. true if X is true
     EOP_PUSH_KS,                       // push constant string ks[X] on top of stack
 
     EOP_INDEX,                         // pops [array,index], pushes array[index]. if X, push lvalue instead rvalue

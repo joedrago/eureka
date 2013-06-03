@@ -148,6 +148,14 @@ ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v)
     return p;
 }
 
+ekValue *ekValueCreateBool(struct ekContext *E, ekBool v)
+{
+    ekValue *p = ekValueCreate(E, EVT_BOOL);
+    p->intVal = v;
+    ekTraceValues(("ekValueCreateBool %p [%s]\n", p, v ? "true" : "false"));
+    return p;
+}
+
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s)
 {
     ekValue *p = ekValueCreate(E, EVT_STRING);
@@ -499,7 +507,7 @@ ekValue *ekValueDiv(struct ekContext *E, ekValue *a, ekValue *b)
 ekValue *ekValueToBool(struct ekContext *E, ekValue *p)
 {
     ekBool boolVal = ekValueTypeSafeCall(p->type, ToBool)(E, p);
-    ekValue *value = ekValueCreateInt(E, boolVal);
+    ekValue *value = ekValueCreateBool(E, boolVal);
     ekValueRemoveRefNote(E, p, "ekValueToBool");
     return value;
 }

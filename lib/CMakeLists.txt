@@ -83,6 +83,7 @@ set(ek_src
     ekValueType.h
     ekValueType.c
     ekValueTypeArray.c
+    ekValueTypeBool.c
     ekValueTypeBlock.c
     ekValueTypeCFunction.c
     ekValueTypeFloat.c

@@ -33,6 +33,7 @@ void ekOpsDump(ekOp *ops, ekS32 count)
 
                 HURR(EOP_PUSH_KI, "pki")
                 HURR(EOP_PUSH_KF, "pkf")
+                HURR(EOP_PUSH_BOOL, "pbool")
                 HURR(EOP_PUSH_KS, "pks")
 
                 HURR(EOP_INDEX, "index")

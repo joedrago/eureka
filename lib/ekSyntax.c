@@ -75,6 +75,13 @@ ekSyntax *ekSyntaxCreateKFloat(struct ekContext *E, struct ekToken *token, ekU32
     return syntax;
 }
 
+ekSyntax *ekSyntaxCreateBool(struct ekContext *E, struct ekToken *token, ekBool b)
+{
+    ekSyntax *syntax = ekSyntaxCreate(E, EST_BOOL, token->line);
+    syntax->v.i = b;
+    return syntax;
+}
+
 ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *E, struct ekToken *token)
 {
     ekSyntax *syntax = ekSyntaxCreate(E, EST_IDENTIFIER, token->line);

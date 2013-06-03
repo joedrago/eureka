@@ -71,6 +71,23 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         }
         break;
 
+        case EST_KFLOAT:
+        {
+            myOpts = "shape=house,color=blueviolet";
+            sprintf(label, "%3.3f", syntax->v.f);
+        }
+        break;
+
+        case EST_BOOL:
+        {
+            myOpts = "shape=house,color=blueviolet";
+            if(syntax->v.i)
+                sprintf(label, "true");
+            else
+                sprintf(label, "false");
+        }
+        break;
+
         case EST_IDENTIFIER:
         {
             myOpts = "shape=house";

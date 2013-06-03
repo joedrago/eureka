@@ -375,7 +375,7 @@ static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
     ekValue *thisValue;
     ekValue *ret = ekValueNullPtr;
     ekValue *chompValue = NULL;
-    int chomp = 0;
+    ekBool chomp = ekFalse;
     ekFile *file;
 
     if(!ekContextGetArgs(E, argCount, "*F|?", &thisValue, &chompValue))
@@ -387,7 +387,7 @@ static ekU32 fileReadLine(struct ekContext *E, ekU32 argCount)
     if(chompValue)
     {
         chompValue = ekValueToBool(E, chompValue);
-        chomp = chompValue->intVal;
+        chomp = chompValue->boolVal;
         ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
     }
 
@@ -404,7 +404,7 @@ static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
     ekValue *ret = ekValueNullPtr;
     ekValue *lineValue;
     ekValue *chompValue = NULL;
-    int chomp = 0;
+    ekBool chomp = ekFalse;
     ekFile *file;
 
     if(!ekContextGetArgs(E, argCount, "*F|?", &thisValue, &chompValue))
@@ -416,7 +416,7 @@ static ekU32 fileLines(struct ekContext *E, ekU32 argCount)
     if(chompValue)
     {
         chompValue = ekValueToBool(E, chompValue);
-        chomp = chompValue->intVal;
+        chomp = chompValue->boolVal;
         ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
     }
 

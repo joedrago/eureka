@@ -112,6 +112,7 @@ void ekValueTypeRegisterAllBasicTypes(struct ekContext *E)
     ekValueTypeRegisterCFunction(E);
     ekValueTypeRegisterInt(E);
     ekValueTypeRegisterFloat(E);
+    ekValueTypeRegisterBool(E);
     ekValueTypeRegisterString(E);
     ekValueTypeRegisterArray(E);
     ekValueTypeRegisterObject(E);

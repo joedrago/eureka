@@ -376,6 +376,12 @@ expression(EXPR) ::= LITERALSTRING(L).
 expression(EXPR) ::= REGEXSTRING(R).
     { EXPR = ekSyntaxCreateKString(C->E, &R, 1); }
 
+expression(EXPR) ::= TRUE(T).
+    { EXPR = ekSyntaxCreateBool(C->E, &T, ekTrue); }
+
+expression(EXPR) ::= FALSE(F).
+    { EXPR = ekSyntaxCreateBool(C->E, &F, ekFalse); }
+
 expression(EXPR) ::= NULL(N).
     { EXPR = ekSyntaxCreateNull(C->E, N.line); }
 

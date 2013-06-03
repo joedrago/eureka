@@ -110,6 +110,9 @@ int main(int argc, char *argv[])
                         case 'c':
                             evalOpts |= EEO_COMPILE;
                             break;
+                        case 'o':
+                            evalOpts |= EEO_OPTIMIZE;
+                            break;
                         case 'd':
                             evalOpts |= EEO_DUMP;
                             break;
@@ -137,7 +140,7 @@ int main(int argc, char *argv[])
             // No script to run, no request for a read-eval-print loop.
             // Clue them in on their mistake and bail out.
 
-            fprintf(stderr, "Syntax: %s [-d] [-r] [file.ek]\n", argv[0]);
+            fprintf(stderr, "Syntax: %s [-d] [-o] [-r] [file.ek]\n", argv[0]);
         }
         else
         {

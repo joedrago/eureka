@@ -80,6 +80,8 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     ":"             { return ETT_COLON; }
     "\?"            { return ETT_QUESTIONMARK; }
 
+    "true"          { return ETT_TRUE; }
+    "false"         { return ETT_FALSE; }
     "break"         { return ETT_BREAK; }
     "this"          { return ETT_THIS; }
     "while"         { return ETT_WHILE; }

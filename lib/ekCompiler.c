@@ -248,6 +248,7 @@ asmFunc(Nop);
 asmFunc(KString);
 asmFunc(KInt);
 asmFunc(KFloat);
+asmFunc(Bool);
 asmFunc(Identifier);
 asmFunc(Index);
 asmFunc(StatementExpr);
@@ -281,6 +282,7 @@ static ekAssembleInfo asmDispatch[EST_COUNT] =
     { ekAssembleKString },         // EST_KSTRING
     { ekAssembleKInt },            // EST_KINT
     { ekAssembleKFloat },          // EST_KFLOAT
+    { ekAssembleBool },            // EST_BOOL
     { ekAssembleIdentifier },      // EST_IDENTIFIER
 
     { ekAssembleIndex },           // EST_INDEX
@@ -391,6 +393,13 @@ asmFunc(KFloat)
 {
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, EOP_PUSH_KF, ek32ArrayPushUnique(E, &compiler->chunk->kFloats, (ekU32 *)&syntax->v.f), syntax->line);
+    return PAD(1);
+}
+
+asmFunc(Bool)
+{
+    ekCodeGrow(E, dst, 1);
+    ekCodeAppend(E, dst, EOP_PUSH_BOOL, syntax->v.i, syntax->line);
     return PAD(1);
 }
 

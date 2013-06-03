@@ -66,6 +66,7 @@ void ekValueTypeRegisterAllBasicTypes(struct ekContext *E);
 
 void ekValueTypeRegisterNull(struct ekContext *E);
 void ekValueTypeRegisterBlock(struct ekContext *E);
+void ekValueTypeRegisterBool(struct ekContext *E);
 void ekValueTypeRegisterCFunction(struct ekContext *E);
 void ekValueTypeRegisterInt(struct ekContext *E);
 void ekValueTypeRegisterFloat(struct ekContext *E);

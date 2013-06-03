@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("ektest [filename.ek]\n");
+            printf("ektest [-d] [-g] [-o] [filename.ek]\n");
         }
     }
 

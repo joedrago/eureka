@@ -25,6 +25,7 @@ enum
     EST_KSTRING,                       // s
     EST_KINT,                          // i
     EST_KFLOAT,                        // f
+    EST_BOOL,                          // i
     EST_IDENTIFIER,                    // s
 
     EST_INDEX,                         // l[r]  (v.i is whether to push 'this' instead of the object, if a call is requested)
@@ -119,6 +120,7 @@ ekSyntax *ekSyntaxCreate(struct ekContext *E, ekU32 type, ekS32 line);
 ekSyntax *ekSyntaxCreateKString(struct ekContext *E, struct ekToken *token, int isRegex);
 ekSyntax *ekSyntaxCreateKInt(struct ekContext *E, struct ekToken *token, ekU32 opts);
 ekSyntax *ekSyntaxCreateKFloat(struct ekContext *E, struct ekToken *token, ekU32 opts);
+ekSyntax *ekSyntaxCreateBool(struct ekContext *E, struct ekToken *token, ekBool b);
 ekSyntax *ekSyntaxCreateIdentifier(struct ekContext *E, struct ekToken *token);
 ekSyntax *ekSyntaxCreateIndex(struct ekContext *E, ekSyntax *array, ekSyntax *index, ekBool pushThis);
 ekSyntax *ekSyntaxCreateNull(struct ekContext *E, ekS32 line);

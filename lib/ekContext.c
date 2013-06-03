@@ -896,7 +896,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
                 }
                 ekValueAddRefNote(E, performSkipValue, "EOP_AND/EOP_OR skip value staying on top of stack");
                 performSkipValue = ekValueToBool(E, performSkipValue);
-                performSkip = (performSkipValue->intVal) ? ekTrue : ekFalse;
+                performSkip = performSkipValue->boolVal;
                 ekValueRemoveRefNote(E, performSkipValue, "removing skip value in bool form");
                 if(opcode == EOP_AND)
                 {
@@ -953,6 +953,13 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
             case EOP_PUSH_KF:
             {
                 ekValue *value = ekValueCreateFloat(E, *((ekF32 *)&frame->block->chunk->kFloats[operand]));
+                ekArrayPush(E, &E->stack, value);
+            }
+            break;
+
+            case EOP_PUSH_BOOL:
+            {
+                ekValue *value = ekValueCreateBool(E, operand);
                 ekArrayPush(E, &E->stack, value);
             }
             break;
@@ -1401,7 +1408,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
                 }
                 // TODO: verify ifBody/elseBody are EVT_BLOCK
                 cond = ekValueToBool(E, cond);
-                if(cond->intVal)
+                if(cond->boolVal)
                 {
                     block = ifBody->blockVal;
                 }
@@ -1468,7 +1475,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
                 {
                     ekValue *cond = ekArrayPop(E, &E->stack);
                     cond = ekValueToBool(E, cond);
-                    performLeave = !cond->intVal; // don't leave if expr is true!
+                    performLeave = !cond->boolVal; // don't leave if expr is true!
                     ekValueRemoveRefNote(E, cond, "LEAVE cond done");
                 }
                 else if(operand == 2)
@@ -1521,7 +1528,7 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
                     break;
                 };
                 value = ekValueToBool(E, value);
-                not = ekValueCreateInt(E, !value->intVal); // Double temporary?
+                not = ekValueCreateInt(E, !value->boolVal); // Double temporary?
                 ekArrayPush(E, &E->stack, not);
                 ekValueRemoveRefNote(E, value, "NOT value done");
             }

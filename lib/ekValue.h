@@ -33,6 +33,7 @@ enum
 
     EVT_INT,
     EVT_FLOAT,
+    EVT_BOOL,
     EVT_STRING,
 
     EVT_ARRAY,
@@ -60,14 +61,15 @@ typedef enum ekValueArithmeticOp
 typedef struct ekValue
 {
     ekU8 type;
-    ekS32 refs;                            // reference count!
+    ekS32 refs;                              // reference count!
     union
     {
+        ekS32 boolVal;
         ekS32 intVal;
         ekF32 floatVal;
         struct
         {
-            struct ekMap *closureVars;   // Populated at runtime when a reference to a new function() is created
+            struct ekMap *closureVars;       // Populated at runtime when a reference to a new function() is created
             union
             {
                 struct ekBlock *blockVal;    // Hurr, Shield Slam
@@ -95,6 +97,7 @@ ekValue *ekValueClone(struct ekContext *E, ekValue *p);
 
 ekValue *ekValueCreateInt(struct ekContext *E, ekS32 v);
 ekValue *ekValueCreateFloat(struct ekContext *E, ekF32 v);
+ekValue *ekValueCreateBool(struct ekContext *E, ekBool v);
 ekValue *ekValueCreateKString(struct ekContext *E, const char *s);
 ekValue *ekValueCreateString(struct ekContext *E, const char *s);
 ekValue *ekValueCreateStringLen(struct ekContext *E, const char *s, ekS32 len);
