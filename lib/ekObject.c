@@ -12,13 +12,13 @@
 #include "ekValue.h"
 #include "ekContext.h"
 
-ekObject *ekObjectCreate(struct ekContext *E, ekValue *isa)
+ekObject *ekObjectCreate(struct ekContext *E, ekValue *prototype)
 {
     ekObject *v = (ekObject *)ekAlloc(sizeof(ekObject));
-    v->isa = isa;
-    if(v->isa)
+    v->prototype = prototype;
+    if(v->prototype)
     {
-        ekValueAddRefNote(E, v->isa, "ekObject isa");
+        ekValueAddRefNote(E, v->prototype, "ekObject prototype");
     }
     v->hash = ekMapCreate(E, EMKT_STRING);
     return v;
@@ -26,9 +26,9 @@ ekObject *ekObjectCreate(struct ekContext *E, ekValue *isa)
 
 void ekObjectDestroy(struct ekContext *E, ekObject *v)
 {
-    if(v->isa)
+    if(v->prototype)
     {
-        ekValueRemoveRefNote(E, v->isa, "ekObject isa done");
+        ekValueRemoveRefNote(E, v->prototype, "ekObject prototype done");
     }
     ekMapDestroy(E, v->hash, ekValueRemoveRefHashed);
     ekFree(v);
@@ -52,9 +52,9 @@ struct ekValue **ekObjectGetRef(struct ekContext *E, ekObject *object, const cha
     }
     else if(!ref)
     {
-        if(object->isa)
+        if(object->prototype)
         {
-            return ekObjectGetRef(E, object->isa->objectVal, key, create);
+            return ekObjectGetRef(E, object->prototype->objectVal, key, create);
         }
         ref = &ekValueNullPtr;
     }

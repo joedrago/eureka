@@ -199,18 +199,18 @@ static ekU32 prototype(struct ekContext *E, ekU32 argCount)
 
     if(object && newPrototype)
     {
-        if(object->objectVal->isa)
+        if(object->objectVal->prototype)
         {
-            ekValueRemoveRefNote(E, object->objectVal->isa, "prototype removing old isa");
+            ekValueRemoveRefNote(E, object->objectVal->prototype, "prototype removing old prototype");
         }
-        object->objectVal->isa = newPrototype;
-        ekValueAddRefNote(E, object->objectVal->isa, "prototype new isa");
+        object->objectVal->prototype = newPrototype;
+        ekValueAddRefNote(E, object->objectVal->prototype, "prototype new prototype");
     }
 
-    if(object && object->objectVal->isa)
+    if(object && object->objectVal->prototype)
     {
-        ekValueAddRefNote(E, object->objectVal->isa, "prototype return isa");
-        ekArrayPush(E, &E->stack, object->objectVal->isa);
+        ekValueAddRefNote(E, object->objectVal->prototype, "prototype return prototype");
+        ekArrayPush(E, &E->stack, object->objectVal->prototype);
     }
     else
     {

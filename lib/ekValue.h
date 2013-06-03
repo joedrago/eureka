@@ -106,7 +106,7 @@ ekValue *ekValueCreateFunction(struct ekContext *E, struct ekBlock *block);
 ekValue *ekValueCreateCFunction(struct ekContext *E, ekCFunction func);
 ekValue *ekValueCreateRef(struct ekContext *E, struct ekValue **ref);
 ekValue *ekValueCreateArray(struct ekContext *E);
-ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa);
+ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *prototype, ekS32 argCount, ekBool firstArgPrototype);
 
 // Special calls for arrays
 void ekValueArrayPush(struct ekContext *E, ekValue *p, ekValue *v);

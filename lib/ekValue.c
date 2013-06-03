@@ -313,7 +313,7 @@ ekBool ekValueTestInherits(struct ekContext *E, ekValue *child, ekValue *parent)
         return ekFalse;
     }
 
-    p = child->objectVal->isa;
+    p = child->objectVal->prototype;
     while(p && (p->type == EVT_OBJECT))
     {
         if(p->objectVal == parent->objectVal)
@@ -321,7 +321,7 @@ ekBool ekValueTestInherits(struct ekContext *E, ekValue *child, ekValue *parent)
             return ekTrue;
         }
 
-        p = p->objectVal->isa;
+        p = p->objectVal->prototype;
     }
 
     return ekFalse;
@@ -352,33 +352,33 @@ void ekValueArrayClear(struct ekContext *E, ekValue *p)
 
 // ---------------------------------------------------------------------------
 
-ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *isa, ekS32 argCount, ekBool firstArgIsa)
+ekValue *ekValueCreateObject(struct ekContext *E, struct ekValue *prototype, ekS32 argCount, ekBool firstArgIsa)
 {
     ekValue *p = ekValueCreate(E, EVT_OBJECT);
     if(firstArgIsa)
     {
         ekAssert(argCount);
-        ekAssert(isa == NULL);
+        ekAssert(prototype == NULL);
 
         if(argCount)
         {
-            isa = ekContextGetArg(E, 0, argCount);
-            if(!isa || (isa->type == EVT_NULL))
+            prototype = ekContextGetArg(E, 0, argCount);
+            if(!prototype || (prototype->type == EVT_NULL))
             {
-                isa = NULL;
+                prototype = NULL;
             }
-            if(isa && (isa->type != EVT_OBJECT))
+            if(prototype && (prototype->type != EVT_OBJECT))
             {
                 ekContextSetError(E, EVE_RUNTIME, "objects can only inherit from objects");
-                isa = NULL;
+                prototype = NULL;
             }
         }
         else
         {
-            isa = NULL;
+            prototype = NULL;
         }
     }
-    p->objectVal = ekObjectCreate(E, isa);
+    p->objectVal = ekObjectCreate(E, prototype);
 
     if(argCount)
     {

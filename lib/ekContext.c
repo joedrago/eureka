@@ -241,9 +241,9 @@ static ekValue *ekFindFunc(struct ekContext *E, ekValue *object, const char *nam
     ekValue *v = *(ekObjectGetRef(E, object->objectVal, name, ekFalse));
     if(v == &ekValueNull)
     {
-        if(object->objectVal->isa)
+        if(object->objectVal->prototype)
         {
-            return ekFindFunc(E, object->objectVal->isa, name);
+            return ekFindFunc(E, object->objectVal->prototype, name);
         }
         return NULL;
     }
@@ -396,11 +396,11 @@ static ekValue *ekContextResolve(struct ekContext *E, const char *name, ekBool l
     return NULL;
 }
 
-static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *isa, ekS32 argCount)
+static ekBool ekContextCreateObject(struct ekContext *E, ekFrame **framePtr, ekValue *prototype, ekS32 argCount)
 {
     ekBool ret = ekTrue;
-    ekValue *initFunc = ekFindFunc(E, isa, "init");
-    ekValue *newObject = ekValueCreateObject(E, isa, (initFunc) ? 0 : argCount, ekFalse);
+    ekValue *initFunc = ekFindFunc(E, prototype, "init");
+    ekValue *newObject = ekValueCreateObject(E, prototype, (initFunc) ? 0 : argCount, ekFalse);
 
     if(initFunc)
     {
