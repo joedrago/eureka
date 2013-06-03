@@ -97,7 +97,7 @@ static ekU32 keys(struct ekContext *E, ekU32 argCount)
     ekValue *object;
     ekValue *arrayVal = ekValueCreateArray(E);
 
-    if(!ekContextGetArgs(E, argCount, "m", &object))
+    if(!ekContextGetArgs(E, argCount, "o", &object))
     {
         return ekContextArgsFailure(E, argCount, "keys([map/object] o)");
     }
@@ -114,7 +114,7 @@ static ekU32 objectCreateIterator(struct ekContext *E, ekU32 argCount)
     ekValue *m = NULL;
     ekValue *closure;
     ekValue *keys;
-    if(!ekContextGetArgs(E, argCount, "m", &m))
+    if(!ekContextGetArgs(E, argCount, "o", &m))
     {
         return ekContextArgsFailure(E, argCount, "pairs(map)");
     }
@@ -192,7 +192,7 @@ static ekU32 prototype(struct ekContext *E, ekU32 argCount)
 {
     ekValue *object = NULL;
     ekValue *newPrototype = NULL;
-    if(!ekContextGetArgs(E, argCount, "m|m", &object, &newPrototype))
+    if(!ekContextGetArgs(E, argCount, "o|o", &object, &newPrototype))
     {
         return ekContextArgsFailure(E, argCount, "prototype(object [, newPrototypetype])");
     }
@@ -226,7 +226,7 @@ static ekU32 prototype(struct ekContext *E, ekU32 argCount)
 
 void ekValueTypeRegisterObject(struct ekContext *E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "object", 'm'); // "map"
+    ekValueType *type = ekValueTypeCreate(E, "object", 'o');
     type->funcClear      = objectFuncClear;
     type->funcClone      = objectFuncClone;
     type->funcToBool     = objectFuncToBool;
