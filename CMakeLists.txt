@@ -94,6 +94,11 @@ if(READLINE_FOUND)
     add_definitions(-DHAVE_READLINE=1)
     include_directories(${READLINE_INCLUDE_DIR})
     set(EUREKA_COMMON_LIBS ${EUREKA_COMMON_LIBS} ${READLINE_LIBRARY})
+
+    if(APPLE)
+        # readline depends on ncurses on OSX
+        set(EUREKA_COMMON_LIBS ${EUREKA_COMMON_LIBS} ncurses)
+    endif()
 endif()
 
 add_subdirectory(ext)
