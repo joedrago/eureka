@@ -39,7 +39,7 @@ set(EUREKA_RE2C_PATH "re2c" CACHE STRING "Path to re2c executable.")
 
 set(TEST_TRACING OFF CACHE BOOL "Turn on traces suitable for running make tests")
 
-if(UNIX)
+if(UNIX OR MINGW)
     set(CMAKE_CXX_FLAGS "-g")
     set(CMAKE_C_FLAGS "-g")
 
@@ -76,6 +76,10 @@ else()
 
     if(MSVC)
         add_definitions(-DPLATFORM_WIN32)
+    endif()
+
+    if(MINGW)
+        add_definitions(-DPLATFORM_MINGW)
     endif()
 endif()
 

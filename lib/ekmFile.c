@@ -29,6 +29,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #define USE_DIRENT
+#ifdef PLATFORM_MINGW
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#endif
 #endif
 
 // ---------------------------------------------------------------------------
