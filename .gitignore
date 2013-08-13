@@ -2,3 +2,7 @@ tags
 lib/ekLexer.re.inc
 lib/ekParser.out
 /build
+
+*.sublime-project
+
+*.sublime-workspace
