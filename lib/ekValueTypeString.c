@@ -42,7 +42,9 @@ static ekU32 stringIntrinsicSplit(struct ekContext *E, ekU32 argCount)
                 ekValue *newString = ekValueCreateStringLen(E, front, split);
                 ekArrayPush(E, &a->arrayVal, newString);
             }
-            front += split + 1;
+            front += split;
+            if(*front)
+                front++; // advance past the separator
         }
     }
 
