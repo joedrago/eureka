@@ -298,7 +298,7 @@ void *ekArrayPop(struct ekContext *E, void *daptr)
 void ekArrayInsert(struct ekContext *E, void *daptr, ekSize index, void *p)
 {
     ekArray *da = ekArrayMakeRoom(E, daptr, 1);
-    if((index < 0) || (!da->size) || (index >= da->size))
+    if((!da->size) || (index >= da->size))
     {
         ekArrayPush(E, daptr, p);
     }
@@ -317,7 +317,7 @@ void ekArrayErase(struct ekContext *E, void *daptr, ekSize index)
     {
         return;
     }
-    if((index < 0) || (!da->size) || (index >= da->size))
+    if((!da->size) || (index >= da->size))
     {
         return;
     }

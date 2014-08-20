@@ -51,9 +51,7 @@ typedef enum ekValueArithmeticOp
     EVAO_ADD = 0,
     EVAO_SUB,
     EVAO_MUL,
-    EVAO_DIV,
-
-    EVAO_COUNT
+    EVAO_DIV
 } ekValueArithmeticOp;
 
 // ---------------------------------------------------------------------------

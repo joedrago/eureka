@@ -36,8 +36,8 @@ typedef struct ekMapEntry
 typedef struct ekMap
 {
     ekMapEntry **table; // Hash table daArray
-    ekSize split;         // Linear Hashing 'split'
-    ekSize mod;           // pre-split modulus (use mod*2 for overflow)
+    ekS32 split;         // Linear Hashing 'split'
+    ekS32 mod;           // pre-split modulus (use mod*2 for overflow)
     ekS32 keyType;
     ekS32 count;           // count tracking for convenience
 } ekMap;

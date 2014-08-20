@@ -262,7 +262,7 @@ static ekU32 fileLs(struct ekContext *E, ekU32 argCount)
         if(dir)
         {
             struct dirent *entry;
-            while(entry = readdir(dir))
+            while((entry = readdir(dir)) != NULL)
             {
                 if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
                 {

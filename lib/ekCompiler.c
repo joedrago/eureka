@@ -385,7 +385,7 @@ asmFunc(KString)
 asmFunc(KInt)
 {
     ekCodeGrow(E, dst, 1);
-    ekCodeAppend(E, dst, EOP_PUSH_KI, ek32ArrayPushUnique(E, &compiler->chunk->kInts, &syntax->v.i), syntax->line);
+    ekCodeAppend(E, dst, EOP_PUSH_KI, ek32ArrayPushUnique(E, &compiler->chunk->kInts, (ekU32 *)&syntax->v.i), syntax->line);
     return PAD(1);
 }
 

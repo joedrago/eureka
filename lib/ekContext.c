@@ -20,6 +20,10 @@
 #include "ekmAll.h"
 #include "ekIntrinsics.h"
 
+#ifdef EUREKA_ENABLE_EXT_DISASM
+#include "ekxDisasm.h"
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -744,7 +748,7 @@ ekBool ekContextCallCFunction(struct ekContext *E, ekCFunction func, ekU32 argCo
 }
 
 // LCOV_EXCL_START - I don't care about testing this yet.
-static ekContextFrameCleanup(struct ekContext *E, ekFrame *frame)
+static void ekContextFrameCleanup(struct ekContext *E, ekFrame *frame)
 {
     if(frame->cleanupCount)
     {

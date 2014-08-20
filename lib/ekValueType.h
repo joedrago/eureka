@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #ifndef EKVALUETYPE_H
-#define EUREKAVALUETYPE_H
+#define EKVALUETYPE_H
 
 #include "ekValue.h"
 

@@ -8,6 +8,7 @@
 #include "ekValue.h"
 
 #include "ekContext.h"
+#include "ekMap.h"
 #include "ekValueType.h"
 
 #include <stdio.h>

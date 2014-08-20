@@ -209,7 +209,7 @@ void ekMapClear(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
 
 static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *key, ekS32 autoCreate)
 {
-    ekU32 hash = (ekU32)HASHSTRING(key);
+    ekU32 hash = (ekU32)HASHSTRING((const unsigned char *)key);
     ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *entry = yh->table[index];
     for(; entry; entry = entry->next)
@@ -257,7 +257,7 @@ ekMapEntry *ekMapGetS(struct ekContext *E, ekMap *yh, const char *key, ekBool cr
 void ekMapEraseS(struct ekContext *E, ekMap *yh, const char *key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
-    ekU32 hash = (ekU32)HASHSTRING(key);
+    ekU32 hash = (ekU32)HASHSTRING((const unsigned char *)key);
     ekS32 index = linearHashCompute(yh, hash);
     ekMapEntry *prev = NULL;
     ekMapEntry *entry = yh->table[index];
@@ -711,7 +711,7 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len,
 static ekU32 murmur3string(const unsigned char *str)
 {
     ekU32 hash;
-    MurmurHash3_x86_32(str, strlen(str), 0, &hash);
+    MurmurHash3_x86_32(str, strlen((const char *)str), 0, &hash);
     return hash;
 }
 

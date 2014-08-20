@@ -242,7 +242,7 @@ static struct ekValue *arrayFuncIndex(struct ekContext *E, struct ekValue *value
     ekValue *ret = NULL;
     ekValue **ref = NULL;
 
-    if(ret = ekValueTypeGetIntrinsic(E, value->type, index, lvalue)) // Intrinsic functions have priority over regular indexing
+    if((ret = ekValueTypeGetIntrinsic(E, value->type, index, lvalue)) != 0) // Intrinsic functions have priority over regular indexing
     {
         return ret;
     }

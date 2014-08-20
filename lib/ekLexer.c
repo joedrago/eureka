@@ -241,6 +241,7 @@ ekS32 ekTokenToInt(struct ekContext *E, ekToken *t)
     temp[len] = 0;
 
     if(len && temp[0] == '0')
+    {
         if((len > 1) && (temp[1] == 'x' || temp[1] == 'X'))
         {
             base = 16;
@@ -249,6 +250,7 @@ ekS32 ekTokenToInt(struct ekContext *E, ekToken *t)
         {
             base = 8;
         }
+    }
 
     return strtol(temp, NULL, base);
 }

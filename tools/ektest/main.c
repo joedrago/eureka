@@ -7,9 +7,7 @@
 
 #include "ek.h"
 
-#ifdef EUREKA_ENABLE_EXT_GRAPH
 #include "ekxDot.h"
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
