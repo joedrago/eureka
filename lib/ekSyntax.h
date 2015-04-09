@@ -135,7 +135,7 @@ ekSyntax *ekSyntaxCreateStatementExpr(struct ekContext *E, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateAssignment(struct ekContext *E, ekSyntax *l, ekSyntax *r);
 ekSyntax *ekSyntaxCreateInherits(struct ekContext *E, ekSyntax *l, ekSyntax *r);
 ekSyntax *ekSyntaxCreateBreak(struct ekContext *E, ekS32 line);
-ekSyntax *ekSyntaxCreateReturn(struct ekContext *E, ekSyntax *expr);
+ekSyntax *ekSyntaxCreateReturn(struct ekContext *E, ekS32 line, ekSyntax *expr);
 ekSyntax *ekSyntaxCreateIfElse(struct ekContext *E, ekSyntax *cond, ekSyntax *ifBody, ekSyntax *elseBody, ekBool ternary);
 ekSyntax *ekSyntaxCreateWhile(struct ekContext *E, ekSyntax *cond, ekSyntax *body);
 ekSyntax *ekSyntaxCreateFor(struct ekContext *E, ekSyntax *vars, ekSyntax *iter, ekSyntax *body);

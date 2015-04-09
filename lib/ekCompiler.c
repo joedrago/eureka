@@ -708,7 +708,9 @@ asmFunc(Break)
 asmFunc(Return)
 {
     ekSyntax *expr = syntax->v.p;
-    ekS32 retCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, EAV_ALL_ARGS, ASM_NORMAL);
+    ekS32 retCount = 0;
+    if(expr)
+        retCount = asmDispatch[expr->type].assemble(E, compiler, dst, expr, EAV_ALL_ARGS, ASM_NORMAL);
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, EOP_RET, retCount, syntax->line);
     return PAD(0);

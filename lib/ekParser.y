@@ -167,11 +167,23 @@ statement_block(B) ::= statement(S).
 statement(S) ::= BREAK(B) ENDSTATEMENT.
     { S = ekSyntaxCreateBreak(C->E, B.line); }
 
+statement ::= BREAK error.
+    { ekCompileExplainError(C, "expected ;"); }
+
+statement(S) ::= RETURN(R) ENDSTATEMENT.
+    { S = ekSyntaxCreateReturn(C->E, R.line, NULL); }
+
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
-    { S = ekSyntaxCreateReturn(C->E, L); }
+    { S = ekSyntaxCreateReturn(C->E, L->line, L); }
+
+statement ::= RETURN expr_list error.
+    { ekCompileExplainError(C, "expected ;"); }
 
 statement(S) ::= RETURN paren_expr_list(L) ENDSTATEMENT.
-    { S = ekSyntaxCreateReturn(C->E, L); }
+    { S = ekSyntaxCreateReturn(C->E, L->line, L); }
+
+statement ::= RETURN paren_expr_list error.
+    { ekCompileExplainError(C, "expected ;"); }
 
 statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = ekSyntaxCreateStatementExpr(C->E, L); }

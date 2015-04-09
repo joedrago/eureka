@@ -222,9 +222,9 @@ ekSyntax *ekSyntaxCreateBreak(struct ekContext *E, ekS32 line)
     return syntax;
 }
 
-ekSyntax *ekSyntaxCreateReturn(struct ekContext *E, ekSyntax *expr)
+ekSyntax *ekSyntaxCreateReturn(struct ekContext *E, ekS32 line, ekSyntax *expr)
 {
-    ekSyntax *syntax = ekSyntaxCreate(E, EST_RETURN, expr->line);
+    ekSyntax *syntax = ekSyntaxCreate(E, EST_RETURN, line);
     syntax->v.p = expr;
     return syntax;
 }

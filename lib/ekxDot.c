@@ -441,7 +441,8 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
         case EST_RETURN:
         {
             strcpy(label, "Return");
-            REC_CHILD(syntax->v.p);
+            if(syntax->v.p)
+                REC_CHILD(syntax->v.p);
         }
         break;
 
