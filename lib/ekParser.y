@@ -206,6 +206,9 @@ statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN 
 statement(S) ::= FOR ident_list(VARS) IN expression(ITER) statement_block(BODY).
     { S = ekSyntaxCreateFor(C->E, VARS, ITER, BODY); }
 
+statement ::= FOR ident_list error.
+    { ekCompileExplainError(C, "expected 'in'"); }
+
 statement(S) ::= lvalue(L) PLUSEQUALS expression(R).
     { S = ekSyntaxCreateBinary(C->E, EST_ADD, L, R, ekTrue); }
 
