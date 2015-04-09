@@ -130,12 +130,13 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
 
             ekAssemble(E, compiler);
             success = ekTrue;
+
+            if(!(compileOpts & ECO_KEEP_SYNTAX_TREE))
+            {
+                ekSyntaxDestroy(E, compiler->root);
+                compiler->root = NULL;
+            };
         }
-        if(!(compileOpts & ECO_KEEP_SYNTAX_TREE))
-        {
-            ekSyntaxDestroy(E, compiler->root);
-            compiler->root = NULL;
-        };
     }
 
     ekParseFree(E, parser);
@@ -165,7 +166,7 @@ ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output)
         ekStringConcat(E, output, ":");
         appendInt(E, output, error->lineNo);
         ekStringConcat(E, output, ":");
-        appendInt(E, output, error->col);
+        appendInt(E, output, error->col + 1); // "column" in an error is 1-indexed
         ekStringConcat(E, output, ": error: ");
         ekStringConcat(E, output, ekStringSafePtr(&error->explanation));
         ekStringConcat(E, output, "\n");

@@ -1,7 +1,7 @@
 print("Length: %d\n" % length("hello there"));
 
 var a = split("a,b,c", ",");
-for(v in a)
+for v in a
 {
     print("Piece: %s\n" % v);
 }
@@ -10,7 +10,7 @@ var s = join([1,2,3,4], ",");
 print("Joined: '%s'\n" % s);
 a = split(s, ",");
 print("Split into %d items.\n" % length(a));
-for(v,i in a)
+for v,i in a
 {
     print("Item %d: '%s'\n" % (i+1, v));
 }

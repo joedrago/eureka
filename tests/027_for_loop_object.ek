@@ -22,6 +22,6 @@ var xyzIter = {
     }
 };
 
-for(b in xyzIter(a))
+for b in xyzIter(a)
 {
 }

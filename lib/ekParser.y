@@ -188,6 +188,9 @@ statement ::= RETURN paren_expr_list error.
 statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = ekSyntaxCreateStatementExpr(C->E, L); }
 
+statement ::= expr_list error.
+    { ekCompileExplainError(C, "expected ;"); }
+
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
     { S = ekSyntaxCreateIfElse(C->E, COND, IFBODY, ELSEBODY, ekFalse); }
 
@@ -200,7 +203,7 @@ statement(S) ::= WHILE expr_list(COND) statement_block(BODY).
 statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN statement_block(BODY).
     { S = ekSyntaxCreateFunctionDecl(C->E, &I, ARGS, BODY, F.line); }
 
-statement(S) ::= FOR LEFTPAREN ident_list(VARS) IN expression(ITER) RIGHTPAREN statement_block(BODY).
+statement(S) ::= FOR ident_list(VARS) IN expression(ITER) statement_block(BODY).
     { S = ekSyntaxCreateFor(C->E, VARS, ITER, BODY); }
 
 statement(S) ::= lvalue(L) PLUSEQUALS expression(R).

@@ -1,14 +1,14 @@
-for(v in sort([3,2,5,4,1]))
+for v in sort([3,2,5,4,1])
 {
     print(v, "\n");
 }
 
-for(v in sort(["b","c","a","d","e"]))
+for v in sort(["b","c","a","d","e"])
 {
     print(v, "\n");
 }
 
-for(v in sort([3,2,1,"a","b"]))
+for v in sort([3,2,1,"a","b"])
 {
     print(v, "\n");
 }
