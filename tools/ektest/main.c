@@ -70,27 +70,20 @@ void outputGraph(const char *code, ekU32 evalFlags)
     ekU32 compileFlags = ECO_KEEP_SYNTAX_TREE;
     ekContext *E = ekContextCreate(NULL);
     ekCompiler *compiler = ekCompilerCreate(E);
+    ekString err = {0};
     if(evalFlags & EEO_OPTIMIZE)
     {
         compileFlags |= ECO_OPTIMIZE;
     }
     ekCompile(compiler, code, compileFlags);
-    if(ekArraySize(E, &compiler->errors))
+    if(ekCompilerFormatErrors(compiler, &err))
     {
-        int i;
-        for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
-        {
-            char *error = (char *)compiler->errors[i];
-            fprintf(stderr, "Error: %s\n", error);
-        }
+        fprintf(stderr, "%s", ekStringSafePtr(&err));
     }
+    ekStringClear(E, &err);
     if(compiler->root)
     {
         ekSyntaxDot(E, compiler->root);
-    }
-    else
-    {
-        printf("ERROR: Failed to build syntax tree\n");
     }
     ekCompilerDestroy(compiler);
     ekContextDestroy(E);

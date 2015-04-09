@@ -31,7 +31,7 @@
 
     #undef assert
     #define assert(ignoring_this_function)
-    
+
 #ifdef EUREKA_TRACE_PARSER
     #undef NDEBUG
 #endif
@@ -114,7 +114,7 @@
 
 // End of operators (highest precedence here)
 
-%syntax_error { ekCompileSyntaxError(C, &TOKEN); }
+%syntax_error { ekCompileSyntaxError(C, &TOKEN, "Syntax Error"); }
 
 // ---------------------------------------------------------------------------
 // Chunk
@@ -351,6 +351,9 @@ expression(EXPR) ::= MAPSTARTBLOCK expr_list(EL) ENDBLOCK.
 
 expression(EXPR) ::= lvalue(L) ASSIGN expression(R).
     { EXPR = ekSyntaxCreateAssignment(C->E, L, R); }
+
+expression ::= lvalue ASSIGN error.
+    { ekCompileExplainError(C, "assignment expected expression"); }
 
 expression(EXPR) ::= expression(L) INHERITS expression(R).
     { EXPR = ekSyntaxCreateInherits(C->E, L, R); }

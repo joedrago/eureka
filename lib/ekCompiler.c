@@ -30,8 +30,44 @@ void ekParseTrace(FILE *TraceFILE, char *zTracePrompt);
 // ---------------------------------------------------------------------------
 
 void ekCompileOptimize(struct ekContext *E, ekCompiler *compiler);
-
 ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler);
+
+ekError *ekErrorCreate(struct ekContext *E, const char *filename, ekS32 lineNo, const char *source, const char *loc, const char *explanation)
+{
+    ekError *error = (ekError *)ekAlloc(sizeof(ekError));
+    ekStringSet(E, &error->filename, filename);
+    error->lineNo = lineNo;
+    ekStringSet(E, &error->explanation, explanation);
+    {
+        // Find the full line where things went wrong, and store the location in it
+        const char *line = loc;
+        const char *end;
+        while((line != source) && (*line != '\n') && (*line != '\r'))
+        {
+            --line;
+        }
+        if((*line == '\n') || (*line == '\r'))
+        {
+            ++line;
+        }
+        end = line;
+        while(*end && (*end != '\n') && (*end != '\r'))
+        {
+            ++end;
+        }
+        ekStringSetLen(E, &error->line, line, end - line);
+        error->col = loc - line;
+    }
+    return error;
+}
+
+void ekErrorDestroy(ekContext *E, ekError *error)
+{
+    ekStringClear(E, &error->line);
+    ekStringClear(E, &error->explanation);
+    ekStringClear(E, &error->filename);
+    ekFree(error);
+}
 
 ekCompiler *ekCompilerCreate(struct ekContext *E)
 {
@@ -51,7 +87,7 @@ void ekCompilerDestroy(ekCompiler *compiler)
     {
         ekSyntaxDestroy(E, compiler->root);
     }
-    ekArrayDestroy(E, &compiler->errors, (ekDestroyCB)ekDestroyCBFree);
+    ekArrayDestroy(E, &compiler->errors, (ekDestroyCB)ekErrorDestroy);
     ekFree(compiler);
 }
 
@@ -61,6 +97,8 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
     ekBool success = ekFalse;
     ekToken emptyToken = {0};
     void *parser;
+
+    compiler->source = text;
 
 #ifdef EUREKA_TRACE_PARSER
     ekParseTrace(stderr, "--- ");
@@ -77,7 +115,12 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
 
     if(compiler->root)
     {
-        if(!ekArraySize(E, &compiler->errors))
+        if(ekArraySize(E, &compiler->errors))
+        {
+            ekSyntaxDestroy(E, compiler->root);
+            compiler->root = NULL;
+        }
+        else
         {
             if(compileOpts & ECO_OPTIMIZE)
             {
@@ -93,66 +136,69 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
             compiler->root = NULL;
         };
     }
-    else
-    {
-        ekContextSetError(E, EVE_COMPILE, "unknown badness - grammar is probably incomplete");
-    }
 
     ekParseFree(E, parser);
 
     ekTraceMem(("                                     "
                 "---  end  chunk compile ---\n\n"));
 
+    compiler->source = NULL;
     return success;
 }
 
-void ekCompileError(ekCompiler *compiler, const char *error)
-{
-    struct ekContext *E = compiler->E;
-    ekArrayPush(E, &compiler->errors, ekStrdup(E, error));
-}
-
-static void appendInt(char *text, ekS32 i)
+static void appendInt(ekContext *E, ekString *str, ekS32 i)
 {
     char temp[32];
     sprintf(temp, "%d", i);
-    strcat(text, temp);
+    ekStringConcat(E, str, temp);
 }
 
-void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token)
+ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output)
+{
+    struct ekContext *E = compiler->E;
+    ekS32 i;
+    for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
+    {
+        ekS32 caratPos;
+        ekError *error = compiler->errors[i];
+        // caratPos = output->len;
+        ekStringConcat(E, output, ekStringSafePtr(&error->filename));
+        ekStringConcat(E, output, ":");
+        appendInt(E, output, error->lineNo);
+        ekStringConcat(E, output, ":");
+        appendInt(E, output, error->col);
+        ekStringConcat(E, output, ": error: ");
+        ekStringConcat(E, output, ekStringSafePtr(&error->explanation));
+        ekStringConcat(E, output, "\n");
+        // caratPos = output->len - caratPos; // remember where we started printing the line with the error
+        ekStringConcat(E, output, ekStringSafePtr(&error->line));
+        ekStringConcat(E, output, "\n");
+        // draw the carat!
+        caratPos = error->col;
+        for(; caratPos > 0; --caratPos)
+        {
+            ekStringConcat(E, output, " "); // how about that efficiency! /s
+        }
+        ekStringConcat(E, output, "^\n");
+    }
+    return (ekArraySize(E, &compiler->errors) > 0) ? ekTrue : ekFalse;
+}
+
+void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token, const char *explanation)
 {
     ekContext *E = compiler->E;
-    char error[64];
-    strcpy(error, "Line [");
-    appendInt(error, token->line);
-    strcat(error, "]: ");
-    strcat(error, "syntax error near '");
-    if(token && token->text)
-    {
-        char *newlinePos;
-        char temp[32];
-        ekS32 len = strlen(token->text);
-        if(len > 31) { len = 31; }
-        memcpy(temp, token->text, len);
-        temp[len] = 0;
-        newlinePos = strchr(temp, '\r');
-        if(!newlinePos)
-        {
-            newlinePos = strchr(temp, '\n');
-        }
-        if(newlinePos)
-        {
-            *newlinePos = 0;
-        }
-        strcat(error, temp);
-    }
-    else
-    {
-        strcat(error, "<unknown>");
-    }
-    strcat(error, "'");
+    ekError *error = ekErrorCreate(E, "<string>", token->line, compiler->source, token->text, explanation);
+    ekArrayPush(E, &compiler->errors, error);
+}
 
-    ekCompileError(compiler, error);
+void ekCompileExplainError(ekCompiler *compiler, const char *explanation)
+{
+    ekS32 size = ekArraySize(compiler->E, &compiler->errors);
+    if(size > 0)
+    {
+        ekError *error = compiler->errors[size - 1];
+        ekStringSet(compiler->E, &error->explanation, explanation);
+    }
 }
 
 // ---------------------------------------------------------------------------

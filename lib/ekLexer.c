@@ -38,7 +38,6 @@ typedef struct ekLexer
     const char *token;
     const char *end;
     ekS32 line;
-    ekBool error;
 } ekLexer;
 
 ekS32 getNextToken(ekLexer *l)
@@ -64,7 +63,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
 
     while((id = getNextToken(&l)) != ETT_EOF)
     {
-        if(l.error)
+        if(ekArraySize(E, &compiler->errors))
         {
             break;
         }

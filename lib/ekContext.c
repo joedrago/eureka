@@ -105,6 +105,7 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValu
     ekChunk *chunk;
     ekCompiler *compiler;
     ekU32 compileFlags = ECO_DEFAULT;
+    ekString formattedError = {0};
 
     if(evalOpts & EEO_OPTIMIZE)
     {
@@ -113,30 +114,11 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValu
 
     compiler = ekCompilerCreate(E);
     ekCompile(compiler, text, compileFlags);
-
-    if(ekArraySize(E, &compiler->errors))
+    if(ekCompilerFormatErrors(compiler, &formattedError))
     {
-        ekS32 i;
-        ekS32 total = 0;
-        for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
-        {
-            char *error = (char *)compiler->errors[i];
-            total += strlen(error) + 3; // "* " + newline
-        }
-        if(total > 0)
-        {
-            char *s = (char *)ekAlloc(total+1);
-            for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
-            {
-                char *error = compiler->errors[i];
-                strcat(s, "* ");
-                strcat(s, error);
-                strcat(s, "\n");
-            }
-            ekContextSetError(E, EVE_COMPILE, s);
-            ekFree(s);
-        }
+        ekContextSetError(E, EVE_COMPILE, ekStringSafePtr(&formattedError));
     }
+    ekStringClear(E, &formattedError);
 
     // take ownership of the chunk
     chunk = compiler->chunk;

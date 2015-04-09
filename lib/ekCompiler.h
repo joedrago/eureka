@@ -9,6 +9,7 @@
 #define EKCOMPILER_H
 
 #include "ekTypes.h"
+#include "ekString.h"
 
 // ---------------------------------------------------------------------------
 // Forwards
@@ -29,13 +30,26 @@ enum
     ECO_KEEP_SYNTAX_TREE = (1 << 1)
 };
 
+typedef struct ekError
+{
+    ekString line;
+    ekString explanation;
+    ekString filename;
+    ekS32 lineNo;
+    ekS32 col;
+} ekError;
+
+ekError *ekErrorCreate(struct ekContext *E, const char *filename, ekS32 line, const char *source, const char *loc, const char *explanation);
+void ekErrorDestroy(struct ekContext *E, ekError *error);
+
 typedef struct ekCompiler
 {
     struct ekContext *E;
     struct ekSyntax *root;
     struct ekChunk *chunk;
     struct ekCode *code;
-    char **errors;
+    ekError **errors;
+    const char *source; // only valid during ekCompile()
 } ekCompiler;
 
 ekCompiler *ekCompilerCreate(struct ekContext *E);
@@ -44,7 +58,8 @@ void ekCompilerDestroy(ekCompiler *compiler);
 // Main entry point for the compiler
 ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts);
 
-void ekCompileError(ekCompiler *compiler, const char *error);
-void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token);
+void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token, const char *explanation);
+void ekCompileExplainError(ekCompiler *compiler, const char *explanation);
+ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output);
 
 #endif
