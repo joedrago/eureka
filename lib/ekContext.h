@@ -72,6 +72,9 @@ typedef struct ekContext
     ekValue **freeValues;             // Free value pool
     ekS32 maxFreeValues;              // Set to zero to not use freeValues pool; EMFV_UNLIMITED for unlimited
 
+    // import related
+    char **importSearchPaths;         // Array of paths to search when trying to import (walked in reverse)
+
     // state
     ekS32 lastRet;
 
@@ -83,7 +86,11 @@ typedef struct ekContext
 ekContext *ekContextCreate(ekMemoryInfo *memFuncs); // if memFuncs is NULL, it will use ekDefault*()
 void ekContextDestroy(ekContext *E);
 
-void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValue *result);
+// importSearchPath will be converted to absolute. If it is a file, the dir it sits in will be used instead
+void ekContextAddImportSearchPath(struct ekContext *E, const char *importSearchPath);
+void ekContextAbsolutePath(struct ekContext *E, const char *path, ekString *output, ekBool dirOnly);
+
+void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text, ekU32 evalOpts, ekValue *result);
 void ekContextRecover(ekContext *E); // cleans out frames, clears error
 
 void ekContextSetError(struct ekContext *E, ekU32 errorType, const char *errorFormat, ...);

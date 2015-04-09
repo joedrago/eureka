@@ -30,7 +30,7 @@ static ekU32 ekiEval(struct ekContext *E, ekU32 argCount)
             ekValue *v = ekContextGetArg(E, i, argCount);
             if(v->type == EVT_STRING)
             {
-                ekContextEval(E, ekStringSafePtr(&v->stringVal), 0, NULL);
+                ekContextEval(E, NULL, ekStringSafePtr(&v->stringVal), 0, NULL);
                 if(E->error)
                 {
                     // steal the error from the VM so we can recover and THEN give it back as a ekValue
@@ -259,74 +259,6 @@ static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
-static char *loadFile(struct ekContext *E, const char *filename)
-{
-    FILE *f = fopen(filename, "rb");
-    if(f)
-    {
-        ekS32 size;
-        char *buffer;
-
-        fseek(f, 0, SEEK_END);
-        size = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        buffer = (char *)ekAlloc(size + 1);
-        fread(buffer, 1, size, f);
-        buffer[size] = 0;
-
-        fclose(f);
-
-        return buffer;
-    }
-    return NULL;
-}
-
-static ekU32 ekiImport(struct ekContext *E, ekU32 argCount)
-{
-    ekU32 ret;
-    char *code;
-    ekValue *filenameValue = NULL;
-    ekValue *codeValue = NULL;
-
-    if(argCount)
-    {
-        filenameValue = ekContextGetArg(E, 0, argCount);
-        if(filenameValue->type != EVT_STRING)
-        {
-            filenameValue = NULL;
-        }
-    }
-
-    if(filenameValue)
-    {
-        code = loadFile(E, ekStringSafePtr(&filenameValue->stringVal));
-    }
-
-    ekContextPopValues(E, argCount);
-
-    if(!filenameValue)
-    {
-        ekValue *reason = ekValueCreateString(E, "import() takes a single string argument");
-        ekArrayPush(E, &E->stack, reason);
-        return 1;
-    }
-
-    if(!code)
-    {
-        ekValue *reason = ekValueCreateString(E, "can't read file");
-        ekArrayPush(E, &E->stack, reason);
-        return 1;
-    }
-
-    codeValue = ekValueCreateKString(E, code);
-    ekArrayPush(E, &E->stack, codeValue);
-    ret = ekiEval(E, 1);
-    ekFree(code);
-    return ret;
-}
-
-
 void ekIntrinsicsRegister(struct ekContext *E)
 {
     // Generic calls
@@ -343,7 +275,6 @@ void ekIntrinsicsRegister(struct ekContext *E)
     ekContextAddIntrinsic(E, "iterator", ekiIterator);
     ekContextAddIntrinsic(E, "range", ekiRange);
 
-    // TODO: Move these out of here
+    // TODO: Move out of here
     ekContextAddIntrinsic(E, "print", ekiPrint);
-    ekContextAddIntrinsic(E, "import", ekiImport);
 }

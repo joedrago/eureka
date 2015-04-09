@@ -30,7 +30,7 @@ void ekParseTrace(FILE *TraceFILE, char *zTracePrompt);
 // ---------------------------------------------------------------------------
 
 void ekCompileOptimize(struct ekContext *E, ekCompiler *compiler);
-ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler);
+ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler, ekBool useSourcePathForImports);
 
 ekError *ekErrorCreate(struct ekContext *E, const char *filename, ekS32 lineNo, const char *source, const char *loc, const char *explanation)
 {
@@ -92,14 +92,15 @@ void ekCompilerDestroy(ekCompiler *compiler)
     ekFree(compiler);
 }
 
-ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
+ekBool ekCompile(ekCompiler *compiler, const char *sourcePath, const char *source, ekU32 compileOpts)
 {
     struct ekContext *E = compiler->E;
     ekBool success = ekFalse;
     ekToken emptyToken = {0};
     void *parser;
 
-    compiler->source = text;
+    compiler->sourcePath = sourcePath;
+    compiler->source = source;
 
 #ifdef EUREKA_TRACE_PARSER
     ekParseTrace(stderr, "--- ");
@@ -111,7 +112,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
     parser = ekParseAlloc(E);
     compiler->root = NULL;
 
-    ekLex(parser, text, ekParse, compiler);
+    ekLex(parser, source, ekParse, compiler);
     ekParse(parser, 0, emptyToken, compiler);
 
     if(compiler->root)
@@ -128,7 +129,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
                 ekCompileOptimize(E, compiler);
             }
 
-            ekAssemble(E, compiler);
+            ekAssemble(E, compiler, ekTrue);
             success = ekTrue;
 
             if(!(compileOpts & ECO_KEEP_SYNTAX_TREE))
@@ -144,6 +145,7 @@ ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts)
     ekTraceMem(("                                     "
                 "---  end  chunk compile ---\n\n"));
 
+    compiler->sourcePath = NULL;
     compiler->source = NULL;
     return success;
 }
@@ -192,7 +194,10 @@ ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output)
 void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token, const char *explanation)
 {
     ekContext *E = compiler->E;
-    ekError *error = ekErrorCreate(E, "<string>", token->line, compiler->source, token->text, explanation);
+    const char *sourcePath = compiler->sourcePath;
+    if(!sourcePath)
+        sourcePath = "<source>";
+    ekError *error = ekErrorCreate(E, sourcePath, token->line, compiler->source, token->text, explanation);
     ekArrayPush(E, &compiler->errors, error);
 }
 
@@ -325,6 +330,7 @@ asmFunc(Function);
 asmFunc(FunctionArgs);
 asmFunc(With);
 asmFunc(Scope);
+asmFunc(Import);
 
 static ekAssembleInfo asmDispatch[EST_COUNT] =
 {
@@ -387,7 +393,8 @@ static ekAssembleInfo asmDispatch[EST_COUNT] =
     { ekAssembleFor },             // EST_FOR
     { ekAssembleFunction },        // EST_FUNCTION
     { ekAssembleFunctionArgs },    // EST_FUNCTION_ARGS
-    { ekAssembleScope }            // EST_SCOPE
+    { ekAssembleScope },           // EST_SCOPE
+    { ekAssembleImport }           // EST_IMPORT
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -940,6 +947,39 @@ asmFunc(Scope)
     return PAD(0);
 }
 
+asmFunc(Import)
+{
+    ekSyntax *list = syntax->v.p;
+    if(list->type == EST_EXPRESSIONLIST)
+    {
+        ekS32 i;
+        ekS32 reverseOrder = 1;
+        ekS32 keepCount = 0;
+        for(i = 0; i < ekArraySize(E, &list->v.a); ++i)
+        {
+            ekS32 index = (reverseOrder) ? (ekArraySize(E, &list->v.a) - 1) - i : i;
+            ekSyntax *child = list->v.a[index];
+            keepCount += asmDispatch[child->type].assemble(E, compiler, dst, child, 1, flags);
+        }
+        ekCodeGrow(E, dst, 1);
+        ekCodeAppend(E, dst, EOP_IMPORT, keepCount, list->line);
+
+#if 0
+        for(i = 0; i < ekArraySize(E, &list->v.a); ++i)
+        {
+            ekSyntax *identifier = list->v.a[i];
+            if((identifier->type == EST_IDENTIFIER) && (identifier->v.s))
+            {
+                ekS32 index = ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, identifier->v.s));
+                ekCodeGrow(E, dst, 1);
+                ekCodeAppend(E, dst, EOP_IMPORT, index, identifier->line);
+            }
+        }
+#endif
+    }
+    return PAD(0);
+}
+
 asmFunc(ExpressionList)
 {
     ekS32 i = 0;
@@ -981,12 +1021,12 @@ asmFunc(StatementList)
     return PAD(keepCount);
 }
 
-ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler)
+ekBool ekAssemble(struct ekContext *E, ekCompiler *compiler, ekBool useSourcePathForImports)
 {
     if(compiler->root && (compiler->root->type == EST_STATEMENTLIST))
     {
         ekS32 blockIndex;
-        compiler->chunk = ekChunkCreate();
+        compiler->chunk = ekChunkCreate(E, compiler->sourcePath, useSourcePathForImports);
         compiler->code   = ekCodeCreate();
         ekAssembleStatementList(E, compiler, compiler->code, compiler->root, 0, ASM_NORMAL);
         ekCodeGrow(E, compiler->code, 1);

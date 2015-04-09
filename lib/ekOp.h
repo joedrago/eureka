@@ -92,7 +92,9 @@ enum
     EOP_ARRAY,                         // creates an array using the top X entries on the stack, pushes the new array
     EOP_MAP,                           // creates a map using the top X entries on the stack, pushes the new map
 
-    EOP_ITER                           // replaces top of the stack with an iterator for that object
+    EOP_ITER,                          // replaces top of the stack with an iterator for that object
+
+    EOP_IMPORT                         // imports ks[X]
 };
 
 // ---------------------------------------------------------------------------

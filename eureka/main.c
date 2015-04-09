@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
                 code = loadFile(script);
                 if(code)
                 {
-                    ekContextEval(E, code, evalOpts, NULL);
+                    ekContextEval(E, script, code, evalOpts, NULL);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
                 if(code)
                 {
                     ekValue *result = ekValueCreateArray(E);
-                    ekContextEval(E, code, evalOpts, result);
+                    ekContextEval(E, NULL, code, evalOpts, result);
                     if(ekContextGetError(E))
                     {
                         printf("Errors:\n%s\n", ekContextGetError(E));

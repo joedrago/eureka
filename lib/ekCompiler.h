@@ -49,14 +49,15 @@ typedef struct ekCompiler
     struct ekChunk *chunk;
     struct ekCode *code;
     ekError **errors;
-    const char *source; // only valid during ekCompile()
+    const char *sourcePath; // only valid during ekCompile()
+    const char *source;     // only valid during ekCompile()
 } ekCompiler;
 
 ekCompiler *ekCompilerCreate(struct ekContext *E);
 void ekCompilerDestroy(ekCompiler *compiler);
 
 // Main entry point for the compiler
-ekBool ekCompile(ekCompiler *compiler, const char *text, ekU32 compileOpts);
+ekBool ekCompile(ekCompiler *compiler, const char *sourcePath, const char *source, ekU32 compileOpts);
 
 void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token, const char *explanation);
 void ekCompileExplainError(ekCompiler *compiler, const char *explanation);

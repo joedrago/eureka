@@ -82,6 +82,8 @@ enum
 
     EST_SCOPE,                         // arbitrary scope block executing v.p statement list
 
+    EST_IMPORT,                        // list of expressions (from v.p.a) to import
+
     EST_COUNT
 };
 
@@ -142,6 +144,7 @@ ekSyntax *ekSyntaxCreateFor(struct ekContext *E, ekSyntax *vars, ekSyntax *iter,
 ekSyntax *ekSyntaxCreateFunctionDecl(struct ekContext *E, struct ekToken *name, ekSyntax *args, ekSyntax *body, ekS32 line);
 ekSyntax *ekSyntaxCreateFunctionArgs(struct ekContext *E, ekSyntax *args, struct ekToken *varargs);
 ekSyntax *ekSyntaxCreateScope(struct ekContext *E, ekSyntax *body);
+ekSyntax *ekSyntaxCreateImport(struct ekContext *E, ekSyntax *list);
 ekSyntax *ekSyntaxMarkVar(struct ekContext *E, ekSyntax *identList);
 
 void ekSyntaxDestroy(struct ekContext *E, ekSyntax *syntax);

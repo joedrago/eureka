@@ -28,6 +28,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/stat.h>
+
+#ifdef PLATFORM_WIN32
+#include <windows.h>
+#define MAX_PATH_LENGTH MAX_PATH
+#define realpath(N,R) _fullpath((R),(N),MAX_PATH)
+#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define PATH_SEPARATOR "\\"
+#else
+#define MAX_PATH_LENGTH 2048
+#include <sys/types.h>
+#include <dirent.h>
+#define USE_DIRENT
+#ifdef PLATFORM_MINGW
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#endif
+#define PATH_SEPARATOR "/"
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Constants
@@ -81,12 +99,145 @@ void ekContextDestroy(ekContext *E)
     ekArrayDestroy(E, &E->freeValues, ekValueDestroy);
     ekArrayDestroy(E, &E->frames, ekFrameDestroy);
     ekArrayDestroy(E, &E->chunks, ekChunkDestroy);
+    ekArrayDestroy(E, &E->chunks, ekDestroyCBFree);
+    ekArrayDestroy(E, &E->importSearchPaths, ekDestroyCBFree);
 
     ekMapDestroy(E, E->intrinsics, NULL);
     ekArrayDestroy(E, &E->types, (ekDestroyCB)ekValueTypeDestroy);
     ekContextClearError(E);
 
     ekFree(E);
+}
+
+// ------------------------------------------------------------------------------------------------
+// Import related
+
+void ekContextAddImportSearchPath(struct ekContext *E, const char *importSearchPath)
+{
+    ekArrayPush(E, &E->importSearchPaths, ekStrdup(E, importSearchPath));
+}
+
+static ekChunk *ekContextGetCurrentChunk(struct ekContext *E)
+{
+    ekS32 frameCount = ekArraySize(E, &E->frames);
+    if(frameCount > 0)
+    {
+        ekFrame *frame = E->frames[frameCount - 1];
+        return frame->block->chunk;
+    }
+    return NULL;
+}
+
+static ekBool isDirectory(const char *path)
+{
+    struct stat st;
+    if(!stat(path, &st))
+    {
+        if(S_ISDIR(st.st_mode))
+        {
+            return ekTrue;
+        }
+    }
+    return ekFalse;
+}
+
+static ekBool isFile(const char *path)
+{
+    struct stat st;
+    if(!stat(path, &st))
+    {
+        if(S_ISREG(st.st_mode))
+        {
+            return ekTrue;
+        }
+    }
+    return ekFalse;
+}
+
+void ekContextAbsolutePath(struct ekContext *E, const char *path, ekString *output, ekBool dirOnly)
+{
+    char temppath[MAX_PATH_LENGTH];
+    realpath(path, temppath);
+    if(dirOnly && !isDirectory(temppath))
+    {
+        char *c = temppath + strlen(temppath) - 1;
+        while((c != temppath) && (*c != '/') && (*c != '\\'))
+        {
+            --c;
+        }
+        *c = 0;
+    }
+    ekStringSet(E, output, temppath);
+}
+
+static char *loadFile(struct ekContext *E, const char *filename)
+{
+    FILE *f = fopen(filename, "rb");
+    if(f)
+    {
+        ekS32 size;
+        char *buffer;
+
+        fseek(f, 0, SEEK_END);
+        size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        buffer = (char *)ekAlloc(size + 1);
+        fread(buffer, 1, size, f);
+        buffer[size] = 0;
+
+        fclose(f);
+
+        return buffer;
+    }
+    return NULL;
+}
+
+ekBool ekContextImport(struct ekContext *E, const char *module)
+{
+    ekBool ret = ekFalse;
+    char *code;
+    ekString filename = {0};
+    ekChunk *chunk = ekContextGetCurrentChunk(E);
+    if(!chunk)
+    {
+        ekContextSetError(E, EVE_RUNTIME, "import cannot find current chunk!");
+        return ekFalse;
+    }
+
+    if(chunk->searchPath.len > 0)
+    {
+        ekStringSetStr(E, &filename, &chunk->searchPath);
+        ekStringConcat(E, &filename, PATH_SEPARATOR);
+        ekStringConcat(E, &filename, module);
+        ekStringConcat(E, &filename, ".ek");
+        if(!isFile(ekStringSafePtr(&filename)))
+        {
+            ekStringSet(E, &filename, "");
+        }
+    }
+    if(!filename.len)
+    {
+        // TODO: check registered search paths
+    }
+
+    if(filename.len)
+    {
+        code = loadFile(E, ekStringSafePtr(&filename));
+        if(code)
+        {
+            ekContextEval(E, ekStringSafePtr(&filename), code, 0, NULL); // TODO: use proper ECO_ value
+            ekFree(code);
+            ret = ekTrue;
+        }
+    }
+
+    ekStringClear(E, &filename);
+    if(!ret)
+    {
+        ekContextSetError(E, EVE_RUNTIME, "failed to import '%s'", module);
+    }
+    return ret;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -100,7 +251,7 @@ static ekBool ekChunkCanBeTemporary(ekChunk *chunk)
     return !chunk->hasFuncs;
 }
 
-void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValue *result)
+void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text, ekU32 evalOpts, ekValue *result)
 {
     ekChunk *chunk;
     ekCompiler *compiler;
@@ -113,7 +264,7 @@ void ekContextEval(struct ekContext *E, const char *text, ekU32 evalOpts, ekValu
     }
 
     compiler = ekCompilerCreate(E);
-    ekCompile(compiler, text, compileFlags);
+    ekCompile(compiler, sourcePath, text, compileFlags);
     if(ekCompilerFormatErrors(compiler, &formattedError))
     {
         ekContextSetError(E, EVE_COMPILE, ekStringSafePtr(&formattedError));
@@ -1599,6 +1750,26 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
             case EOP_ITER:
             {
                 continueLooping = ekContextCallCFunction(E, ekContextIterOp, 1, ekValueNullPtr, NULL);
+            }
+            break;
+
+            case EOP_IMPORT:
+            {
+                ekS32 i;
+                for(i = 0; i < operand; i++)
+                {
+                    ekValue *v = ekArrayPop(E, &E->stack);
+                    if(continueLooping)
+                    {
+                        v = ekValueToString(E, v);
+                        continueLooping = ekContextImport(E, ekValueSafeStr(v));
+                        if(continueLooping)
+                        {
+                            frame->ip--; // This sucks, but ekContextEval() inside of ekContextImport() advances this pointer. I should fix that.
+                        }
+                    }
+                    ekValueRemoveRefNote(E, v, "import string");
+                }
             }
             break;
 

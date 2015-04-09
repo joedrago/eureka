@@ -503,8 +503,16 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
 
         case EST_SCOPE:
         {
-            sprintf(label, "SCOPE");
+            sprintf(label, "scope");
             childLineOpts = "label=body";
+            REC_CHILD(syntax->v.p);
+        }
+        break;
+
+        case EST_IMPORT:
+        {
+            sprintf(label, "import");
+            childLineOpts = "label=list";
             REC_CHILD(syntax->v.p);
         }
         break;

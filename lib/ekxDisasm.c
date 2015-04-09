@@ -95,6 +95,8 @@ void ekOpsDump(ekOp *ops, ekS32 count)
 
                 HURR(EOP_ITER, "iter")
 
+                HURR(EOP_IMPORT, "import")
+
 #undef HURR
 
             default:

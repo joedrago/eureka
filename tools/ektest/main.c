@@ -22,7 +22,7 @@ enum
     FAIL_REFS   = (1 << 2)
 };
 
-int loadChunk(const char *code, ekU32 evalFlags)
+int loadChunk(const char *sourcePath, const char *code, ekU32 evalFlags)
 {
     int ret = 0; // 0 for success
 #ifdef EUREKA_TRACE_MEMORY
@@ -31,7 +31,7 @@ int loadChunk(const char *code, ekU32 evalFlags)
     {
         char *error = NULL;
         ekContext *E = ekContextCreate(NULL);
-        ekContextEval(E, code, evalFlags, NULL);
+        ekContextEval(E, sourcePath, code, evalFlags, NULL);
         if(ekContextGetError(E))
         {
             error = strdup(ekContextGetError(E));
@@ -40,7 +40,7 @@ int loadChunk(const char *code, ekU32 evalFlags)
         ekContextDestroy(E);
         if(error)
         {
-            printf("VM Bailed out: %s\n", error);
+            printf("%s\n", error);
         }
         free(error);
     }
@@ -64,7 +64,7 @@ int loadChunk(const char *code, ekU32 evalFlags)
 
 // ---------------------------------------------------------------------------
 
-void outputGraph(const char *code, ekU32 evalFlags)
+void outputGraph(const char *sourcePath, const char *code, ekU32 evalFlags)
 {
 #ifdef EUREKA_ENABLE_EXT_DOT
     ekU32 compileFlags = ECO_KEEP_SYNTAX_TREE;
@@ -75,7 +75,7 @@ void outputGraph(const char *code, ekU32 evalFlags)
     {
         compileFlags |= ECO_OPTIMIZE;
     }
-    ekCompile(compiler, code, compileFlags);
+    ekCompile(compiler, sourcePath, code, compileFlags);
     if(ekCompilerFormatErrors(compiler, &err))
     {
         fprintf(stderr, "%s", ekStringSafePtr(&err));
@@ -167,10 +167,10 @@ int main(int argc, char *argv[])
                 switch(mode)
                 {
                     case ETM_LOADCHUNK:
-                        ret = loadChunk(code, evalFlags);
+                        ret = loadChunk(filename, code, evalFlags);
                         break;
                     case ETM_GRAPH:
-                        outputGraph(code, evalFlags);
+                        outputGraph(filename, code, evalFlags);
                         break;
                 };
                 free(code);
