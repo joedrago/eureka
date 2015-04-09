@@ -38,6 +38,7 @@ ekError *ekErrorCreate(struct ekContext *E, const char *filename, ekS32 lineNo, 
     ekStringSet(E, &error->filename, filename);
     error->lineNo = lineNo;
     ekStringSet(E, &error->explanation, explanation);
+    if(loc)
     {
         // Find the full line where things went wrong, and store the location in it
         const char *line = loc;
@@ -159,9 +160,7 @@ ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output)
     ekS32 i;
     for(i = 0; i < ekArraySize(E, &compiler->errors); i++)
     {
-        ekS32 caratPos;
         ekError *error = compiler->errors[i];
-        // caratPos = output->len;
         ekStringConcat(E, output, ekStringSafePtr(&error->filename));
         ekStringConcat(E, output, ":");
         appendInt(E, output, error->lineNo);
@@ -170,16 +169,21 @@ ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output)
         ekStringConcat(E, output, ": error: ");
         ekStringConcat(E, output, ekStringSafePtr(&error->explanation));
         ekStringConcat(E, output, "\n");
-        // caratPos = output->len - caratPos; // remember where we started printing the line with the error
-        ekStringConcat(E, output, ekStringSafePtr(&error->line));
-        ekStringConcat(E, output, "\n");
-        // draw the carat!
-        caratPos = error->col;
-        for(; caratPos > 0; --caratPos)
+
+        if(error->line.len > 0)
         {
-            ekStringConcat(E, output, " "); // how about that efficiency! /s
+            ekS32 caratPos = error->col;
+
+            ekStringConcat(E, output, ekStringSafePtr(&error->line));
+            ekStringConcat(E, output, "\n");
+
+            // draw the carat!
+            for(; caratPos > 0; --caratPos)
+            {
+                ekStringConcat(E, output, " "); // how about that efficiency! /s
+            }
+            ekStringConcat(E, output, "^\n");
         }
-        ekStringConcat(E, output, "^\n");
     }
     return (ekArraySize(E, &compiler->errors) > 0) ? ekTrue : ekFalse;
 }
