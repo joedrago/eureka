@@ -6,3 +6,5 @@ lib/ekParser.out
 *.sublime-project
 
 *.sublime-workspace
+
+.DS_Store
