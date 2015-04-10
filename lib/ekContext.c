@@ -117,13 +117,17 @@ void ekContextAddImportSearchPath(struct ekContext *E, const char *importSearchP
     ekArrayPush(E, &E->importSearchPaths, ekStrdup(E, importSearchPath));
 }
 
-static ekChunk *ekContextGetCurrentChunk(struct ekContext *E)
+ekChunk *ekContextGetCurrentChunk(struct ekContext *E)
 {
     ekS32 frameCount = ekArraySize(E, &E->frames);
-    if(frameCount > 0)
+    int i;
+    for(i = ekArraySize(E, &E->frames) - 1; i >= 0; --i)
     {
-        ekFrame *frame = E->frames[frameCount - 1];
-        return frame->block->chunk;
+        ekFrame *frame = E->frames[i];
+        if(frame->block && frame->block->chunk)
+        {
+            return frame->block->chunk;
+        }
     }
     return NULL;
 }
@@ -257,6 +261,7 @@ void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text
     ekCompiler *compiler;
     ekU32 compileFlags = ECO_DEFAULT;
     ekString formattedError = {0};
+    ekValue *thisPtr = ekValueNullPtr;
 
     if(evalOpts & EEO_OPTIMIZE)
     {
@@ -297,9 +302,21 @@ void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text
 #ifdef EUREKA_TRACE_EXECUTION
                 ekTraceExecution(("--- begin chunk execution ---\n"));
 #endif
+                if(evalOpts & EEO_IMPORT)
+                {
+                    thisPtr = ekValueCreateObject(E, NULL, 0, ekFalse);
+                }
+
                 // Execute the chunk's block
-                ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, ekValueNullPtr, NULL);
+                ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, thisPtr, NULL);
                 ekContextLoop(E, ekTrue, result);
+
+                // If we're mid import, return the newly created object representing the module instead
+                if(evalOpts & EEO_IMPORT)
+                {
+                    ekValueArrayClear(E, result);
+                    ekValueArrayPush(E, result, thisPtr);
+                }
 
 #ifdef EUREKA_TRACE_EXECUTION
                 ekTraceExecution(("---  end  chunk execution ---\n"));

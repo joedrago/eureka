@@ -16,6 +16,7 @@
 // ---------------------------------------------------------------------------
 // Forwards
 
+struct ekChunk;
 struct ekFrame;
 struct ekMap;
 struct ekValueType;
@@ -39,7 +40,8 @@ enum
 
     EEO_DUMP     = (1 << 0),
     EEO_OPTIMIZE = (1 << 1),
-    EEO_COMPILE  = (1 << 2)  // compile only, skip evaluation
+    EEO_COMPILE  = (1 << 2), // compile only, skip evaluation
+    EEO_IMPORT   = (1 << 3)  // Eval in a fresh object's context, and return that new object instead.
 };
 
 typedef struct ekMemoryInfo
@@ -121,6 +123,7 @@ ekValue *ekContextThis(ekContext *E);  // returns 'this' in current context
 ekBool ekContextGetArgs(struct ekContext *E, ekS32 argCount, const char *argFormat, ...);      // Will pop all arguments on success!
 ekS32 ekContextArgsFailure(struct ekContext *E, ekS32 argCount, const char *errorFormat, ...); // Will always pop all arguments!
 ekU32 ekContextIterOp(struct ekContext *E, ekU32 argCount); // Perform EOP_ITER
+struct ekChunk *ekContextGetCurrentChunk(struct ekContext *E);
 
 struct ekFrame *ekContextPushFrame(struct ekContext *E, struct ekBlock *block, ekS32 argCount, ekU32 frameType, struct ekValue *thisVal, ekValue *closure);
 ekBool ekContextCall(struct ekContext *E, struct ekFrame **framePtr, ekValue *thisVal, ekValue *callable, ekS32 argCount);

@@ -8,13 +8,35 @@
 #include "ekIntrinsics.h"
 
 #include "ekTypes.h"
+#include "ekChunk.h"
 #include "ekFrame.h"
 #include "ekMap.h"
 #include "ekObject.h"
 #include "ekValue.h"
 #include "ekContext.h"
 
+#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+
+#ifdef PLATFORM_WIN32
+#include <windows.h>
+#define MAX_PATH_LENGTH MAX_PATH
+#define realpath(N,R) _fullpath((R),(N),MAX_PATH)
+#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define PATH_SEPARATOR "\\"
+#else
+#define MAX_PATH_LENGTH 2048
+#include <sys/types.h>
+#include <dirent.h>
+#define USE_DIRENT
+#ifdef PLATFORM_MINGW
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#endif
+#define PATH_SEPARATOR "/"
+#endif
 
 // ---------------------------------------------------------------------------
 
@@ -259,6 +281,110 @@ static ekU32 ekiPrint(struct ekContext *E, ekU32 argCount)
 
 // ---------------------------------------------------------------------------
 
+static ekBool isFile(const char *path)
+{
+    struct stat st;
+    if(!stat(path, &st))
+    {
+        if(S_ISREG(st.st_mode))
+        {
+            return ekTrue;
+        }
+    }
+    return ekFalse;
+}
+
+static char *loadFile(struct ekContext *E, const char *filename)
+{
+    FILE *f = fopen(filename, "rb");
+    if(f)
+    {
+        ekS32 size;
+        char *buffer;
+
+        fseek(f, 0, SEEK_END);
+        size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        buffer = (char *)ekAlloc(size + 1);
+        fread(buffer, 1, size, f);
+        buffer[size] = 0;
+
+        fclose(f);
+
+        return buffer;
+    }
+    return NULL;
+}
+
+static ekU32 ekiInclude(struct ekContext *E, ekU32 argCount)
+{
+    ekValue *path = NULL;
+    ekValue *resultArray;
+    ekValue *thisPtr = NULL;
+    if(!ekContextGetArgs(E, argCount, "s", &path))
+    {
+        return ekContextArgsFailure(E, argCount, "include([string] path)");
+    }
+
+    resultArray = ekValueCreateArray(E);
+    {
+        char *code;
+        ekString filename = {0};
+        ekChunk *chunk = ekContextGetCurrentChunk(E);
+        if(!chunk)
+        {
+            ekContextSetError(E, EVE_RUNTIME, "import cannot find current chunk!");
+            return ekFalse;
+        }
+
+        if(chunk->searchPath.len > 0)
+        {
+            ekStringSetStr(E, &filename, &chunk->searchPath);
+            ekStringConcat(E, &filename, PATH_SEPARATOR);
+            ekStringConcat(E, &filename, ekValueSafeStr(path));
+            ekStringConcat(E, &filename, ".ek");
+            if(!isFile(ekStringSafePtr(&filename)))
+            {
+                ekStringSet(E, &filename, "");
+            }
+        }
+        if(!filename.len)
+        {
+            // TODO: check registered search paths
+        }
+        if(filename.len)
+        {
+            code = loadFile(E, ekStringSafePtr(&filename));
+            if(code)
+            {
+                ekContextEval(E, ekStringSafePtr(&filename), code, EEO_IMPORT, resultArray); // TODO: use proper EEO_ values (such as optimize)
+                ekFree(code);
+                if(resultArray->type == EVT_ARRAY)
+                {
+                    ekValue **arr = resultArray->arrayVal;
+                    if(ekArraySize(E, arr) > 0)
+                    {
+                        thisPtr = arr[0];
+                        ekValueAddRefNote(E, thisPtr, "import thisPtr");
+                    }
+                }
+            }
+        }
+        ekStringClear(E, &filename);
+        if(thisPtr == NULL)
+        {
+            ekContextSetError(E, EVE_RUNTIME, "failed to import '%s'", ekValueSafeStr(path));
+            thisPtr = ekValueNullPtr;
+        }
+    }
+    ekValueRemoveRefNote(E, path, "include path done");
+    ekValueRemoveRefNote(E, resultArray, "include resultArray done");
+    ekContextReturn(E, thisPtr);
+}
+
+// ---------------------------------------------------------------------------
+
 void ekIntrinsicsRegister(struct ekContext *E)
 {
     // Generic calls
@@ -277,4 +403,5 @@ void ekIntrinsicsRegister(struct ekContext *E)
 
     // TODO: Move out of here
     ekContextAddIntrinsic(E, "print", ekiPrint);
+    ekContextAddIntrinsic(E, "include", ekiInclude);
 }
