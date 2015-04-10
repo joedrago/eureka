@@ -317,14 +317,14 @@ static char *loadFile(struct ekContext *E, const char *filename)
     return NULL;
 }
 
-static ekU32 ekiInclude(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiRequire(struct ekContext *E, ekU32 argCount)
 {
     ekValue *path = NULL;
     ekValue *resultArray;
     ekValue *thisPtr = NULL;
     if(!ekContextGetArgs(E, argCount, "s", &path))
     {
-        return ekContextArgsFailure(E, argCount, "include([string] path)");
+        return ekContextArgsFailure(E, argCount, "require([string] path)");
     }
 
     resultArray = ekValueCreateArray(E);
@@ -334,7 +334,7 @@ static ekU32 ekiInclude(struct ekContext *E, ekU32 argCount)
         ekChunk *chunk = ekContextGetCurrentChunk(E);
         if(!chunk)
         {
-            ekContextSetError(E, EVE_RUNTIME, "import cannot find current chunk!");
+            ekContextSetError(E, EVE_RUNTIME, "require() cannot find current chunk!");
             return ekFalse;
         }
 
@@ -358,15 +358,14 @@ static ekU32 ekiInclude(struct ekContext *E, ekU32 argCount)
             code = loadFile(E, ekStringSafePtr(&filename));
             if(code)
             {
-                ekContextEval(E, ekStringSafePtr(&filename), code, EEO_IMPORT, resultArray); // TODO: use proper EEO_ values (such as optimize)
+                ekContextEval(E, ekStringSafePtr(&filename), code, EEO_REQUIRE, resultArray); // TODO: use proper EEO_ values (such as optimize)
                 ekFree(code);
                 if(resultArray->type == EVT_ARRAY)
                 {
-                    ekValue **arr = resultArray->arrayVal;
-                    if(ekArraySize(E, arr) > 0)
+                    if(ekArraySize(E, &resultArray->arrayVal) > 0)
                     {
-                        thisPtr = arr[0];
-                        ekValueAddRefNote(E, thisPtr, "import thisPtr");
+                        thisPtr = resultArray->arrayVal[0];
+                        ekValueAddRefNote(E, thisPtr, "require thisPtr");
                     }
                 }
             }
@@ -374,12 +373,12 @@ static ekU32 ekiInclude(struct ekContext *E, ekU32 argCount)
         ekStringClear(E, &filename);
         if(thisPtr == NULL)
         {
-            ekContextSetError(E, EVE_RUNTIME, "failed to import '%s'", ekValueSafeStr(path));
+            ekContextSetError(E, EVE_RUNTIME, "require() failed to load '%s'", ekValueSafeStr(path));
             thisPtr = ekValueNullPtr;
         }
     }
-    ekValueRemoveRefNote(E, path, "include path done");
-    ekValueRemoveRefNote(E, resultArray, "include resultArray done");
+    ekValueRemoveRefNote(E, path, "require path done");
+    ekValueRemoveRefNote(E, resultArray, "require resultArray done");
     ekContextReturn(E, thisPtr);
 }
 
@@ -403,5 +402,5 @@ void ekIntrinsicsRegister(struct ekContext *E)
 
     // TODO: Move out of here
     ekContextAddIntrinsic(E, "print", ekiPrint);
-    ekContextAddIntrinsic(E, "include", ekiInclude);
+    ekContextAddIntrinsic(E, "require", ekiRequire);
 }

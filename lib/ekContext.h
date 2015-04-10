@@ -41,7 +41,7 @@ enum
     EEO_DUMP     = (1 << 0),
     EEO_OPTIMIZE = (1 << 1),
     EEO_COMPILE  = (1 << 2), // compile only, skip evaluation
-    EEO_IMPORT   = (1 << 3)  // Eval in a fresh object's context, and return that new object instead.
+    EEO_REQUIRE  = (1 << 3)  // Eval in a fresh object's context, and return that new object instead.
 };
 
 typedef struct ekMemoryInfo

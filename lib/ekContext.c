@@ -302,7 +302,7 @@ void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text
 #ifdef EUREKA_TRACE_EXECUTION
                 ekTraceExecution(("--- begin chunk execution ---\n"));
 #endif
-                if(evalOpts & EEO_IMPORT)
+                if(evalOpts & EEO_REQUIRE)
                 {
                     thisPtr = ekValueCreateObject(E, NULL, 0, ekFalse);
                 }
@@ -311,8 +311,8 @@ void ekContextEval(struct ekContext *E, const char *sourcePath, const char *text
                 ekContextPushFrame(E, chunk->block, 0, EFT_FUNC|EFT_CHUNK, thisPtr, NULL);
                 ekContextLoop(E, ekTrue, result);
 
-                // If we're mid import, return the newly created object representing the module instead
-                if(evalOpts & EEO_IMPORT)
+                // If we're calling require(), return the newly created object representing the module instead
+                if(result && (evalOpts & EEO_REQUIRE))
                 {
                     ekValueArrayClear(E, result);
                     ekValueArrayPush(E, result, thisPtr);
