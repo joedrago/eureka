@@ -97,7 +97,6 @@ NonDigit           = [a-zA-Z_$] | UniversalChar;
     "for"           { return ETT_FOR; }
     "in"            { return ETT_IN; }
     "inherits"      { return ETT_INHERITS; }
-    "import"        { return ETT_IMPORT; }
 
     "("             { return ETT_LEFTPAREN; }
     ")"             { return ETT_RIGHTPAREN; }

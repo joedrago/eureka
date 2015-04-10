@@ -393,8 +393,7 @@ static ekAssembleInfo asmDispatch[EST_COUNT] =
     { ekAssembleFor },             // EST_FOR
     { ekAssembleFunction },        // EST_FUNCTION
     { ekAssembleFunctionArgs },    // EST_FUNCTION_ARGS
-    { ekAssembleScope },           // EST_SCOPE
-    { ekAssembleImport }           // EST_IMPORT
+    { ekAssembleScope }            // EST_SCOPE
 };
 
 // This function ensures that what we're being asked to keep is what we offered
@@ -944,39 +943,6 @@ asmFunc(Scope)
     ekCodeGrow(E, dst, 1);
     ekCodeAppend(E, dst, EOP_ENTER, EFT_SCOPE, syntax->line);
 
-    return PAD(0);
-}
-
-asmFunc(Import)
-{
-    ekSyntax *list = syntax->v.p;
-    if(list->type == EST_EXPRESSIONLIST)
-    {
-        ekS32 i;
-        ekS32 reverseOrder = 1;
-        ekS32 keepCount = 0;
-        for(i = 0; i < ekArraySize(E, &list->v.a); ++i)
-        {
-            ekS32 index = (reverseOrder) ? (ekArraySize(E, &list->v.a) - 1) - i : i;
-            ekSyntax *child = list->v.a[index];
-            keepCount += asmDispatch[child->type].assemble(E, compiler, dst, child, 1, flags);
-        }
-        ekCodeGrow(E, dst, 1);
-        ekCodeAppend(E, dst, EOP_IMPORT, keepCount, list->line);
-
-#if 0
-        for(i = 0; i < ekArraySize(E, &list->v.a); ++i)
-        {
-            ekSyntax *identifier = list->v.a[i];
-            if((identifier->type == EST_IDENTIFIER) && (identifier->v.s))
-            {
-                ekS32 index = ekArrayPushUniqueString(E, &compiler->chunk->kStrings, ekStrdup(E, identifier->v.s));
-                ekCodeGrow(E, dst, 1);
-                ekCodeAppend(E, dst, EOP_IMPORT, index, identifier->line);
-            }
-        }
-#endif
-    }
     return PAD(0);
 }
 

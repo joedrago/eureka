@@ -164,9 +164,6 @@ statement_block(B) ::= statement(S).
 %destructor statement
     { ekSyntaxDestroy(C->E, $$); }
 
-statement(S) ::= IMPORT expr_list(LIST) ENDSTATEMENT.
-    { S = ekSyntaxCreateImport(C->E, LIST); }
-
 statement(S) ::= BREAK(B) ENDSTATEMENT.
     { S = ekSyntaxCreateBreak(C->E, B.line); }
 

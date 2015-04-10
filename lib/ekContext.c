@@ -1770,26 +1770,6 @@ void ekContextLoop(struct ekContext *E, ekBool stopAtPop, ekValue *result)
             }
             break;
 
-            case EOP_IMPORT:
-            {
-                ekS32 i;
-                for(i = 0; i < operand; i++)
-                {
-                    ekValue *v = ekArrayPop(E, &E->stack);
-                    if(continueLooping)
-                    {
-                        v = ekValueToString(E, v);
-                        continueLooping = ekContextImport(E, ekValueSafeStr(v));
-                        if(continueLooping)
-                        {
-                            frame->ip--; // This sucks, but ekContextEval() inside of ekContextImport() advances this pointer. I should fix that.
-                        }
-                    }
-                    ekValueRemoveRefNote(E, v, "import string");
-                }
-            }
-            break;
-
             default:
                 ekContextSetError(E, EVE_RUNTIME, "Unknown VM Opcode: %d", opcode);
                 continueLooping = ekFalse;

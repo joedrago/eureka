@@ -508,14 +508,6 @@ static void ekSyntaxDotRecurse(struct ekContext *E, ekSyntax *syntax, const char
             REC_CHILD(syntax->v.p);
         }
         break;
-
-        case EST_IMPORT:
-        {
-            sprintf(label, "import");
-            childLineOpts = "label=list";
-            REC_CHILD(syntax->v.p);
-        }
-        break;
     };
 
     if(parent)

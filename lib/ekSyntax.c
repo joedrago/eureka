@@ -281,10 +281,3 @@ ekSyntax *ekSyntaxCreateScope(struct ekContext *E, ekSyntax *body)
     syntax->v.p = body;
     return syntax;
 }
-
-ekSyntax *ekSyntaxCreateImport(struct ekContext *E, ekSyntax *list)
-{
-    ekSyntax *syntax = ekSyntaxCreate(E, EST_IMPORT, list->line);
-    syntax->v.p = list;
-    return syntax;
-}
