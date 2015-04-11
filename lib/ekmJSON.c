@@ -101,10 +101,17 @@ static ekU32 json_parse(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
+static ekModuleFunc JSONFuncs[] =
+{
+    { "parse", json_parse },
+
+    { NULL, NULL }
+};
+
 void ekModuleRegisterJSON(struct ekContext *E)
 {
     cJSON_Hooks hooks = { ekAlloc, ekFree };
     cJSON_InitHooks(&hooks);
 
-    ekContextAddIntrinsic(E, "json_parse", json_parse);
+    ekContextAddModule(E, "JSON", JSONFuncs);
 }
