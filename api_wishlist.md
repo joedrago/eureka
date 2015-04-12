@@ -55,3 +55,4 @@
 
     now()       ? (returns ms? us?)
     format()    ? (calls strftime)
+
