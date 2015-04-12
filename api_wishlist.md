@@ -6,6 +6,7 @@
     file.isdir()
     file.exists()
     file.ls()
+    file.chmod() (and getter?)
     file.stdin
     file.stdout
     file.stderr
@@ -43,3 +44,14 @@
 
     JSON.parse()
     JSON.stringify()
+
+## os
+
+    system()
+    pipein() or receive() or input() (use backticks like Perl?)
+
+
+## time
+
+    now()       ? (returns ms? us?)
+    format()    ? (calls strftime)
