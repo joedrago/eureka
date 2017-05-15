@@ -34,7 +34,8 @@
 #include <windows.h>
 #define MAX_PATH_LENGTH MAX_PATH
 #define realpath(N,R) _fullpath((R),(N),MAX_PATH)
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #define PATH_SEPARATOR "\\"
 #else
 #define MAX_PATH_LENGTH 2048

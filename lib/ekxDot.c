@@ -22,7 +22,7 @@ static void ekSyntaxDotRecurseArray(struct ekContext *E, ekSyntax **a, const cha
 {
     ekS32 i;
     const char *childLineOpts = myLineOpts;
-    for(unsigned int i = 0; i < ekArraySize(E, &a); i++)
+    for(i = 0; i < ekArraySize(E, &a); i++)
     {
         REC_CHILD(a[i]);
     }
