@@ -41,13 +41,11 @@ static ekU32 stringIntrinsicSplit(struct ekContext * E, ekU32 argCount)
             }
             front += split;
             if (*front)
-                front++; // advance past the separator
+                front++;  // advance past the separator
         }
     }
 
     ekArrayPush(E, &E->stack, a);
-    ekValueRemoveRefNote(E, sep, "string split sep done");
-    ekValueRemoveRefNote(E, str, "string split str done");
     return 1;
 }
 
@@ -67,15 +65,11 @@ static ekU32 stringIntrinsicJoin(struct ekContext * E, ekU32 argCount)
         if (i) {
             ekStringConcat(E, &str->stringVal, ekValueSafeStr(sep));
         }
-        ekValueAddRefNote(E, v, "converting to string, but keeping in array");
         v = ekValueToString(E, v);
         ekStringConcat(E, &str->stringVal, ekValueSafeStr(v));
-        ekValueRemoveRefNote(E, v, "done with temp string");
     }
 
     ekArrayPush(E, &E->stack, str);
-    ekValueRemoveRefNote(E, a, "string split a done");
-    ekValueRemoveRefNote(E, sep, "string split sep done");
     return 1;
 }
 
@@ -115,11 +109,9 @@ static ekU32 stringIntrinsicChomp(struct ekContext * E, ekU32 argCount)
         newstr = ekValueCreateStringLen(E, str->stringVal.text, len);
     } else {
         newstr = str;
-        ekValueAddRefNote(E, str, "chomp not changing string; reuse");
     }
 
     ekArrayPush(E, &E->stack, newstr);
-    ekValueRemoveRefNote(E, str, "string split str done");
     return 1;
 }
 
@@ -173,7 +165,6 @@ static struct ekValue * stringFuncReverse(struct ekContext * E, struct ekValue *
             ++front;
             --back;
         }
-        ekValueRemoveRefNote(E, p, "reverse string done with input");
         return reversed;
     }
 
@@ -185,14 +176,10 @@ struct ekValue * stringFuncArithmetic(struct ekContext * E, struct ekValue * a, 
 {
     ekValue * ret = NULL;
     if (op == EVAO_ADD) {
-        ekValueAddRefNote(E, a, "stringFuncArithmetic keep a during string conversion");
-        ekValueAddRefNote(E, b, "stringFuncArithmetic keep b during string conversion");
         a = ekValueToString(E, a);
         b = ekValueToString(E, b);
         ret = ekValueCreateString(E, ekStringSafePtr(&a->stringVal));
         ekStringConcatStr(E, &ret->stringVal, &a->stringVal);
-        ekValueRemoveRefNote(E, a, "stringFuncArithmetic temp a done");
-        ekValueRemoveRefNote(E, b, "stringFuncArithmetic temp b done");
     } else {
         ekTraceExecution(("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!"));
     }

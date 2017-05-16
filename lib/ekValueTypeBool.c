@@ -43,7 +43,6 @@ static struct ekValue * boolFuncToString(struct ekContext * E, struct ekValue * 
     if (p->boolVal) {
         temp = "true";
     }
-    ekValueRemoveRefNote(E, p, "boolFuncToString doesnt need int anymore");
     return ekValueCreateString(E, temp);
 }
 

@@ -33,7 +33,6 @@ static ekU32 arrayIntrinsicPush(struct ekContext * E, ekU32 argCount)
         ekValueArrayPush(E, a, v);
     }
 
-    ekValueRemoveRefNote(E, a, "array push a done");
     ekArrayDestroy(E, &values, NULL);
     return 0;
 }
@@ -53,7 +52,6 @@ static ekU32 arrayIntrinsicPop(struct ekContext * E, ekU32 argCount)
     }
 
     ekArrayPush(E, &E->stack, v);
-    ekValueRemoveRefNote(E, a, "array pop a done");
     return 1;
 }
 
@@ -73,7 +71,6 @@ static ekU32 arrayIntrinsicUnshift(struct ekContext * E, ekU32 argCount)
         }
     }
 
-    ekValueRemoveRefNote(E, a, "array unshift a done");
     ekArrayDestroy(E, &values, NULL);
     return 0;
 }
@@ -94,7 +91,6 @@ static ekU32 arrayIntrinsicShift(struct ekContext * E, ekU32 argCount)
     }
 
     ekArrayPush(E, &E->stack, v);
-    ekValueRemoveRefNote(E, a, "array shift a done");
     return 1;
 }
 
@@ -120,12 +116,10 @@ static ekU32 arrayIntrinsicSort(struct ekContext * E, ekU32 argCount)
                 break;
             }
         }
-        ekValueAddRefNote(E, a->arrayVal[i], "adding to array");
         ekArrayInsert(E, &newa->arrayVal, insertIndex, a->arrayVal[i]);
     }
 
     ekArrayPush(E, &E->stack, newa);
-    ekValueRemoveRefNote(E, a, "array shift a done");
     return 1;
 }
 
@@ -134,12 +128,23 @@ static ekU32 arrayIntrinsicSort(struct ekContext * E, ekU32 argCount)
 
 static void arrayFuncClear(struct ekContext * E, struct ekValue * p)
 {
-    ekArrayDestroy(E, &p->arrayVal, (ekDestroyCB)ekValueRemoveRefArray);
+    ekArrayDestroy(E, &p->arrayVal, NULL);
 }
 
 static void arrayFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     ekAssert(0 && "arrayFuncClone not implemented");
+}
+
+static void arrayFuncMark(struct ekContext * E, struct ekValue * p)
+{
+    if (p->arrayVal) {
+        int i;
+        for (i = 0; i < ekArraySize(E, &p->arrayVal); i++) {
+            ekValue * child = (ekValue *)p->arrayVal[i];
+            ekValueMark(E, child);
+        }
+    }
 }
 
 static ekBool arrayFuncToBool(struct ekContext * E, struct ekValue * p)
@@ -171,7 +176,6 @@ static ekU32 arrayIterator(struct ekContext * E, ekU32 argCount)
 
     if (index->intVal < ekArraySize(E, &array->arrayVal)) {
         ekValue * v = array->arrayVal[index->intVal];
-        ekValueAddRefNote(E, v, "array_iterator using value");
         ekArrayPush(E, &E->stack, v);
         ekArrayPush(E, &E->stack, ekValueCreateInt(E, index->intVal++));
         return 2;
@@ -208,11 +212,9 @@ static struct ekValue * arrayFuncReverse(struct ekContext * E, struct ekValue * 
     if (size) {
         ekS32 i;
         for (i = size - 1; i >= 0; --i) {
-            ekValueAddRefNote(E, p->arrayVal[i], "array reverse sharing index");
             ekArrayPush(E, &reversed->arrayVal, p->arrayVal[i]);
         }
     }
-    ekValueRemoveRefNote(E, p, "array reverse done with input array");
     return reversed;
 }
 
@@ -228,7 +230,6 @@ static struct ekValue * arrayFuncIndex(struct ekContext * E, struct ekValue * va
         return 0;
     }
 
-    ekValueAddRefNote(E, index, "keep index around after ekS32 conversion");
     index = ekValueToInt(E, index);
     if ((index->intVal >= 0) && (index->intVal < ekArraySize(E, &value->arrayVal))) {
         ref = (ekValue **)&(value->arrayVal[index->intVal]);
@@ -236,12 +237,10 @@ static struct ekValue * arrayFuncIndex(struct ekContext * E, struct ekValue * va
             ret = ekValueCreateRef(E, ref);
         } else {
             ret = *ref;
-            ekValueAddRefNote(E, ret, "arrayFuncIndex");
         }
     } else {
         ekContextSetError(E, EVE_RUNTIME, "array index %d out of range", index->intVal);
     }
-    ekValueRemoveRefNote(E, index, "temp index (ekS32) done");
     return ret;
 }
 
@@ -259,7 +258,7 @@ static void arrayFuncDump(struct ekContext * E, ekDumpParams * params, struct ek
         if (i > 0) {
             ekStringConcat(E, &params->output, ", ");
         }
-        ekValueTypeSafeCall(child->type, Dump)(E, params, child);
+        ekValueTypeSafeCall(child->type, Dump) (E, params, child);
     }
     ekStringConcat(E, &params->output, " ]");
 }
@@ -269,6 +268,7 @@ void ekValueTypeRegisterArray(struct ekContext * E)
     ekValueType * type = ekValueTypeCreate(E, "array", 'a');
     type->funcClear      = arrayFuncClear;
     type->funcClone      = arrayFuncClone;
+    type->funcMark       = arrayFuncMark;
     type->funcToBool     = arrayFuncToBool;
     type->funcToInt      = arrayFuncToInt;
     type->funcToFloat    = arrayFuncToFloat;

@@ -41,14 +41,12 @@ static struct ekValue * intFuncToString(struct ekContext * E, struct ekValue * p
 {
     char temp[32];
     sprintf(temp, "%d", p->intVal);
-    ekValueRemoveRefNote(E, p, "intFuncToString doesnt need int anymore");
     return ekValueCreateString(E, temp);
 }
 
 static struct ekValue * intFuncArithmetic(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op)
 {
     ekValue * c = NULL;
-    ekValueAddRefNote(E, b, "intFuncArithmetic keep b during int conversion");
     b = ekValueToInt(E, b);
     switch (op) {
         case EVAO_ADD:
@@ -68,7 +66,6 @@ static struct ekValue * intFuncArithmetic(struct ekContext * E, struct ekValue *
             }
             break;
     }
-    ekValueRemoveRefNote(E, b, "intFuncArithmetic temp b done");
     return c;
 }
 
@@ -77,13 +74,13 @@ static ekBool intFuncCmp(struct ekContext * E, struct ekValue * a, struct ekValu
     if (b->type == EVT_FLOAT) {
         if ((ekF32)a->intVal > b->floatVal) {
             *cmpResult = 1;
-        } else if ((ekF32)a->intVal < b->floatVal)    {
+        } else if ((ekF32)a->intVal < b->floatVal) {
             *cmpResult = -1;
         } else {
             *cmpResult = 0;
         }
         return ekTrue;
-    } else if (b->type == EVT_INT)    {
+    } else if (b->type == EVT_INT) {
         *cmpResult = a->intVal - b->intVal;
         return ekTrue;
     }

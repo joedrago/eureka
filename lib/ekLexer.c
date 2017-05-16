@@ -142,7 +142,7 @@ char * ekTokenToString(struct ekContext * E, ekToken * t, int isRegex)
                 if (*(end - 1) == '"') {
                     end--;
                 }
-            } else if (*src == '@')    {
+            } else if (*src == '@') {
                 src++;
             }
             if (*(end - 1) == '@') {

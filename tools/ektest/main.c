@@ -18,8 +18,7 @@
 enum
 {
     FAIL_EVAL   = (1 << 0),
-    FAIL_MEMORY = (1 << 1),
-    FAIL_REFS   = (1 << 2)
+    FAIL_MEMORY = (1 << 1)
 };
 
 int loadChunk(const char * sourcePath, const char * code, ekU32 evalFlags)
@@ -45,15 +44,9 @@ int loadChunk(const char * sourcePath, const char * code, ekU32 evalFlags)
 #ifdef EUREKA_TRACE_MEMORY
     ekMemoryStatsPrint("ekChunk End: ");
     if (ekMemoryStatsLeftovers() > 0) {
+        ekMemoryStatsDumpLeaks();
         ret |= FAIL_MEMORY;
     }
-#endif
-#ifdef EUREKA_TRACE_REFS
-    if (ekValueDebugCount() != 0) {
-        printf("Leftover ekValues: %d\n", ekValueDebugCount());
-        ret |= FAIL_REFS;
-    }
-    printf("ekValue high watermark: %d\n", ekValueDebugHighWatermark());
 #endif
     return ret;
 }

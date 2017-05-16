@@ -16,20 +16,27 @@ ekObject * ekObjectCreate(struct ekContext * E, ekValue * prototype)
 {
     ekObject * v = (ekObject *)ekAlloc(sizeof(ekObject));
     v->prototype = prototype;
-    if (v->prototype) {
-        ekValueAddRefNote(E, v->prototype, "ekObject prototype");
-    }
     v->hash = ekMapCreate(E, EMKT_STRING);
     return v;
 }
 
 void ekObjectDestroy(struct ekContext * E, ekObject * v)
 {
-    if (v->prototype) {
-        ekValueRemoveRefNote(E, v->prototype, "ekObject prototype done");
-    }
-    ekMapDestroy(E, v->hash, ekValueRemoveRefHashed);
+    ekMapDestroy(E, v->hash, NULL);
     ekFree(v);
+}
+
+static void ekMapValueMark(struct ekContext * E, void * ignored, ekMapEntry * entry)
+{
+    ekValueMark(E, entry->valuePtr);
+}
+
+void ekObjectMark(struct ekContext * E, ekObject * v)
+{
+    ekMapIterateP1(E, v->hash, ekMapValueMark, NULL);
+    if (v->prototype) {
+        ekValueMark(E, v->prototype); // Is this necessary?
+    }
 }
 
 struct ekValue ** ekObjectGetRef(struct ekContext * E, ekObject * object, const char * key, ekBool create)
@@ -44,7 +51,7 @@ struct ekValue ** ekObjectGetRef(struct ekContext * E, ekObject * object, const 
         if (*ref == NULL) {
             *ref = ekValueNullPtr;
         }
-    } else if (!ref)    {
+    } else if (!ref) {
         if (object->prototype) {
             return ekObjectGetRef(E, object->prototype->objectVal, key, create);
         }

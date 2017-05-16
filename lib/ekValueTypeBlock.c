@@ -21,13 +21,25 @@
 static void blockFuncClear(struct ekContext * E, struct ekValue * p)
 {
     if (p->closureVars) {
-        ekMapDestroy(E, p->closureVars, ekValueRemoveRef);
+        ekMapDestroy(E, p->closureVars, NULL);
     }
 }
 
 static void blockFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->blockVal = src->blockVal;
+}
+
+static void ekMapEntryValueMark(struct ekContext * Y, void * ignored, ekMapEntry * entry)
+{
+    ekValueMark(Y, entry->valuePtr);
+}
+
+static void blockFuncMark(struct ekContext * Y, struct ekValue * value)
+{
+    if (value->closureVars) {
+        ekMapIterateP1(Y, value->closureVars, ekMapEntryValueMark, NULL);
+    }
 }
 
 static ekBool blockFuncToBool(struct ekContext * E, struct ekValue * p)
@@ -57,6 +69,7 @@ void ekValueTypeRegisterBlock(struct ekContext * E)
     ekValueType * type = ekValueTypeCreate(E, "block", 0);
     type->funcClear      = blockFuncClear;
     type->funcClone      = blockFuncClone;
+    type->funcMark       = blockFuncMark;
     type->funcToBool     = blockFuncToBool;
     type->funcToInt      = blockFuncToInt;
     type->funcToFloat    = blockFuncToFloat;

@@ -85,7 +85,6 @@ ekU32 ekiAssert(struct ekContext * E, ekU32 argCount)
     if (v) {
         v = ekValueToInt(E, v);
         doAssert = (!v->intVal) ? ekTrue : ekFalse;
-        ekValueRemoveRefNote(E, v, "doAssert temp");
     }
 
     if (doAssert) {
@@ -94,9 +93,6 @@ ekU32 ekiAssert(struct ekContext * E, ekU32 argCount)
             reason = ekStringSafePtr(&s->stringVal);
         }
         ekContextSetError(E, EVE_RUNTIME, "Eureka Runtime Assert: %s", reason);
-    }
-    if (s) {
-        ekValueRemoveRefNote(E, s, "temporary reason string");
     }
     return 0;
 }
@@ -209,10 +205,6 @@ static ekU32 ekiRange(struct ekContext * E, ekU32 argCount)
     } else {
         end = i1->intVal;
     }
-    ekValueRemoveRefNote(E, i1, "ekiRange i1 done");
-    if (i2) {
-        ekValueRemoveRefNote(E, i2, "ekiRange i2 done");
-    }
     ekMapGetS2P(E, closure->closureVars, "i")   = ekValueCreateInt(E, start);
     ekMapGetS2P(E, closure->closureVars, "end") = ekValueCreateInt(E, end);
     ekArrayPush(E, &E->stack, closure);
@@ -238,10 +230,8 @@ static ekU32 ekiPrint(struct ekContext * E, ekU32 argCount)
                     printf("%f", v->floatVal);
                     break;
                 default:
-                    ekValueAddRefNote(E, v, "keeping ref for print's default ToString (symmetry with PopValues)");
                     v = ekValueToString(E, v);
                     printf("%s", ekStringSafePtr(&v->stringVal));
-                    ekValueRemoveRefNote(E, v, "done with temp string (default)");
                     break;
             }
         }
@@ -326,7 +316,6 @@ static ekU32 ekiRequire(struct ekContext * E, ekU32 argCount)
                 if (resultArray->type == EVT_ARRAY) {
                     if (ekArraySize(E, &resultArray->arrayVal) > 0) {
                         thisPtr = resultArray->arrayVal[0];
-                        ekValueAddRefNote(E, thisPtr, "require thisPtr");
                     }
                 }
             }
@@ -337,8 +326,6 @@ static ekU32 ekiRequire(struct ekContext * E, ekU32 argCount)
             thisPtr = ekValueNullPtr;
         }
     }
-    ekValueRemoveRefNote(E, path, "require path done");
-    ekValueRemoveRefNote(E, resultArray, "require resultArray done");
     ekContextReturn(E, thisPtr);
 }
 

@@ -22,6 +22,13 @@ static void refFuncClone(struct ekContext * E, struct ekValue * dst, struct ekVa
     dst->refVal = src->refVal;
 }
 
+static void refFuncMark(struct ekContext * E, struct ekValue * p)
+{
+    if (*p->refVal) {
+        ekValueMark(E, *p->refVal);
+    }
+}
+
 static ekBool refFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return (*p->refVal) ? ekTrue : ekFalse;
@@ -40,7 +47,7 @@ static ekF32 refFuncToFloat(struct ekContext * E, struct ekValue * p)
 static void refFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     ekStringConcat(E, &params->output, "(ref: ");
-    ekValueTypeSafeCall((*p->refVal)->type, Dump)(E, params, *p->refVal);
+    ekValueTypeSafeCall((*p->refVal)->type, Dump) (E, params, *p->refVal);
     ekStringConcat(E, &params->output, ")");
 }
 
@@ -48,6 +55,7 @@ void ekValueTypeRegisterRef(struct ekContext * E)
 {
     ekValueType * type = ekValueTypeCreate(E, "ref", 0);
     type->funcClone      = refFuncClone;
+    type->funcMark       = refFuncMark;
     type->funcToBool     = refFuncToBool;
     type->funcToInt      = refFuncToInt;
     type->funcToFloat    = refFuncToFloat;

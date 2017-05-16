@@ -149,9 +149,9 @@ int main(int argc, char * argv[])
                 }
                 if (!strcmp(line, "$globals")) {
                     ekMapIterateP1(E, E->globals, printVariable, NULL);
-                } else if (!strncmp(line, "$load ", 6))    {
+                } else if (!strncmp(line, "$load ", 6)) {
                     code = loadFile(line + 6);
-                } else if (!strcmp(line, "$quit"))    {
+                } else if (!strcmp(line, "$quit")) {
                     repl = 0;
                 } else {
                     code = strdup(line);
@@ -172,7 +172,6 @@ int main(int argc, char * argv[])
                             ekDumpParamsDestroy(E, dump);
                         }
                     }
-                    ekValueRemoveRefNote(E, result, "eval result done");
                     free(code);
                     code = NULL;
                 }

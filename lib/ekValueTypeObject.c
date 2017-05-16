@@ -30,6 +30,11 @@ static void objectFuncClone(struct ekContext * E, struct ekValue * dst, struct e
     ekAssert(0 && "objectFuncClone not implemented");
 }
 
+static void objectFuncMark(struct ekContext * E, struct ekValue * p)
+{
+    ekObjectMark(E, p->objectVal);
+}
+
 static ekBool objectFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return ekTrue;
@@ -49,7 +54,6 @@ static struct ekValue * objectFuncToString(struct ekContext * E, struct ekValue 
 {
     char temp[32];
     sprintf(temp, "[object:%p]", p->objectVal);
-    ekValueRemoveRefNote(E, p, "objectFuncToString doesnt need object anymore");
     return ekValueCreateString(E, temp);
 }
 
@@ -70,7 +74,6 @@ static ekU32 objectIterator(struct ekContext * E, ekU32 argCount)
 
     if (index->intVal < ekArraySize(E, &keys->arrayVal)) {
         ekValue * key = keys->arrayVal[index->intVal++];
-        ekValueAddRefNote(E, key, "pairs_iterator using key");
         ekArrayPush(E, &E->stack, key);
         v = ekValueIndex(E, m, key, ekFalse); // should addref the value
         if (!v) {
@@ -101,7 +104,6 @@ static ekU32 keys(struct ekContext * E, ekU32 argCount)
 
     ekMapIterateP1(E, object->objectVal->hash, ekAppendKey, arrayVal);
 
-    ekValueRemoveRefNote(E, object, "keys object done");
     ekArrayPush(E, &E->stack, arrayVal);
     return 1;
 }
@@ -140,7 +142,6 @@ static struct ekValue * objectFuncIndex(struct ekContext * E, struct ekValue * v
         ret = ekValueCreateRef(E, ref);
     } else {
         ret = *ref;
-        ekValueAddRefNote(E, ret, "objectFuncIndex");
     }
     return ret;
 }
@@ -156,7 +157,7 @@ void appendKeys(struct ekContext * E, ekDumpParams * params, ekMapEntry * entry)
 
     ekStringConcat(E, &params->output, entry->keyStr);
     ekStringConcat(E, &params->output, "\" : ");
-    ekValueTypeSafeCall(child->type, Dump)(E, params, child);
+    ekValueTypeSafeCall(child->type, Dump) (E, params, child);
     params->tempInt = 0;
 }
 
@@ -187,22 +188,13 @@ static ekU32 prototype(struct ekContext * E, ekU32 argCount)
     }
 
     if (object && newPrototype) {
-        if (object->objectVal->prototype) {
-            ekValueRemoveRefNote(E, object->objectVal->prototype, "prototype removing old prototype");
-        }
         object->objectVal->prototype = newPrototype;
-        ekValueAddRefNote(E, object->objectVal->prototype, "prototype new prototype");
     }
 
     if (object && object->objectVal->prototype) {
-        ekValueAddRefNote(E, object->objectVal->prototype, "prototype return prototype");
         ekArrayPush(E, &E->stack, object->objectVal->prototype);
     } else {
         ekArrayPush(E, &E->stack, &ekValueNull);
-    }
-    ekValueRemoveRefNote(E, object, "prototype object done");
-    if (newPrototype) {
-        ekValueRemoveRefNote(E, newPrototype, "prototype newPrototype done");
     }
     return 1;
 }
@@ -212,6 +204,7 @@ void ekValueTypeRegisterObject(struct ekContext * E)
     ekValueType * type = ekValueTypeCreate(E, "object", 'o');
     type->funcClear      = objectFuncClear;
     type->funcClone      = objectFuncClone;
+    type->funcMark       = objectFuncMark;
     type->funcToBool     = objectFuncToBool;
     type->funcToInt      = objectFuncToInt;
     type->funcToFloat    = objectFuncToFloat;

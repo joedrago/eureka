@@ -34,7 +34,7 @@ char * ekTokenToString(struct ekContext * E, ekToken * t, int isRegex); // ekAll
 ekS32 ekTokenToInt(struct ekContext * E, ekToken * t);
 float ekTokenToFloat(struct ekContext * E, ekToken * t);
 
-typedef void (* tokenCB)(void * parser, ekS32 id, ekToken token, struct ekCompiler * compiler);
+typedef void (*tokenCB)(void * parser, ekS32 id, ekToken token, struct ekCompiler * compiler);
 ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * compiler);
 
 #endif

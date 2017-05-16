@@ -59,7 +59,7 @@ typedef enum ekValueArithmeticOp
 typedef struct ekValue
 {
     ekU8 type;
-    ekS32 refs; // reference count!
+    ekBool used;
     union {
         ekS32 boolVal;
         ekS32 intVal;
@@ -83,8 +83,7 @@ typedef struct ekValue
 ekValue * ekValueCreate(struct ekContext * E, int type);
 void ekValueDestroy(struct ekContext * E, ekValue * p);
 
-void ekValueAddRef(struct ekContext * E, ekValue * p);
-void ekValueRemoveRef(struct ekContext * E, ekValue * p);
+void ekValueMark(struct ekContext * E, ekValue * p);
 
 void ekValueClear(struct ekContext * E, ekValue * p);
 
@@ -149,18 +148,6 @@ typedef struct ekDumpParams
 
 ekDumpParams * ekDumpParamsCreate(struct ekContext * E);
 void ekDumpParamsDestroy(struct ekContext * E, ekDumpParams * params);
-
-#ifdef EUREKA_TRACE_REFS
-void ekValueTraceRefs(struct ekContext * E, struct ekValue * p, ekS32 delta, const char * note);
-void ekValueRemoveRefHashed(struct ekContext * E, struct ekValue * p); // used for tracing cleanup of hashes of values
-void ekValueRemoveRefArray(struct ekContext * E, struct ekValue * p);  // used for tracing cleanup of arrays of values
-#else
-#define ekValueTraceRefs(A, B, C, D)
-#define ekValueRemoveRefHashed ekValueRemoveRef
-#define ekValueRemoveRefArray ekValueRemoveRef
-#endif
-#define ekValueAddRefNote(E, V, N) { ekValueTraceRefs(E, V, 1, N); ekValueAddRef(E, V); }
-#define ekValueRemoveRefNote(E, V, N) { ekValueTraceRefs(E, V, -1, N); ekValueRemoveRef(E, V); }
 
 void ekValueDump(struct ekContext * E, ekDumpParams * params, ekValue * p);
 

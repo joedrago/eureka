@@ -32,7 +32,6 @@ typedef struct ekRegex
 
 static void ekRegexDestroy(ekContext * E, ekRegex * regex)
 {
-    ekValueRemoveRefNote(E, regex->subject, "ekRegex no longer needs subject");
     if (regex->regex) {
         pcre_free(regex->regex);
     }
@@ -46,7 +45,6 @@ static ekRegex * ekRegexCreate(ekContext * E, ekValue * subject, ekValue * patte
     ekS32 regexErrorOffset;
     ekRegex * regex = calloc(1, sizeof(ekRegex));
 
-    ekValueAddRefNote(E, subject, "ekRegexCreate");
     regex->subject = subject;
     regex->offset = 0;
     regex->global = ekFalse;
@@ -140,7 +138,6 @@ static ekU32 regexMatch(struct ekContext * E, ekU32 argCount)
     if (regex) {
         results = ekValueCreateArray(E);
         if (!ekRegexMatchNext(E, regex, results)) {
-            ekValueRemoveRefNote(E, results, "regex match failed, throwing out results");
             results = ekValueNullPtr;
         }
         ekRegexDestroy(E, regex);
@@ -164,7 +161,6 @@ static ekU32 regexGMatchIterator(struct ekContext * E, ekU32 argCount)
 
     results = ekValueCreateArray(E);
     if (!ekRegexMatchNext(E, regex, results)) {
-        ekValueRemoveRefNote(E, results, "regex gmatch failed, throwing out results");
         results = ekValueNullPtr;
     }
 

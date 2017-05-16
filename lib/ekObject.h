@@ -27,6 +27,7 @@ typedef struct ekObject
 ekObject * ekObjectCreate(struct ekContext * E, struct ekValue * prototype);
 void ekObjectDestroy(struct ekContext * E, ekObject * v);
 
+void ekObjectMark(struct ekContext * E, ekObject * v);
 struct ekValue ** ekObjectGetRef(struct ekContext * E, ekObject * object, const char * key, ekBool create);
 
 #endif

@@ -113,7 +113,7 @@ static ekValue * readLineInternal(struct ekContext * E, ekFile * file, int chomp
         if (fgets(readBuffer, 1024, stdin)) {
             ret = ekValueCreateString(E, readBuffer);
         }
-    } else if (file->handle)    {
+    } else if (file->handle) {
         int readBufferSize = 100;
         int startPos = ftell(file->handle);
         char * readBuffer = NULL;
@@ -160,7 +160,6 @@ static ekValue * absolutePath(struct ekContext * E, ekValue * path)
 {
     char temppath[MAX_PATH_LENGTH];
     realpath(ekValueSafeStr(path), temppath);
-    ekValueRemoveRefNote(E, path, "absolutePath doesn't need relative path anymore");
     return ekValueCreateString(E, temppath);
 }
 
@@ -214,7 +213,6 @@ static ekU32 fileExists(struct ekContext * E, ekU32 argCount)
         exists = 1;
     }
 
-    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
     ekContextReturnInt(E, exists);
 }
 
@@ -244,7 +242,6 @@ static ekU32 fileLs(struct ekContext * E, ekU32 argCount)
     }
 #endif
 
-    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
     ekContextReturn(E, arrayValue);
 }
 
@@ -259,7 +256,6 @@ static ekU32 fileIsDir(struct ekContext * E, ekU32 argCount)
 
     isdir = isDir(E, filenameValue);
 
-    ekValueRemoveRefNote(E, filenameValue, "fileExists doesnt need filename anymore");
     ekContextReturnInt(E, isdir);
 }
 
@@ -295,8 +291,6 @@ static ekU32 fileOpenInternal(struct ekContext * E, ekValue * fileValue, ekValue
         switchState(E, file, state);
         if (file->handle) {
             ret = fileValue;
-        } else {
-            ekValueRemoveRefNote(E, fileValue, "fileOpen failed, so forget about fileValue");
         }
     }
 
@@ -348,13 +342,11 @@ static ekU32 fileReadLine(struct ekContext * E, ekU32 argCount)
     if (chompValue) {
         chompValue = ekValueToBool(E, chompValue);
         chomp = chompValue->boolVal;
-        ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
     }
 
     switchState(E, file, EFS_READ);
     ret = readLineInternal(E, file, chomp);
 
-    ekValueRemoveRefNote(E, thisValue, "fileReadLine no longer needs thisValue");
     ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
@@ -375,7 +367,6 @@ static ekU32 fileLines(struct ekContext * E, ekU32 argCount)
     if (chompValue) {
         chompValue = ekValueToBool(E, chompValue);
         chomp = chompValue->boolVal;
-        ekValueRemoveRefNote(E, chompValue, "chompValue temporary no longer needed");
     }
 
     switchState(E, file, EFS_READ);
@@ -385,7 +376,6 @@ static ekU32 fileLines(struct ekContext * E, ekU32 argCount)
         ekValueArrayPush(E, ret, lineValue);
     }
 
-    ekValueRemoveRefNote(E, thisValue, "lines no longer needs thisValue");
     ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
@@ -409,7 +399,6 @@ static ekU32 fileRead(struct ekContext * E, ekU32 argCount)
         if (bytesValue) {
             bytesValue = ekValueToInt(E, bytesValue);
             bytes = bytesValue->intVal;
-            ekValueRemoveRefNote(E, bytesValue, "bytesValue temporary no longer needed");
         } else {
             // we want "the rest" of the file (could be the whole thing if you just opened it)
             int end;
@@ -432,7 +421,6 @@ static ekU32 fileRead(struct ekContext * E, ekU32 argCount)
         }
     }
 
-    ekValueRemoveRefNote(E, thisValue, "fileRead no longer needs thisValue");
     ekContextReturn(E, ret); // will be the data if we succesfully read
 }
 
@@ -460,7 +448,6 @@ static ekU32 fileWrite(struct ekContext * E, ekU32 argCount)
             ret = ekValueCreateInt(E, 1);
         }
     }
-    ekValueRemoveRefNote(E, thisValue, "fileWrite no longer needs thisValue");
     ekContextReturn(E, ret); // will be true if we successfully wrote
 }
 
@@ -468,14 +455,13 @@ static ekU32 fileSize(struct ekContext * E, ekU32 argCount)
 {
     ekValue * ret = ekValueNullPtr;
     ekValue * filenameValue;
-    ekFile * file;
     struct stat s;
 
     if (!ekContextGetArgs(E, argCount, "s", &filenameValue)) {
         return ekContextArgsFailure(E, argCount, "file.size(path)");
     }
 
-    if (stat(ekValueSafeStr(file->filename), &s) != -1) {
+    if (stat(ekValueSafeStr(filenameValue), &s) != -1) {
         if (S_ISDIR(s.st_mode)) {
             return ekContextArgsFailure(E, 0, "file.size() does not work on directories");
         } else {
@@ -483,7 +469,6 @@ static ekU32 fileSize(struct ekContext * E, ekU32 argCount)
         }
     }
 
-    ekValueRemoveRefNote(E, filenameValue, "fileSize doesnt need filename anymore");
     ekContextReturn(E, ret);
 }
 
@@ -508,7 +493,6 @@ static ekU32 fileMemberSize(struct ekContext * E, ekU32 argCount)
         ret = ekValueCreateInt(E, end);
     }
 
-    ekValueRemoveRefNote(E, thisValue, "fileMemberSize doesnt need this anymore");
     ekContextReturn(E, ret);
 }
 
@@ -529,7 +513,6 @@ static ekU32 fileClose(struct ekContext * E, ekU32 argCount)
         ret = ekValueCreateInt(E, 1);
     }
 
-    ekValueRemoveRefNote(E, thisValue, "fileClose doesnt need this anymore");
     ekContextReturn(E, ret);
 }
 
@@ -603,7 +586,6 @@ static void fileFuncClear(struct ekContext * E, struct ekValue * p)
     if (!file->permanent) {
         switchState(E, file, EFS_CLOSED);
     }
-    ekValueRemoveRefNote(E, file->filename, "file doesnt need filename anymore");
     ekFree(file);
 }
 
@@ -630,8 +612,6 @@ static ekF32 fileFuncToFloat(struct ekContext * E, struct ekValue * p)
 static struct ekValue * fileFuncToString(struct ekContext * E, struct ekValue * p)
 {
     ekFile * file = (ekFile *)p->ptrVal;
-    ekValueAddRefNote(E, file->filename, "fileFuncToString adding filename ref");
-    ekValueRemoveRefNote(E, p, "fileFuncToString doesnt need file anymore");
     return file->filename;
 }
 

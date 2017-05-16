@@ -272,7 +272,7 @@ enum
 
 #define asmFunc(NAME) \
     ekS32 ekAssemble ## NAME(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags)
-typedef ekS32 (* ekAssembleFunc)(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags);
+typedef ekS32 (*ekAssembleFunc)(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags);
 
 typedef struct ekAssembleInfo
 {
@@ -384,7 +384,7 @@ ekS32 asmPad(struct ekContext * E, ekCode * code, ekS32 keep, ekS32 offer, ekS32
         if (offer > keep) {
             ekCodeGrow(E, code, 1);
             ekCodeAppend(E, code, EOP_POP, (ekOperand)(offer - keep), line);
-        } else if (offer < keep)    {
+        } else if (offer < keep) {
             ekS32 i;
             ekS32 nulls = keep - offer;
             ekCodeGrow(E, code, nulls);
@@ -437,7 +437,7 @@ asmFunc(Identifier)
     ekOpcode opcode = EOP_VVAL;
     if (flags & ASM_VAR) {
         opcode = EOP_VREG;
-    } else if (flags & ASM_LVALUE)    {
+    } else if (flags & ASM_LVALUE) {
         opcode = EOP_VREF;
     }
     ekCodeGrow(E, dst, 1);

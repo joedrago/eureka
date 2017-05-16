@@ -24,7 +24,7 @@
 // Hash function declarations
 
 #define USE_MURMUR3
-//#define USE_DJB2
+// #define USE_DJB2
 
 #ifdef USE_MURMUR3
 static ekU32 murmur3string(const unsigned char * str);
@@ -351,7 +351,7 @@ static void MurmurHash3_x64_128(const void * key, ekS32 len, uint32_t seed, void
 
 #if defined(_MSC_VER)
 
-#define FORCE_INLINE    __forceinline
+#define FORCE_INLINE inline
 
 #include <stdlib.h>
 
@@ -364,7 +364,7 @@ static void MurmurHash3_x64_128(const void * key, ekS32 len, uint32_t seed, void
 
 #else // defined(_MSC_VER)
 
-#define FORCE_INLINE __attribute__((always_inline))
+#define FORCE_INLINE inline
 
 static inline uint32_t rotl32(uint32_t x, int8_t r)
 {

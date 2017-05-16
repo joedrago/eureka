@@ -21,13 +21,25 @@
 static void cfunctionFuncClear(struct ekContext * E, struct ekValue * p)
 {
     if (p->closureVars) {
-        ekMapDestroy(E, p->closureVars, ekValueRemoveRef);
+        ekMapDestroy(E, p->closureVars, NULL);
     }
 }
 
 static void cfunctionFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->cFuncVal = src->cFuncVal;
+}
+
+static void ekMapEntryValueMark(struct ekContext * Y, void * ignored, ekMapEntry * entry)
+{
+    ekValueMark(Y, entry->valuePtr);
+}
+
+static void cfunctionFuncMark(struct ekContext * Y, struct ekValue * value)
+{
+    if (value->closureVars) {
+        ekMapIterateP1(Y, value->closureVars, ekMapEntryValueMark, NULL);
+    }
 }
 
 static ekBool cfunctionFuncToBool(struct ekContext * E, struct ekValue * p)
@@ -57,6 +69,7 @@ void ekValueTypeRegisterCFunction(struct ekContext * E)
     ekValueType * type = ekValueTypeCreate(E, "cfunction", 0);
     type->funcClear      = cfunctionFuncClear;
     type->funcClone      = cfunctionFuncClone;
+    type->funcMark       = cfunctionFuncMark;
     type->funcToBool     = cfunctionFuncToBool;
     type->funcToInt      = cfunctionFuncToInt;
     type->funcToFloat    = cfunctionFuncToFloat;

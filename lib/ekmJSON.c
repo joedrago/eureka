@@ -93,7 +93,7 @@ static ekModuleFunc JSONFuncs[] =
 
 void ekModuleRegisterJSON(struct ekContext * E)
 {
-    cJSON_Hooks hooks = { ekAlloc, ekFree };
+    cJSON_Hooks hooks = { E->allocFunc, E->freeFunc };
     cJSON_InitHooks(&hooks);
 
     ekContextAddModule(E, "JSON", JSONFuncs);

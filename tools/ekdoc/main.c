@@ -197,7 +197,7 @@ ekdNode * ekdParse(char * text)
     for (; line; line = nextLine(&text)) {
         if (*line == '#') {
             // Comment: Ignore it.
-        } else if (*line == '^')    {
+        } else if (*line == '^') {
             // Link!
             char * key = line + 1;
             char * link = key;
@@ -211,7 +211,7 @@ ekdNode * ekdParse(char * text)
                     prev = ekdNodeAppend(prev, ekdNodeCreateTextKey(TYPE_LINK, link, -1, key));
                 }
             }
-        } else if (*line == ' ')    {
+        } else if (*line == ' ') {
             if ((prev->type == TYPE_TEXT) || (prev->type == TYPE_LIST_ENTRY) || (prev->type == TYPE_CODE)) {
                 int depth = 0;
                 int extraDepth = (prev->type == TYPE_LIST_ENTRY) ? 1 : 0;
@@ -240,7 +240,7 @@ ekdNode * ekdParse(char * text)
                 }
                 prev = ekdNodeAppend(prev, ekdNodeCreateTextStyleDepth(TYPE_CODE, line, -1, style, depth));
             }
-        } else if (*line == '*')    {
+        } else if (*line == '*') {
             // A new list entry!
             int depth = 0;
             while (*line == '*') {
@@ -272,7 +272,7 @@ ekdNode * ekdParse(char * text)
                 if (prev->type != TYPE_LINK) {
                     prev = ekdNodeAppend(prev, ekdNodeCreate(TYPE_BLANK));
                 }
-            } else if ((strstr(line, "---") == line) || (strstr(line, "===") == line))    {
+            } else if ((strstr(line, "---") == line) || (strstr(line, "===") == line)) {
                 if (prev->type == TYPE_TEXT) {
                     // Upgrade previous block to a title
                     prev->type = (line[0] == '-') ? TYPE_TITLE1 : TYPE_TITLE2;
@@ -302,7 +302,7 @@ ekdNode * ekdParse(char * text)
 // Simple markup system
 
 struct ekdMarkup;
-typedef char *(* ekdReplaceFunc)(ekdNode * root, struct ekdMarkup * markup, char * tag, int * lenReplaced, int * freeRequired, int replaceCount);
+typedef char *(*ekdReplaceFunc)(ekdNode * root, struct ekdMarkup * markup, char * tag, int * lenReplaced, int * freeRequired, int replaceCount);
 
 typedef struct ekdMarkup
 {
@@ -636,7 +636,7 @@ void ekdProcess(const char * mode, const char * filename)
             ekdNode * root = ekdParse(text);
             if (!strcmp(mode, "wordpress")) {
                 ekdOutputWordpress(root, &output);
-            } else if (!strcmp(mode, "text"))    {
+            } else if (!strcmp(mode, "text")) {
                 ekdOutputText(root, &output);
             } else {
                 ekdOutputHTML(root, &output);

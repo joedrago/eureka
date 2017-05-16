@@ -60,7 +60,6 @@ if(TEST_TRACING)
     add_definitions(-DEUREKA_TRACE_MEMORY=1)
     add_definitions(-DEUREKA_TRACE_MEMORY_STATS_ONLY=1)
     add_definitions(-DEUREKA_TRACE_EXECUTION=1)
-    add_definitions(-DEUREKA_TRACE_REFS=1)
 endif()
 
 if(MSVC)
@@ -155,7 +154,7 @@ if(COVERAGE)
     )
     add_dependencies(tests coverage_clean)
     add_custom_target(coverage
-        COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/eureka.info > ${CMAKE_BINARY_DIR}/lcov.ouptut
+        COMMAND lcov -c -d ${CMAKE_BINARY_DIR} -o ${CMAKE_BINARY_DIR}/eureka.info > ${CMAKE_BINARY_DIR}/lcov.output
         COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/coverage
         COMMAND genhtml --highlight --legend --output-directory ${COVERAGE_HTML_OUTPUT_DIR} ${CMAKE_BINARY_DIR}/eureka.info > ${CMAKE_BINARY_DIR}/genhtml.output
         DEPENDS tests

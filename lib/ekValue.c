@@ -27,41 +27,18 @@ ekValue * ekValueNullPtr = &ekValueNull;
 
 // ---------------------------------------------------------------------------
 
-#ifdef EUREKA_TRACE_REFS
-static ekS32 sEurekaValueDebugCount = 0;
-ekS32 ekValueDebugCount()
-{
-    return sEurekaValueDebugCount;
-}
-static ekS32 sEurekaValueHighWatermark = 0;
-ekS32 ekValueDebugHighWatermark()
-{
-    return sEurekaValueHighWatermark;
-}
-#endif
-
-// ---------------------------------------------------------------------------
-
 ekValue * ekValueCreate(ekContext * E, int type)
 {
     ekValue * value;
     if (ekArraySize(E, &E->freeValues) > 0) {
         value = ekArrayPop(E, &E->freeValues);
         memset(value, 0, sizeof(ekValue));
-        ekValueTraceRefs(E, value, 1, "ekValueCreate (reuse)");
         ekTraceValues(("ekValueCreate (reuse) %p\n", value));
     } else {
         value = ekAlloc(sizeof(ekValue));
-        ekValueTraceRefs(E, value, 1, "ekValueCreate (new)");
         ekTraceValues(("ekValueCreate (new) %p\n", value));
-#ifdef EUREKA_TRACE_REFS
-        ++sEurekaValueDebugCount;
-        if (sEurekaValueHighWatermark < sEurekaValueDebugCount) {
-            sEurekaValueHighWatermark = sEurekaValueDebugCount;
-        }
-#endif
     }
-    value->refs = 1;
+    ekArrayPush(E, &E->usedValues, value);
     value->type = type;
     return value;
 }
@@ -75,48 +52,28 @@ void ekValueDestroy(struct ekContext * E, ekValue * p)
     ekValueClear(E, p);
     ekTraceValues(("ekValueDestroy %p\n", p));
     ekFree(p);
-#ifdef EUREKA_TRACE_REFS
-    --sEurekaValueDebugCount;
-#endif
 }
 
 void ekValueClear(struct ekContext * E, ekValue * p)
 {
-    ekValueTypeSafeCall(p->type, Clear)(E, p);
+    ekValueTypeSafeCall(p->type, Clear) (E, p);
 
     memset(p, 0, sizeof(*p));
     p->type = EVT_NULL;
 }
 
-void ekValueAddRef(struct ekContext * E, ekValue * p)
+void ekValueMark(struct ekContext * E, ekValue * p)
 {
-    if (p == ekValueNullPtr) {
+    if (p->type == EVT_NULL) {
         return;
     }
 
-    ekAssert(p->refs);
-    ++p->refs;
-}
-
-void ekValueRemoveRef(struct ekContext * E, ekValue * p)
-{
-    if (p == ekValueNullPtr) {
+    if (p->used) {
         return;
     }
 
-    ekAssert(p->refs && (p->refs != 0xaaaaaaaa) && "refcount has gone rogue!");
-
-    --p->refs;
-    if (p->refs == 0) {
-        if ((E->maxFreeValues == EMFV_UNLIMITED) || (ekArraySize(E, &E->freeValues) < E->maxFreeValues)) {
-            ekTraceValues(("ekValueRemoveRef (pool) %p\n", p));
-            ekValueClear(E, p);
-            ekArrayPush(E, &E->freeValues, p);
-        } else {
-            ekTraceValues(("ekValueRemoveRef (free) %p\n", p));
-            ekValueDestroy(E, p);
-        }
-    }
+    p->used = ekTrue;
+    ekValueTypeSafeCall(p->type, Mark) (E, p);
 }
 
 // ---------------------------------------------------------------------------
@@ -229,9 +186,7 @@ ekBool ekValueSetRefVal(struct ekContext * E, ekValue * ref, ekValue * p)
         return ekFalse;
     }
 
-    ekValueRemoveRefNote(E, *(ref->refVal), "SetRefVal: forgetting previous val");
     *(ref->refVal) = p;
-    ekValueAddRefNote(E, p, "SetRefVal: taking ownership of val");
 
     ekTraceValues(("ekValueSetRefVal %p = %p\n", ref, p));
     return ekTrue;
@@ -239,7 +194,6 @@ ekBool ekValueSetRefVal(struct ekContext * E, ekValue * ref, ekValue * p)
 
 static void ekValueAddClosureVar(ekContext * E, ekMap * closureVars, ekMapEntry * entry)
 {
-    ekValueAddRefNote(E, entry->valuePtr, "+ref closure variable");
     ekMapGetS2P(E, closureVars, entry->keyStr) = entry->valuePtr;
 }
 
@@ -319,7 +273,7 @@ void ekValueArrayClear(struct ekContext * E, ekValue * p)
 {
     ekAssert(p->type == EVT_ARRAY);
 
-    ekArrayClear(E, &p->arrayVal, (ekDestroyCB)ekValueRemoveRefArray);
+    ekArrayClear(E, &p->arrayVal, NULL);
 }
 
 // ---------------------------------------------------------------------------
@@ -362,7 +316,6 @@ ekValue * ekValueCreateObject(struct ekContext * E, struct ekValue * prototype, 
             key = ekValueToString(E, key);
             ref = ekObjectGetRef(E, p->objectVal, ekStringSafePtr(&key->stringVal), ekTrue);
             *ref = val;
-            ekValueAddRefNote(E, val, "ekValueCreateObject add member value");
         }
         ekContextPopValues(E, argCount);
     }
@@ -387,7 +340,7 @@ ekS32 ekValueCmp(struct ekContext * E, ekValue * a, ekValue * b)
 
     if (a && b) {
         ekS32 ret = 0;
-        if (ekValueTypeSafeCall(a->type, Cmp)(E, a, b, &ret)) {
+        if (ekValueTypeSafeCall(a->type, Cmp) (E, a, b, &ret)) {
             return ret;
         }
     }
@@ -397,7 +350,7 @@ ekS32 ekValueCmp(struct ekContext * E, ekValue * a, ekValue * b)
 
 ekS32 ekValueLength(struct ekContext * E, ekValue * p)
 {
-    return ekValueTypeSafeCall(p->type, Length)(E, p);
+    return ekValueTypeSafeCall(p->type, Length) (E, p);
 }
 
 const char * ekValueSafeStr(ekValue * stringValue)
@@ -411,7 +364,7 @@ const char * ekValueSafeStr(ekValue * stringValue)
 void ekValueCloneData(struct ekContext * E, ekValue * dst, ekValue * src)
 {
     dst->type = src->type;
-    ekValueTypeSafeCall(dst->type, Clone)(E, dst, src);
+    ekValueTypeSafeCall(dst->type, Clone) (E, dst, src);
 }
 
 ekValue * ekValueClone(struct ekContext * E, ekValue * p)
@@ -424,7 +377,7 @@ ekValue * ekValueClone(struct ekContext * E, ekValue * p)
 
 ekValue * ekValueAdd(struct ekContext * E, ekValue * a, ekValue * b)
 {
-    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_ADD);
+    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic) (E, a, b, EVAO_ADD);
     if (!value) {
         ekTraceValues(("Don't know how to add types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
     }
@@ -433,7 +386,7 @@ ekValue * ekValueAdd(struct ekContext * E, ekValue * a, ekValue * b)
 
 ekValue * ekValueSub(struct ekContext * E, ekValue * a, ekValue * b)
 {
-    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_SUB);
+    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic) (E, a, b, EVAO_SUB);
     if (!value) {
         ekTraceValues(("Don't know how to subtract types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
     }
@@ -442,7 +395,7 @@ ekValue * ekValueSub(struct ekContext * E, ekValue * a, ekValue * b)
 
 ekValue * ekValueMul(struct ekContext * E, ekValue * a, ekValue * b)
 {
-    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_MUL);
+    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic) (E, a, b, EVAO_MUL);
     if (!value) {
         ekTraceValues(("Don't know how to multiply types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
     }
@@ -451,7 +404,7 @@ ekValue * ekValueMul(struct ekContext * E, ekValue * a, ekValue * b)
 
 ekValue * ekValueDiv(struct ekContext * E, ekValue * a, ekValue * b)
 {
-    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic)(E, a, b, EVAO_DIV);
+    ekValue * value = ekValueTypeSafeCall(a->type, Arithmetic) (E, a, b, EVAO_DIV);
     if (!value) {
         ekTraceValues(("Don't know how to divide types %s and %s\n", ekValueTypePtr(a->type)->name, ekValueTypePtr(b->type)->name));
     }
@@ -460,31 +413,28 @@ ekValue * ekValueDiv(struct ekContext * E, ekValue * a, ekValue * b)
 
 ekValue * ekValueToBool(struct ekContext * E, ekValue * p)
 {
-    ekBool boolVal = ekValueTypeSafeCall(p->type, ToBool)(E, p);
+    ekBool boolVal = ekValueTypeSafeCall(p->type, ToBool) (E, p);
     ekValue * value = ekValueCreateBool(E, boolVal);
-    ekValueRemoveRefNote(E, p, "ekValueToBool");
     return value;
 }
 
 ekValue * ekValueToInt(struct ekContext * E, ekValue * p)
 {
-    ekS32 intVal = ekValueTypeSafeCall(p->type, ToInt)(E, p);
+    ekS32 intVal = ekValueTypeSafeCall(p->type, ToInt) (E, p);
     ekValue * ret = ekValueCreateInt(E, intVal);
-    ekValueRemoveRefNote(E, p, "ekValueToInt");
     return ret;
 }
 
 ekValue * ekValueToFloat(struct ekContext * E, ekValue * p)
 {
-    ekF32 floatVal = ekValueTypeSafeCall(p->type, ToFloat)(E, p);
+    ekF32 floatVal = ekValueTypeSafeCall(p->type, ToFloat) (E, p);
     ekValue * ret = ekValueCreateFloat(E, floatVal);
-    ekValueRemoveRefNote(E, p, "ekValueToFloat");
     return ret;
 }
 
 ekValue * ekValueToString(struct ekContext * E, ekValue * p)
 {
-    ekValue * value = ekValueTypeSafeCall(p->type, ToString)(E, p);
+    ekValue * value = ekValueTypeSafeCall(p->type, ToString) (E, p);
     if (!value) {
         ekTraceExecution(("ekValueToString: unable to convert type '%s' to string\n", ekValueTypePtr(p->type)->name));
     }
@@ -493,10 +443,9 @@ ekValue * ekValueToString(struct ekContext * E, ekValue * p)
 
 ekValue * ekValueReverse(struct ekContext * E, ekValue * p)
 {
-    ekValue * reversed = ekValueTypeSafeCall(p->type, Reverse)(E, p);
+    ekValue * reversed = ekValueTypeSafeCall(p->type, Reverse) (E, p);
     if (!reversed) {
         ekContextSetError(E, EVE_RUNTIME, "reverse: unsupported type %s", ekValueTypeName(E, p->type));
-        ekValueRemoveRefNote(E, p, "ekValueReverse failed, p done either way");
         reversed = ekValueNullPtr;
     }
     return reversed;
@@ -504,7 +453,7 @@ ekValue * ekValueReverse(struct ekContext * E, ekValue * p)
 
 ekCFunction * ekValueIter(struct ekContext * E, ekValue * p)
 {
-    return ekValueTypeSafeCall(p->type, Iter)(E, p);
+    return ekValueTypeSafeCall(p->type, Iter) (E, p);
 }
 
 ekValue * ekValueStringFormat(struct ekContext * E, ekValue * format, ekS32 argCount)
@@ -533,32 +482,26 @@ ekValue * ekValueStringFormat(struct ekContext * E, ekValue * format, ekS32 argC
             case 's':
                 arg = ekContextGetArg(E, argIndex++, argCount);
                 if (arg) {
-                    ekValueAddRefNote(E, arg, "string conversion");
                     arg = ekValueToString(E, arg);
                     ekStringConcatStr(E, str, &arg->stringVal);
-                    ekValueRemoveRefNote(E, arg, "StringFormat 's' done");
                 }
                 break;
             case 'd':
                 arg = ekContextGetArg(E, argIndex++, argCount);
                 if (arg) {
                     char temp[32];
-                    ekValueAddRefNote(E, arg, "ekS32 conversion");
                     arg = ekValueToInt(E, arg);
                     sprintf(temp, "%d", arg->intVal);
                     ekStringConcat(E, str, temp);
-                    ekValueRemoveRefNote(E, arg, "StringFormat 'd' done");
                 }
                 break;
             case 'f':
                 arg = ekContextGetArg(E, argIndex++, argCount);
                 if (arg) {
                     char temp[32];
-                    ekValueAddRefNote(E, arg, "float conversion");
                     arg = ekValueToFloat(E, arg);
                     sprintf(temp, "%f", arg->floatVal);
                     ekStringConcat(E, str, temp);
-                    ekValueRemoveRefNote(E, arg, "StringFormat 'f' done");
                 }
                 break;
         }
@@ -572,13 +515,12 @@ ekValue * ekValueStringFormat(struct ekContext * E, ekValue * format, ekS32 argC
     }
 
     ekContextPopValues(E, argCount);
-    ekValueRemoveRefNote(E, format, "FORMAT format done");
     return ret;
 }
 
 ekValue * ekValueIndex(struct ekContext * E, ekValue * p, ekValue * index, ekBool lvalue)
 {
-    ekValue * v = ekValueTypeSafeCall(p->type, Index)(E, p, index, lvalue);
+    ekValue * v = ekValueTypeSafeCall(p->type, Index) (E, p, index, lvalue);
     if (!v) {
         v = ekValueTypeGetIntrinsic(E, p->type, index, lvalue);
     }
@@ -609,37 +551,5 @@ void ekDumpParamsDestroy(struct ekContext * E, ekDumpParams * params)
 
 void ekValueDump(struct ekContext * E, ekDumpParams * params, ekValue * p)
 {
-    ekValueTypeSafeCall(p->type, Dump)(E, params, p);
+    ekValueTypeSafeCall(p->type, Dump) (E, params, p);
 }
-
-#ifdef EUREKA_TRACE_REFS
-void ekValueTraceRefs(struct ekContext * E, struct ekValue * p, ekS32 delta, const char * note)
-{
-    const char * destroyed = "";
-    char tempPtr[32];
-    ekS32 newRefs = p->refs;
-    if (p == ekValueNullPtr) {
-        sprintf(tempPtr, "0xEK_NULL");
-        note = "-- ignoring ekValueNull --";
-    } else {
-        sprintf(tempPtr, "%10p", p);
-        newRefs += delta;
-        if ((delta < 0) && !newRefs) {
-            destroyed = " - DESTROYED";
-        }
-    }
-    ekTraceRefs(("\t\t\t\t\t\t\t\tREFS: ekValue %s [%2d delta -> %d]: %s%s\n", tempPtr, delta, newRefs, note, destroyed));
-}
-
-void ekValueRemoveRefArray(struct ekContext * E, struct ekValue * p)
-{
-    ekValueTraceRefs(E, p, -1, "array cleared");
-    ekValueRemoveRef(E, p);
-}
-
-void ekValueRemoveRefHashed(struct ekContext * E, struct ekValue * p)
-{
-    ekValueTraceRefs(E, p, -1, "hash cleared");
-    ekValueRemoveRef(E, p);
-}
-#endif

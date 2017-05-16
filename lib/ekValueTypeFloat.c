@@ -41,13 +41,11 @@ static struct ekValue * floatFuncToString(struct ekContext * E, struct ekValue *
 {
     char temp[64];
     sprintf(temp, "%f", p->floatVal);
-    ekValueRemoveRefNote(E, p, "floatFuncToString doesnt need float anymore");
     return ekValueCreateString(E, temp);
 }
 
 static struct ekValue * floatFuncArithmetic(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op)
 {
-    ekValueAddRefNote(E, b, "floatFuncArithmetic keep b during float conversion");
     b = ekValueToFloat(E, b);
     switch (op) {
         case EVAO_ADD:
@@ -67,7 +65,6 @@ static struct ekValue * floatFuncArithmetic(struct ekContext * E, struct ekValue
             }
             break;
     }
-    ekValueRemoveRefNote(E, b, "floatFuncArithmetic temp b done");
     return a;
 }
 
@@ -76,16 +73,16 @@ static ekBool floatFuncCmp(struct ekContext * E, struct ekValue * a, struct ekVa
     if (b->type == EVT_INT) {
         if (a->floatVal > (ekF32)b->intVal) {
             *cmpResult = 1;
-        } else if (a->floatVal < (ekF32)b->intVal)    {
+        } else if (a->floatVal < (ekF32)b->intVal) {
             *cmpResult = -1;
         } else {
             *cmpResult = 0;
         }
         return ekTrue;
-    } else if (b->type == EVT_FLOAT)    {
+    } else if (b->type == EVT_FLOAT) {
         if (a->floatVal > b->floatVal) {
             *cmpResult = 1;
-        } else if (a->floatVal < b->floatVal)    {
+        } else if (a->floatVal < b->floatVal) {
             *cmpResult = -1;
         } else {
             *cmpResult = 0;

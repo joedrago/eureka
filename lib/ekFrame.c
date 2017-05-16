@@ -23,17 +23,13 @@ ekFrame * ekFrameCreate(struct ekContext * E, ekU32 type, struct ekValue * thisV
     frame->argCount = argCount;
     frame->closure = closure;
     frame->cleanupCount = 0;
-    ekValueAddRefNote(E, frame->thisVal, "this ptr");
-    if (frame->closure) {
-        ekValueAddRefNote(E, frame->closure, "closure ptr");
-    }
     ekFrameReset(E, frame, ekFalse);
     return frame;
 }
 
 void ekFrameReset(struct ekContext * E, ekFrame * frame, ekBool jumpToStart)
 {
-    ekMapClear(E, frame->locals, ekValueRemoveRefHashed);
+    ekMapClear(E, frame->locals, NULL);
     frame->ip = (frame->block) ? frame->block->ops : NULL;
     if (frame->ip && jumpToStart) {
         while (frame->ip->opcode != EOP_START) {
@@ -45,10 +41,6 @@ void ekFrameReset(struct ekContext * E, ekFrame * frame, ekBool jumpToStart)
 void ekFrameDestroy(struct ekContext * E, ekFrame * frame)
 {
     ekFrameReset(E, frame, ekFalse);
-    ekValueRemoveRefNote(E, frame->thisVal, "this ptr done");
-    if (frame->closure) {
-        ekValueRemoveRefNote(E, frame->closure, "closure ptr done");
-    }
     ekMapDestroy(E, frame->locals, NULL);
     ekFree(frame);
 }

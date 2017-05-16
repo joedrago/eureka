@@ -176,20 +176,20 @@ statement(S) ::= RETURN(R) ENDSTATEMENT.
 statement(S) ::= RETURN expr_list(L) ENDSTATEMENT.
     { S = ekSyntaxCreateReturn(C->E, L->line, L); }
 
-statement ::= RETURN expr_list error.
-    { ekCompileExplainError(C, "expected ;"); }
+statement ::= RETURN expr_list(EXPR) error.
+    { ekSyntaxDestroy(C->E, EXPR); ekCompileExplainError(C, "expected ;"); }
 
 statement(S) ::= RETURN paren_expr_list(L) ENDSTATEMENT.
     { S = ekSyntaxCreateReturn(C->E, L->line, L); }
 
-statement ::= RETURN paren_expr_list error.
-    { ekCompileExplainError(C, "expected ;"); }
+statement ::= RETURN paren_expr_list(L) error.
+    { ekSyntaxDestroy(C->E, L); ekCompileExplainError(C, "expected ;"); }
 
 statement(S) ::= expr_list(L) ENDSTATEMENT.
     { S = ekSyntaxCreateStatementExpr(C->E, L); }
 
-statement ::= expr_list error.
-    { ekCompileExplainError(C, "expected ;"); }
+statement ::= expr_list(L) error.
+    { ekSyntaxDestroy(C->E, L); ekCompileExplainError(C, "expected ;"); }
 
 statement(S) ::= IF expr_list(COND) statement_block(IFBODY) ELSE statement_block(ELSEBODY).
     { S = ekSyntaxCreateIfElse(C->E, COND, IFBODY, ELSEBODY, ekFalse); }
@@ -206,8 +206,8 @@ statement(S) ::= FUNCTION(F) IDENTIFIER(I) LEFTPAREN func_args(ARGS) RIGHTPAREN 
 statement(S) ::= FOR ident_list(VARS) IN expression(ITER) statement_block(BODY).
     { S = ekSyntaxCreateFor(C->E, VARS, ITER, BODY); }
 
-statement ::= FOR ident_list error.
-    { ekCompileExplainError(C, "expected 'in'"); }
+statement ::= FOR ident_list(L) error.
+    { ekSyntaxDestroy(C->E, L); ekCompileExplainError(C, "expected 'in'"); }
 
 statement(S) ::= lvalue(L) PLUSEQUALS expression(R).
     { S = ekSyntaxCreateBinary(C->E, EST_ADD, L, R, ekTrue); }
@@ -370,8 +370,8 @@ expression(EXPR) ::= MAPSTARTBLOCK expr_list(EL) ENDBLOCK.
 expression(EXPR) ::= lvalue(L) ASSIGN expression(R).
     { EXPR = ekSyntaxCreateAssignment(C->E, L, R); }
 
-expression ::= lvalue ASSIGN error.
-    { ekCompileExplainError(C, "assignment expected expression"); }
+expression ::= lvalue(L) ASSIGN error.
+    { ekSyntaxDestroy(C->E, L); ekCompileExplainError(C, "assignment expected expression"); }
 
 expression(EXPR) ::= expression(L) INHERITS expression(R).
     { EXPR = ekSyntaxCreateInherits(C->E, L, R); }
