@@ -26,81 +26,37 @@
 void ekCompileOptimize(struct ekContext * E, ekCompiler * compiler);
 ekBool ekAssemble(struct ekContext * E, ekCompiler * compiler, ekBool useSourcePathForImports);
 
-ekError * ekErrorCreate(struct ekContext * E, const char * filename, ekS32 lineNo, const char * source, const char * loc, const char * explanation)
-{
-    ekError * error = (ekError *)ekAlloc(sizeof(ekError));
-    ekStringSet(E, &error->filename, filename);
-    error->lineNo = lineNo;
-    ekStringSet(E, &error->explanation, explanation);
-    if (loc) {
-        // Find the full line where things went wrong, and store the location in it
-        const char * line = loc;
-        const char * end;
-        while ((line != source) && (*line != '\n') && (*line != '\r')) {
-            --line;
-        }
-        if ((*line == '\n') || (*line == '\r')) {
-            ++line;
-        }
-        end = line;
-        while (*end && (*end != '\n') && (*end != '\r')) {
-            ++end;
-        }
-        ekStringSetLen(E, &error->line, line, end - line);
-        error->col = loc - line;
-    }
-    return error;
-}
-
-void ekErrorDestroy(ekContext * E, ekError * error)
-{
-    ekStringClear(E, &error->line);
-    ekStringClear(E, &error->explanation);
-    ekStringClear(E, &error->filename);
-    ekFree(error);
-}
-
 ekCompiler * ekCompilerCreate(struct ekContext * E)
 {
     ekCompiler * compiler = (ekCompiler *)ekAlloc(sizeof(ekCompiler));
-    compiler->E = E;
+    compiler->parser = ekParserCreate(E);
     return compiler;
 }
 
-void ekCompilerDestroy(ekCompiler * compiler)
+void ekCompilerDestroy(struct ekContext * E, ekCompiler * compiler)
 {
-    struct ekContext * E = compiler->E;
     if (compiler->chunk) {
         ekChunkDestroy(E, compiler->chunk);
     }
     if (compiler->root) {
         ekSyntaxDestroy(E, compiler->root);
     }
-    ekArrayDestroy(E, &compiler->errors, (ekDestroyCB)ekErrorDestroy);
+    ekParserDestroy(E, compiler->parser);
     ekFree(compiler);
 }
 
-ekBool ekCompile(ekCompiler * compiler, const char * sourcePath, const char * source, ekU32 compileOpts)
+ekBool ekCompile(struct ekContext * E, ekCompiler * compiler, const char * sourcePath, const char * source, ekU32 compileOpts)
 {
-    struct ekContext * E = compiler->E;
     ekBool success = ekFalse;
-    ekParser * parser;
 
     compiler->sourcePath = sourcePath;
-    compiler->source = source;
 
     ekTraceMem(("\n                                     "
                 "--- start chunk compile ---\n"));
 
-    compiler->root = NULL;
-
-    parser = ekParserCreate(E);
-    ekParserParse(E, parser, compiler, source);
-    // ekLex(parser, source, ekParse, compiler);
-    // ekParse(parser, 0, emptyToken, compiler);
-
+    compiler->root = ekParserParse(E, compiler->parser, sourcePath, source);
     if (compiler->root) {
-        if (ekArraySize(E, &compiler->errors)) {
+        if (ekArraySize(E, &compiler->parser->errors)) {
             ekSyntaxDestroy(E, compiler->root);
             compiler->root = NULL;
         } else {
@@ -118,13 +74,10 @@ ekBool ekCompile(ekCompiler * compiler, const char * sourcePath, const char * so
         }
     }
 
-    ekParserDestroy(E, parser);
-
     ekTraceMem(("                                     "
                 "---  end  chunk compile ---\n\n"));
 
     compiler->sourcePath = NULL;
-    compiler->source = NULL;
     return success;
 }
 
@@ -135,12 +88,11 @@ static void appendInt(ekContext * E, ekString * str, ekS32 i)
     ekStringConcat(E, str, temp);
 }
 
-ekBool ekCompilerFormatErrors(ekCompiler * compiler, ekString * output)
+ekBool ekCompilerFormatErrors(struct ekContext * E, ekCompiler * compiler, ekString * output)
 {
-    struct ekContext * E = compiler->E;
     ekS32 i;
-    for (i = 0; i < ekArraySize(E, &compiler->errors); i++) {
-        ekError * error = compiler->errors[i];
+    for (i = 0; i < ekArraySize(E, &compiler->parser->errors); i++) {
+        ekError * error = compiler->parser->errors[i];
         ekStringConcat(E, output, ekStringSafePtr(&error->filename));
         ekStringConcat(E, output, ":");
         appendInt(E, output, error->lineNo);
@@ -163,26 +115,7 @@ ekBool ekCompilerFormatErrors(ekCompiler * compiler, ekString * output)
             ekStringConcat(E, output, "^\n");
         }
     }
-    return (ekArraySize(E, &compiler->errors) > 0) ? ekTrue : ekFalse;
-}
-
-void ekCompileSyntaxError(ekCompiler * compiler, struct ekToken * token, const char * explanation)
-{
-    ekContext * E = compiler->E;
-    const char * sourcePath = compiler->sourcePath;
-    if (!sourcePath)
-        sourcePath = "<source>";
-    ekError * error = ekErrorCreate(E, sourcePath, token->line, compiler->source, token->text, explanation);
-    ekArrayPush(E, &compiler->errors, error);
-}
-
-void ekCompileExplainError(ekCompiler * compiler, const char * explanation)
-{
-    ekS32 size = ekArraySize(compiler->E, &compiler->errors);
-    if (size > 0) {
-        ekError * error = compiler->errors[size - 1];
-        ekStringSet(compiler->E, &error->explanation, explanation);
-    }
+    return (ekArraySize(E, &compiler->parser->errors) > 0) ? ekTrue : ekFalse;
 }
 
 // ---------------------------------------------------------------------------

@@ -46,6 +46,7 @@ ekS32 getNextToken(ekLexer * l)
     return ETT_EOF;
 }
 
+#if 0
 ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * compiler)
 {
     struct ekContext * E = compiler->E;
@@ -114,6 +115,7 @@ ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * c
     }
     return ekTrue;
 }
+#endif
 
 ekToken * ekTokenClone(struct ekContext * E, ekToken * token)
 {

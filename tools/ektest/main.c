@@ -64,15 +64,15 @@ void outputAst(const char * sourcePath, const char * code, ekU32 evalFlags)
     if (evalFlags & EEO_OPTIMIZE) {
         compileFlags |= ECO_OPTIMIZE;
     }
-    ekCompile(compiler, sourcePath, code, compileFlags);
-    if (ekCompilerFormatErrors(compiler, &err)) {
+    ekCompile(E, compiler, sourcePath, code, compileFlags);
+    if (ekCompilerFormatErrors(E, compiler, &err)) {
         fprintf(stderr, "%s", ekStringSafePtr(&err));
     }
     ekStringClear(E, &err);
     if (compiler->root) {
         ekSyntaxAst(E, compiler->root);
     }
-    ekCompilerDestroy(compiler);
+    ekCompilerDestroy(E, compiler);
     ekContextDestroy(E);
 #else
     printf("AST dump support is disabled! (EUREKA_ENABLE_EXT_AST)\n");
@@ -91,15 +91,15 @@ void outputGraph(const char * sourcePath, const char * code, ekU32 evalFlags)
     if (evalFlags & EEO_OPTIMIZE) {
         compileFlags |= ECO_OPTIMIZE;
     }
-    ekCompile(compiler, sourcePath, code, compileFlags);
-    if (ekCompilerFormatErrors(compiler, &err)) {
+    ekCompile(E, compiler, sourcePath, code, compileFlags);
+    if (ekCompilerFormatErrors(E, compiler, &err)) {
         fprintf(stderr, "%s", ekStringSafePtr(&err));
     }
     ekStringClear(E, &err);
     if (compiler->root) {
         ekSyntaxDot(E, compiler->root);
     }
-    ekCompilerDestroy(compiler);
+    ekCompilerDestroy(E, compiler);
     ekContextDestroy(E);
 #else
     printf("Dot support is disabled! (EUREKA_ENABLE_EXT_DOT)\n");

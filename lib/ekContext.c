@@ -250,8 +250,8 @@ void ekContextEval(struct ekContext * E, const char * sourcePath, const char * t
     }
 
     compiler = ekCompilerCreate(E);
-    ekCompile(compiler, sourcePath, text, compileFlags);
-    if (ekCompilerFormatErrors(compiler, &formattedError)) {
+    ekCompile(E, compiler, sourcePath, text, compileFlags);
+    if (ekCompilerFormatErrors(E, compiler, &formattedError)) {
         ekContextSetError(E, EVE_COMPILE, ekStringSafePtr(&formattedError));
     }
     ekStringClear(E, &formattedError);
@@ -260,7 +260,7 @@ void ekContextEval(struct ekContext * E, const char * sourcePath, const char * t
     chunk = compiler->chunk;
     compiler->chunk = NULL;
 
-    ekCompilerDestroy(compiler);
+    ekCompilerDestroy(E, compiler);
 
     if (chunk) {
         if (chunk->block) {
