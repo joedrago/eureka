@@ -12,16 +12,16 @@
 
 typedef struct ekCode
 {
-    struct ekOp *ops;
+    struct ekOp * ops;
     ekS32 size;
     ekS32 count;
 } ekCode;
 
-#define ekCodeCreate() ((ekCode*)ekAlloc(sizeof(ekCode)))
-void ekCodeDestroy(struct ekContext *E, ekCode *code);
+#define ekCodeCreate() ((ekCode *)ekAlloc(sizeof(ekCode)))
+void ekCodeDestroy(struct ekContext * E, ekCode * code);
 
-void ekCodeGrow(struct ekContext *E, ekCode *code, ekS32 count);
-ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand operand, ekS32 line);
-void ekCodeConcat(struct ekContext *E, ekCode *dst, ekCode *src);
+void ekCodeGrow(struct ekContext * E, ekCode * code, ekS32 count);
+ekS32 ekCodeAppend(struct ekContext * E, ekCode * code, ekOpcode opcode, ekOperand operand, ekS32 line);
+void ekCodeConcat(struct ekContext * E, ekCode * dst, ekCode * src);
 
 #endif

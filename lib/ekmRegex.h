@@ -10,6 +10,6 @@
 
 #include "ekTypes.h"
 
-void ekModuleRegisterRegex(struct ekContext *E);
+void ekModuleRegisterRegex(struct ekContext * E);
 
 #endif

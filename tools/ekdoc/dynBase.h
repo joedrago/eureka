@@ -21,8 +21,8 @@
 #endif
 
 // P1 and P2 are "prefixed arguments", useful for passing userdata into a destroy function
-typedef void (*dynDestroyFunc)(void *p);
-typedef void (*dynDestroyFuncP1)(void *p1, void *p);
-typedef void (*dynDestroyFuncP2)(void *p1, void *p2, void *p);
+typedef void (* dynDestroyFunc)(void * p);
+typedef void (* dynDestroyFuncP1)(void * p1, void * p);
+typedef void (* dynDestroyFuncP2)(void * p1, void * p2, void * p);
 
 #endif

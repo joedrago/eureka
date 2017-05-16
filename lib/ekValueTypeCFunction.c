@@ -18,44 +18,43 @@
 // ---------------------------------------------------------------------------
 // EVT_CFUNCTION Funcs
 
-static void cfunctionFuncClear(struct ekContext *E, struct ekValue *p)
+static void cfunctionFuncClear(struct ekContext * E, struct ekValue * p)
 {
-    if(p->closureVars)
-    {
+    if (p->closureVars) {
         ekMapDestroy(E, p->closureVars, ekValueRemoveRef);
     }
 }
 
-static void cfunctionFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void cfunctionFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->cFuncVal = src->cFuncVal;
 }
 
-static ekBool cfunctionFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool cfunctionFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return ekTrue;
 }
 
-static ekS32 cfunctionFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 cfunctionFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     return 1; // ?
 }
 
-static ekF32 cfunctionFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 cfunctionFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     return 1.0f; // ?
 }
 
-static void cfunctionFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void cfunctionFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     char temp[64];
     sprintf(temp, "(cfunction:0x%p)", p->cFuncVal);
     ekStringConcat(E, &params->output, temp);
 }
 
-void ekValueTypeRegisterCFunction(struct ekContext *E)
+void ekValueTypeRegisterCFunction(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "cfunction", 0);
+    ekValueType * type = ekValueTypeCreate(E, "cfunction", 0);
     type->funcClear      = cfunctionFuncClear;
     type->funcClone      = cfunctionFuncClone;
     type->funcToBool     = cfunctionFuncToBool;

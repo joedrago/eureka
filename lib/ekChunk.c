@@ -12,21 +12,19 @@
 
 #include <stdio.h>
 
-ekChunk *ekChunkCreate(struct ekContext *E, const char *sourcePath, ekBool useSourcePathForImports)
+ekChunk * ekChunkCreate(struct ekContext * E, const char * sourcePath, ekBool useSourcePathForImports)
 {
-    ekChunk *chunk = (ekChunk *)ekAlloc(sizeof(ekChunk));
-    if(sourcePath)
-    {
+    ekChunk * chunk = (ekChunk *)ekAlloc(sizeof(ekChunk));
+    if (sourcePath) {
         ekContextAbsolutePath(E, sourcePath, &chunk->sourcePath, ekFalse);
-        if(useSourcePathForImports)
-        {
+        if (useSourcePathForImports) {
             ekContextAbsolutePath(E, sourcePath, &chunk->searchPath, ekTrue);
         }
     }
     return chunk;
 }
 
-void ekChunkDestroy(struct ekContext *E, ekChunk *chunk)
+void ekChunkDestroy(struct ekContext * E, ekChunk * chunk)
 {
     // chunk->block is either NULL or pointing inside chunk->blocks
     ekArrayDestroy(E, &chunk->blocks, (ekDestroyCB)ekBlockDestroy);
@@ -41,7 +39,7 @@ void ekChunkDestroy(struct ekContext *E, ekChunk *chunk)
     ekFree(chunk);
 }
 
-ekOperand ekChunkAddBlock(struct ekContext *E, ekChunk *chunk, struct ekBlock *block)
+ekOperand ekChunkAddBlock(struct ekContext * E, ekChunk * chunk, struct ekBlock * block)
 {
     block->chunk = chunk;
     return ekArrayPush(E, &chunk->blocks, block);

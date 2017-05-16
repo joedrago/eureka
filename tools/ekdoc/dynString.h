@@ -13,28 +13,28 @@
 #include <stdarg.h>
 
 // creation / destruction / cleanup
-void dsCreate(char **dsptr);
-void dsDestroy(char **dsptr);
-void dsDestroyIndirect(char *ds);
-void dsClear(char **dsptr);
-char *dsDup(const char *text);
-char *dsDupf(const char *format, ...);
+void dsCreate(char ** dsptr);
+void dsDestroy(char ** dsptr);
+void dsDestroyIndirect(char * ds);
+void dsClear(char ** dsptr);
+char * dsDup(const char * text);
+char * dsDupf(const char * format, ...);
 
 // manipulation
-void dsCopyLen(char **dsptr, const char *text, dynSize len);
-void dsCopy(char **dsptr, const char *text);
-void dsConcatLen(char **dsptr, const char *text, dynSize len);
-void dsConcat(char **dsptr, const char *text);
-void dsPrintf(char **dsptr, const char *format, ...);
-void dsConcatv(char **dsptr, const char *format, va_list args);
-void dsConcatf(char **dsptr, const char *format, ...);
-void dsSetLength(char **dsptr, dynSize newLength);
-void dsCalcLength(char **dsptr);
-void dsSetCapacity(char **dsptr, dynSize newCapacity);
+void dsCopyLen(char ** dsptr, const char * text, dynSize len);
+void dsCopy(char ** dsptr, const char * text);
+void dsConcatLen(char ** dsptr, const char * text, dynSize len);
+void dsConcat(char ** dsptr, const char * text);
+void dsPrintf(char ** dsptr, const char * format, ...);
+void dsConcatv(char ** dsptr, const char * format, va_list args);
+void dsConcatf(char ** dsptr, const char * format, ...);
+void dsSetLength(char ** dsptr, dynSize newLength);
+void dsCalcLength(char ** dsptr);
+void dsSetCapacity(char ** dsptr, dynSize newCapacity);
 
 // information / testing
-int dsCmp(char **dsptr, char **other);
-dynSize dsLength(char **dsptr);
-dynSize dsCapacity(char **dsptr);
+int dsCmp(char ** dsptr, char ** other);
+dynSize dsLength(char ** dsptr);
+dynSize dsCapacity(char ** dsptr);
 
 #endif

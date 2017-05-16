@@ -20,30 +20,27 @@
 
 // TODO: add substr, join, [others]
 
-static ekU32 stringIntrinsicSplit(struct ekContext *E, ekU32 argCount)
+static ekU32 stringIntrinsicSplit(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *sep = NULL;
-    ekValue *str = NULL;
-    ekValue *a;
-    if(!ekContextGetArgs(E, argCount, "ss", &str, &sep))
-    {
+    ekValue * sep = NULL;
+    ekValue * str = NULL;
+    ekValue * a;
+    if (!ekContextGetArgs(E, argCount, "ss", &str, &sep)) {
         return ekContextArgsFailure(E, argCount, "split([string] str, [string] seps)");
     }
 
     a = ekValueCreateArray(E);
     {
-        const char *front = ekValueSafeStr(str);
-        const char *seps = ekValueSafeStr(sep);
-        while(*front)
-        {
+        const char * front = ekValueSafeStr(str);
+        const char * seps = ekValueSafeStr(sep);
+        while (*front) {
             ekS32 split = strcspn(front, seps);
-            if(split > 0)
-            {
-                ekValue *newString = ekValueCreateStringLen(E, front, split);
+            if (split > 0) {
+                ekValue * newString = ekValueCreateStringLen(E, front, split);
                 ekArrayPush(E, &a->arrayVal, newString);
             }
             front += split;
-            if(*front)
+            if (*front)
                 front++; // advance past the separator
         }
     }
@@ -54,23 +51,20 @@ static ekU32 stringIntrinsicSplit(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-static ekU32 stringIntrinsicJoin(struct ekContext *E, ekU32 argCount)
+static ekU32 stringIntrinsicJoin(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *a = NULL;
-    ekValue *sep = NULL;
-    ekValue *str;
+    ekValue * a = NULL;
+    ekValue * sep = NULL;
+    ekValue * str;
     ekS32 i;
-    if(!ekContextGetArgs(E, argCount, "as", &a, &sep))
-    {
+    if (!ekContextGetArgs(E, argCount, "as", &a, &sep)) {
         return ekContextArgsFailure(E, argCount, "join([array] a, [string] sep)");
     }
 
     str = ekValueCreateString(E, "");
-    for(i = 0; i < ekArraySize(E, &a->arrayVal); ++i)
-    {
-        ekValue *v = a->arrayVal[i];
-        if(i)
-        {
+    for (i = 0; i < ekArraySize(E, &a->arrayVal); ++i) {
+        ekValue * v = a->arrayVal[i];
+        if (i) {
             ekStringConcat(E, &str->stringVal, ekValueSafeStr(sep));
         }
         ekValueAddRefNote(E, v, "converting to string, but keeping in array");
@@ -85,11 +79,10 @@ static ekU32 stringIntrinsicJoin(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiString(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
+    ekValue * v = NULL;
+    if (!ekContextGetArgs(E, argCount, "?", &v)) {
         return ekContextArgsFailure(E, argCount, "string(value)");
     }
 
@@ -97,37 +90,30 @@ static ekU32 ekiString(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-static ekU32 stringIntrinsicChomp(struct ekContext *E, ekU32 argCount)
+static ekU32 stringIntrinsicChomp(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *str = NULL;
-    ekValue *newstr = ekValueNullPtr;
-    char *c;
+    ekValue * str = NULL;
+    ekValue * newstr = ekValueNullPtr;
+    char * c;
     int len;
 
-    if(!ekContextGetArgs(E, argCount, "s", &str))
-    {
+    if (!ekContextGetArgs(E, argCount, "s", &str)) {
         return ekContextArgsFailure(E, argCount, "chomp([string] str)");
     }
 
-
     len = str->stringVal.len;
-    if(str->stringVal.text && str->stringVal.len)
-    {
-        char *end = &str->stringVal.text[len-1];
-        while(len && ((*end == '\n') || (*end == '\r')))
-        {
+    if (str->stringVal.text && str->stringVal.len) {
+        char * end = &str->stringVal.text[len - 1];
+        while (len && ((*end == '\n') || (*end == '\r'))) {
             --len;
             --end;
         }
-        *(end+1) = 0;
+        *(end + 1) = 0;
     }
 
-    if(len != str->stringVal.len)
-    {
+    if (len != str->stringVal.len) {
         newstr = ekValueCreateStringLen(E, str->stringVal.text, len);
-    }
-    else
-    {
+    } else {
         newstr = str;
         ekValueAddRefNote(E, str, "chomp not changing string; reuse");
     }
@@ -140,48 +126,46 @@ static ekU32 stringIntrinsicChomp(struct ekContext *E, ekU32 argCount)
 // ---------------------------------------------------------------------------
 // EVT_STRING Funcs
 
-static void stringFuncClear(struct ekContext *E, struct ekValue *p)
+static void stringFuncClear(struct ekContext * E, struct ekValue * p)
 {
     ekStringClear(E, &p->stringVal);
 }
 
-static void stringFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void stringFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     ekStringSetStr(E, &dst->stringVal, &src->stringVal);
 }
 
-static ekBool stringFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool stringFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return (p->stringVal.len) ? ekTrue : ekFalse;
 }
 
-static ekS32 stringFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 stringFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToInt(E, &t);
 }
 
-static ekF32 stringFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 stringFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToFloat(E, &t);
 }
 
-struct ekValue *stringFuncToString(struct ekContext *E, struct ekValue *p)
+struct ekValue * stringFuncToString(struct ekContext * E, struct ekValue * p)
 {
     // Implicit 'create' of new value (addref p), followed by 'destroy' of old value (removeref p)
     return p;
 }
 
-static struct ekValue *stringFuncReverse(struct ekContext *E, struct ekValue *p)
+static struct ekValue * stringFuncReverse(struct ekContext * E, struct ekValue * p)
 {
-    if(p->stringVal.len)
-    {
-        ekValue *reversed = ekValueCreateString(E, ekStringSafePtr(&p->stringVal));
-        char *front = reversed->stringVal.text;
-        char *back  = reversed->stringVal.text + reversed->stringVal.len - 1;
-        while(back > front)
-        {
+    if (p->stringVal.len) {
+        ekValue * reversed = ekValueCreateString(E, ekStringSafePtr(&p->stringVal));
+        char * front = reversed->stringVal.text;
+        char * back  = reversed->stringVal.text + reversed->stringVal.len - 1;
+        while (back > front) {
             char tmp = *front;
             *front = *back;
             *back = tmp;
@@ -197,11 +181,10 @@ static struct ekValue *stringFuncReverse(struct ekContext *E, struct ekValue *p)
     return p;
 }
 
-struct ekValue *stringFuncArithmetic(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op)
+struct ekValue * stringFuncArithmetic(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op)
 {
-    ekValue *ret = NULL;
-    if(op == EVAO_ADD)
-    {
+    ekValue * ret = NULL;
+    if (op == EVAO_ADD) {
         ekValueAddRefNote(E, a, "stringFuncArithmetic keep a during string conversion");
         ekValueAddRefNote(E, b, "stringFuncArithmetic keep b during string conversion");
         a = ekValueToString(E, a);
@@ -210,39 +193,36 @@ struct ekValue *stringFuncArithmetic(struct ekContext *E, struct ekValue *a, str
         ekStringConcatStr(E, &ret->stringVal, &a->stringVal);
         ekValueRemoveRefNote(E, a, "stringFuncArithmetic temp a done");
         ekValueRemoveRefNote(E, b, "stringFuncArithmetic temp b done");
-    }
-    else
-    {
+    } else {
         ekTraceExecution(("stringFuncArithmetic(): cannot subtract, multiply, or divide strings!"));
     }
     return ret;
 }
 
-static ekBool stringFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult)
+static ekBool stringFuncCmp(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult)
 {
-    if(b->type == EVT_STRING)
-    {
+    if (b->type == EVT_STRING) {
         *cmpResult = ekStringCmpStr(E, &a->stringVal, &b->stringVal);
         return ekTrue;
     }
     return ekFalse;
 }
 
-ekS32 stringFuncLength(struct ekContext *E, struct ekValue *p)
+ekS32 stringFuncLength(struct ekContext * E, struct ekValue * p)
 {
     return p->stringVal.len;
 }
 
-static void stringFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void stringFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     ekStringConcatLen(E, &params->output, "\"", 1);
     ekStringConcatStr(E, &params->output, &p->stringVal);
     ekStringConcatLen(E, &params->output, "\"", 1);
 }
 
-void ekValueTypeRegisterString(struct ekContext *E)
+void ekValueTypeRegisterString(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "string", 's');
+    ekValueType * type = ekValueTypeCreate(E, "string", 's');
     type->funcClear      = stringFuncClear;
     type->funcClone      = stringFuncClone;
     type->funcToBool     = stringFuncToBool;

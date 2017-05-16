@@ -39,28 +39,28 @@ typedef struct ekError
     ekS32 col;
 } ekError;
 
-ekError *ekErrorCreate(struct ekContext *E, const char *filename, ekS32 line, const char *source, const char *loc, const char *explanation);
-void ekErrorDestroy(struct ekContext *E, ekError *error);
+ekError * ekErrorCreate(struct ekContext * E, const char * filename, ekS32 line, const char * source, const char * loc, const char * explanation);
+void ekErrorDestroy(struct ekContext * E, ekError * error);
 
 typedef struct ekCompiler
 {
-    struct ekContext *E;
-    struct ekSyntax *root;
-    struct ekChunk *chunk;
-    struct ekCode *code;
-    ekError **errors;
-    const char *sourcePath; // only valid during ekCompile()
-    const char *source;     // only valid during ekCompile()
+    struct ekContext * E;
+    struct ekSyntax * root;
+    struct ekChunk * chunk;
+    struct ekCode * code;
+    ekError ** errors;
+    const char * sourcePath; // only valid during ekCompile()
+    const char * source;     // only valid during ekCompile()
 } ekCompiler;
 
-ekCompiler *ekCompilerCreate(struct ekContext *E);
-void ekCompilerDestroy(ekCompiler *compiler);
+ekCompiler * ekCompilerCreate(struct ekContext * E);
+void ekCompilerDestroy(ekCompiler * compiler);
 
 // Main entry point for the compiler
-ekBool ekCompile(ekCompiler *compiler, const char *sourcePath, const char *source, ekU32 compileOpts);
+ekBool ekCompile(ekCompiler * compiler, const char * sourcePath, const char * source, ekU32 compileOpts);
 
-void ekCompileSyntaxError(ekCompiler *compiler, struct ekToken *token, const char *explanation);
-void ekCompileExplainError(ekCompiler *compiler, const char *explanation);
-ekBool ekCompilerFormatErrors(ekCompiler *compiler, ekString *output);
+void ekCompileSyntaxError(ekCompiler * compiler, struct ekToken * token, const char * explanation);
+void ekCompileExplainError(ekCompiler * compiler, const char * explanation);
+ekBool ekCompilerFormatErrors(ekCompiler * compiler, ekString * output);
 
-#endif
+#endif // ifndef EKCOMPILER_H

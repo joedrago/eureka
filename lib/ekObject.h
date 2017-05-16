@@ -20,13 +20,13 @@ struct ekValue;
 
 typedef struct ekObject
 {
-    struct ekValue *prototype;
-    struct ekMap *hash;
+    struct ekValue * prototype;
+    struct ekMap * hash;
 } ekObject;
 
-ekObject *ekObjectCreate(struct ekContext *E, struct ekValue *prototype);
-void ekObjectDestroy(struct ekContext *E, ekObject *v);
+ekObject * ekObjectCreate(struct ekContext * E, struct ekValue * prototype);
+void ekObjectDestroy(struct ekContext * E, ekObject * v);
 
-struct ekValue **ekObjectGetRef(struct ekContext *E, ekObject *object, const char *key, ekBool create);
+struct ekValue ** ekObjectGetRef(struct ekContext * E, ekObject * object, const char * key, ekBool create);
 
 #endif

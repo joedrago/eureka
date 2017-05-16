@@ -3,16 +3,13 @@
 
 #line 25 "C:/Users/joe/Documents/work/ek/ek/ekLexer.re"
 
-
-
 #line 9 "<stdout>"
 {
     YYCTYPE yych;
     unsigned int yyaccept = 0;
 
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
             goto yy18;
         case 0x01:
@@ -122,8 +119,7 @@
     }
 yy2:
     YYCURSOR = YYMARKER;
-    switch(yyaccept)
-    {
+    switch (yyaccept) {
         case 0:
             goto yy6;
         case 1:
@@ -143,8 +139,7 @@ yy3:
 yy5:
     yyaccept = 0;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 'h':
             goto yy143;
         default:
@@ -161,8 +156,7 @@ yy7:
 yy8:
     yyaccept = 1;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 'U':
             goto yy115;
         case 'u':
@@ -177,8 +171,7 @@ yy9:
 yy10:
     yyaccept = 1;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case '?':
             goto yy112;
         default:
@@ -187,8 +180,7 @@ yy10:
 yy11:
     yyaccept = 1;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -226,8 +218,7 @@ yy11:
 yy12:
     yyaccept = 1;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -281,8 +272,7 @@ yy16:
 #line 246 "<stdout>"
 yy17:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '\n':
             goto yy21;
         default:
@@ -305,8 +295,7 @@ yy22:
     ++YYCURSOR;
     yych = *YYCURSOR;
 yy23:
-    switch(yych)
-    {
+    switch (yych) {
         case '\t':
         case '\v':
         case '\f':
@@ -319,8 +308,7 @@ yy24:
     ++YYCURSOR;
     yych = *YYCURSOR;
 yy25:
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -363,8 +351,7 @@ yy25:
 yy26:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -407,8 +394,7 @@ yy26:
 yy27:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '"':
         case '\'':
         case '\\':
@@ -449,8 +435,7 @@ yy29:
 yy30:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -480,8 +465,7 @@ yy30:
 yy31:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -511,8 +495,7 @@ yy31:
 yy32:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -555,8 +538,7 @@ yy32:
 yy33:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -586,8 +568,7 @@ yy33:
 yy34:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -639,8 +620,7 @@ yy34:
 yy35:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -683,8 +663,7 @@ yy35:
 yy36:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -750,8 +729,7 @@ yy36:
 yy38:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -794,8 +772,7 @@ yy38:
 yy39:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -840,8 +817,7 @@ yy39:
 yy41:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -899,8 +875,7 @@ yy41:
 yy43:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -966,8 +941,7 @@ yy43:
 yy44:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1034,8 +1008,7 @@ yy45:
     yyaccept = 2;
     YYMARKER = ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1078,8 +1051,7 @@ yy45:
 yy46:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1122,8 +1094,7 @@ yy46:
 yy47:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1168,8 +1139,7 @@ yy47:
 yy48:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1235,8 +1205,7 @@ yy48:
 yy49:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1302,8 +1271,7 @@ yy49:
 yy50:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1369,8 +1337,7 @@ yy50:
 yy51:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1436,8 +1403,7 @@ yy51:
 yy52:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1503,8 +1469,7 @@ yy52:
 yy53:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1570,8 +1535,7 @@ yy53:
 yy54:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1614,8 +1578,7 @@ yy54:
 yy55:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1681,8 +1644,7 @@ yy55:
 yy56:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1748,8 +1710,7 @@ yy56:
 yy57:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -1792,8 +1753,7 @@ yy57:
 yy58:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1823,8 +1783,7 @@ yy58:
 yy59:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1854,8 +1813,7 @@ yy59:
 yy60:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1885,8 +1843,7 @@ yy60:
 yy61:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1916,8 +1873,7 @@ yy61:
 yy62:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1947,8 +1903,7 @@ yy62:
 yy63:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -1978,8 +1933,7 @@ yy63:
 yy64:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2009,8 +1963,7 @@ yy64:
 yy65:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2040,8 +1993,7 @@ yy65:
 yy66:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2071,8 +2023,7 @@ yy66:
 yy67:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2103,8 +2054,7 @@ yy68:
     ++YYCURSOR;
     yych = *YYCURSOR;
 yy69:
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2147,8 +2097,7 @@ yy69:
 yy70:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2191,8 +2140,7 @@ yy70:
 yy71:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '"':
         case '\'':
         case '\\':
@@ -2227,8 +2175,7 @@ yy71:
 yy72:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2258,8 +2205,7 @@ yy72:
 yy73:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2289,8 +2235,7 @@ yy73:
 yy74:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2333,8 +2278,7 @@ yy74:
 yy75:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -2364,8 +2308,7 @@ yy75:
 yy76:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2417,8 +2360,7 @@ yy76:
 yy77:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2467,8 +2409,7 @@ yy79:
 yy80:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2534,8 +2475,7 @@ yy80:
 yy82:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2578,8 +2518,7 @@ yy82:
 yy83:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2624,8 +2563,7 @@ yy83:
 yy85:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2683,8 +2621,7 @@ yy85:
 yy87:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2750,8 +2687,7 @@ yy87:
 yy88:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2818,8 +2754,7 @@ yy89:
     yyaccept = 3;
     YYMARKER = ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2862,8 +2797,7 @@ yy89:
 yy90:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2906,8 +2840,7 @@ yy90:
 yy91:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -2952,8 +2885,7 @@ yy91:
 yy92:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3019,8 +2951,7 @@ yy92:
 yy93:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3086,8 +3017,7 @@ yy93:
 yy94:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3153,8 +3083,7 @@ yy94:
 yy95:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3220,8 +3149,7 @@ yy95:
 yy96:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3287,8 +3215,7 @@ yy96:
 yy97:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3354,8 +3281,7 @@ yy97:
 yy98:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3398,8 +3324,7 @@ yy98:
 yy99:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3465,8 +3390,7 @@ yy99:
 yy100:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3532,8 +3456,7 @@ yy100:
 yy101:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -3576,8 +3499,7 @@ yy101:
 yy102:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3607,8 +3529,7 @@ yy102:
 yy103:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3638,8 +3559,7 @@ yy103:
 yy104:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3669,8 +3589,7 @@ yy104:
 yy105:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3700,8 +3619,7 @@ yy105:
 yy106:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3731,8 +3649,7 @@ yy106:
 yy107:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3762,8 +3679,7 @@ yy107:
 yy108:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3793,8 +3709,7 @@ yy108:
 yy109:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3824,8 +3739,7 @@ yy109:
 yy110:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3855,8 +3769,7 @@ yy110:
 yy111:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3885,8 +3798,7 @@ yy111:
     }
 yy112:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '/':
             goto yy113;
         default:
@@ -3894,8 +3806,7 @@ yy112:
     }
 yy113:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 'U':
             goto yy115;
         case 'u':
@@ -3905,8 +3816,7 @@ yy113:
     }
 yy114:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3935,8 +3845,7 @@ yy114:
     }
 yy115:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3965,8 +3874,7 @@ yy115:
     }
 yy116:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -3995,8 +3903,7 @@ yy116:
     }
 yy117:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4025,8 +3932,7 @@ yy117:
     }
 yy118:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4055,8 +3961,7 @@ yy118:
     }
 yy119:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4085,8 +3990,7 @@ yy119:
     }
 yy120:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4115,8 +4019,7 @@ yy120:
     }
 yy121:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4145,8 +4048,7 @@ yy121:
     }
 yy122:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4178,8 +4080,7 @@ yy123:
     YYMARKER = ++YYCURSOR;
     yych = *YYCURSOR;
 yy124:
-    switch(yych)
-    {
+    switch (yych) {
         case '$':
         case '0':
         case '1':
@@ -4255,8 +4156,7 @@ yy124:
 yy125:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 'U':
             goto yy129;
         case 'u':
@@ -4267,8 +4167,7 @@ yy125:
 yy126:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '?':
             goto yy127;
         default:
@@ -4277,8 +4176,7 @@ yy126:
 yy127:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '/':
             goto yy125;
         default:
@@ -4287,8 +4185,7 @@ yy127:
 yy128:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4318,8 +4215,7 @@ yy128:
 yy129:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4349,8 +4245,7 @@ yy129:
 yy130:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4380,8 +4275,7 @@ yy130:
 yy131:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4411,8 +4305,7 @@ yy131:
 yy132:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4442,8 +4335,7 @@ yy132:
 yy133:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4473,8 +4365,7 @@ yy133:
 yy134:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4504,8 +4395,7 @@ yy134:
 yy135:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4535,8 +4425,7 @@ yy135:
 yy136:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4566,8 +4455,7 @@ yy136:
 yy137:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4597,8 +4485,7 @@ yy137:
 yy138:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4628,8 +4515,7 @@ yy138:
 yy139:
     ++YYCURSOR;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4658,8 +4544,7 @@ yy139:
     }
 yy140:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4688,8 +4573,7 @@ yy140:
     }
 yy141:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4718,8 +4602,7 @@ yy141:
     }
 yy142:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '0':
         case '1':
         case '2':
@@ -4749,8 +4632,7 @@ yy142:
 yy143:
     yyaccept = 0;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 'i':
             goto yy144;
         default:
@@ -4759,8 +4641,7 @@ yy143:
 yy144:
     yyaccept = 0;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 'l':
             goto yy145;
         default:
@@ -4769,8 +4650,7 @@ yy144:
 yy145:
     yyaccept = 0;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case 'e':
             goto yy146;
         default:
@@ -4779,8 +4659,7 @@ yy145:
 yy146:
     yyaccept = 4;
     yych = *(YYMARKER = ++YYCURSOR);
-    switch(yych)
-    {
+    switch (yych) {
         case '$':
         case '0':
         case '1':
@@ -4860,15 +4739,13 @@ yy147:
 }
 #line 57 "C:/Users/joe/Documents/work/ek/ek/ekLexer.re"
 
-
 comment:
 
 #line 4299 "<stdout>"
 {
     YYCTYPE yych;
     yych = *YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case 0x00:
         case 0x01:
         case 0x02:
@@ -4917,8 +4794,7 @@ yy152:
 #line 4345 "<stdout>"
 yy153:
     yych = *++YYCURSOR;
-    switch(yych)
-    {
+    switch (yych) {
         case '\n':
             goto yy156;
         default:
@@ -4935,4 +4811,3 @@ yy156:
     goto yy152;
 }
 #line 69 "C:/Users/joe/Documents/work/ek/ek/ekLexer.re"
-

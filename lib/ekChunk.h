@@ -15,27 +15,27 @@ struct ekContext;
 
 typedef struct ekChunk
 {
-    struct ekBlock *block;              // Chunks are callable
+    struct ekBlock * block; // Chunks are callable
 
     // "assembly"
-    struct ekBlock **blocks;
+    struct ekBlock ** blocks;
 
     // constants
-    char **kStrings;                    // constant string table
-    ekS32 *kInts;                       // constant integer table
-    ekF32 *kFloats;                     // constant float table
+    char ** kStrings; // constant string table
+    ekS32 * kInts;    // constant integer table
+    ekF32 * kFloats;  // constant float table
 
-    ekBool hasFuncs;                    // at least one of the blocks represents a function
-    ekBool temporary;                   // signifies that the ktables aren't sticking around, and to dupe into values
+    ekBool hasFuncs;  // at least one of the blocks represents a function
+    ekBool temporary; // signifies that the ktables aren't sticking around, and to dupe into values
 
     // source information
     ekString sourcePath;
-    ekString searchPath;                // calculated from sourcePath and set if useSourcePathForImports is true
+    ekString searchPath; // calculated from sourcePath and set if useSourcePathForImports is true
 } ekChunk;
 
-ekChunk *ekChunkCreate(struct ekContext *E, const char *sourcePath, ekBool useSourcePathForImports);
-void ekChunkDestroy(struct ekContext *E, ekChunk *chunk);
+ekChunk * ekChunkCreate(struct ekContext * E, const char * sourcePath, ekBool useSourcePathForImports);
+void ekChunkDestroy(struct ekContext * E, ekChunk * chunk);
 
-ekOperand ekChunkAddBlock(struct ekContext *E, ekChunk *chunk, struct ekBlock *block);
+ekOperand ekChunkAddBlock(struct ekContext * E, ekChunk * chunk, struct ekBlock * block);
 
-#endif
+#endif // ifndef EKCHUNK_H

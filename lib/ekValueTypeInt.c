@@ -17,27 +17,27 @@
 // ---------------------------------------------------------------------------
 // EVT_INT Funcs
 
-static void intFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void intFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->intVal = src->intVal;
 }
 
-static ekBool intFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool intFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return (p->intVal) ? ekTrue : ekFalse;
 }
 
-static ekS32 intFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 intFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     return p->intVal;
 }
 
-static ekF32 intFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 intFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     return (ekF32)p->intVal;
 }
 
-static struct ekValue *intFuncToString(struct ekContext *E, struct ekValue *p)
+static struct ekValue * intFuncToString(struct ekContext * E, struct ekValue * p)
 {
     char temp[32];
     sprintf(temp, "%d", p->intVal);
@@ -45,13 +45,12 @@ static struct ekValue *intFuncToString(struct ekContext *E, struct ekValue *p)
     return ekValueCreateString(E, temp);
 }
 
-static struct ekValue *intFuncArithmetic(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op)
+static struct ekValue * intFuncArithmetic(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op)
 {
-    ekValue *c = NULL;
+    ekValue * c = NULL;
     ekValueAddRefNote(E, b, "intFuncArithmetic keep b during int conversion");
     b = ekValueToInt(E, b);
-    switch(op)
-    {
+    switch (op) {
         case EVAO_ADD:
             c = ekValueCreateInt(E, a->intVal + b->intVal);
             break;
@@ -62,58 +61,46 @@ static struct ekValue *intFuncArithmetic(struct ekContext *E, struct ekValue *a,
             c = ekValueCreateInt(E, a->intVal * b->intVal);
             break;
         case EVAO_DIV:
-            if(!b->intVal)
-            {
+            if (!b->intVal) {
                 ekContextSetError(E, EVE_RUNTIME, "divide by zero!");
-            }
-            else
-            {
+            } else {
                 c = ekValueCreateInt(E, a->intVal / b->intVal);
             }
             break;
-    };
+    }
     ekValueRemoveRefNote(E, b, "intFuncArithmetic temp b done");
     return c;
 }
 
-static ekBool intFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult)
+static ekBool intFuncCmp(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult)
 {
-    if(b->type == EVT_FLOAT)
-    {
-        if((ekF32)a->intVal > b->floatVal)
-        {
+    if (b->type == EVT_FLOAT) {
+        if ((ekF32)a->intVal > b->floatVal) {
             *cmpResult = 1;
-        }
-        else if((ekF32)a->intVal < b->floatVal)
-        {
+        } else if ((ekF32)a->intVal < b->floatVal)    {
             *cmpResult = -1;
-        }
-        else
-        {
+        } else {
             *cmpResult = 0;
         }
         return ekTrue;
-    }
-    else if(b->type == EVT_INT)
-    {
+    } else if (b->type == EVT_INT)    {
         *cmpResult = a->intVal - b->intVal;
         return ekTrue;
     }
     return ekFalse;
 }
 
-static void intFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void intFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     char temp[64];
     sprintf(temp, "%d", p->intVal);
     ekStringConcat(E, &params->output, temp);
 }
 
-static ekU32 ekiInt(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiInt(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
+    ekValue * v = NULL;
+    if (!ekContextGetArgs(E, argCount, "?", &v)) {
         return ekContextArgsFailure(E, argCount, "int(value)");
     }
 
@@ -121,9 +108,9 @@ static ekU32 ekiInt(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-void ekValueTypeRegisterInt(struct ekContext *E)
+void ekValueTypeRegisterInt(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "int", 'i');
+    ekValueType * type = ekValueTypeCreate(E, "int", 'i');
     type->funcClone      = intFuncClone;
     type->funcToBool     = intFuncToBool;
     type->funcToInt      = intFuncToInt;

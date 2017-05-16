@@ -12,16 +12,16 @@
 #include "ekCode.h"
 #include "ekOp.h"
 
-void ekBlockDestroy(struct ekContext *E, ekBlock *block)
+void ekBlockDestroy(struct ekContext * E, ekBlock * block)
 {
     ekOpsFree(block->ops);
     ekFree(block);
 }
 
-ekOperand ekBlockConvertCode(struct ekContext *E, struct ekCode *code, struct ekChunk *owner, ekS32 argCount)
+ekOperand ekBlockConvertCode(struct ekContext * E, struct ekCode * code, struct ekChunk * owner, ekS32 argCount)
 {
     ekOperand ret;
-    ekBlock *block = ekBlockCreate();
+    ekBlock * block = ekBlockCreate();
     block->ops = code->ops;
     block->opCount = code->count;
     block->argCount = argCount;
@@ -34,4 +34,3 @@ ekOperand ekBlockConvertCode(struct ekContext *E, struct ekCode *code, struct ek
     ekCodeDestroy(E, code);
     return ret;
 }
-

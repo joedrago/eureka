@@ -16,36 +16,31 @@
 #include <string.h>
 #include <stdio.h>
 
-void ekCodeDestroy(struct ekContext *E, ekCode *code)
+void ekCodeDestroy(struct ekContext * E, ekCode * code)
 {
-    if(code->ops)
-    {
+    if (code->ops) {
         ekFree(code->ops);
     }
     ekFree(code);
 }
 
-void ekCodeGrow(struct ekContext *E, ekCode *code, ekS32 count)
+void ekCodeGrow(struct ekContext * E, ekCode * code, ekS32 count)
 {
-    if(code->count + count <= code->size)
-    {
+    if (code->count + count <= code->size) {
         return;
     }
 
-    if(code->size)
-    {
+    if (code->size) {
         code->ops = ekRealloc(code->ops, sizeof(ekOp) * (code->size + count));
-    }
-    else
-    {
+    } else {
         code->ops = ekAlloc(sizeof(ekOp) * count);
     }
     code->size += count;
 }
 
-ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand operand, ekS32 line)
+ekS32 ekCodeAppend(struct ekContext * E, ekCode * code, ekOpcode opcode, ekOperand operand, ekS32 line)
 {
-    ekOp *op = &code->ops[code->count];
+    ekOp * op = &code->ops[code->count];
     op->opcode  = opcode;
     op->operand = operand;
 #ifdef EUREKA_DEBUG_SYMBOLS
@@ -55,10 +50,9 @@ ekS32 ekCodeAppend(struct ekContext *E, ekCode *code, ekOpcode opcode, ekOperand
     return code->count - 1;
 }
 
-void ekCodeConcat(struct ekContext *E, ekCode *dst, ekCode *src)
+void ekCodeConcat(struct ekContext * E, ekCode * dst, ekCode * src)
 {
-    if(src->count)
-    {
+    if (src->count) {
         ekCodeGrow(E, dst, src->count);
         memcpy(&dst->ops[dst->count], src->ops, src->size * sizeof(ekOp));
         dst->count += src->count;

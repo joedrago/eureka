@@ -17,27 +17,27 @@
 // ---------------------------------------------------------------------------
 // EVT_FLOAT Funcs
 
-static void floatFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void floatFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->floatVal = src->floatVal;
 }
 
-static ekBool floatFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool floatFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return (p->floatVal != 0.0f) ? ekTrue : ekFalse;
 }
 
-static ekS32 floatFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 floatFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     return (ekS32)p->floatVal;
 }
 
-static ekF32 floatFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 floatFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     return p->floatVal;
 }
 
-static struct ekValue *floatFuncToString(struct ekContext *E, struct ekValue *p)
+static struct ekValue * floatFuncToString(struct ekContext * E, struct ekValue * p)
 {
     char temp[64];
     sprintf(temp, "%f", p->floatVal);
@@ -45,12 +45,11 @@ static struct ekValue *floatFuncToString(struct ekContext *E, struct ekValue *p)
     return ekValueCreateString(E, temp);
 }
 
-static struct ekValue *floatFuncArithmetic(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekValueArithmeticOp op)
+static struct ekValue * floatFuncArithmetic(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op)
 {
     ekValueAddRefNote(E, b, "floatFuncArithmetic keep b during float conversion");
     b = ekValueToFloat(E, b);
-    switch(op)
-    {
+    switch (op) {
         case EVAO_ADD:
             a = ekValueCreateFloat(E, a->floatVal + b->floatVal);
             break;
@@ -61,50 +60,34 @@ static struct ekValue *floatFuncArithmetic(struct ekContext *E, struct ekValue *
             a = ekValueCreateFloat(E, a->floatVal * b->floatVal);
             break;
         case EVAO_DIV:
-            if(b->floatVal == 0.0f)
-            {
+            if (b->floatVal == 0.0f) {
                 ekContextSetError(E, EVE_RUNTIME, "divide by zero!");
-            }
-            else
-            {
+            } else {
                 a = ekValueCreateFloat(E, a->floatVal / b->floatVal);
             }
             break;
-    };
+    }
     ekValueRemoveRefNote(E, b, "floatFuncArithmetic temp b done");
     return a;
 }
 
-static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult)
+static ekBool floatFuncCmp(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult)
 {
-    if(b->type == EVT_INT)
-    {
-        if(a->floatVal > (ekF32)b->intVal)
-        {
+    if (b->type == EVT_INT) {
+        if (a->floatVal > (ekF32)b->intVal) {
             *cmpResult = 1;
-        }
-        else if(a->floatVal < (ekF32)b->intVal)
-        {
+        } else if (a->floatVal < (ekF32)b->intVal)    {
             *cmpResult = -1;
-        }
-        else
-        {
+        } else {
             *cmpResult = 0;
         }
         return ekTrue;
-    }
-    else if(b->type == EVT_FLOAT)
-    {
-        if(a->floatVal > b->floatVal)
-        {
+    } else if (b->type == EVT_FLOAT)    {
+        if (a->floatVal > b->floatVal) {
             *cmpResult = 1;
-        }
-        else if(a->floatVal < b->floatVal)
-        {
+        } else if (a->floatVal < b->floatVal)    {
             *cmpResult = -1;
-        }
-        else
-        {
+        } else {
             *cmpResult = 0;
         }
         return ekTrue;
@@ -112,18 +95,17 @@ static ekBool floatFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValu
     return ekFalse;
 }
 
-static void floatFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void floatFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     char temp[64];
     sprintf(temp, "%f", p->floatVal);
     ekStringConcat(E, &params->output, temp);
 }
 
-static ekU32 ekiFloat(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiFloat(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
+    ekValue * v = NULL;
+    if (!ekContextGetArgs(E, argCount, "?", &v)) {
         return ekContextArgsFailure(E, argCount, "float(value)");
     }
 
@@ -131,9 +113,9 @@ static ekU32 ekiFloat(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-void ekValueTypeRegisterFloat(struct ekContext *E)
+void ekValueTypeRegisterFloat(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "float", 'f');
+    ekValueType * type = ekValueTypeCreate(E, "float", 'f');
     type->funcClone      = floatFuncClone;
     type->funcToBool     = floatFuncToBool;
     type->funcToInt      = floatFuncToInt;

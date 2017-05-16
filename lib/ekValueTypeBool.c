@@ -17,62 +17,58 @@
 // ---------------------------------------------------------------------------
 // EVT_INT Funcs
 
-static void boolFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void boolFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->intVal = src->intVal;
 }
 
-static ekBool boolFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool boolFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return p->boolVal;
 }
 
-static ekS32 boolFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 boolFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     return (p->boolVal) ? 1 : 0;
 }
 
-static ekF32 boolFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 boolFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     return (p->boolVal) ? 1.0f : 0.0f;
 }
 
-static struct ekValue *boolFuncToString(struct ekContext *E, struct ekValue *p)
+static struct ekValue * boolFuncToString(struct ekContext * E, struct ekValue * p)
 {
-    const char *temp = "false";
-    if(p->boolVal)
-    {
+    const char * temp = "false";
+    if (p->boolVal) {
         temp = "true";
     }
     ekValueRemoveRefNote(E, p, "boolFuncToString doesnt need int anymore");
     return ekValueCreateString(E, temp);
 }
 
-static ekBool boolFuncCmp(struct ekContext *E, struct ekValue *a, struct ekValue *b, ekS32 *cmpResult)
+static ekBool boolFuncCmp(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult)
 {
-    if(b->type == EVT_BOOL)
-    {
+    if (b->type == EVT_BOOL) {
         *cmpResult = a->boolVal - b->boolVal;
         return ekTrue;
     }
     return ekFalse;
 }
 
-static void boolFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void boolFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
-    const char *temp = "false";
-    if(p->boolVal)
-    {
+    const char * temp = "false";
+    if (p->boolVal) {
         temp = "true";
     }
     ekStringConcat(E, &params->output, temp);
 }
 
-static ekU32 ekiBool(struct ekContext *E, ekU32 argCount)
+static ekU32 ekiBool(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *v = NULL;
-    if(!ekContextGetArgs(E, argCount, "?", &v))
-    {
+    ekValue * v = NULL;
+    if (!ekContextGetArgs(E, argCount, "?", &v)) {
         return ekContextArgsFailure(E, argCount, "bool(value)");
     }
 
@@ -80,9 +76,9 @@ static ekU32 ekiBool(struct ekContext *E, ekU32 argCount)
     return 1;
 }
 
-void ekValueTypeRegisterBool(struct ekContext *E)
+void ekValueTypeRegisterBool(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "bool", 'b');
+    ekValueType * type = ekValueTypeCreate(E, "bool", 'b');
     type->funcClone      = boolFuncClone;
     type->funcToBool     = boolFuncToBool;
     type->funcToInt      = boolFuncToInt;

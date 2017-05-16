@@ -12,48 +12,40 @@
 #include "ekValue.h"
 #include "ekContext.h"
 
-ekObject *ekObjectCreate(struct ekContext *E, ekValue *prototype)
+ekObject * ekObjectCreate(struct ekContext * E, ekValue * prototype)
 {
-    ekObject *v = (ekObject *)ekAlloc(sizeof(ekObject));
+    ekObject * v = (ekObject *)ekAlloc(sizeof(ekObject));
     v->prototype = prototype;
-    if(v->prototype)
-    {
+    if (v->prototype) {
         ekValueAddRefNote(E, v->prototype, "ekObject prototype");
     }
     v->hash = ekMapCreate(E, EMKT_STRING);
     return v;
 }
 
-void ekObjectDestroy(struct ekContext *E, ekObject *v)
+void ekObjectDestroy(struct ekContext * E, ekObject * v)
 {
-    if(v->prototype)
-    {
+    if (v->prototype) {
         ekValueRemoveRefNote(E, v->prototype, "ekObject prototype done");
     }
     ekMapDestroy(E, v->hash, ekValueRemoveRefHashed);
     ekFree(v);
 }
 
-struct ekValue **ekObjectGetRef(struct ekContext *E, ekObject *object, const char *key, ekBool create)
+struct ekValue ** ekObjectGetRef(struct ekContext * E, ekObject * object, const char * key, ekBool create)
 {
-    struct ekValue **ref = NULL;
-    ekMapEntry *hashEntry = ekMapGetS(E, object->hash, key, create);
-    if(hashEntry)
-    {
+    struct ekValue ** ref = NULL;
+    ekMapEntry * hashEntry = ekMapGetS(E, object->hash, key, create);
+    if (hashEntry) {
         ref = (struct ekValue **)&hashEntry->valuePtr;
     }
 
-    if(create)
-    {
-        if(*ref == NULL)
-        {
+    if (create) {
+        if (*ref == NULL) {
             *ref = ekValueNullPtr;
         }
-    }
-    else if(!ref)
-    {
-        if(object->prototype)
-        {
+    } else if (!ref)    {
+        if (object->prototype) {
             return ekObjectGetRef(E, object->prototype->objectVal, key, create);
         }
         ref = &ekValueNullPtr;

@@ -16,50 +16,42 @@
 
 // ---------------------------------------------------------------------------
 
-ekValueType *ekValueTypeCreate(struct ekContext *E, const char *name, int format)
+ekValueType * ekValueTypeCreate(struct ekContext * E, const char * name, int format)
 {
-    ekValueType *type = ekAlloc(sizeof(ekValueType));
+    ekValueType * type = ekAlloc(sizeof(ekValueType));
     strcpy(type->name, name);
     type->format = format;
     return type;
 }
 
-void ekValueTypeDestroy(struct ekContext *E, ekValueType *type)
+void ekValueTypeDestroy(struct ekContext * E, ekValueType * type)
 {
-    if(type->funcDestroyUserData)
-    {
+    if (type->funcDestroyUserData) {
         type->funcDestroyUserData(E, type);
     }
-    if(type->intrinsics)
-    {
+    if (type->intrinsics) {
         ekMapDestroy(E, type->intrinsics, NULL);
     }
     ekFree(type);
 }
 
-void ekValueTypeAddIntrinsic(struct ekContext *E, ekValueType *type, const char *name, ekCFunction func)
+void ekValueTypeAddIntrinsic(struct ekContext * E, ekValueType * type, const char * name, ekCFunction func)
 {
-    if(!type->intrinsics)
-    {
+    if (!type->intrinsics) {
         type->intrinsics = ekMapCreate(E, EMKT_STRING);
     }
     ekMapGetS2P(E, type->intrinsics, name) = func;
 }
 
-struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct ekValue *index, ekBool lvalue)
+struct ekValue * ekValueTypeGetIntrinsic(struct ekContext * E, ekU32 type, struct ekValue * index, ekBool lvalue)
 {
-    ekMap *map = E->types[type]->intrinsics;
-    if(map && index && (index->type == EVT_STRING))
-    {
-        ekMapEntry *mapEntry = ekMapGetS(E, map, ekValueSafeStr(index), ekFalse);
-        if(mapEntry && mapEntry->valuePtr)
-        {
-            if(lvalue)
-            {
+    ekMap * map = E->types[type]->intrinsics;
+    if (map && index && (index->type == EVT_STRING)) {
+        ekMapEntry * mapEntry = ekMapGetS(E, map, ekValueSafeStr(index), ekFalse);
+        if (mapEntry && mapEntry->valuePtr) {
+            if (lvalue) {
                 ekContextSetError(E, EVE_RUNTIME, "cannot use intrinsic %s function as an lvalue", ekValueTypeName(E, type));
-            }
-            else
-            {
+            } else {
                 return ekValueCreateCFunction(E, mapEntry->valuePtr);
             }
         }
@@ -67,14 +59,12 @@ struct ekValue *ekValueTypeGetIntrinsic(struct ekContext *E, ekU32 type, struct 
     return NULL;
 }
 
-ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
+ekS32 ekValueTypeRegister(struct ekContext * E, ekValueType * newType)
 {
     ekS32 i;
-    for(i=0; i<ekArraySize(E, &E->types); ++i)
-    {
-        ekValueType *t = E->types[i];
-        if(!strcmp(newType->name, t->name))
-        {
+    for (i=0; i < ekArraySize(E, &E->types); ++i) {
+        ekValueType * t = E->types[i];
+        if (!strcmp(newType->name, t->name)) {
             return EVT_INVALID;
         }
     }
@@ -88,15 +78,13 @@ ekS32 ekValueTypeRegister(struct ekContext *E, ekValueType *newType)
     return newType->id;
 }
 
-ekS32 ekValueTypeId(struct ekContext *E, int format)
+ekS32 ekValueTypeId(struct ekContext * E, int format)
 {
     ekS32 i;
-    for(i=0; i<ekArraySize(E, &E->types); ++i)
-    {
-        ekValueType *t = E->types[i];
+    for (i=0; i < ekArraySize(E, &E->types); ++i) {
+        ekValueType * t = E->types[i];
 
-        if(t->format && (t->format == format))
-        {
+        if (t->format && (t->format == format)) {
             return i;
         }
     }
@@ -105,7 +93,7 @@ ekS32 ekValueTypeId(struct ekContext *E, int format)
 
 // ---------------------------------------------------------------------------
 
-void ekValueTypeRegisterAllBasicTypes(struct ekContext *E)
+void ekValueTypeRegisterAllBasicTypes(struct ekContext * E)
 {
     ekValueTypeRegisterNull(E);
     ekValueTypeRegisterBlock(E);

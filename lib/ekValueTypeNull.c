@@ -19,34 +19,33 @@
 // ---------------------------------------------------------------------------
 // EVT_NULL Funcs
 
-static char *NULL_STRING_FORM = "(null)";
+static char * NULL_STRING_FORM = "(null)";
 
-static struct ekValue *nullFuncToString(struct ekContext *E, struct ekValue *p)
+static struct ekValue * nullFuncToString(struct ekContext * E, struct ekValue * p)
 {
     return ekValueCreateKString(E, NULL_STRING_FORM);
 }
 
-static void nullFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void nullFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     ekStringConcat(E, &params->output, NULL_STRING_FORM);
 }
 
-static ekU32 nullIterator(struct ekContext *E, ekU32 argCount)
+static ekU32 nullIterator(struct ekContext * E, ekU32 argCount)
 {
-    ekFrame *frame = ekArrayTop(E, &E->frames);
+    ekFrame * frame = ekArrayTop(E, &E->frames);
     ekAssert(frame->closure && frame->closure->closureVars);
     ekAssert(argCount == 0);
     ekContextPopValues(E, argCount);
     ekContextReturn(E, ekValueNullPtr);
 }
 
-static ekU32 nullCreateIterator(struct ekContext *E, ekU32 argCount)
+static ekU32 nullCreateIterator(struct ekContext * E, ekU32 argCount)
 {
-    ekValue *thisValue = NULL;
-    ekValue *closure;
+    ekValue * thisValue = NULL;
+    ekValue * closure;
 
-    if(!ekContextGetArgs(E, argCount, "0", &thisValue))
-    {
+    if (!ekContextGetArgs(E, argCount, "0", &thisValue)) {
         return ekContextArgsFailure(E, argCount, "null iterator missing argument");
     }
 
@@ -55,14 +54,14 @@ static ekU32 nullCreateIterator(struct ekContext *E, ekU32 argCount)
     ekContextReturn(E, closure);
 }
 
-static ekCFunction *nullFuncIter(struct ekContext *E, struct ekValue *p)
+static ekCFunction * nullFuncIter(struct ekContext * E, struct ekValue * p)
 {
     return nullCreateIterator;
 }
 
-void ekValueTypeRegisterNull(struct ekContext *E)
+void ekValueTypeRegisterNull(struct ekContext * E)
 {
-    ekValueType *type   = ekValueTypeCreate(E, "null", '0');
+    ekValueType * type   = ekValueTypeCreate(E, "null", '0');
     type->funcToString   = nullFuncToString;
     type->funcDump       = nullFuncDump;
     type->funcIter       = nullFuncIter;

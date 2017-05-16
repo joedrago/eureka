@@ -10,15 +10,14 @@
 
 #include <string.h>
 
-ekS32 ekStrlen(const char *s)
+ekS32 ekStrlen(const char * s)
 {
     return (ekS32)strlen(s);
 }
 
-void ekStringClear(struct ekContext *E, ekString *str)
+void ekStringClear(struct ekContext * E, ekString * str)
 {
-    if((str->maxlen > 0) && str->text)
-    {
+    if ((str->maxlen > 0) && str->text) {
         ekFree(str->text);
     }
 
@@ -27,40 +26,36 @@ void ekStringClear(struct ekContext *E, ekString *str)
     str->maxlen = 0;
 }
 
-const char *ekStringSafePtr(ekString *str)
+const char * ekStringSafePtr(ekString * str)
 {
-    if(str->text)
-    {
+    if (str->text) {
         return str->text;
     }
     return "";
 }
 
 // Helper function
-static ekBool ekStringMakeRoom(struct ekContext *E, ekString *str, ekS32 len, ekBool append)
+static ekBool ekStringMakeRoom(struct ekContext * E, ekString * str, ekS32 len, ekBool append)
 {
     ekS32 newlen;
 
-    if(str->maxlen == EUREKA_CONSTANT_STRING)
-    {
+    if (str->maxlen == EUREKA_CONSTANT_STRING) {
         ekStringClear(E, str);
     }
 
     newlen = len;
-    if(append)
-    {
+    if (append) {
         newlen += str->len;
     }
-    if(!str->maxlen || (newlen > str->maxlen))
-    {
-        str->text = ekRealloc(str->text, newlen+1);
+    if (!str->maxlen || (newlen > str->maxlen)) {
+        str->text = ekRealloc(str->text, newlen + 1);
         str->maxlen = newlen;
     }
 
     return ekTrue;
 }
 
-void ekStringSetLen(struct ekContext *E, ekString *str, const char *text, ekS32 len)
+void ekStringSetLen(struct ekContext * E, ekString * str, const char * text, ekS32 len)
 {
     ekStringMakeRoom(E, str, len, ekFalse);
     memcpy(str->text, text, len);
@@ -68,24 +63,21 @@ void ekStringSetLen(struct ekContext *E, ekString *str, const char *text, ekS32 
     str->len = len;
 }
 
-void ekStringSetStr(struct ekContext *E, ekString *str, ekString *src)
+void ekStringSetStr(struct ekContext * E, ekString * str, ekString * src)
 {
-    if(src->maxlen == EUREKA_CONSTANT_STRING)
-    {
+    if (src->maxlen == EUREKA_CONSTANT_STRING) {
         ekStringSetK(E, str, src->text);
-    }
-    else
-    {
+    } else {
         ekStringSetLen(E, str, src->text, src->len);
     }
 }
 
-void ekStringSet(struct ekContext *E, ekString *str, const char *text)
+void ekStringSet(struct ekContext * E, ekString * str, const char * text)
 {
     ekStringSetLen(E, str, text, (ekS32)strlen(text));
 }
 
-void ekStringDonate(struct ekContext *E, ekString *str, char *text)
+void ekStringDonate(struct ekContext * E, ekString * str, char * text)
 {
     ekStringClear(E, str);
     str->text = text;
@@ -93,7 +85,7 @@ void ekStringDonate(struct ekContext *E, ekString *str, char *text)
     str->maxlen = str->len;
 }
 
-void ekStringDonateStr(struct ekContext *E, ekString *str, ekString *donation)
+void ekStringDonateStr(struct ekContext * E, ekString * str, ekString * donation)
 {
     ekStringClear(E, str);
 
@@ -106,7 +98,7 @@ void ekStringDonateStr(struct ekContext *E, ekString *str, ekString *donation)
     donation->maxlen = 0;
 }
 
-void ekStringSetK(struct ekContext *E, ekString *str, const char *text)
+void ekStringSetK(struct ekContext * E, ekString * str, const char * text)
 {
     ekStringClear(E, str);
     str->text = (char *)text;
@@ -114,10 +106,9 @@ void ekStringSetK(struct ekContext *E, ekString *str, const char *text)
     str->maxlen = EUREKA_CONSTANT_STRING;
 }
 
-void ekStringConcatLen(struct ekContext *E, ekString *str, const char *text, ekS32 len)
+void ekStringConcatLen(struct ekContext * E, ekString * str, const char * text, ekS32 len)
 {
-    if(!len)
-    {
+    if (!len) {
         return;
     }
 
@@ -127,17 +118,17 @@ void ekStringConcatLen(struct ekContext *E, ekString *str, const char *text, ekS
     str->text[str->len] = 0;
 }
 
-void ekStringConcatStr(struct ekContext *E, ekString *str, ekString *src)
+void ekStringConcatStr(struct ekContext * E, ekString * str, ekString * src)
 {
     ekStringConcatLen(E, str, ekStringSafePtr(src), src->len);
 }
 
-void ekStringConcat(struct ekContext *E, ekString *str, const char *text)
+void ekStringConcat(struct ekContext * E, ekString * str, const char * text)
 {
     ekStringConcatLen(E, str, text, ekStrlen(text));
 }
 
-ekS32 ekStringCmpStr(struct ekContext *E, ekString *a, ekString *b)
+ekS32 ekStringCmpStr(struct ekContext * E, ekString * a, ekString * b)
 {
     return strcmp(ekStringSafePtr(a), ekStringSafePtr(b));
 }

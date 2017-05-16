@@ -20,21 +20,21 @@ struct ekSyntaxTree;
 
 typedef struct ekToken
 {
-    const char *text;
+    const char * text;
     ekS32 len;
     ekS32 line;
 } ekToken;
 
-#define ekTokenCreate() ((ekToken*)ekAlloc(sizeof(ekToken)))
+#define ekTokenCreate() ((ekToken *)ekAlloc(sizeof(ekToken)))
 #define ekTokenDestroy ekFree
 
-ekToken *ekTokenClone(struct ekContext *E, ekToken *token);
+ekToken * ekTokenClone(struct ekContext * E, ekToken * token);
 
-char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex); // ekAlloc's a string copy
-ekS32 ekTokenToInt(struct ekContext *E, ekToken *t);
-float ekTokenToFloat(struct ekContext *E, ekToken *t);
+char * ekTokenToString(struct ekContext * E, ekToken * t, int isRegex); // ekAlloc's a string copy
+ekS32 ekTokenToInt(struct ekContext * E, ekToken * t);
+float ekTokenToFloat(struct ekContext * E, ekToken * t);
 
-typedef void (*tokenCB)(void *parser, ekS32 id, ekToken token, struct ekCompiler *compiler);
-ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler);
+typedef void (* tokenCB)(void * parser, ekS32 id, ekToken token, struct ekCompiler * compiler);
+ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * compiler);
 
 #endif

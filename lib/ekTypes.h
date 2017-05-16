@@ -54,25 +54,25 @@ typedef int ekBool;
 // ---------------------------------------------------------------------------
 // Memory Routines
 
-typedef void *(*ekAllocFunc)(ekSize bytes);
-typedef void *(*ekRellocFunc)(void *ptr, ekSize bytes);
-typedef void (*ekFreeFunc)(void *ptr);
+typedef void *(* ekAllocFunc)(ekSize bytes);
+typedef void *(* ekRellocFunc)(void * ptr, ekSize bytes);
+typedef void (* ekFreeFunc)(void * ptr);
 
-void *ekDefaultAlloc(ekSize bytes);
-void *ekDefaultRealloc(void *ptr, ekSize bytes);
-void ekDefaultFree(void *ptr);
+void * ekDefaultAlloc(ekSize bytes);
+void * ekDefaultRealloc(void * ptr, ekSize bytes);
+void ekDefaultFree(void * ptr);
 
 #define ekAlloc E->allocFunc
 #define ekRealloc E->reallocFunc
 #define ekFree E->freeFunc
 
-char *ekStrdup(struct ekContext *E, const char *s);
-char *ekSubstrdup(struct ekContext *E, const char *s, ekS32 start, ekS32 end);
+char * ekStrdup(struct ekContext * E, const char * s);
+char * ekSubstrdup(struct ekContext * E, const char * s, ekS32 start, ekS32 end);
 
-typedef void (*ekDestroyCB)(struct ekContext *E, void *p);
-typedef void (*ekDestroyCB1)(struct ekContext *E, void *arg1, void *p);
+typedef void (* ekDestroyCB)(struct ekContext * E, void * p);
+typedef void (* ekDestroyCB1)(struct ekContext * E, void * arg1, void * p);
 
-void ekDestroyCBFree(struct ekContext *E, void *ptr); // calls E->free() on each element
+void ekDestroyCBFree(struct ekContext * E, void * ptr); // calls E->free() on each element
 
 // ---------------------------------------------------------------------------
 // Debug/Tracing Functions
@@ -84,7 +84,7 @@ void ekDestroyCBFree(struct ekContext *E, void *ptr); // calls E->free() on each
 #ifdef EUREKA_TRACE_MEMORY
 void ekMemoryStatsReset();
 ekS32 ekMemoryStatsLeftovers();
-void ekMemoryStatsPrint(const char *prefix);
+void ekMemoryStatsPrint(const char * prefix);
 void ekMemoryStatsDumpLeaks();
 #define ekTraceMem(ARGS) printf ARGS
 #else
@@ -112,4 +112,4 @@ ekS32 ekValueDebugCount();
 
 // ---------------------------------------------------------------------------
 
-#endif
+#endif // ifndef EKTYPES_H

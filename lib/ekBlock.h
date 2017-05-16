@@ -19,15 +19,15 @@ struct ekCode;
 
 typedef struct ekBlock
 {
-    struct ekChunk *chunk;
-    struct ekOp *ops;
+    struct ekChunk * chunk;
+    struct ekOp * ops;
     ekS32 opCount;
     ekS32 argCount;
 } ekBlock;
 
-#define ekBlockCreate() ((ekBlock*)ekAlloc(sizeof(ekBlock)))
-void ekBlockDestroy(struct ekContext *E, ekBlock *block);
+#define ekBlockCreate() ((ekBlock *)ekAlloc(sizeof(ekBlock)))
+void ekBlockDestroy(struct ekContext * E, ekBlock * block);
 
-ekOperand ekBlockConvertCode(struct ekContext *E, struct ekCode *code, struct ekChunk *owner, ekS32 argCount);
+ekOperand ekBlockConvertCode(struct ekContext * E, struct ekCode * code, struct ekChunk * owner, ekS32 argCount);
 
 #endif

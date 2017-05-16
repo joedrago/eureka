@@ -27,33 +27,33 @@
 //    strncpy(temp, l.token, token_len); \
 //    printf("%s - %s\n", ekTokenIDToString(ID), temp); \
 //    cb(A,ID,C,D); \
-//}
+// //}
 #define CALL_CB cb
 
 typedef struct ekLexer
 {
-    const char *text;
-    const char *marker;
-    const char *cur;
-    const char *token;
-    const char *end;
+    const char * text;
+    const char * marker;
+    const char * cur;
+    const char * token;
+    const char * end;
     ekS32 line;
 } ekLexer;
 
-ekS32 getNextToken(ekLexer *l)
+ekS32 getNextToken(ekLexer * l)
 {
 #include "ekLexer.re.inc"
     return ETT_EOF;
 }
 
-ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *compiler)
+ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * compiler)
 {
-    struct ekContext *E = compiler->E;
+    struct ekContext * E = compiler->E;
     ekS32 id;
     ekS32 token_len;
     ekS32 tokenMax;
     ekToken token;
-    ekLexer l = {0};
+    ekLexer l = { 0 };
 
     l.text   = text;
     l.end    = l.text + strlen(l.text);
@@ -61,10 +61,8 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
     l.token  = l.cur;
     l.line   = 1;
 
-    while((id = getNextToken(&l)) != ETT_EOF)
-    {
-        if(ekArraySize(E, &compiler->errors))
-        {
+    while ((id = getNextToken(&l)) != ETT_EOF) {
+        if (ekArraySize(E, &compiler->errors)) {
             break;
         }
 
@@ -73,8 +71,7 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
         // Normal C style lexers treat semi-colons as end statements
         // and braces as block delimiters. Newlines are just whitespace.
 
-        switch(id)
-        {
+        switch (id) {
             case ETT_HEREDOC:
                 // Heredocs are just trimmed literal strings
                 id = ETT_LITERALSTRING;
@@ -96,12 +93,10 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
             case ETT_CLOSEBRACE:
                 id = ETT_ENDBLOCK;
                 break;
-        };
+        }
 
-        if((id != ETT_SPACE) && (id != ETT_COMMENT))
-        {
-            if(token_len > 0)
-            {
+        if ((id != ETT_SPACE) && (id != ETT_COMMENT)) {
+            if (token_len > 0) {
                 token.text = l.token;
                 token.len  = token_len;
                 token.line = l.line;
@@ -113,53 +108,44 @@ ekBool ekLex(void *parser, const char *text, tokenCB cb, struct ekCompiler *comp
         l.token = l.cur;
     }
 
-    if(!ekArraySize(E, &compiler->errors))
-    {
+    if (!ekArraySize(E, &compiler->errors)) {
         token.line = l.line;
         CALL_CB(parser, ETT_ENDSTATEMENT, token, compiler);
     }
     return ekTrue;
 }
 
-ekToken *ekTokenClone(struct ekContext *E, ekToken *token)
+ekToken * ekTokenClone(struct ekContext * E, ekToken * token)
 {
-    ekToken *ret = ekTokenCreate();
+    ekToken * ret = ekTokenCreate();
     *ret = *token;
     return ret;
 }
 
-char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
+char * ekTokenToString(struct ekContext * E, ekToken * t, int isRegex)
 {
-    const char *src = t->text;
-    const char *end = src + t->len;
-    char *str = ekAlloc(t->len + 1);
-    char *dst = str;
+    const char * src = t->text;
+    const char * end = src + t->len;
+    char * str = ekAlloc(t->len + 1);
+    char * dst = str;
     ekBool escaped = ekFalse;
 
-    if(isRegex) // Completely unescaped. Backslashes are passed directly as-is to PCRE
-    {
+    if (isRegex) { // Completely unescaped. Backslashes are passed directly as-is to PCRE
         int len;
 
-        if(t->len > 1)
-        {
-            if(*src == 'r')
-            {
+        if (t->len > 1) {
+            if (*src == 'r') {
                 ++src;
-                if(*src == '"')
-                {
+                if (*src == '"') {
                     src++;
                 }
-                if(*(end - 1) == '"')
-                {
+                if (*(end - 1) == '"') {
                     end--;
                 }
-            }
-            else if(*src == '@')
-            {
+            } else if (*src == '@')    {
                 src++;
             }
-            if(*(end - 1) == '@')
-            {
+            if (*(end - 1) == '@') {
                 end--;
             }
         }
@@ -167,18 +153,13 @@ char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
         len = (int)(end - src);
         memcpy(dst, src, len);
         dst[len] = 0;
-    }
-    else
-    {
+    } else {
         // Remove outer quotes
-        if(t->len > 1)
-        {
-            if(*src == '\"')
-            {
+        if (t->len > 1) {
+            if (*src == '\"') {
                 src++;
             }
-            if(*(end - 1) == '\"')
-            {
+            if (*(end - 1) == '\"') {
                 end--;
             }
         }
@@ -186,12 +167,9 @@ char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
         // The unescaped string should always be smaller or the same size,
         // so len+1 should be fine for now. Replace with actual len calc.
 
-        while(src != end)
-        {
-            if(escaped)
-            {
-                switch(*src)
-                {
+        while (src != end) {
+            if (escaped) {
+                switch (*src) {
                     case '\\':
                         *dst = '\\';
                         break;
@@ -206,17 +184,12 @@ char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
                         *dst = *src; // anything else should just be pass-through, such as \"
                 }
                 escaped = ekFalse;
-            }
-            else
-            {
-                if(*src == '\\')
-                {
+            } else {
+                if (*src == '\\') {
                     escaped = ekTrue;
                     src++;
                     continue;
-                }
-                else
-                {
+                } else {
                     *dst = *src;
                 }
             }
@@ -229,24 +202,20 @@ char *ekTokenToString(struct ekContext *E, ekToken *t, int isRegex)
     return str;
 }
 
-ekS32 ekTokenToInt(struct ekContext *E, ekToken *t)
+ekS32 ekTokenToInt(struct ekContext * E, ekToken * t)
 {
     char temp[32];
     ekS32 base = 10;
 
     ekS32 len = t->len;
-    if(len > 31) { len = 31; }
+    if (len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;
 
-    if(len && temp[0] == '0')
-    {
-        if((len > 1) && (temp[1] == 'x' || temp[1] == 'X'))
-        {
+    if (len && (temp[0] == '0')) {
+        if ((len > 1) && ((temp[1] == 'x') || (temp[1] == 'X'))) {
             base = 16;
-        }
-        else
-        {
+        } else {
             base = 8;
         }
     }
@@ -254,18 +223,17 @@ ekS32 ekTokenToInt(struct ekContext *E, ekToken *t)
     return strtol(temp, NULL, base);
 }
 
-float ekTokenToFloat(struct ekContext *E, ekToken *t)
+float ekTokenToFloat(struct ekContext * E, ekToken * t)
 {
     char temp[32];
-    char *endptr;
+    char * endptr;
     double d;
 
     ekS32 len = t->len;
-    if(len > 31) { len = 31; }
+    if (len > 31) { len = 31; }
     strncpy(temp, t->text, len);
     temp[len] = 0;
 
     d = strtod(temp, &endptr);
     return (ekF32)d;
 }
-

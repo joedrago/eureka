@@ -16,6 +16,6 @@ struct ekSyntax;
 
 // ---------------------------------------------------------------------------
 
-void ekSyntaxDot(struct ekContext *E, struct ekSyntax *syntax);
+void ekSyntaxDot(struct ekContext * E, struct ekSyntax * syntax);
 
 #endif

@@ -19,8 +19,8 @@ struct ekOp;
 
 // ---------------------------------------------------------------------------
 
-void ekOpsDump(struct ekOp *ops, ekS32 count);
+void ekOpsDump(struct ekOp * ops, ekS32 count);
 
-void ekChunkDump(struct ekContext *E, struct ekChunk *chunk);
+void ekChunkDump(struct ekContext * E, struct ekChunk * chunk);
 
 #endif

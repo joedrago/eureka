@@ -27,14 +27,14 @@
 //#define USE_DJB2
 
 #ifdef USE_MURMUR3
-static ekU32 murmur3string(const unsigned char *str);
+static ekU32 murmur3string(const unsigned char * str);
 static ekU32 murmur3int(ekS32 i);
 #define HASHSTRING murmur3string
 #define HASHINT murmur3int
 #endif
 
 #ifdef USE_DJB2
-static ekU32 djb2string(const unsigned char *str);
+static ekU32 djb2string(const unsigned char * str);
 static unsigned ekS32 djb2int(ekS32 i);
 #define HASHSTRING djb2string
 #define HASHINT djb2int
@@ -47,21 +47,20 @@ static unsigned ekS32 djb2int(ekS32 i);
 // ------------------------------------------------------------------------------------------------
 // Constants and Macros
 
-#define INITIAL_MODULUS 2  // "N" on Wikipedia's explanation of linear hashes
-#define SHRINK_FACTOR   4  // How many times bigger does the table capacity have to be to its width to cause the table to shrink?
+#define INITIAL_MODULUS 2 // "N" on Wikipedia's explanation of linear hashes
+#define SHRINK_FACTOR   4 // How many times bigger does the table capacity have to be to its width to cause the table to shrink?
 
 // ------------------------------------------------------------------------------------------------
 // Internal helper functions
 
-static ekSize linearHashCompute(ekMap *yh, ekU32 hash)
+static ekSize linearHashCompute(ekMap * yh, ekU32 hash)
 {
     // Use a simple modulus on the hash, and if the resulting bucket is behind
     // "the split" (putting it in the front partition instead of the expansion),
     // rehash with the next-size-up modulus.
 
     ekSize addr = hash % yh->mod;
-    if(addr < yh->split)
-    {
+    if (addr < yh->split) {
         addr = hash % (yh->mod << 1);
     }
     return addr;
@@ -69,11 +68,10 @@ static ekSize linearHashCompute(ekMap *yh, ekU32 hash)
 
 // This is used by ekMapNewEntry to chain a new entry into a bucket, and it is used
 // by the split and rewind functions to rebucket everything in a single bucket.
-static void ekMapBucketEntryChain(struct ekContext *E, ekMap *yh, ekMapEntry *chain)
+static void ekMapBucketEntryChain(struct ekContext * E, ekMap * yh, ekMapEntry * chain)
 {
-    while(chain)
-    {
-        ekMapEntry *entry = chain;
+    while (chain) {
+        ekMapEntry * entry = chain;
         ekS32 tableIndex = linearHashCompute(yh, entry->hash);
         chain = chain->next;
 
@@ -82,16 +80,15 @@ static void ekMapBucketEntryChain(struct ekContext *E, ekMap *yh, ekMapEntry *ch
     }
 }
 
-static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, void *key)
+static ekMapEntry * ekMapNewEntry(struct ekContext * E, ekMap * yh, ekU32 hash, void * key)
 {
-    ekMapEntry *entry;
-    ekMapEntry *chain;
+    ekMapEntry * entry;
+    ekMapEntry * chain;
     ekS32 found = 0;
 
     // Create the new entry and bucket it
     entry = (ekMapEntry *)ekAlloc(sizeof(*entry));
-    switch(yh->keyType)
-    {
+    switch (yh->keyType) {
         case EMKT_STRING:
             entry->keyStr = ekStrdup(E, (char *)key);
             break;
@@ -109,8 +106,7 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, voi
 
     // ...advance the split...
     ++yh->split;
-    if(yh->split == yh->mod)
-    {
+    if (yh->split == yh->mod) {
         // It is time to grow our linear hash!
         yh->mod *= 2;
         yh->split = 0;
@@ -124,21 +120,19 @@ static ekMapEntry *ekMapNewEntry(struct ekContext *E, ekMap *yh, ekU32 hash, voi
     return entry;
 }
 
-static void ekMapRewindSplit(struct ekContext *E, ekMap *yh)
+static void ekMapRewindSplit(struct ekContext * E, ekMap * yh)
 {
-    ekMapEntry *chain;
+    ekMapEntry * chain;
     ekSize indexToRebucket;
 
     --yh->split;
-    if(yh->split < 0)
-    {
+    if (yh->split < 0) {
         yh->mod >>= 1;
         yh->split = yh->mod - 1;
         ekArraySetSize(E, &yh->table, yh->mod << 1, NULL);
 
         // Time to shrink!
-        if((ekArraySize(E, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(E, &yh->table))
-        {
+        if ((ekArraySize(E, &yh->table) * SHRINK_FACTOR) < ekArrayCapacity(E, &yh->table)) {
             ekArraySetCapacity(E, &yh->table, ekArraySize(E, &yh->table) * SHRINK_FACTOR, NULL); // Should be no need to destroy anything
         }
     }
@@ -153,9 +147,9 @@ static void ekMapRewindSplit(struct ekContext *E, ekMap *yh)
 // ------------------------------------------------------------------------------------------------
 // creation / destruction / cleanup
 
-ekMap *ekMapCreate(struct ekContext *E, ekMapKeyType keyType)
+ekMap * ekMapCreate(struct ekContext * E, ekMapKeyType keyType)
 {
-    ekMap *yh = (ekMap *)ekAlloc(sizeof(*yh));
+    ekMap * yh = (ekMap *)ekAlloc(sizeof(*yh));
     yh->keyType = keyType;
     yh->split = 0;
     yh->mod   = INITIAL_MODULUS;
@@ -164,39 +158,33 @@ ekMap *ekMapCreate(struct ekContext *E, ekMapKeyType keyType)
     return yh;
 }
 
-void ekMapDestroy(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapDestroy(struct ekContext * E, ekMap * yh, void * /*ekDestroyCB*/ destroyFunc)
 {
-    if(yh)
-    {
+    if (yh) {
         ekMapClear(E, yh, destroyFunc);
         ekArrayDestroy(E, &yh->table, NULL);
         ekFree(yh);
     }
 }
 
-static void ekMapDestroyEntry(struct ekContext *E, ekMap *yh, ekMapEntry *p)
+static void ekMapDestroyEntry(struct ekContext * E, ekMap * yh, ekMapEntry * p)
 {
-    if(yh->keyType == EMKT_STRING)
-    {
+    if (yh->keyType == EMKT_STRING) {
         ekFree(p->keyStr);
     }
     ekFree(p);
 }
 
-void ekMapClear(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapClear(struct ekContext * E, ekMap * yh, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
-    if(yh)
-    {
+    if (yh) {
         ekS32 tableIndex;
-        for(tableIndex = 0; tableIndex < ekArraySize(E, &yh->table); ++tableIndex)
-        {
-            ekMapEntry *entry = yh->table[tableIndex];
-            while(entry)
-            {
-                ekMapEntry *freeme = entry;
-                if(func && entry->valuePtr)
-                {
+        for (tableIndex = 0; tableIndex < ekArraySize(E, &yh->table); ++tableIndex) {
+            ekMapEntry * entry = yh->table[tableIndex];
+            while (entry) {
+                ekMapEntry * freeme = entry;
+                if (func && entry->valuePtr) {
                     func(E, entry->valuePtr);
                 }
                 entry = entry->next;
@@ -207,74 +195,62 @@ void ekMapClear(struct ekContext *E, ekMap *yh, void * /*ekDestroyCB*/ destroyFu
     }
 }
 
-static ekMapEntry *ekMapFindString(struct ekContext *E, ekMap *yh, const char *key, ekS32 autoCreate)
+static ekMapEntry * ekMapFindString(struct ekContext * E, ekMap * yh, const char * key, ekS32 autoCreate)
 {
     ekU32 hash = (ekU32)HASHSTRING((const unsigned char *)key);
     ekS32 index = linearHashCompute(yh, hash);
-    ekMapEntry *entry = yh->table[index];
-    for(; entry; entry = entry->next)
-    {
-        if(!strcmp(entry->keyStr, key))
-        {
+    ekMapEntry * entry = yh->table[index];
+    for (; entry; entry = entry->next) {
+        if (!strcmp(entry->keyStr, key)) {
             return entry;
         }
     }
 
-    if(autoCreate)
-    {
+    if (autoCreate) {
         // A new entry!
         return ekMapNewEntry(E, yh, hash, (void *)key);
     }
     return NULL;
 }
 
-static ekMapEntry *ekMapFindInteger(struct ekContext *E, ekMap *yh, ekU32 key, ekS32 autoCreate)
+static ekMapEntry * ekMapFindInteger(struct ekContext * E, ekMap * yh, ekU32 key, ekS32 autoCreate)
 {
     ekU32 hash = (ekU32)HASHINT(key);
     ekS32 index = linearHashCompute(yh, hash);
-    ekMapEntry *entry = yh->table[index];
-    for(; entry; entry = entry->next)
-    {
-        if(entry->keyInt == key)
-        {
+    ekMapEntry * entry = yh->table[index];
+    for (; entry; entry = entry->next) {
+        if (entry->keyInt == key) {
             return entry;
         }
     }
 
-    if(autoCreate)
-    {
+    if (autoCreate) {
         // A new entry!
         return ekMapNewEntry(E, yh, hash, (void *)&key);
     }
     return NULL;
 }
 
-ekMapEntry *ekMapGetS(struct ekContext *E, ekMap *yh, const char *key, ekBool create)
+ekMapEntry * ekMapGetS(struct ekContext * E, ekMap * yh, const char * key, ekBool create)
 {
     return ekMapFindString(E, yh, key, create);
 }
 
-void ekMapEraseS(struct ekContext *E, ekMap *yh, const char *key, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapEraseS(struct ekContext * E, ekMap * yh, const char * key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     ekU32 hash = (ekU32)HASHSTRING((const unsigned char *)key);
     ekS32 index = linearHashCompute(yh, hash);
-    ekMapEntry *prev = NULL;
-    ekMapEntry *entry = yh->table[index];
-    for(; entry; prev = entry, entry = entry->next)
-    {
-        if(!strcmp(entry->keyStr, key))
-        {
-            if(prev)
-            {
+    ekMapEntry * prev = NULL;
+    ekMapEntry * entry = yh->table[index];
+    for (; entry; prev = entry, entry = entry->next) {
+        if (!strcmp(entry->keyStr, key)) {
+            if (prev) {
                 prev->next = entry->next;
-            }
-            else
-            {
+            } else {
                 yh->table[index] = entry->next;
             }
-            if(func && entry->valuePtr)
-            {
+            if (func && entry->valuePtr) {
                 func(E, entry->valuePtr);
             }
             ekMapDestroyEntry(E, yh, entry);
@@ -285,32 +261,26 @@ void ekMapEraseS(struct ekContext *E, ekMap *yh, const char *key, void * /*ekDes
     }
 }
 
-ekMapEntry *ekMapGetI(struct ekContext *E, ekMap *yh, ekU32 key, ekBool create)
+ekMapEntry * ekMapGetI(struct ekContext * E, ekMap * yh, ekU32 key, ekBool create)
 {
     return ekMapFindInteger(E, yh, key, create);
 }
 
-void ekMapEraseI(struct ekContext *E, ekMap *yh, ekU32 key, void * /*ekDestroyCB*/ destroyFunc)
+void ekMapEraseI(struct ekContext * E, ekMap * yh, ekU32 key, void * /*ekDestroyCB*/ destroyFunc)
 {
     ekDestroyCB func = destroyFunc;
     ekU32 hash = (ekU32)HASHINT(key);
     ekS32 index = linearHashCompute(yh, hash);
-    ekMapEntry *prev = NULL;
-    ekMapEntry *entry = yh->table[index];
-    for(; entry; prev = entry, entry = entry->next)
-    {
-        if(entry->keyInt == key)
-        {
-            if(prev)
-            {
+    ekMapEntry * prev = NULL;
+    ekMapEntry * entry = yh->table[index];
+    for (; entry; prev = entry, entry = entry->next) {
+        if (entry->keyInt == key) {
+            if (prev) {
                 prev->next = entry->next;
-            }
-            else
-            {
+            } else {
                 yh->table[index] = entry->next;
             }
-            if(func && entry->valuePtr)
-            {
+            if (func && entry->valuePtr) {
                 func(E, entry->valuePtr);
             }
             ekMapDestroyEntry(E, yh, entry);
@@ -321,20 +291,17 @@ void ekMapEraseI(struct ekContext *E, ekMap *yh, ekU32 key, void * /*ekDestroyCB
     }
 }
 
-void ekMapIterateP1(struct ekContext *E, ekMap *yh, void *rawcb, void *arg1)
+void ekMapIterateP1(struct ekContext * E, ekMap * yh, void * rawcb, void * arg1)
 {
     ekIterateCB1 cb = (ekIterateCB1)rawcb;
     ekS32 i;
     ekS32 endIndex = yh->split + yh->mod;
-    if(!cb)
-    {
+    if (!cb) {
         return;
     }
-    for(i=0; i < endIndex; i++)
-    {
-        ekMapEntry *entry = yh->table[i];
-        while(entry)
-        {
+    for (i=0; i < endIndex; i++) {
+        ekMapEntry * entry = yh->table[i];
+        while (entry) {
             cb(E, arg1, entry);
             entry = entry->next;
         }
@@ -365,7 +332,7 @@ typedef unsigned __int64 uint64_t;
 
 // Other compilers
 
-#else   // defined(_MSC_VER)
+#else // defined(_MSC_VER)
 
 #include <stdint.h>
 
@@ -373,9 +340,9 @@ typedef unsigned __int64 uint64_t;
 
 //-----------------------------------------------------------------------------
 
-static void MurmurHash3_x86_32(const void *key, ekS32 len, uint32_t seed, void *out);
-static void MurmurHash3_x86_128(const void *key, ekS32 len, uint32_t seed, void *out);
-static void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void *out);
+static void MurmurHash3_x86_32(const void * key, ekS32 len, uint32_t seed, void * out);
+static void MurmurHash3_x86_128(const void * key, ekS32 len, uint32_t seed, void * out);
+static void MurmurHash3_x64_128(const void * key, ekS32 len, uint32_t seed, void * out);
 
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
@@ -388,14 +355,14 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len, uint32_t seed, void 
 
 #include <stdlib.h>
 
-#define ROTL32(x,y) _rotl(x,y)
-#define ROTL64(x,y) _rotl64(x,y)
+#define ROTL32(x, y) _rotl(x, y)
+#define ROTL64(x, y) _rotl64(x, y)
 
 #define BIG_CONSTANT(x) (x)
 
 // Other compilers
 
-#else   // defined(_MSC_VER)
+#else // defined(_MSC_VER)
 
 #define FORCE_INLINE __attribute__((always_inline))
 
@@ -409,10 +376,10 @@ static inline uint64_t rotl64(uint64_t x, int8_t r)
     return (x << r) | (x >> (64 - r));
 }
 
-#define ROTL32(x,y) rotl32(x,y)
-#define ROTL64(x,y) rotl64(x,y)
+#define ROTL32(x, y) rotl32(x, y)
+#define ROTL64(x, y) rotl64(x, y)
 
-#define BIG_CONSTANT(x) (x##LLU)
+#define BIG_CONSTANT(x) (x ## LLU)
 
 #endif // !defined(_MSC_VER)
 
@@ -420,12 +387,12 @@ static inline uint64_t rotl64(uint64_t x, int8_t r)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-static FORCE_INLINE uint32_t getblock32(const uint32_t *p, ekS32 i)
+static FORCE_INLINE uint32_t getblock32(const uint32_t * p, ekS32 i)
 {
     return p[i];
 }
 
-static FORCE_INLINE uint64_t getblock64(const uint64_t *p, ekS32 i)
+static FORCE_INLINE uint64_t getblock64(const uint64_t * p, ekS32 i)
 {
     return p[i];
 }
@@ -459,13 +426,13 @@ static FORCE_INLINE uint64_t fmix64(uint64_t k)
 
 //-----------------------------------------------------------------------------
 
-static void MurmurHash3_x86_32(const void *key, ekS32 len,
-                               uint32_t seed, void *out)
+static void MurmurHash3_x86_32(const void * key, ekS32 len,
+                               uint32_t seed, void * out)
 {
-    const uint8_t *tail;
+    const uint8_t * tail;
     uint32_t k1;
 
-    const uint8_t *data = (const uint8_t *)key;
+    const uint8_t * data = (const uint8_t *)key;
     const ekS32 nblocks = len / 4;
 
     uint32_t h1 = seed;
@@ -478,35 +445,33 @@ static void MurmurHash3_x86_32(const void *key, ekS32 len,
     //----------
     // body
 
-    const uint32_t *blocks = (const uint32_t *)(data + nblocks*4);
+    const uint32_t * blocks = (const uint32_t *)(data + nblocks * 4);
 
-    for(i = -nblocks; i; i++)
-    {
-        uint32_t k1 = getblock32(blocks,i);
+    for (i = -nblocks; i; i++) {
+        uint32_t k1 = getblock32(blocks, i);
 
         k1 *= c1;
-        k1 = ROTL32(k1,15);
+        k1 = ROTL32(k1, 15);
         k1 *= c2;
 
         h1 ^= k1;
-        h1 = ROTL32(h1,13);
-        h1 = h1*5+0xe6546b64;
+        h1 = ROTL32(h1, 13);
+        h1 = h1 * 5 + 0xe6546b64;
     }
 
     //----------
     // tail
 
-    tail = (const uint8_t *)(data + nblocks*4);
+    tail = (const uint8_t *)(data + nblocks * 4);
 
     k1 = 0;
 
-    switch(len & 3)
-    {
+    switch (len & 3) {
         case 3: k1 ^= tail[2] << 16;
         case 2: k1 ^= tail[1] << 8;
         case 1: k1 ^= tail[0];
-            k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
-    };
+            k1 *= c1; k1 = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
+    }
 
     //----------
     // finalization
@@ -520,12 +485,12 @@ static void MurmurHash3_x86_32(const void *key, ekS32 len,
 
 //-----------------------------------------------------------------------------
 
-static void MurmurHash3_x86_128(const void *key, ekS32 len,
-                                uint32_t seed, void *out)
+static void MurmurHash3_x86_128(const void * key, ekS32 len,
+                                uint32_t seed, void * out)
 {
     ekS32 i;
-    const uint8_t *tail;
-    const uint8_t *data = (const uint8_t *)key;
+    const uint8_t * tail;
+    const uint8_t * data = (const uint8_t *)key;
     const ekS32 nblocks = len / 16;
 
     uint32_t h1 = seed;
@@ -546,62 +511,60 @@ static void MurmurHash3_x86_128(const void *key, ekS32 len,
     //----------
     // body
 
-    const uint32_t *blocks = (const uint32_t *)(data + nblocks*16);
+    const uint32_t * blocks = (const uint32_t *)(data + nblocks * 16);
 
-    for(i = -nblocks; i; i++)
-    {
-        uint32_t k1 = getblock32(blocks,i*4+0);
-        uint32_t k2 = getblock32(blocks,i*4+1);
-        uint32_t k3 = getblock32(blocks,i*4+2);
-        uint32_t k4 = getblock32(blocks,i*4+3);
+    for (i = -nblocks; i; i++) {
+        uint32_t k1 = getblock32(blocks, i * 4 + 0);
+        uint32_t k2 = getblock32(blocks, i * 4 + 1);
+        uint32_t k3 = getblock32(blocks, i * 4 + 2);
+        uint32_t k4 = getblock32(blocks, i * 4 + 3);
 
-        k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+        k1 *= c1; k1  = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
 
-        h1 = ROTL32(h1,19); h1 += h2; h1 = h1*5+0x561ccd1b;
+        h1 = ROTL32(h1, 19); h1 += h2; h1 = h1 * 5 + 0x561ccd1b;
 
-        k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+        k2 *= c2; k2  = ROTL32(k2, 16); k2 *= c3; h2 ^= k2;
 
-        h2 = ROTL32(h2,17); h2 += h3; h2 = h2*5+0x0bcaa747;
+        h2 = ROTL32(h2, 17); h2 += h3; h2 = h2 * 5 + 0x0bcaa747;
 
-        k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+        k3 *= c3; k3  = ROTL32(k3, 17); k3 *= c4; h3 ^= k3;
 
-        h3 = ROTL32(h3,15); h3 += h4; h3 = h3*5+0x96cd1c35;
+        h3 = ROTL32(h3, 15); h3 += h4; h3 = h3 * 5 + 0x96cd1c35;
 
-        k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+        k4 *= c4; k4  = ROTL32(k4, 18); k4 *= c1; h4 ^= k4;
 
-        h4 = ROTL32(h4,13); h4 += h1; h4 = h4*5+0x32ac3b17;
+        h4 = ROTL32(h4, 13); h4 += h1; h4 = h4 * 5 + 0x32ac3b17;
     }
 
     //----------
     // tail
 
-    tail = (const uint8_t *)(data + nblocks*16);
+    tail = (const uint8_t *)(data + nblocks * 16);
 
-    switch(len & 15)
-    {
+    switch (len & 15) {
         case 15: k4 ^= tail[14] << 16;
         case 14: k4 ^= tail[13] << 8;
         case 13: k4 ^= tail[12] << 0;
-            k4 *= c4; k4  = ROTL32(k4,18); k4 *= c1; h4 ^= k4;
+            k4 *= c4; k4  = ROTL32(k4, 18); k4 *= c1; h4 ^= k4;
 
         case 12: k3 ^= tail[11] << 24;
         case 11: k3 ^= tail[10] << 16;
         case 10: k3 ^= tail[ 9] << 8;
         case  9: k3 ^= tail[ 8] << 0;
-            k3 *= c3; k3  = ROTL32(k3,17); k3 *= c4; h3 ^= k3;
+            k3 *= c3; k3  = ROTL32(k3, 17); k3 *= c4; h3 ^= k3;
 
         case  8: k2 ^= tail[ 7] << 24;
         case  7: k2 ^= tail[ 6] << 16;
         case  6: k2 ^= tail[ 5] << 8;
         case  5: k2 ^= tail[ 4] << 0;
-            k2 *= c2; k2  = ROTL32(k2,16); k2 *= c3; h2 ^= k2;
+            k2 *= c2; k2  = ROTL32(k2, 16); k2 *= c3; h2 ^= k2;
 
         case  4: k1 ^= tail[ 3] << 24;
         case  3: k1 ^= tail[ 2] << 16;
         case  2: k1 ^= tail[ 1] << 8;
         case  1: k1 ^= tail[ 0] << 0;
-            k1 *= c1; k1  = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
-    };
+            k1 *= c1; k1  = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
+    }
 
     //----------
     // finalization
@@ -627,13 +590,13 @@ static void MurmurHash3_x86_128(const void *key, ekS32 len,
 
 //-----------------------------------------------------------------------------
 
-static void MurmurHash3_x64_128(const void *key, ekS32 len,
-                                uint32_t seed, void *out)
+static void MurmurHash3_x64_128(const void * key, ekS32 len,
+                                uint32_t seed, void * out)
 {
     ekS32 i;
-    const uint8_t *data = (const uint8_t *)key;
+    const uint8_t * data = (const uint8_t *)key;
     const ekS32 nblocks = len / 16;
-    const uint8_t *tail;
+    const uint8_t * tail;
 
     uint64_t h1 = seed;
     uint64_t h2 = seed;
@@ -647,29 +610,27 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len,
     //----------
     // body
 
-    const uint64_t *blocks = (const uint64_t *)(data);
+    const uint64_t * blocks = (const uint64_t *)(data);
 
-    for(i = 0; i < nblocks; i++)
-    {
-        uint64_t k1 = getblock64(blocks,i*2+0);
-        uint64_t k2 = getblock64(blocks,i*2+1);
+    for (i = 0; i < nblocks; i++) {
+        uint64_t k1 = getblock64(blocks, i * 2 + 0);
+        uint64_t k2 = getblock64(blocks, i * 2 + 1);
 
-        k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
+        k1 *= c1; k1  = ROTL64(k1, 31); k1 *= c2; h1 ^= k1;
 
-        h1 = ROTL64(h1,27); h1 += h2; h1 = h1*5+0x52dce729;
+        h1 = ROTL64(h1, 27); h1 += h2; h1 = h1 * 5 + 0x52dce729;
 
-        k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
+        k2 *= c2; k2  = ROTL64(k2, 33); k2 *= c1; h2 ^= k2;
 
-        h2 = ROTL64(h2,31); h2 += h1; h2 = h2*5+0x38495ab5;
+        h2 = ROTL64(h2, 31); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
     }
 
     //----------
     // tail
 
-    tail = (const uint8_t *)(data + nblocks*16);
+    tail = (const uint8_t *)(data + nblocks * 16);
 
-    switch(len & 15)
-    {
+    switch (len & 15) {
         case 15: k2 ^= ((uint64_t)tail[14]) << 48;
         case 14: k2 ^= ((uint64_t)tail[13]) << 40;
         case 13: k2 ^= ((uint64_t)tail[12]) << 32;
@@ -677,7 +638,7 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len,
         case 11: k2 ^= ((uint64_t)tail[10]) << 16;
         case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
         case  9: k2 ^= ((uint64_t)tail[ 8]) << 0;
-            k2 *= c2; k2  = ROTL64(k2,33); k2 *= c1; h2 ^= k2;
+            k2 *= c2; k2  = ROTL64(k2, 33); k2 *= c1; h2 ^= k2;
 
         case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
         case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
@@ -687,8 +648,8 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len,
         case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
         case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
         case  1: k1 ^= ((uint64_t)tail[ 0]) << 0;
-            k1 *= c1; k1  = ROTL64(k1,31); k1 *= c2; h1 ^= k1;
-    };
+            k1 *= c1; k1  = ROTL64(k1, 31); k1 *= c2; h1 ^= k1;
+    }
 
     //----------
     // finalization
@@ -708,7 +669,7 @@ static void MurmurHash3_x64_128(const void *key, ekS32 len,
     ((uint64_t *)out)[1] = h2;
 }
 
-static ekU32 murmur3string(const unsigned char *str)
+static ekU32 murmur3string(const unsigned char * str)
 {
     ekU32 hash;
     MurmurHash3_x86_32(str, strlen((const char *)str), 0, &hash);
@@ -722,20 +683,19 @@ static ekU32 murmur3int(ekS32 i)
     return hash;
 }
 
-#endif
+#endif /* ifdef USE_MURMUR3 */
 
 //-----------------------------------------------------------------------------
 
 #ifdef USE_DJB2
 
-static ekU32 djb2string(const unsigned char *str)
+static ekU32 djb2string(const unsigned char * str)
 {
     ekU32 hash = 5381;
     ekS32 c;
 
-    while(c = *str++)
-    {
-        hash = ((hash << 5) + hash) + c;    /* hash * 33 + c */
+    while (c = *str++) {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
     }
 
     return hash;
@@ -743,7 +703,7 @@ static ekU32 djb2string(const unsigned char *str)
 
 static unsigned ekS32 djb2int(ekS32 i)
 {
-    const char *p = (const char *)&i;
+    const char * p = (const char *)&i;
     unsigned ekS32 hash = 5381;
 
     hash = ((hash << 5) + hash) + p[0];

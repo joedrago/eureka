@@ -10,6 +10,6 @@
 
 #include "ekTypes.h"
 
-void ekModuleRegisterJSON(struct ekContext *E);
+void ekModuleRegisterJSON(struct ekContext * E);
 
 #endif

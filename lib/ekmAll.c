@@ -19,7 +19,7 @@
 #include "ekmFile.h"
 #endif
 
-void ekModuleRegisterAll(struct ekContext *E)
+void ekModuleRegisterAll(struct ekContext * E)
 {
 #ifdef EUREKA_ENABLE_MOD_JSON
     ekModuleRegisterJSON(E);

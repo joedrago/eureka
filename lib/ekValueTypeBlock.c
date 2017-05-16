@@ -18,44 +18,43 @@
 // ---------------------------------------------------------------------------
 // EVT_BLOCK Funcs
 
-static void blockFuncClear(struct ekContext *E, struct ekValue *p)
+static void blockFuncClear(struct ekContext * E, struct ekValue * p)
 {
-    if(p->closureVars)
-    {
+    if (p->closureVars) {
         ekMapDestroy(E, p->closureVars, ekValueRemoveRef);
     }
 }
 
-static void blockFuncClone(struct ekContext *E, struct ekValue *dst, struct ekValue *src)
+static void blockFuncClone(struct ekContext * E, struct ekValue * dst, struct ekValue * src)
 {
     dst->blockVal = src->blockVal;
 }
 
-static ekBool blockFuncToBool(struct ekContext *E, struct ekValue *p)
+static ekBool blockFuncToBool(struct ekContext * E, struct ekValue * p)
 {
     return ekTrue;
 }
 
-static ekS32 blockFuncToInt(struct ekContext *E, struct ekValue *p)
+static ekS32 blockFuncToInt(struct ekContext * E, struct ekValue * p)
 {
     return 1; // ?
 }
 
-static ekF32 blockFuncToFloat(struct ekContext *E, struct ekValue *p)
+static ekF32 blockFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
     return 1.0f; // ?
 }
 
-static void blockFuncDump(struct ekContext *E, ekDumpParams *params, struct ekValue *p)
+static void blockFuncDump(struct ekContext * E, ekDumpParams * params, struct ekValue * p)
 {
     char temp[64];
     sprintf(temp, "(block:0x%p)", p->blockVal);
     ekStringConcat(E, &params->output, temp);
 }
 
-void ekValueTypeRegisterBlock(struct ekContext *E)
+void ekValueTypeRegisterBlock(struct ekContext * E)
 {
-    ekValueType *type = ekValueTypeCreate(E, "block", 0);
+    ekValueType * type = ekValueTypeCreate(E, "block", 0);
     type->funcClear      = blockFuncClear;
     type->funcClone      = blockFuncClone;
     type->funcToBool     = blockFuncToBool;

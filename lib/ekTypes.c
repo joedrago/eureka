@@ -21,10 +21,10 @@
 
 typedef struct ekMemoryTracker
 {
-    void *ptr;
+    void * ptr;
     ekS32 bytes;
 } ekMemoryTracker;
-static ekMemoryTracker sMemoryTrackers[MAX_TRACKERS] = {0};
+static ekMemoryTracker sMemoryTrackers[MAX_TRACKERS] = { 0 };
 
 typedef struct ekMemoryStats
 {
@@ -37,7 +37,7 @@ typedef struct ekMemoryStats
     ekS32 totalAllocSize;
     ekS32 totalFreeSize;
 } ekMemoryStats;
-static ekMemoryStats sMemoryStats = {0};
+static ekMemoryStats sMemoryStats = { 0 };
 
 void ekMemoryStatsReset()
 {
@@ -48,7 +48,7 @@ void ekMemoryStatsReset()
     // no point in reseting sMemoryTrackers
 }
 
-void ekMemoryStatsPrint(const char *prefix)
+void ekMemoryStatsPrint(const char * prefix)
 {
     ekTraceMem(("%sMemory Stats: %d/%d A/F count [%d]. %d/%d A/F bytes [%d]. %d/%d A/F total [%d]\n",
                 prefix,
@@ -61,7 +61,7 @@ void ekMemoryStatsPrint(const char *prefix)
                 sMemoryStats.totalAllocSize,
                 sMemoryStats.totalFreeSize,
                 sMemoryStats.totalAllocSize - sMemoryStats.totalFreeSize
-               ));
+                ));
 }
 
 ekS32 ekMemoryStatsLeftovers()
@@ -72,10 +72,8 @@ ekS32 ekMemoryStatsLeftovers()
 void ekMemoryStatsDumpLeaks()
 {
     ekS32 i;
-    for(i=0; i<MAX_TRACKERS; i++)
-    {
-        if(sMemoryTrackers[i].ptr != 0)
-        {
+    for (i=0; i < MAX_TRACKERS; i++) {
+        if (sMemoryTrackers[i].ptr != 0) {
 #ifndef EUREKA_TRACE_MEMORY_STATS_ONLY
             ekTraceMem(("                                     LEAK %p [%d]\n",
                         sMemoryTrackers[i].ptr,
@@ -85,13 +83,11 @@ void ekMemoryStatsDumpLeaks()
     }
 }
 
-void ekTrackAlloc(void *ptr, ekS32 bytes)
+void ekTrackAlloc(void * ptr, ekS32 bytes)
 {
     ekS32 i;
-    for(i=0; i<MAX_TRACKERS; i++)
-    {
-        if(sMemoryTrackers[i].ptr == 0)
-        {
+    for (i=0; i < MAX_TRACKERS; i++) {
+        if (sMemoryTrackers[i].ptr == 0) {
 #ifndef EUREKA_TRACE_MEMORY_STATS_ONLY
             ekTraceMem(("                                     ALLOC %p [%d]\n", ptr, bytes));
 #endif
@@ -107,13 +103,11 @@ void ekTrackAlloc(void *ptr, ekS32 bytes)
     ekAssert(0 && "out of trackers");
 }
 
-void ekTrackFree(void *ptr, ekS32 stomp)
+void ekTrackFree(void * ptr, ekS32 stomp)
 {
     ekS32 i;
-    for(i=0; i<MAX_TRACKERS; i++)
-    {
-        if(sMemoryTrackers[i].ptr == ptr)
-        {
+    for (i=0; i < MAX_TRACKERS; i++) {
+        if (sMemoryTrackers[i].ptr == ptr) {
 #ifndef EUREKA_TRACE_MEMORY_STATS_ONLY
             ekTraceMem(("                                     FREE %p [%d]\n", ptr, sMemoryTrackers[i].bytes));
 #endif
@@ -121,8 +115,7 @@ void ekTrackFree(void *ptr, ekS32 stomp)
             sMemoryStats.freeSize += sMemoryTrackers[i].bytes;
             sMemoryStats.totalFreeSize += sMemoryTrackers[i].bytes;
 
-            if(stomp)
-            {
+            if (stomp) {
                 // stomp the freed memory
 #ifndef EUREKA_TRACE_MEMORY_STATS_ONLY
                 ekTraceMem(("                                     STOMP %p [%d]\n", ptr, sMemoryTrackers[i].bytes));
@@ -138,61 +131,60 @@ void ekTrackFree(void *ptr, ekS32 stomp)
     ekAssert(0 && "unknown ptr in free");
 }
 
-void ekTrackRealloc(void *oldptr, void *newptr, ekS32 bytes)
+void ekTrackRealloc(void * oldptr, void * newptr, ekS32 bytes)
 {
-    if(oldptr) { ekTrackFree(oldptr, 0); }
+    if (oldptr) { ekTrackFree(oldptr, 0); }
     ekTrackAlloc(newptr, bytes);
 }
 
 #define TRACK_ALLOC(PTR, BYTES) ekTrackAlloc(PTR, BYTES);
-#define TRACK_FREE(PTR) if(PTR) ekTrackFree(PTR, 1);
+#define TRACK_FREE(PTR) if (PTR) ekTrackFree(PTR, 1);
 #define TRACK_REALLOC(OLDPTR, NEWPTR, BYTES) ekTrackRealloc(OLDPTR, NEWPTR, BYTES);
-#else
+#else /* ifdef EUREKA_TRACE_MEMORY */
 #define TRACK_ALLOC(PTR, BYTES)
 #define TRACK_FREE(PTR)
 #define TRACK_REALLOC(OLDPTR, NEWPTR, BYTES)
-#endif
+#endif /* ifdef EUREKA_TRACE_MEMORY */
 
-void *ekDefaultAlloc(ekSize bytes)
+void * ekDefaultAlloc(ekSize bytes)
 {
-    void *ptr = calloc(1, bytes);
+    void * ptr = calloc(1, bytes);
     TRACK_ALLOC(ptr, bytes)
     return ptr;
 }
 
-void *ekDefaultRealloc(void *ptr, ekSize bytes)
+void * ekDefaultRealloc(void * ptr, ekSize bytes)
 {
-    void *p = realloc(ptr, bytes);
+    void * p = realloc(ptr, bytes);
     TRACK_REALLOC(ptr, p, bytes)
     return p;
 }
 
-void ekDefaultFree(void *ptr)
+void ekDefaultFree(void * ptr)
 {
     ekAssert(ptr);
     TRACK_FREE(ptr)
     free(ptr);
 }
 
-void ekDestroyCBFree(struct ekContext *E, void *ptr)
+void ekDestroyCBFree(struct ekContext * E, void * ptr)
 {
     ekFree(ptr);
 }
 
-char *ekStrdup(struct ekContext *E, const char *s)
+char * ekStrdup(struct ekContext * E, const char * s)
 {
     ekS32 len = strlen(s);
-    char *copy = ekAlloc(len+1);
+    char * copy = ekAlloc(len + 1);
     strcpy(copy, s);
     return copy;
 }
 
-char *ekSubstrdup(struct ekContext *E, const char *s, ekS32 start, ekS32 end)
+char * ekSubstrdup(struct ekContext * E, const char * s, ekS32 start, ekS32 end)
 {
     ekS32 len = end - start;
-    char *copy = ekAlloc(len+1);
+    char * copy = ekAlloc(len + 1);
     memcpy(copy, &s[start], len);
     copy[len] = 0;
     return copy;
 }
-
