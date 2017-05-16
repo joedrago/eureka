@@ -118,12 +118,16 @@ static void ekSyntaxDotRecurse(struct ekContext * E, ekSyntax * syntax, const ch
 
         case EST_ARRAY:
             strcpy(label, "Array");
-            REC_CHILD(syntax->v.p);
+            if(syntax->v.p) {
+                REC_CHILD(syntax->v.p);
+            }
             break;
 
         case EST_MAP:
             strcpy(label, "Map");
-            REC_CHILD(syntax->v.p);
+            if(syntax->v.p) {
+                REC_CHILD(syntax->v.p);
+            }
             break;
 
         case EST_CALL:

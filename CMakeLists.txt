@@ -122,6 +122,11 @@ add_custom_target(dot
     DEPENDS ektest
 )
 
+add_custom_target(ast
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tools/scripts/tests.pl "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" ast
+    DEPENDS ektest
+)
+
 if(UNIX)
     add_custom_target(uncrustify
         COMMAND bash ${CMAKE_SOURCE_DIR}/tools/scripts/uncrustifyAll.sh

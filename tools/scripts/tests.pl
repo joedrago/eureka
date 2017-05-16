@@ -15,6 +15,10 @@ if($cmd eq 'dot')
 {
     $mode = 'dot';
 }
+if($cmd eq 'ast')
+{
+    $mode = 'ast';
+}
 
 mkdir $ekTestOutputDir;
 print("\n");
@@ -25,7 +29,13 @@ my @failed;
 for my $test (@tests)
 {
     my ($testBasename) = fileparse($test, qr/\Q.ek\E/);
-    my $ekTestOutput = "$ekTestOutputDir/$testBasename." . (($mode eq 'test') ? 'txt' : 'png');
+    my $ekTestExt = 'txt';
+    if ($mode eq 'dot') {
+        $ekTestExt = 'png';
+    } elsif ($mode eq 'ast') {
+        $ekTestExt = 'ast';
+    }
+    my $ekTestOutput = "$ekTestOutputDir/$testBasename.$ekTestExt";
     my $expected = 0;
     my $extraFlags = "";
     if($testBasename =~ /_O_/)
@@ -57,6 +67,21 @@ for my $test (@tests)
         else
         {
             $passed++;
+        }
+    }
+    elsif($mode eq 'ast')
+    {
+        if($expected)
+        {
+            # If we're expecting some kind of error, don't bother dumping
+            printf("                           \rSkipping AST dump [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+        }
+        else
+        {
+            printf("                      \rGenerating AST dump [%3d / %3d]: %s", $i++, scalar(@tests), $testBasename);
+            my $cmd = "$ekTestExe -a $extraFlags $test > $ekTestOutput";
+            my $ret = system($cmd);
+            my $code = $ret >> 8;
         }
     }
     else
