@@ -1,78 +1,117 @@
-#define ETT_GROUPLEFTPAREN                  1
-#define ETT_LEFTPAREN                       2
-#define ETT_SCOPESTARTBLOCK                 3
-#define ETT_STARTBLOCK                      4
-#define ETT_MAPSTARTBLOCK                   5
-#define ETT_NEGATIVE                        6
-#define ETT_DASH                            7
-#define ETT_ARRAYOPENBRACKET                8
-#define ETT_OPENBRACKET                     9
-#define ETT_NEWLINE                        10
-#define ETT_SEMI                           11
-#define ETT_ASSIGN                         12
-#define ETT_QUESTIONMARK                   13
-#define ETT_COLON                          14
-#define ETT_IF                             15
-#define ETT_ELSE                           16
-#define ETT_HEREDOC                        17
-#define ETT_ELLIPSIS                       18
-#define ETT_BREAK                          19
-#define ETT_THIS                           20
-#define ETT_UNKNOWN                        21
-#define ETT_COMMENT                        22
-#define ETT_SPACE                          23
-#define ETT_EOF                            24
-#define ETT_BITWISE_OREQUALS               25
-#define ETT_BITWISE_XOREQUALS              26
-#define ETT_BITWISE_ANDEQUALS              27
-#define ETT_SHIFTRIGHTEQUALS               28
-#define ETT_SHIFTLEFTEQUALS                29
-#define ETT_PLUSEQUALS                     30
-#define ETT_SLASHEQUALS                    31
-#define ETT_DASHEQUALS                     32
-#define ETT_STAREQUALS                     33
-#define ETT_OR                             34
-#define ETT_BITWISE_OR                     35
-#define ETT_BITWISE_XOR                    36
-#define ETT_AND                            37
-#define ETT_BITWISE_AND                    38
-#define ETT_BITWISE_NOT                    39
-#define ETT_NOT                            40
-#define ETT_EQUALS                         41
-#define ETT_NOTEQUALS                      42
-#define ETT_CMP                            43
-#define ETT_LESSTHAN                       44
-#define ETT_LESSTHANOREQUAL                45
-#define ETT_GREATERTHAN                    46
-#define ETT_GREATERTHANOREQUAL             47
-#define ETT_INHERITS                       48
-#define ETT_SHIFTRIGHT                     49
-#define ETT_SHIFTLEFT                      50
-#define ETT_PLUS                           51
-#define ETT_STAR                           52
-#define ETT_SLASH                          53
-#define ETT_MOD                            54
-#define ETT_PERIOD                         55
-#define ETT_COLONCOLON                     56
-#define ETT_OPENBRACE                      57
-#define ETT_CLOSEBRACE                     58
-#define ETT_CLOSEBRACKET                   59
-#define ETT_ENDBLOCK                       60
-#define ETT_ENDSTATEMENT                   61
-#define ETT_RETURN                         62
-#define ETT_WHILE                          63
-#define ETT_FUNCTION                       64
-#define ETT_IDENTIFIER                     65
-#define ETT_RIGHTPAREN                     66
-#define ETT_FOR                            67
-#define ETT_IN                             68
-#define ETT_COMMA                          69
-#define ETT_FATCOMMA                       70
-#define ETT_INTEGER                        71
-#define ETT_FLOATNUM                       72
-#define ETT_LITERALSTRING                  73
-#define ETT_REGEXSTRING                    74
-#define ETT_TRUE                           75
-#define ETT_FALSE                          76
-#define ETT_NULL                           77
-#define ETT_VAR                            78
+// ---------------------------------------------------------------------------
+//                   Copyright Joe Drago 2010 - 2011.
+//         Distributed under the Boost Software License, Version 1.0.
+//            (See accompanying file LICENSE_1_0.txt or copy at
+//                  http://www.boost.org/LICENSE_1_0.txt)
+// ---------------------------------------------------------------------------
+
+#ifndef EKPARSER_H
+#define EKPARSER_H
+
+#include "ekTypes.h"
+
+// ---------------------------------------------------------------------------
+// Forwards
+
+struct ekCompiler;
+
+// ---------------------------------------------------------------------------
+
+typedef enum ekTokenType
+{
+    ETT_UNKNOWN = 0,
+
+    ETT_AND,
+    ETT_ARRAYOPENBRACKET,
+    ETT_ASSIGN,
+    ETT_BITWISE_AND,
+    ETT_BITWISE_ANDEQUALS,
+    ETT_BITWISE_NOT,
+    ETT_BITWISE_OR,
+    ETT_BITWISE_OREQUALS,
+    ETT_BITWISE_XOR,
+    ETT_BITWISE_XOREQUALS,
+    ETT_BREAK,
+    ETT_CLOSEBRACE,
+    ETT_CLOSEBRACKET,
+    ETT_CMP,
+    ETT_COLON,
+    ETT_COLONCOLON,
+    ETT_COMMA,
+    ETT_COMMENT,
+    ETT_DASH,
+    ETT_DASHEQUALS,
+    ETT_ELLIPSIS,
+    ETT_ELSE,
+    ETT_ENDBLOCK,
+    ETT_ENDSTATEMENT,
+    ETT_EOF,
+    ETT_EQUALS,
+    ETT_FALSE,
+    ETT_FATCOMMA,
+    ETT_FLOATNUM,
+    ETT_FOR,
+    ETT_FUNCTION,
+    ETT_GREATERTHAN,
+    ETT_GREATERTHANOREQUAL,
+    ETT_GROUPLEFTPAREN,
+    ETT_HEREDOC,
+    ETT_IDENTIFIER,
+    ETT_IF,
+    ETT_IN,
+    ETT_INHERITS,
+    ETT_INTEGER,
+    ETT_LEFTPAREN,
+    ETT_LESSTHAN,
+    ETT_LESSTHANOREQUAL,
+    ETT_LITERALSTRING,
+    ETT_MAPSTARTBLOCK,
+    ETT_MOD,
+    ETT_NEGATIVE,
+    ETT_NEWLINE,
+    ETT_NOT,
+    ETT_NOTEQUALS,
+    ETT_NULL,
+    ETT_OPENBRACE,
+    ETT_OPENBRACKET,
+    ETT_OR,
+    ETT_PERIOD,
+    ETT_PLUS,
+    ETT_PLUSEQUALS,
+    ETT_QUESTIONMARK,
+    ETT_REGEXSTRING,
+    ETT_RETURN,
+    ETT_RIGHTPAREN,
+    ETT_SCOPESTARTBLOCK,
+    ETT_SEMI,
+    ETT_SHIFTLEFT,
+    ETT_SHIFTLEFTEQUALS,
+    ETT_SHIFTRIGHT,
+    ETT_SHIFTRIGHTEQUALS,
+    ETT_SLASH,
+    ETT_SLASHEQUALS,
+    ETT_SPACE,
+    ETT_STAR,
+    ETT_STAREQUALS,
+    ETT_STARTBLOCK,
+    ETT_THIS,
+    ETT_TRUE,
+    ETT_VAR,
+    ETT_WHILE,
+
+    ETT_COUNT
+} ekTokenType;
+
+// ---------------------------------------------------------------------------
+
+typedef struct ekParser
+{
+    int a;
+} ekParser;
+
+ekParser * ekParserCreate(struct ekContext * E);
+void ekParserDestroy(struct ekContext * E, struct ekParser * parser);
+
+void ekParserParse(struct ekContext * E, struct ekParser * parser, struct ekCompiler * compiler, const char * source);
+
+#endif // ifndef EKPARSER_H

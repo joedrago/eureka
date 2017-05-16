@@ -5,26 +5,6 @@
 #                  http:#www.boost.org/LICENSE_1_0.txt)
 # ---------------------------------------------------------------------------
 
-MACRO(add_lemon_files _sources )
-    FOREACH (_current_FILE ${ARGN})
-      GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
-      GET_FILENAME_COMPONENT(_basename ${_current_FILE} NAME_WE)
-
-      set(_out ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c)
-      set(_template ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.lt)
-
-      ADD_CUSTOM_COMMAND(
-         OUTPUT ${_out}
-         COMMAND lemon
-         ARGS
-         ${_in}
-         DEPENDS ${_in} ${_template}
-      )
-
-      SET(${_sources} ${${_sources}} ${_out})
-   ENDFOREACH (_current_FILE)
-ENDMACRO(add_lemon_files)
-
 MACRO(add_re2c_files _sources )
     FOREACH (_current_FILE ${ARGN})
       GET_FILENAME_COMPONENT(_in ${_current_FILE} ABSOLUTE)
@@ -71,7 +51,8 @@ set(ek_src
     ekMap.c
     ekOp.h
     ekOp.c
-    ekParser.y
+    ekParser.h
+    ekParser.c
     ekString.h
     ekString.c
     ekSyntax.h
@@ -146,7 +127,6 @@ if(EUREKA_ENABLE_EXT_AST)
     )
 endif()
 
-add_lemon_files(ek_src ekParser.y)
 add_re2c_files(ek_src ekLexer.re)
 
 add_library(ek
