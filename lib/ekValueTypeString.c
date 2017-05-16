@@ -135,13 +135,13 @@ static ekBool stringFuncToBool(struct ekContext * E, struct ekValue * p)
 
 static ekS32 stringFuncToInt(struct ekContext * E, struct ekValue * p)
 {
-    ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
+    ekToken t = { ETT_LITERALSTRING, ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToInt(E, &t);
 }
 
 static ekF32 stringFuncToFloat(struct ekContext * E, struct ekValue * p)
 {
-    ekToken t = { ekStringSafePtr(&p->stringVal), p->stringVal.len };
+    ekToken t = { ETT_LITERALSTRING, ekStringSafePtr(&p->stringVal), p->stringVal.len };
     return ekTokenToFloat(E, &t);
 }
 

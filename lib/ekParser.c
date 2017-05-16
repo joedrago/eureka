@@ -84,9 +84,12 @@ struct ekSyntax * ekParserParse(struct ekContext * E, struct ekParser * parser, 
     struct ekSyntax * root;
     parser->sourcePath = sourcePath;
     parser->source = source;
+    parser->lexer = ekLexerCreate(E);
 
     root = ekSyntaxCreate(E, EST_STATEMENTLIST, 1); // Lies!
 
+    ekLexerDestroy(E, parser->lexer);
+    parser->lexer = NULL;
     parser->sourcePath = NULL;
     parser->source = NULL;
     return root;

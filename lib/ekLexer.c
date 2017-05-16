@@ -16,34 +16,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define YYCTYPE char
-#define YYCURSOR l->cur
-#define YYMARKER l->marker
-#define YYLIMIT l->end
-
-//#include "ekLexerNames.h"
-//#define CALL_CB(A,ID,C,D) { \
-//    char temp[256] = {0}; \
-//    strncpy(temp, l.token, token_len); \
-//    printf("%s - %s\n", ekTokenIDToString(ID), temp); \
-//    cb(A,ID,C,D); \
-// //}
-#define CALL_CB cb
-
-typedef struct ekLexer
+ekLexer * ekLexerCreate(struct ekContext * E)
 {
-    const char * text;
-    const char * marker;
-    const char * cur;
-    const char * token;
-    const char * end;
-    ekS32 line;
-} ekLexer;
+    ekLexer * lexer = (ekLexer *)ekAlloc(sizeof(ekLexer));
+    return lexer;
+}
 
-ekS32 getNextToken(ekLexer * l)
+void ekLexerDestroy(struct ekContext * E, ekLexer * lexer)
 {
-#include "ekLexer.re.inc"
-    return ETT_EOF;
+    ekFree(lexer);
 }
 
 #if 0
@@ -238,4 +219,25 @@ float ekTokenToFloat(struct ekContext * E, ekToken * t)
 
     d = strtod(temp, &endptr);
     return (ekF32)d;
+}
+
+
+#define YYCTYPE char
+#define YYCURSOR l->cur
+#define YYMARKER l->marker
+#define YYLIMIT l->end
+
+//#include "ekLexerNames.h"
+//#define CALL_CB(A,ID,C,D) { \
+//    char temp[256] = {0}; \
+//    strncpy(temp, l.token, token_len); \
+//    printf("%s - %s\n", ekTokenIDToString(ID), temp); \
+//    cb(A,ID,C,D); \
+// //}
+#define CALL_CB cb
+
+ekS32 getNextToken(ekLexer * l)
+{
+#include "ekLexer.re.inc"
+    return ETT_EOF;
 }
