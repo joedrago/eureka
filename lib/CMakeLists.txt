@@ -139,6 +139,13 @@ if(EUREKA_ENABLE_EXT_DOT)
     )
 endif()
 
+if(EUREKA_ENABLE_EXT_AST)
+    set(ek_extras ${ek_extras}
+        ekxAst.h
+        ekxAst.c
+    )
+endif()
+
 add_lemon_files(ek_src ekParser.y)
 add_re2c_files(ek_src ekLexer.re)
 

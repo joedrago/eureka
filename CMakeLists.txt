@@ -28,6 +28,11 @@ if(EUREKA_ENABLE_EXT_DISASM)
     add_definitions(-DEUREKA_ENABLE_EXT_DISASM=1)
 endif()
 
+set(EUREKA_ENABLE_EXT_AST "ON" CACHE BOOL "Enables Eureka AST dump output support.")
+if(EUREKA_ENABLE_EXT_AST)
+    add_definitions(-DEUREKA_ENABLE_EXT_AST=1)
+endif()
+
 set(EUREKA_ENABLE_EXT_DOT "ON" CACHE BOOL "Enables Eureka Graphviz (Dot) output support.")
 if(EUREKA_ENABLE_EXT_DOT)
     add_definitions(-DEUREKA_ENABLE_EXT_DOT=1)
@@ -118,35 +123,35 @@ add_custom_target(dot
 )
 
 if(UNIX)
-    add_custom_target(astyle
-        COMMAND bash ${CMAKE_SOURCE_DIR}/tools/scripts/astyleAll.sh
+    add_custom_target(uncrustify
+        COMMAND bash ${CMAKE_SOURCE_DIR}/tools/scripts/uncrustifyAll.sh
     )
 endif()
 
-set(DOCTXT)
-file(GLOB_RECURSE DOCSRC ${CMAKE_SOURCE_DIR}/docs/src/*.ekd)
-foreach(dsrc ${DOCSRC})
-    get_filename_component(basename "${dsrc}" NAME_WE)
-    set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")
-    add_custom_command(OUTPUT ${ddst}
-        COMMAND ekdoc text "${dsrc}" > "${ddst}"
-        DEPENDS ${dsrc}
-        DEPENDS ekdoc
-    )
-    LIST(APPEND DOCTXT ${ddst})
-    set(ddst "${CMAKE_BINARY_DIR}/wordpress/${basename}.wordpress")
-    add_custom_command(OUTPUT ${ddst}
-        COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/wordpress
-        COMMAND ekdoc wordpress "${dsrc}" > "${ddst}"
-        DEPENDS ${dsrc}
-        DEPENDS ekdoc
-    )
-    LIST(APPEND DOCTXT ${ddst})
-endforeach()
-
-add_custom_target(docs
-    ALL DEPENDS ${DOCTXT}
-)
+# set(DOCTXT)
+# file(GLOB_RECURSE DOCSRC ${CMAKE_SOURCE_DIR}/docs/src/*.ekd)
+# foreach(dsrc ${DOCSRC})
+#     get_filename_component(basename "${dsrc}" NAME_WE)
+#     set(ddst "${CMAKE_SOURCE_DIR}/docs/${basename}.txt")
+#     add_custom_command(OUTPUT ${ddst}
+#         COMMAND ekdoc text "${dsrc}" > "${ddst}"
+#         DEPENDS ${dsrc}
+#         DEPENDS ekdoc
+#     )
+#     LIST(APPEND DOCTXT ${ddst})
+#     set(ddst "${CMAKE_BINARY_DIR}/wordpress/${basename}.wordpress")
+#     add_custom_command(OUTPUT ${ddst}
+#         COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/wordpress
+#         COMMAND ekdoc wordpress "${dsrc}" > "${ddst}"
+#         DEPENDS ${dsrc}
+#         DEPENDS ekdoc
+#     )
+#     LIST(APPEND DOCTXT ${ddst})
+# endforeach()
+#
+# add_custom_target(docs
+#     ALL DEPENDS ${DOCTXT}
+# )
 
 if(COVERAGE)
     add_custom_target(coverage_clean

@@ -7,6 +7,7 @@
 
 #include "ek.h"
 
+#include "ekxAst.h"
 #include "ekxDot.h"
 
 #include <stdio.h>
@@ -49,6 +50,33 @@ int loadChunk(const char * sourcePath, const char * code, ekU32 evalFlags)
     }
 #endif
     return ret;
+}
+
+// ---------------------------------------------------------------------------
+
+void outputAst(const char * sourcePath, const char * code, ekU32 evalFlags)
+{
+#ifdef EUREKA_ENABLE_EXT_AST
+    ekU32 compileFlags = ECO_KEEP_SYNTAX_TREE;
+    ekContext * E = ekContextCreate(NULL);
+    ekCompiler * compiler = ekCompilerCreate(E);
+    ekString err = { 0 };
+    if (evalFlags & EEO_OPTIMIZE) {
+        compileFlags |= ECO_OPTIMIZE;
+    }
+    ekCompile(compiler, sourcePath, code, compileFlags);
+    if (ekCompilerFormatErrors(compiler, &err)) {
+        fprintf(stderr, "%s", ekStringSafePtr(&err));
+    }
+    ekStringClear(E, &err);
+    if (compiler->root) {
+        ekSyntaxAst(E, compiler->root);
+    }
+    ekCompilerDestroy(compiler);
+    ekContextDestroy(E);
+#else
+    printf("AST dump support is disabled! (EUREKA_ENABLE_EXT_AST)\n");
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -110,6 +138,7 @@ char * loadFile(const char * filename)
 enum
 {
     ETM_LOADCHUNK,
+    ETM_AST,
     ETM_GRAPH
 };
 
@@ -133,6 +162,9 @@ int main(int argc, char * argv[])
                     case 'o':
                         evalFlags |= EEO_OPTIMIZE;
                         break;
+                    case 'a':
+                        mode = ETM_AST;
+                        break;
                     case 'g':
                         mode = ETM_GRAPH;
                         break;
@@ -148,6 +180,9 @@ int main(int argc, char * argv[])
                     case ETM_LOADCHUNK:
                         ret = loadChunk(filename, code, evalFlags);
                         break;
+                    case ETM_AST:
+                        outputAst(filename, code, evalFlags);
+                        break;
                     case ETM_GRAPH:
                         outputGraph(filename, code, evalFlags);
                         break;
@@ -155,7 +190,7 @@ int main(int argc, char * argv[])
                 free(code);
             }
         } else {
-            printf("ektest [-d] [-g] [-o] [filename.ek]\n");
+            printf("ektest [-a] [-d] [-g] [-o] [filename.ek]\n");
         }
     }
 
