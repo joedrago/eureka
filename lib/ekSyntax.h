@@ -18,7 +18,7 @@ struct ekToken;
 // ---------------------------------------------------------------------------
 
 // Note: This enum must stay sync'd with ekCompiler's ekAssembleInfo
-enum
+typedef enum ekSyntaxType
 {
     EST_NOP = 0,
 
@@ -83,7 +83,7 @@ enum
     EST_SCOPE, // arbitrary scope block executing v.p statement list
 
     EST_COUNT
-};
+} ekSyntaxType;
 
 typedef struct ekSyntaxElement
 {

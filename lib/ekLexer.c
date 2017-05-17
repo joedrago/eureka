@@ -78,13 +78,13 @@ ekTokenType ekLexerConsume(struct ekContext * E, ekLexer * lexer, struct ekToken
                 token->line = lexer->line;
 
                 lexer->prev = lexer->cur;
+                printf("Current token now: %s\n", ekTokenTypeName(token->type));
                 return id;
             }
         }
         lexer->prev = lexer->cur;
     }
 
-    memset(token, 0, sizeof(ekToken));
     token->type = ETT_EOF;
     return token->type;
 }
@@ -250,7 +250,6 @@ const char * ekTokenTypeName(ekTokenType type)
         TYPE_NAME(FUNCTION);
         TYPE_NAME(GREATERTHAN);
         TYPE_NAME(GREATERTHANOREQUAL);
-        TYPE_NAME(GROUPLEFTPAREN);
         TYPE_NAME(HEREDOC);
         TYPE_NAME(IDENTIFIER);
         TYPE_NAME(IF);
