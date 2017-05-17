@@ -103,6 +103,8 @@ typedef enum ekTokenType
     ETT_COUNT
 } ekTokenType;
 
+const char * ekTokenTypeName(ekTokenType type);
+
 typedef struct ekToken
 {
     ekTokenType type;
@@ -113,9 +115,7 @@ typedef struct ekToken
 
 #define ekTokenCreate() ((ekToken *)ekAlloc(sizeof(ekToken)))
 #define ekTokenDestroy ekFree
-
 ekToken * ekTokenClone(struct ekContext * E, ekToken * token);
-
 char * ekTokenToString(struct ekContext * E, ekToken * t, int isRegex); // ekAlloc's a string copy
 ekS32 ekTokenToInt(struct ekContext * E, ekToken * t);
 float ekTokenToFloat(struct ekContext * E, ekToken * t);
@@ -130,7 +130,8 @@ typedef struct ekLexer
     ekS32 line;
 } ekLexer;
 
-ekLexer * ekLexerCreate(struct ekContext * E);
+ekLexer * ekLexerCreate(struct ekContext * E, const char * source);
 void ekLexerDestroy(struct ekContext * E, ekLexer * lexer);
+ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * token);
 
-#endif
+#endif // ifndef EKLEXER_H

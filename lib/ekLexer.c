@@ -16,15 +16,77 @@
 #include <stdlib.h>
 #include <string.h>
 
-ekLexer * ekLexerCreate(struct ekContext * E)
+static ekS32 getNextToken(ekLexer * l);
+
+ekLexer * ekLexerCreate(struct ekContext * E, const char * source)
 {
     ekLexer * lexer = (ekLexer *)ekAlloc(sizeof(ekLexer));
+    lexer->text   = source;
+    lexer->end    = lexer->text + strlen(lexer->text);
+    lexer->cur    = lexer->text;
+    lexer->token  = lexer->cur;
+    lexer->line   = 1;
     return lexer;
 }
 
 void ekLexerDestroy(struct ekContext * E, ekLexer * lexer)
 {
     ekFree(lexer);
+}
+
+ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * token)
+{
+    ekS32 id;
+    ekS32 token_len;
+    ekS32 tokenMax;
+
+    while ((id = getNextToken(lexer)) != ETT_EOF) {
+        token_len = (ekS32)(lexer->cur - lexer->token);
+
+        // Normal C style lexers treat semi-colons as end statements
+        // and braces as block delimiters. Newlines are just whitespace.
+
+        switch (id) {
+            case ETT_HEREDOC:
+                // Heredocs are just trimmed literal strings
+                id = ETT_LITERALSTRING;
+                ekAssert(token_len >= 6);
+
+                // remove triple quotes
+                token_len -= 6;
+                lexer->token += 3;
+                break;
+            case ETT_NEWLINE:
+                id = ETT_SPACE;
+                break;
+            case ETT_SEMI:
+                id = ETT_ENDSTATEMENT;
+                break;
+            case ETT_OPENBRACE:
+                id = ETT_STARTBLOCK;
+                break;
+            case ETT_CLOSEBRACE:
+                id = ETT_ENDBLOCK;
+                break;
+        }
+
+        if ((id != ETT_SPACE) && (id != ETT_COMMENT)) {
+            if (token_len > 0) {
+                token->type = id;
+                token->text = lexer->token;
+                token->len  = token_len;
+                token->line = lexer->line;
+
+                lexer->token = lexer->cur;
+                return id;
+            }
+        }
+        lexer->token = lexer->cur;
+    }
+
+    memset(token, 0, sizeof(ekToken));
+    token->type = ETT_EOF;
+    return ETT_EOF;
 }
 
 #if 0
@@ -96,7 +158,7 @@ ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * c
     }
     return ekTrue;
 }
-#endif
+#endif /* if 0 */
 
 ekToken * ekTokenClone(struct ekContext * E, ekToken * token)
 {
@@ -221,6 +283,93 @@ float ekTokenToFloat(struct ekContext * E, ekToken * t)
     return (ekF32)d;
 }
 
+const char * ekTokenTypeName(ekTokenType type)
+{
+#define TYPE_NAME(T) case ETT_ ## T: return #T
+
+    switch (type) {
+        TYPE_NAME(AND);
+        TYPE_NAME(ARRAYOPENBRACKET);
+        TYPE_NAME(ASSIGN);
+        TYPE_NAME(BITWISE_AND);
+        TYPE_NAME(BITWISE_ANDEQUALS);
+        TYPE_NAME(BITWISE_NOT);
+        TYPE_NAME(BITWISE_OR);
+        TYPE_NAME(BITWISE_OREQUALS);
+        TYPE_NAME(BITWISE_XOR);
+        TYPE_NAME(BITWISE_XOREQUALS);
+        TYPE_NAME(BREAK);
+        TYPE_NAME(CLOSEBRACE);
+        TYPE_NAME(CLOSEBRACKET);
+        TYPE_NAME(CMP);
+        TYPE_NAME(COLON);
+        TYPE_NAME(COLONCOLON);
+        TYPE_NAME(COMMA);
+        TYPE_NAME(COMMENT);
+        TYPE_NAME(DASH);
+        TYPE_NAME(DASHEQUALS);
+        TYPE_NAME(ELLIPSIS);
+        TYPE_NAME(ELSE);
+        TYPE_NAME(ENDBLOCK);
+        TYPE_NAME(ENDSTATEMENT);
+        TYPE_NAME(EOF);
+        TYPE_NAME(EQUALS);
+        TYPE_NAME(FALSE);
+        TYPE_NAME(FATCOMMA);
+        TYPE_NAME(FLOATNUM);
+        TYPE_NAME(FOR);
+        TYPE_NAME(FUNCTION);
+        TYPE_NAME(GREATERTHAN);
+        TYPE_NAME(GREATERTHANOREQUAL);
+        TYPE_NAME(GROUPLEFTPAREN);
+        TYPE_NAME(HEREDOC);
+        TYPE_NAME(IDENTIFIER);
+        TYPE_NAME(IF);
+        TYPE_NAME(IN);
+        TYPE_NAME(INHERITS);
+        TYPE_NAME(INTEGER);
+        TYPE_NAME(LEFTPAREN);
+        TYPE_NAME(LESSTHAN);
+        TYPE_NAME(LESSTHANOREQUAL);
+        TYPE_NAME(LITERALSTRING);
+        TYPE_NAME(MAPSTARTBLOCK);
+        TYPE_NAME(MOD);
+        TYPE_NAME(NEGATIVE);
+        TYPE_NAME(NEWLINE);
+        TYPE_NAME(NOT);
+        TYPE_NAME(NOTEQUALS);
+        TYPE_NAME(NULL);
+        TYPE_NAME(OPENBRACE);
+        TYPE_NAME(OPENBRACKET);
+        TYPE_NAME(OR);
+        TYPE_NAME(PERIOD);
+        TYPE_NAME(PLUS);
+        TYPE_NAME(PLUSEQUALS);
+        TYPE_NAME(QUESTIONMARK);
+        TYPE_NAME(REGEXSTRING);
+        TYPE_NAME(RETURN);
+        TYPE_NAME(RIGHTPAREN);
+        TYPE_NAME(SCOPESTARTBLOCK);
+        TYPE_NAME(SEMI);
+        TYPE_NAME(SHIFTLEFT);
+        TYPE_NAME(SHIFTLEFTEQUALS);
+        TYPE_NAME(SHIFTRIGHT);
+        TYPE_NAME(SHIFTRIGHTEQUALS);
+        TYPE_NAME(SLASH);
+        TYPE_NAME(SLASHEQUALS);
+        TYPE_NAME(SPACE);
+        TYPE_NAME(STAR);
+        TYPE_NAME(STAREQUALS);
+        TYPE_NAME(STARTBLOCK);
+        TYPE_NAME(THIS);
+        TYPE_NAME(TRUE);
+        TYPE_NAME(VAR);
+        TYPE_NAME(WHILE);
+        default:
+            break;
+    }
+    return "UNKNOWN";
+}
 
 #define YYCTYPE char
 #define YYCURSOR l->cur
@@ -236,7 +385,7 @@ float ekTokenToFloat(struct ekContext * E, ekToken * t)
 // //}
 #define CALL_CB cb
 
-ekS32 getNextToken(ekLexer * l)
+static ekS32 getNextToken(ekLexer * l)
 {
 #include "ekLexer.re.inc"
     return ETT_EOF;

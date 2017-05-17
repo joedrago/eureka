@@ -195,7 +195,7 @@ enum
 
 #define asmFunc(NAME) \
     ekS32 ekAssemble ## NAME(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags)
-typedef ekS32 (*ekAssembleFunc)(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags);
+typedef ekS32 (* ekAssembleFunc)(struct ekContext * E, ekCompiler * compiler, ekCode * dst, ekSyntax * syntax, ekS32 keep, ekU32 flags);
 
 typedef struct ekAssembleInfo
 {

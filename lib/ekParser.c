@@ -13,6 +13,8 @@
 #include "ekString.h"
 #include "ekSyntax.h"
 
+#include <stdio.h>
+
 ekError * ekErrorCreate(struct ekContext * E, const char * filename, ekS32 lineNo, const char * source, const char * loc, const char * explanation)
 {
     ekError * error = (ekError *)ekAlloc(sizeof(ekError));
@@ -82,9 +84,15 @@ void ekParserDestroy(struct ekContext * E, ekParser * parser)
 struct ekSyntax * ekParserParse(struct ekContext * E, struct ekParser * parser, const char * sourcePath, const char * source)
 {
     struct ekSyntax * root;
+    ekToken token;
+
     parser->sourcePath = sourcePath;
     parser->source = source;
-    parser->lexer = ekLexerCreate(E);
+    parser->lexer = ekLexerCreate(E, source);
+
+    while (ekLexerNext(E, parser->lexer, &token) != ETT_EOF) {
+        printf("Token: %s\n", ekTokenTypeName(token.type));
+    }
 
     root = ekSyntaxCreate(E, EST_STATEMENTLIST, 1); // Lies!
 

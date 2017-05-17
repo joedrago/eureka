@@ -105,22 +105,22 @@ static void ekSyntaxAstRecurse(struct ekContext * E, ekSyntax * syntax, int dept
 
         case EST_ARRAY:
             PD(); printf("Array");
-            if(!syntax->v.p) {
+            if (!syntax->v.p) {
                 printf(" (empty)");
             }
             printf("\n");
-            if(syntax->v.p) {
+            if (syntax->v.p) {
                 REC_CHILD(syntax->v.p, depth + 1);
             }
             break;
 
         case EST_MAP:
             PD(); printf("Map");
-            if(!syntax->v.p) {
+            if (!syntax->v.p) {
                 printf(" (empty)");
             }
             printf("\n");
-            if(syntax->v.p) {
+            if (syntax->v.p) {
                 REC_CHILD(syntax->v.p, depth + 1);
             }
             break;

@@ -302,7 +302,7 @@ ekdNode * ekdParse(char * text)
 // Simple markup system
 
 struct ekdMarkup;
-typedef char *(*ekdReplaceFunc)(ekdNode * root, struct ekdMarkup * markup, char * tag, int * lenReplaced, int * freeRequired, int replaceCount);
+typedef char *(* ekdReplaceFunc)(ekdNode * root, struct ekdMarkup * markup, char * tag, int * lenReplaced, int * freeRequired, int replaceCount);
 
 typedef struct ekdMarkup
 {

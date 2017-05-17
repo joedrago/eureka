@@ -13,22 +13,22 @@
 #define EVT_MAXNAMELEN 15
 
 struct ekValueType;
-typedef void (*ekValueTypeDestroyUserData)(struct ekContext * E, struct ekValueType * valueType);
+typedef void (* ekValueTypeDestroyUserData)(struct ekContext * E, struct ekValueType * valueType);
 
-typedef void (*ekValueTypeFuncClear)(struct ekContext * E, struct ekValue * p);
-typedef void (*ekValueTypeFuncClone)(struct ekContext * E, struct ekValue * dst, struct ekValue * src);
-typedef void (*ekValueTypeFuncMark)(struct ekContext * E, struct ekValue * p);
-typedef ekBool (*ekValueTypeFuncToBool)(struct ekContext * E, struct ekValue * p);
-typedef ekS32 (*ekValueTypeFuncToInt)(struct ekContext * E, struct ekValue * p);
-typedef ekF32 (*ekValueTypeFuncToFloat)(struct ekContext * E, struct ekValue * p);
-typedef struct ekValue *(*ekValueTypeFuncToString)(struct ekContext * E, struct ekValue * p);
-typedef struct ekValue *(*ekValueTypeFuncReverse)(struct ekContext * E, struct ekValue * p);
-typedef ekCFunction *(*ekValueTypeFuncIter)(struct ekContext * E, struct ekValue * p);
-typedef struct ekValue *(*ekValueTypeFuncArithmetic)(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op);
-typedef ekBool (*ekValueTypeFuncCmp)(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult);
-typedef ekS32 (*ekValueTypeFuncLength)(struct ekContext * E, struct ekValue * p);
-typedef struct ekValue *(*ekValueTypeFuncIndex)(struct ekContext * E, struct ekValue * p, struct ekValue * index, ekBool lvalue);
-typedef void (*ekValueTypeFuncDump)(struct ekContext * E, ekDumpParams * params, struct ekValue * p); // creates debug text representing value, caller responsible for ekFree()
+typedef void (* ekValueTypeFuncClear)(struct ekContext * E, struct ekValue * p);
+typedef void (* ekValueTypeFuncClone)(struct ekContext * E, struct ekValue * dst, struct ekValue * src);
+typedef void (* ekValueTypeFuncMark)(struct ekContext * E, struct ekValue * p);
+typedef ekBool (* ekValueTypeFuncToBool)(struct ekContext * E, struct ekValue * p);
+typedef ekS32 (* ekValueTypeFuncToInt)(struct ekContext * E, struct ekValue * p);
+typedef ekF32 (* ekValueTypeFuncToFloat)(struct ekContext * E, struct ekValue * p);
+typedef struct ekValue *(* ekValueTypeFuncToString)(struct ekContext * E, struct ekValue * p);
+typedef struct ekValue *(* ekValueTypeFuncReverse)(struct ekContext * E, struct ekValue * p);
+typedef ekCFunction *(* ekValueTypeFuncIter)(struct ekContext * E, struct ekValue * p);
+typedef struct ekValue *(* ekValueTypeFuncArithmetic)(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekValueArithmeticOp op);
+typedef ekBool (* ekValueTypeFuncCmp)(struct ekContext * E, struct ekValue * a, struct ekValue * b, ekS32 * cmpResult);
+typedef ekS32 (* ekValueTypeFuncLength)(struct ekContext * E, struct ekValue * p);
+typedef struct ekValue *(* ekValueTypeFuncIndex)(struct ekContext * E, struct ekValue * p, struct ekValue * index, ekBool lvalue);
+typedef void (* ekValueTypeFuncDump)(struct ekContext * E, ekDumpParams * params, struct ekValue * p); // creates debug text representing value, caller responsible for ekFree()
 
 typedef struct ekValueType
 {

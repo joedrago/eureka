@@ -41,7 +41,7 @@ static ekU32 stringIntrinsicSplit(struct ekContext * E, ekU32 argCount)
             }
             front += split;
             if (*front)
-                front++;  // advance past the separator
+                front++; // advance past the separator
         }
     }
 
