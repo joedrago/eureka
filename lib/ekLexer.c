@@ -78,7 +78,7 @@ ekTokenType ekLexerConsume(struct ekContext * E, ekLexer * lexer, struct ekToken
                 token->line = lexer->line;
 
                 lexer->prev = lexer->cur;
-                printf("Current token now: %s\n", ekTokenTypeName(token->type));
+                // printf("Current token now: %s\n", ekTokenTypeName(token->type));
                 return id;
             }
         }
