@@ -49,26 +49,6 @@ void ekErrorDestroy(ekContext * E, ekError * error)
     ekFree(error);
 }
 
-void ekParserSyntaxError(struct ekContext * E, ekParser * parser, struct ekToken * token, const char * explanation)
-{
-    const char * sourcePath = parser->sourcePath;
-    if (!sourcePath)
-        sourcePath = "<source>";
-    ekError * error = ekErrorCreate(E, sourcePath, token->line, parser->source, token->text, explanation);
-    ekArrayPush(E, &parser->errors, error);
-}
-
-#if 0
-void ekParserExplainError(struct ekContext * E, ekParser * parser, const char * explanation)
-{
-    ekS32 size = ekArraySize(E, &parser->errors);
-    if (size > 0) {
-        ekError * error = parser->errors[size - 1];
-        ekStringSet(E, &error->explanation, explanation);
-    }
-}
-#endif
-
 ekParser * ekParserCreate(struct ekContext * E)
 {
     ekParser * parser = (ekParser *)ekAlloc(sizeof(ekParser));
@@ -81,24 +61,57 @@ void ekParserDestroy(struct ekContext * E, ekParser * parser)
     ekFree(parser);
 }
 
+void ekParserSyntaxError(struct ekContext * E, ekParser * parser, struct ekToken * token, const char * explanation)
+{
+    const char * sourcePath = parser->sourcePath;
+    if (!sourcePath)
+        sourcePath = "<source>";
+    ekError * error = ekErrorCreate(E, sourcePath, token->line, parser->source, token->text, explanation);
+    ekArrayPush(E, &parser->errors, error);
+}
+
+// ---------------------------------------------------------------------------
+
+static ekSyntax * ekParserParseChunk(struct ekContext * E, struct ekParser * parser);
+static ekSyntax * ekParserParseStatementList(struct ekContext * E, struct ekParser * parser);
+static ekSyntax * ekParserParseStatement(struct ekContext * E, struct ekParser * parser);
+
 struct ekSyntax * ekParserParse(struct ekContext * E, struct ekParser * parser, const char * sourcePath, const char * source)
 {
-    struct ekSyntax * root;
-    ekToken token;
-
+    struct ekSyntax * root = NULL;
     parser->sourcePath = sourcePath;
     parser->source = source;
     parser->lexer = ekLexerCreate(E, source);
 
-    while (ekLexerNext(E, parser->lexer, &token) != ETT_EOF) {
-        printf("Token: %s\n", ekTokenTypeName(token.type));
-    }
+    // while (ekLexerConsume(E, parser->lexer, &parser->token) != ETT_EOF) {
+    //     printf("Token: %s\n", ekTokenTypeName(parser->token.type));
+    // }
 
-    root = ekSyntaxCreate(E, EST_STATEMENTLIST, 1); // Lies!
+    if(ekLexerConsume(E, parser->lexer, &parser->token) != ETT_EOF) {
+        root = ekParserParseChunk(E, parser);
+    }
 
     ekLexerDestroy(E, parser->lexer);
     parser->lexer = NULL;
     parser->sourcePath = NULL;
     parser->source = NULL;
     return root;
+}
+
+// chunk ::= statement_list.
+static ekSyntax * ekParserParseChunk(struct ekContext * E, struct ekParser * parser)
+{
+    return ekParserParseStatementList(E, parser);
+}
+
+// statement_list ::= statement.
+// statement_list ::= statement_list statement.
+static ekSyntax * ekParserParseStatementList(struct ekContext * E, struct ekParser * parser)
+{
+    return ekSyntaxCreate(E, EST_STATEMENTLIST, 1); // Lies!
+}
+
+static ekSyntax * ekParserParseStatement(struct ekContext * E, struct ekParser * parser)
+{
+    return NULL;
 }

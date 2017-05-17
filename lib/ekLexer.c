@@ -24,7 +24,7 @@ ekLexer * ekLexerCreate(struct ekContext * E, const char * source)
     lexer->text   = source;
     lexer->end    = lexer->text + strlen(lexer->text);
     lexer->cur    = lexer->text;
-    lexer->token  = lexer->cur;
+    lexer->prev  = lexer->cur;
     lexer->line   = 1;
     return lexer;
 }
@@ -34,14 +34,14 @@ void ekLexerDestroy(struct ekContext * E, ekLexer * lexer)
     ekFree(lexer);
 }
 
-ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * token)
+ekTokenType ekLexerConsume(struct ekContext * E, ekLexer * lexer, struct ekToken * token)
 {
     ekS32 id;
     ekS32 token_len;
     ekS32 tokenMax;
 
     while ((id = getNextToken(lexer)) != ETT_EOF) {
-        token_len = (ekS32)(lexer->cur - lexer->token);
+        token_len = (ekS32)(lexer->cur - lexer->prev);
 
         // Normal C style lexers treat semi-colons as end statements
         // and braces as block delimiters. Newlines are just whitespace.
@@ -54,7 +54,7 @@ ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * 
 
                 // remove triple quotes
                 token_len -= 6;
-                lexer->token += 3;
+                lexer->prev += 3;
                 break;
             case ETT_NEWLINE:
                 id = ETT_SPACE;
@@ -73,92 +73,21 @@ ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * 
         if ((id != ETT_SPACE) && (id != ETT_COMMENT)) {
             if (token_len > 0) {
                 token->type = id;
-                token->text = lexer->token;
+                token->text = lexer->prev;
                 token->len  = token_len;
                 token->line = lexer->line;
 
-                lexer->token = lexer->cur;
+                lexer->prev = lexer->cur;
                 return id;
             }
         }
-        lexer->token = lexer->cur;
+        lexer->prev = lexer->cur;
     }
 
     memset(token, 0, sizeof(ekToken));
     token->type = ETT_EOF;
-    return ETT_EOF;
+    return token->type;
 }
-
-#if 0
-ekBool ekLex(void * parser, const char * text, tokenCB cb, struct ekCompiler * compiler)
-{
-    struct ekContext * E = compiler->E;
-    ekS32 id;
-    ekS32 token_len;
-    ekS32 tokenMax;
-    ekToken token;
-    ekLexer l = { 0 };
-
-    l.text   = text;
-    l.end    = l.text + strlen(l.text);
-    l.cur    = l.text;
-    l.token  = l.cur;
-    l.line   = 1;
-
-    while ((id = getNextToken(&l)) != ETT_EOF) {
-        if (ekArraySize(E, &compiler->errors)) {
-            break;
-        }
-
-        token_len = (ekS32)(l.cur - l.token);
-
-        // Normal C style lexers treat semi-colons as end statements
-        // and braces as block delimiters. Newlines are just whitespace.
-
-        switch (id) {
-            case ETT_HEREDOC:
-                // Heredocs are just trimmed literal strings
-                id = ETT_LITERALSTRING;
-                ekAssert(token_len >= 6);
-
-                // remove triple quotes
-                token_len -= 6;
-                l.token += 3;
-                break;
-            case ETT_NEWLINE:
-                id = ETT_SPACE;
-                break;
-            case ETT_SEMI:
-                id = ETT_ENDSTATEMENT;
-                break;
-            case ETT_OPENBRACE:
-                id = ETT_STARTBLOCK;
-                break;
-            case ETT_CLOSEBRACE:
-                id = ETT_ENDBLOCK;
-                break;
-        }
-
-        if ((id != ETT_SPACE) && (id != ETT_COMMENT)) {
-            if (token_len > 0) {
-                token.text = l.token;
-                token.len  = token_len;
-                token.line = l.line;
-
-                CALL_CB(parser, id, token, compiler);
-            }
-        }
-
-        l.token = l.cur;
-    }
-
-    if (!ekArraySize(E, &compiler->errors)) {
-        token.line = l.line;
-        CALL_CB(parser, ETT_ENDSTATEMENT, token, compiler);
-    }
-    return ekTrue;
-}
-#endif /* if 0 */
 
 ekToken * ekTokenClone(struct ekContext * E, ekToken * token)
 {
@@ -375,15 +304,6 @@ const char * ekTokenTypeName(ekTokenType type)
 #define YYCURSOR l->cur
 #define YYMARKER l->marker
 #define YYLIMIT l->end
-
-//#include "ekLexerNames.h"
-//#define CALL_CB(A,ID,C,D) { \
-//    char temp[256] = {0}; \
-//    strncpy(temp, l.token, token_len); \
-//    printf("%s - %s\n", ekTokenIDToString(ID), temp); \
-//    cb(A,ID,C,D); \
-// //}
-#define CALL_CB cb
 
 static ekS32 getNextToken(ekLexer * l)
 {

@@ -9,6 +9,7 @@
 #define EKPARSER_H
 
 #include "ekTypes.h"
+#include "ekLexer.h"
 #include "ekString.h"
 
 // ---------------------------------------------------------------------------
@@ -16,7 +17,6 @@
 
 struct ekLexer;
 struct ekSyntax;
-struct ekToken;
 
 // ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ typedef struct ekParser
     struct ekLexer * lexer;  // only valid during ekCompile()
     const char * sourcePath; // only valid during ekCompile()
     const char * source;     // only valid during ekCompile()
+    ekToken token;           // only valid during ekCompile()
 } ekParser;
 
 ekParser * ekParserCreate(struct ekContext * E);
@@ -46,6 +47,5 @@ void ekParserDestroy(struct ekContext * E, struct ekParser * parser);
 struct ekSyntax * ekParserParse(struct ekContext * E, struct ekParser * parser, const char * sourcePath, const char * source);
 
 void ekParserSyntaxError(struct ekContext * E, ekParser * parser, struct ekToken * token, const char * explanation);
-// void ekParserExplainError(struct ekContext * E, ekParser * parser, const char * explanation);
 
 #endif // ifndef EKPARSER_H

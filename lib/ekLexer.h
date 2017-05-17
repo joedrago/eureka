@@ -125,13 +125,13 @@ typedef struct ekLexer
     const char * text;
     const char * marker;
     const char * cur;
-    const char * token;
+    const char * prev;
     const char * end;
     ekS32 line;
 } ekLexer;
 
 ekLexer * ekLexerCreate(struct ekContext * E, const char * source);
 void ekLexerDestroy(struct ekContext * E, ekLexer * lexer);
-ekTokenType ekLexerNext(struct ekContext * E, ekLexer * lexer, struct ekToken * token);
+ekTokenType ekLexerConsume(struct ekContext * E, ekLexer * lexer, struct ekToken * token);
 
 #endif // ifndef EKLEXER_H
