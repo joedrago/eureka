@@ -111,11 +111,14 @@ static ekSyntaxType ekTokenTypeToUnaryOp(ekTokenType tokenType)
 static ekSyntax * ekParserParseChunk(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseStatementList(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseStatement(struct ekContext * E, struct ekParser * parser);
+static ekSyntax * ekParserParseVar(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseExpression(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseExpressionRHS(struct ekContext * E, struct ekParser * parser, int exprPrecedence, struct ekSyntax * lhs);
 static ekSyntax * ekParserParseUnary(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseParenExpressionList(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseExpressionList(struct ekContext * E, struct ekParser * parser);
+static ekSyntax * ekParserParseParenIdentifierList(struct ekContext * E, struct ekParser * parser);
+static ekSyntax * ekParserParseIdentifierList(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParsePrimary(struct ekContext * E, struct ekParser * parser);
 static ekSyntax * ekParserParseLValue(struct ekContext * E, struct ekParser * parser);
 
@@ -174,6 +177,32 @@ static ekSyntax * ekParserParseStatement(struct ekContext * E, struct ekParser *
     return ekParserParseExpressionList(E, parser);
 }
 
+static ekSyntax * ekParserParseVar(struct ekContext * E, struct ekParser * parser)
+{
+    ekSyntax *idents = NULL;
+    if (parser->token.type != ETT_VAR) {
+        ekParserSyntaxError(E, parser, &parser->token, "var expected");
+        return NULL;
+    }
+    CONSUME(); // eat 'var'
+
+    switch(parser->token.type) {
+        case ETT_LEFTPAREN:
+            idents = ekParserParseParenIdentifierList(E, parser);
+            break;
+        case ETT_IDENTIFIER:
+            idents = ekParserParseIdentifierList(E, parser);
+            break;
+        default:
+            ekParserSyntaxError(E, parser, &parser->token, "var statements require an identifier list");
+            return NULL;
+    }
+    if(!idents) {
+        return NULL;
+    }
+    return ekSyntaxMarkVar(E, idents);
+}
+
 static ekSyntax * ekParserParseExpression(struct ekContext * E, struct ekParser * parser)
 {
     ekSyntax * lhs = ekParserParseUnary(E, parser);
@@ -209,7 +238,7 @@ static ekSyntax * ekParserParseExpressionRHS(struct ekContext * E, struct ekPars
             }
         }
 
-        if(op.syntaxType == EST_ASSIGNMENT) {
+        if (op.syntaxType == EST_ASSIGNMENT) {
             lhs = ekSyntaxCreateAssignment(E, lhs, rhs);
         } else {
             lhs = ekSyntaxCreateBinary(E, op.syntaxType, lhs, rhs, ekFalse);
@@ -240,7 +269,7 @@ static ekSyntax * ekParserParseUnary(struct ekContext * E, struct ekParser * par
 
 static ekSyntax * ekParserParseParenExpressionList(struct ekContext * E, struct ekParser * parser)
 {
-    ekSyntax *expr = NULL;
+    ekSyntax * expr = NULL;
     if (parser->token.type != ETT_LEFTPAREN) {
         ekParserSyntaxError(E, parser, &parser->token, "left paren expected");
         return NULL;
@@ -252,7 +281,7 @@ static ekSyntax * ekParserParseParenExpressionList(struct ekContext * E, struct 
     }
 
     expr = ekParserParseExpressionList(E, parser);
-    if(!expr) {
+    if (!expr) {
         return NULL;
     }
     if (parser->token.type != ETT_RIGHTPAREN) {
@@ -267,20 +296,61 @@ static ekSyntax * ekParserParseParenExpressionList(struct ekContext * E, struct 
 static ekSyntax * ekParserParseExpressionList(struct ekContext * E, struct ekParser * parser)
 {
     ekSyntax * expressionList = ekSyntaxCreateList(E, EST_EXPRESSIONLIST, NULL);
-    while(1) {
-        ekSyntax *expr = ekParserParseExpression(E, parser);
-        if(!expr) {
+    while (1) {
+        ekSyntax * expr = ekParserParseExpression(E, parser);
+        if (!expr) {
             ekSyntaxDestroy(E, expressionList);
             return NULL;
         }
         ekSyntaxListAppend(E, expressionList, expr, 0);
-        if(parser->token.type == ETT_COMMA) {
+        if (parser->token.type == ETT_COMMA) {
             CONSUME();
         } else {
             break;
         }
     }
     return expressionList;
+}
+
+static ekSyntax * ekParserParseParenIdentifierList(struct ekContext * E, struct ekParser * parser)
+{
+    ekSyntax * expr = NULL;
+    if (parser->token.type != ETT_LEFTPAREN) {
+        ekParserSyntaxError(E, parser, &parser->token, "'(' expected");
+        return NULL;
+    }
+    CONSUME(); // eat '('
+    expr = ekParserParseIdentifierList(E, parser);
+    if (!expr) {
+        return NULL;
+    }
+    if (parser->token.type != ETT_RIGHTPAREN) {
+        ekSyntaxDestroy(E, expr);
+        ekParserSyntaxError(E, parser, &parser->token, "missing ')'");
+        return NULL;
+    }
+    CONSUME(); // eat ')'
+    return expr;
+}
+
+static ekSyntax * ekParserParseIdentifierList(struct ekContext * E, struct ekParser * parser)
+{
+    ekSyntax * identifierList = ekSyntaxCreateList(E, EST_IDENTIFIERLIST, NULL);
+    while (1) {
+        if (parser->token.type != ETT_IDENTIFIER) {
+            ekSyntaxDestroy(E, identifierList);
+            ekParserSyntaxError(E, parser, &parser->token, "Expecting identifier");
+            return NULL;
+        }
+        ekSyntaxListAppend(E, identifierList, ekSyntaxCreateIdentifier(E, &parser->token), 0);
+        CONSUME(); // eat ident
+        if (parser->token.type == ETT_COMMA) {
+            CONSUME();
+        } else {
+            break;
+        }
+    }
+    return identifierList;
 }
 
 static ekSyntax * ekParserParsePrimary(struct ekContext * E, struct ekParser * parser)
@@ -312,6 +382,8 @@ static ekSyntax * ekParserParsePrimary(struct ekContext * E, struct ekParser * p
                     break;
             }
             break;
+        case ETT_VAR:
+            return ekParserParseVar(E, parser);
         case ETT_FLOATNUM:
             primary = ekSyntaxCreateKFloat(E, &parser->token, 0);
             break;
@@ -328,14 +400,9 @@ static ekSyntax * ekParserParsePrimary(struct ekContext * E, struct ekParser * p
             primary = ekSyntaxCreateNull(E, parser->token.line);
             break;
         case ETT_LEFTPAREN:
-            CONSUME(); // eat '('
-            primary = ekParserParseExpression(E, parser);
+            primary = ekParserParseParenExpressionList(E, parser);
             if (!primary) {
                 return NULL;
-            }
-            if (parser->token.type != ETT_RIGHTPAREN) {
-                ekSyntaxDestroy(E, primary);
-                ekParserSyntaxError(E, parser, &parser->token, "Expected ')'");
             }
             break;
         default:
@@ -383,7 +450,7 @@ static ekSyntax * ekParserParseLValue(struct ekContext * E, struct ekParser * pa
             case ETT_OPENBRACKET:
                 CONSUME();
                 expr = ekParserParsePrimary(E, parser);
-                if(!expr) {
+                if (!expr) {
                     ekSyntaxDestroy(E, lvalue);
                     ekParserSyntaxError(E, parser, &parser->token, "index requires an expression");
                     return NULL;
@@ -398,7 +465,7 @@ static ekSyntax * ekParserParseLValue(struct ekContext * E, struct ekParser * pa
                 break;
             case ETT_LEFTPAREN:
                 expr = ekParserParseParenExpressionList(E, parser);
-                if(!expr) {
+                if (!expr) {
                     ekSyntaxDestroy(E, lvalue);
                     return NULL;
                 }
